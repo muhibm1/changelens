@@ -1,4 +1,4 @@
-"""``orion serve``: the MCP server. Six tools, each returning a judgement or a record.
+"""``orion serve``: the MCP server. Seven tools, each returning a judgement or a record.
 
 The server has no write path into the platform. It writes the ledger and
 drafts constraint files; nothing else.
@@ -27,14 +27,16 @@ INSTRUCTIONS = """Orion is the pre-flight check for changes to data pipelines.
 Call `preflight` once with your diff, paths or intent BEFORE writing a change, and again before opening a PR.
 Every claim in a verdict carries evidence ids; cite them rather than paraphrasing. Orion never blocks on its own:
 a `block` severity means a human or CI gate should decide. Use `explain`, `history` and `ask` to understand an asset,
-`record_decision` after a human approves or waives a check, and `propose_constraint` to lock in something learned."""
+`record_decision` after a human approves or waives a check, and `propose_constraint` to lock in something learned.
+Call `review` on a finished diff for a full code review: deterministic findings from the platform first, then model
+findings that were checked against the diff and the store."""
 
 
 def _jsonable(obj: Any) -> Any:
     return json.loads(json.dumps(obj, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o)))
 
 
-def build_server(cfg: OrionConfig | None = None) -> MCPServer:
+def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) -> MCPServer:
     cfg = cfg or load_config()
     store = Store(cfg.path(cfg.db))
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
@@ -113,6 +115,27 @@ def build_server(cfg: OrionConfig | None = None) -> MCPServer:
                 scope.append(r.node_id)
         ranker = cfg.retrieval.ranker
         return _jsonable(ask_corpus(store, question, scope, limit, ranker=ranker, embedder=make_embedder(cfg.retrieval.model) if ranker != "bm25" else None))
+
+    @server.tool(name="review", description="Review a diff: deterministic findings from the platform graph and constraints first, then findings from the configured model provider, each checked against the diff and the store (unsupported ones are marked uncertain, ones outside the diff rejected). Give a git base ref (working tree against it) or a unified diff. The provider is the one configured in orion.yaml. Every finding carries a location and evidence.")
+    def review_tool(base_ref: str | None = None, diff: str | None = None, format: str = "json") -> dict[str, Any] | str:
+        from .cli import _ignore, _scope
+        from .providers import ProviderError, make_provider
+        from .review import review as run_review
+        from .review import to_markdown as review_md
+
+        if not base_ref and not diff:
+            return {"ok": False, "error": "give base_ref or diff"}
+        rc = cfg.review
+        try:
+            # The provider and model come from orion.yaml only, so a calling agent cannot redirect the diff or the spend.
+            prov = review_provider or make_provider(rc.provider, model=rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+        except ProviderError as e:
+            return {"ok": False, "error": str(e)}
+        try:
+            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg))
+        except Exception as e:  # noqa: BLE001 - a bad ref or diff is the caller's to fix; say so in the tool's own shape
+            return {"ok": False, "error": f"review failed: {e}"}
+        return review_md(r) if format == "markdown" else _jsonable(r)
 
     return server
 

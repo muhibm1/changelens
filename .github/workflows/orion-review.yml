@@ -1,0 +1,60 @@
+# Orion's code review on every pull request, posted as one comment that is
+# updated in place on each push. Model findings need the repository secret
+# ORION_ANTHROPIC_API_KEY; without it the review runs deterministic checks only.
+# Advisory: this job never fails the pull request. Binding checks belong to orion-gate.
+name: orion-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v3
+      - name: Install
+        run: |
+          uv venv .venv
+          uv pip install -e ".[fixture]"
+      - name: Parse the dbt project
+        working-directory: fixture/dbt_project
+        env:
+          PIPELINEBENCH_DB: warehouse.duckdb
+        run: ../../.venv/bin/dbt parse --profiles-dir . -q
+      - name: Build the graph
+        run: .venv/bin/orion sync
+      # Output goes outside the checkout: the review diffs the working tree, untracked files included.
+      - name: Review the diff
+        env:
+          ORION_ANTHROPIC_API_KEY: ${{ secrets.ORION_ANTHROPIC_API_KEY }}
+        run: |
+          provider=stub
+          if [ -n "$ORION_ANTHROPIC_API_KEY" ]; then provider=anthropic; fi
+          {
+            echo "<!-- orion-review -->"
+            .venv/bin/orion review --git "origin/${{ github.base_ref }}" --provider "$provider" --format markdown \
+              || echo "Orion review did not complete; see the workflow log."
+            if [ "$provider" = stub ]; then
+              echo
+              echo "_Model review is off: add the \`ORION_ANTHROPIC_API_KEY\` repository secret to turn it on._"
+            fi
+          } > "$RUNNER_TEMP/orion-review.md"
+      - name: Post or update the review comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- orion-review -->")) | .id' | tail -n1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/orion-review.md" > /dev/null
+          else
+            gh pr comment "$PR" --body-file "$RUNNER_TEMP/orion-review.md"
+          fi

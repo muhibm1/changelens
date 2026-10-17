@@ -18,7 +18,7 @@ Code-context tools index what the repository says. Orion indexes what production
 | `orion history <asset>` | Ledger events for an asset, newest first. |
 | `orion preflight` | The verdict. Give it `--git <base>` (diff of the working tree), `--path`, `--intent "<sentence>"` or `--ops <json>`; get back typed change ops, the column-level blast radius, the constraints that fire, the incidents on the same path, a transparent risk score, recommended checks and a summary, every claim with evidence ids. `--format markdown` is what the PR comment uses. |
 | `orion gate` | CI entry point: pre-flight the diff and exit non-zero at `--fail-on warn|block`. The verdict is advisory until a team wires this in. |
-| `orion serve` | The MCP server. Six tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask`. No write path into the platform. |
+| `orion serve` | The MCP server. Seven tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask`, `review` (the same review as the CLI, on a base ref or a diff). No write path into the platform. |
 | `orion ask` | Graph-scoped retrieval over postmortems, descriptions and constraint reasons. Every sentence cites a chunk; unknown returns "not recorded". |
 | `orion record-decision` | Writes a human's approve / waive / reject on a verdict to the ledger. |
 | `orion postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
@@ -63,6 +63,8 @@ BLOCK  1 findings  provider stub  rv_bd3f176d8a96c958
 ```
 
 With `--provider anthropic` (or `openai`, or `review.provider` in `orion.yaml`), model findings join the list for any file in the diff, platform or not, each with a `path:line` and evidence: `hunk:<path>:<line>` for a line in the diff, or an id from the store. A cited id that does not exist is removed and noted; a finding with no valid evidence moves to `uncertain`; one pointing outside the diff moves to `rejected`. If the provider fails, the review still returns its deterministic findings and says the model review was unavailable. `--format json|markdown`, `--diff-file <path|->` for a diff from elsewhere.
+
+On pull requests, `.github/workflows/orion-review.yml` posts the review as one comment and updates it on every push. Add the `ORION_ANTHROPIC_API_KEY` repository secret for model findings; without it the comment carries the deterministic findings only. The workflow is advisory and never fails the pull request; `orion-gate` is the binding check.
 
 Provider settings live in `orion.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors.
 
@@ -185,7 +187,7 @@ src/orion/
   retrieval.py        graph-scoped retrieval (BM25, hybrid, embedding) over postmortems, descriptions and constraint reasons
   postflight.py       verdict -> landing commit -> next N runs -> outcome_observed; calibration table
   proposals.py        ledger patterns -> draft constraints with evidence, written under proposed/
-  server.py           the MCP server (six tools)
+  server.py           the MCP server (seven tools)
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
   providers.py        Provider interface; stub, Anthropic, OpenAI-compatible; retries and timeouts
   review.py           gather, generate, validate, format; deterministic findings first

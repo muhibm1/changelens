@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 
 from orion.config import load_config
@@ -7,13 +8,39 @@ from orion.server import build_server
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_server_exposes_six_tools(synced_store):
+def test_server_exposes_seven_tools(synced_store):
     cfg = load_config(ROOT / "orion.yaml")
     cfg.db = str(synced_store.path)
     cfg.root = ROOT
     server = build_server(cfg)
     tools = asyncio.run(server.list_tools())
-    assert {t.name for t in tools} == {"preflight", "explain", "history", "record_decision", "propose_constraint", "ask"}
+    assert {t.name for t in tools} == {"preflight", "explain", "history", "record_decision", "propose_constraint", "ask", "review"}
+
+
+def test_review_tool_runs_a_diff(synced_store):
+    from orion.providers import StubProvider
+
+    cfg = load_config(ROOT / "orion.yaml")
+    cfg.db = str(synced_store.path)
+    cfg.root = ROOT
+    fct = "fixture/dbt_project/models/marts/fct_orders.sql"
+    stub = StubProvider({"findings": [{"path": fct, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount reads a dropped column", "body": "b", "evidence": [f"hunk:{fct}:8"]}]})
+    server = build_server(cfg, review_provider=stub)
+    diff = (ROOT / fct).read_text().replace("    discount_pct,\n", "")
+    import difflib
+
+    old = (ROOT / fct).read_text().splitlines(keepends=True)
+    text = "".join(difflib.unified_diff(old, diff.splitlines(keepends=True), f"a/{fct}", f"b/{fct}"))
+    text = f"diff --git a/{fct} b/{fct}\n" + text
+    result = asyncio.run(server.call_tool("review", {"diff": text}))
+    r = json.loads(result.content[0].text) if hasattr(result, "content") else result
+    titles = [f["title"] for f in r["findings"]]
+    assert titles[0].startswith("CON-031"), "deterministic finding from the platform first"
+    assert "net_amount reads a dropped column" in titles, "model finding survives validation"
+    missing = asyncio.run(server.call_tool("review", {}))
+    assert "give base_ref or diff" in str(missing)
+    bad_ref = asyncio.run(server.call_tool("review", {"base_ref": "no-such-ref"}))
+    assert "review failed" in str(bad_ref)
 
 
 def test_ask_is_graph_scoped(synced_store):
