@@ -216,3 +216,24 @@ def test_cli_review_from_diff_file(synced_store, tmp_path):
     out = json.loads(res.output)
     assert out["severity"] == "block" and out["provider"] == "stub"
     assert out["findings"][0]["evidence"][0] == "constraint:CON-031"
+
+
+def test_dotfile_paths_are_not_mangled(synced_store, constraints):
+    wf = ".github/workflows/deploy.yml"
+    diff = f"""diff --git a/{wf} b/{wf}
+new file mode 100644
+--- /dev/null
++++ b/{wf}
+@@ -0,0 +1,3 @@
++on: pull_request_target
++jobs:
++  run: {{runs-on: ubuntu-latest}}
+"""
+    stub = StubProvider({"findings": [
+        {"path": wf, "line": 1, "severity": "warn", "category": "security", "title": "pull_request_target runs fork code with secrets", "body": "x", "evidence": [f"hunk:{wf}:1"]},
+        {"path": f"./{wf}", "line": 1, "severity": "inform", "category": "security", "title": "same file via ./", "body": "x", "evidence": [f"hunk:./{wf}:1"]},
+    ]})
+    r = _review(synced_store, constraints, diff, stub)
+    assert {f["title"] for f in r["findings"]} == {"pull_request_target runs fork code with secrets", "same file via ./"}
+    assert all(f["path"] == wf for f in r["findings"])
+    assert r["rejected"] == []

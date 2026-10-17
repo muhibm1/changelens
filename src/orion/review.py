@@ -77,6 +77,14 @@ Every finding must:
 Never invent owners, dependencies, lineage, constraints, incidents or approvals. If the system facts do not cover something, do not claim it. An empty findings list is a valid answer."""
 
 
+def _norm_path(path: str) -> str:
+    """Drop a leading ``./``; ``lstrip`` would also eat the dot of ``.github/``."""
+    path = path.strip()
+    while path.startswith("./"):
+        path = path[2:]
+    return path
+
+
 @dataclass
 class ReviewContext:
     files: list[FileDiff]
@@ -162,7 +170,7 @@ def generate(provider: Provider, ctx: ReviewContext) -> tuple[list[dict[str, Any
 
 
 def _file(ctx: ReviewContext, path: str) -> FileDiff | None:
-    path = path.lstrip("./")
+    path = _norm_path(path)
     return next((f for f in ctx.files if f.path == path), None)
 
 
@@ -184,7 +192,7 @@ def validate(candidates: list[dict[str, Any]], ctx: ReviewContext) -> list[dict[
     for raw in candidates:
         f = {
             "source": "model",
-            "path": str(raw.get("path") or "").lstrip("./"),
+            "path": _norm_path(str(raw.get("path") or "")),
             "line": raw.get("line"),
             "end_line": raw.get("end_line"),
             "severity": raw.get("severity") if raw.get("severity") in SEVERITIES else "inform",
