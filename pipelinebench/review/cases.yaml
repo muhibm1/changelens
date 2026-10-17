@@ -3,7 +3,8 @@
 # the same fields). `before`/`after` give a file; `before_from_repo` reads the
 # current file and `edits` rewrites it. `expect` lists the bugs a reviewer must
 # raise, each located by a `marker`: a substring of the line in the new file where
-# the bug is, plus `file` when the case changes several files. `repo_files` are
+# the bug is, plus `file` when the case changes several files; `also` lists other
+# `file`/`marker` places where the same bug may fairly be raised. `repo_files` are
 # files the change leaves alone but that exist in the repository, for reference
 # searches. Cases with `expect: []` are correct changes, used to count false alarms.
 
@@ -1015,4 +1016,436 @@
 
       def main() -> int:
           return 0 if ping(sys.argv[1]) else 1
+  expect: []
+
+# Harder cases (`hard-`): the bug has no textual tell, or spans three files, or the
+# correct change looks dangerous (`clean-hard-`). Written after both Haiku 5.5 and
+# Sonnet 5.5 scored perfectly on the 44 cases above.
+
+- id: hard-xf3-py-timeout-units
+  files:
+    - file: app/config.py
+      before: |
+        # Network settings.
+        REQUEST_TIMEOUT_S = 5
+        MAX_RETRIES = 3
+      after: |
+        # Network settings. Timeouts are in milliseconds so the ops team can tune them finely.
+        REQUEST_TIMEOUT_MS = 5000
+        MAX_RETRIES = 3
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+        from app.config import REQUEST_TIMEOUT_S
+
+
+        def get(url: str) -> bytes:
+            with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT_S) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+        from app.config import REQUEST_TIMEOUT_MS
+
+
+        def get(url: str) -> bytes:
+            with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT_MS / 1000) as r:
+                return r.read()
+    - file: app/worker.py
+      before: |
+        import socket
+
+        from app.config import REQUEST_TIMEOUT_S
+
+
+        def connect(host: str, port: int) -> socket.socket:
+            return socket.create_connection((host, port), timeout=REQUEST_TIMEOUT_S)
+      after: |
+        import socket
+
+        from app.config import REQUEST_TIMEOUT_MS
+
+
+        def connect(host: str, port: int) -> socket.socket:
+            return socket.create_connection((host, port), timeout=REQUEST_TIMEOUT_MS)
+  expect:
+    - file: app/worker.py
+      marker: "timeout=REQUEST_TIMEOUT_MS)"
+      category: correctness
+
+- id: hard-xf-py-cache-key-ignores-new-arg
+  files:
+    - file: app/pricing.py
+      before: |
+        from app.cache import cached_key, get_cached, set_cached
+
+
+        def quote(amount_cents: int) -> int:
+            key = cached_key("quote", amount_cents)
+            hit = get_cached(key)
+            if hit is not None:
+                return hit
+            value = amount_cents + fee(amount_cents)
+            set_cached(key, value)
+            return value
+
+
+        def fee(amount_cents: int) -> int:
+            return max(30, amount_cents * 29 // 1000)
+      after: |
+        from app.cache import cached_key, get_cached, set_cached
+
+        FX = {"usd": 1.0, "eur": 1.08, "gbp": 1.27}
+
+
+        def quote(amount_cents: int, currency: str = "usd") -> int:
+            key = cached_key("quote", amount_cents)
+            hit = get_cached(key)
+            if hit is not None:
+                return hit
+            value = int((amount_cents + fee(amount_cents)) * FX[currency])
+            set_cached(key, value)
+            return value
+
+
+        def fee(amount_cents: int) -> int:
+            return max(30, amount_cents * 29 // 1000)
+    - file: app/cache.py
+      before: |
+        _store: dict[str, int] = {}
+
+
+        def cached_key(*parts) -> str:
+            return ":".join(str(p) for p in parts)
+
+
+        def get_cached(key: str):
+            return _store.get(key)
+
+
+        def set_cached(key: str, value: int) -> None:
+            _store[key] = value
+      after: |
+        _store: dict[str, int] = {}
+
+
+        def cached_key(*parts) -> str:
+            """A stable key from any mix of parts; every argument that changes the value belongs in it."""
+            return ":".join(str(p) for p in parts)
+
+
+        def get_cached(key: str):
+            return _store.get(key)
+
+
+        def set_cached(key: str, value: int) -> None:
+            _store[key] = value
+  expect:
+    - file: app/pricing.py
+      marker: 'key = cached_key("quote", amount_cents)'
+      category: correctness
+
+- id: hard-py-discount-after-tax
+  file: app/checkout.py
+  before: |
+    TAX_RATE = 0.2
+
+
+    def total_cents(subtotal_cents: int, discount_cents: int) -> int:
+        """Discounts apply to the pre-tax amount; tax is charged on what the customer actually pays."""
+        taxable = subtotal_cents - discount_cents
+        return taxable + round(taxable * TAX_RATE)
+  after: |
+    TAX_RATE = 0.2
+
+
+    def total_cents(subtotal_cents: int, discount_cents: int) -> int:
+        """Discounts apply to the pre-tax amount; tax is charged on what the customer actually pays."""
+        taxed = subtotal_cents + round(subtotal_cents * TAX_RATE)
+        return max(0, taxed - discount_cents)
+  expect:
+    - marker: "taxed = subtotal_cents + round(subtotal_cents * TAX_RATE)"
+      category: correctness
+
+- id: hard-ts-has-more-never-true
+  file: web/src/api/list.ts
+  before: |
+    export async function listOrders(db: Db, cursor: number, pageSize: number) {
+      const rows = await db.orders.findMany({ where: { id: { gt: cursor } }, take: pageSize + 1, orderBy: { id: "asc" } });
+      const items = rows.slice(0, pageSize);
+      return { items, hasMore: rows.length > pageSize, nextCursor: items.at(-1)?.id ?? cursor };
+    }
+  after: |
+    export async function listOrders(db: Db, cursor: number, pageSize: number) {
+      // Fetch exactly one page; the extra row was wasted bandwidth on large orders.
+      const rows = await db.orders.findMany({ where: { id: { gt: cursor } }, take: pageSize, orderBy: { id: "asc" } });
+      return { items: rows, hasMore: rows.length > pageSize, nextCursor: rows.at(-1)?.id ?? cursor };
+    }
+  expect:
+    - marker: "hasMore: rows.length > pageSize"
+      category: correctness
+
+- id: hard-go-shadowed-err
+  file: svc/load.go
+  before: |
+    package svc
+
+    func Load(id int) (*Record, error) {
+        rec, err := fetch(id)
+        if err != nil {
+            return nil, err
+        }
+        if rec.Archived {
+            rec, err = fetchArchive(id)
+            if err != nil {
+                return nil, err
+            }
+        }
+        return rec, nil
+    }
+  after: |
+    package svc
+
+    func Load(id int) (*Record, error) {
+        rec, err := fetch(id)
+        if err != nil {
+            return nil, err
+        }
+        if rec.Archived {
+            rec, err := fetchArchive(id)
+            if err != nil {
+                return nil, err
+            }
+            rec.Source = "archive"
+        }
+        return rec, nil
+    }
+  expect:
+    - marker: "rec, err := fetchArchive(id)"
+      category: correctness
+
+- id: hard-xf-dbt-fanout-then-sum
+  files:
+    - file: fixture/dbt_project/models/intermediate/int_order_payments.sql
+      before_from_repo: true
+      edits:
+        - old: "    o.currency,\n"
+          new: "    o.currency,\n    p.payment_method,\n"
+        - old: "group by 1, 2, 3, 4, 5, 6, 7"
+          new: "group by 1, 2, 3, 4, 5, 6, 7, 8"
+    - file: fixture/dbt_project/models/marts/fct_orders.sql
+      before_from_repo: true
+      edits:
+        - old: "    currency,\n"
+          new: "    currency,\n    payment_method,\n"
+  expect:
+    - file: fixture/dbt_project/models/intermediate/int_order_payments.sql
+      marker: "p.payment_method,"
+      category: correctness
+      also:
+        - file: fixture/dbt_project/models/intermediate/int_order_payments.sql
+          marker: "group by 1, 2, 3, 4, 5, 6, 7, 8"
+
+- id: hard-xf-py-retry-returns-none
+  files:
+    - file: app/retry.py
+      before: |
+        import time
+
+
+        def with_retry(fn, attempts: int = 3):
+            last = None
+            for i in range(attempts):
+                try:
+                    return fn()
+                except ConnectionError as e:
+                    last = e
+                    time.sleep(0.1 * (i + 1))
+            raise last
+      after: |
+        import logging
+        import time
+
+        log = logging.getLogger(__name__)
+
+
+        def with_retry(fn, attempts: int = 3):
+            for i in range(attempts):
+                try:
+                    return fn()
+                except ConnectionError as e:
+                    log.warning("attempt %d failed: %s", i + 1, e)
+                    time.sleep(0.1 * (i + 1))
+            log.error("giving up after %d attempts", attempts)
+            return None
+    - file: app/sync.py
+      before: |
+        from app.retry import with_retry
+        from app.store import delete_local, fetch_remote
+
+
+        def reconcile(record_id: int) -> None:
+            remote = with_retry(lambda: fetch_remote(record_id))
+            if remote is None:
+                delete_local(record_id)
+      after: |
+        from app.retry import with_retry
+        from app.store import delete_local, fetch_remote
+
+
+        def reconcile(record_id: int) -> None:
+            """Mirror the remote: a record the remote no longer has is removed locally."""
+            remote = with_retry(lambda: fetch_remote(record_id))
+            if remote is None:
+                delete_local(record_id)
+  expect:
+    - file: app/retry.py
+      marker: "return None"
+      category: correctness
+      also:
+        - file: app/sync.py
+          marker: "delete_local(record_id)"
+
+- id: hard-py-dedupe-keeps-last-not-first
+  file: app/events.py
+  before: |
+    def dedupe(events: list[dict]) -> list[dict]:
+        """Keep the first event seen for each id; later ones are retries and carry stale data."""
+        seen: set[str] = set()
+        out = []
+        for e in events:
+            if e["id"] in seen:
+                continue
+            seen.add(e["id"])
+            out.append(e)
+        return out
+  after: |
+    def dedupe(events: list[dict]) -> list[dict]:
+        """Keep the first event seen for each id; later ones are retries and carry stale data."""
+        by_id = {e["id"]: e for e in events}
+        return list(by_id.values())
+  expect:
+    - marker: 'by_id = {e["id"]: e for e in events}'
+      category: correctness
+
+- id: clean-hard-py-subprocess-list-args
+  file: app/search.py
+  before: |
+    import subprocess
+
+
+    def grep(pattern: str, path: str) -> str:
+        return subprocess.run(["grep", "-rn", "--", pattern, path], capture_output=True, text=True).stdout
+  after: |
+    import subprocess
+
+
+    def grep(pattern: str, path: str, ignore_case: bool = False) -> str:
+        args = ["grep", "-rn"]
+        if ignore_case:
+            args.append("-i")
+        args += ["--", pattern, path]
+        return subprocess.run(args, capture_output=True, text=True).stdout
+  expect: []
+
+- id: clean-hard-py-literal-eval
+  file: app/settings.py
+  before: |
+    import json
+
+
+    def parse_override(raw: str):
+        return json.loads(raw)
+  after: |
+    import ast
+    import json
+
+
+    def parse_override(raw: str):
+        """Accept JSON or a Python literal (the ops runbook writes tuples and sets)."""
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+        try:
+            return ast.literal_eval(raw)
+        except (ValueError, SyntaxError, TypeError, MemoryError, RecursionError) as e:
+            raise ValueError(f"not JSON or a Python literal: {raw[:40]!r}") from e
+  expect: []
+
+- id: clean-hard-ts-innerhtml-sanitized
+  file: web/src/render.ts
+  before: |
+    export function renderComment(el: HTMLElement, text: string) {
+      el.textContent = text;
+    }
+  after: |
+    import DOMPurify from "dompurify";
+
+    export function renderComment(el: HTMLElement, html: string) {
+      el.innerHTML = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    }
+  expect: []
+
+- id: clean-hard-py-bulk-delete-guarded
+  file: app/cleanup.py
+  before: |
+    from app.store import list_expired
+
+
+    def expired_ids(now) -> list[int]:
+        return [r.id for r in list_expired(now)]
+  after: |
+    from app.store import delete_many, list_expired
+
+
+    def expired_ids(now) -> list[int]:
+        return [r.id for r in list_expired(now)]
+
+
+    def purge_expired(now, *, dry_run: bool = True, limit: int = 1000) -> list[int]:
+        """Delete up to ``limit`` expired rows and return their ids. Defaults to a dry run, which only reports them."""
+        ids = expired_ids(now)[:limit]
+        if not dry_run and ids:
+            delete_many(ids)
+        return ids
+  expect: []
+
+- id: clean-hard-py-lock-narrowed
+  file: app/counter.py
+  before: |
+    import threading
+
+    _lock = threading.Lock()
+    _counts: dict[str, int] = {}
+
+
+    def bump(key: str) -> int:
+        with _lock:
+            _counts[key] = _counts.get(key, 0) + 1
+            value = _counts[key]
+            _log(key, value)
+            return value
+
+
+    def _log(key, value):
+        print(f"{key}={value}")
+  after: |
+    import threading
+
+    _lock = threading.Lock()
+    _counts: dict[str, int] = {}
+
+
+    def bump(key: str) -> int:
+        with _lock:
+            _counts[key] = _counts.get(key, 0) + 1
+            value = _counts[key]
+        _log(key, value)
+        return value
+
+
+    def _log(key, value):
+        print(f"{key}={value}")
   expect: []

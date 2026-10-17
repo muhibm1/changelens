@@ -1,0 +1,358 @@
+{
+ "provider": "anthropic:claude-haiku-5-5",
+ "file_context": true,
+ "repeat": 1,
+ "cases": 13,
+ "rows": [
+  {
+   "case": "hard-xf3-py-timeout-units",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/worker.py",
+     "marker": "timeout=REQUEST_TIMEOUT_MS)",
+     "line": 7,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1874,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 448
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-py-cache-key-ignores-new-arg",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/pricing.py",
+     "marker": "key = cached_key(\"quote\", amount_cents)",
+     "line": 7,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1950,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 242
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-py-discount-after-tax",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/checkout.py",
+     "marker": "taxed = subtotal_cents + round(subtotal_cents * TAX_RATE)",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1360,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 623
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-ts-has-more-never-true",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/api/list.ts",
+     "marker": "hasMore: rows.length > pageSize",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1781,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 349
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-go-shadowed-err",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "svc/load.go",
+     "marker": "rec, err := fetchArchive(id)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1319,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 431
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-dbt-fanout-then-sum",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "p.payment_method,",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2357,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1145
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-py-retry-returns-none",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/retry.py",
+     "marker": "return None",
+     "line": 15,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1723,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 676
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-py-dedupe-keeps-last-not-first",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/events.py",
+     "marker": "by_id = {e[\"id\"]: e for e in events}",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1302,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 400
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-subprocess-list-args",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1486,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 9
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-literal-eval",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/settings.py",
+     "line": 14,
+     "severity": "warn",
+     "title": "Failure type changed from JSONDecodeError to ValueError",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1490,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 865
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-ts-innerhtml-sanitized",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1367,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 303
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-bulk-delete-guarded",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/cleanup.py",
+     "line": 12,
+     "severity": "warn",
+     "title": "Deletion uses a truncated id list but expired_ids is computed from the full set",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1492,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 257
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-lock-narrowed",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1308,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 0.8,
+  "duplicate_findings": 1,
+  "false_alarms": 2,
+  "clean_cases_flagged": "2/5",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 20809,
+  "tokens_out": 5758
+ }
+}

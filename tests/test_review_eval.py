@@ -71,3 +71,18 @@ def test_markdown_shows_na_when_a_metric_has_no_denominator():
     res = {"provider": "stub", "cases": 1, "repeat": 1, "summary": {"recall": None, "inform_only": 0, "precision": None, "duplicate_findings": 0, "false_alarms": 0, "clean_cases_flagged": 0, "provider_errors": 0, "tokens_in": 0, "tokens_out": 0, "missed": []}, "rows": []}
     md = to_markdown(res)
     assert "| recall (bugs raised at warn or block) | n/a |" in md and "| precision (caught bugs / (caught bugs + false alarms)) | n/a |" in md
+
+
+def test_a_bug_may_be_raised_at_an_alternative_location(tmp_path):
+    import yaml
+
+    from pipelinebench.review_eval import grade
+
+    case_yaml = [{"id": "alt", "files": [{"file": "a.py", "before": "", "after": "def f():\n    return None\n"}, {"file": "b.py", "before": "", "after": "x = f()\ndelete(x)\n"}],
+                  "expect": [{"file": "a.py", "marker": "return None", "also": [{"file": "b.py", "marker": "delete(x)"}]}]}]
+    (tmp_path / "cases.yaml").write_text(yaml.safe_dump(case_yaml))
+    [case] = load_cases(tmp_path / "cases.yaml", tmp_path)
+    assert case.expect[0].locations == [("a.py", 2), ("b.py", 2)]
+    finding = {"source": "model", "path": "b.py", "line": 2, "end_line": None, "severity": "block", "category": "correctness", "title": "t", "body": "b", "evidence": ["hunk:b.py:2"], "status": "valid", "notes": []}
+    g = grade(case, {"findings": [finding], "uncertain": [], "rejected": [], "provider_error": None})
+    assert g["caught"] == 1 and g["false_alarms"] == []

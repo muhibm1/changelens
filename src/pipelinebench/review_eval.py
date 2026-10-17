@@ -39,6 +39,11 @@ class Expected:
     category: str | None = None
     line: int = 0
     file: str = ""
+    also: list[tuple[str, int]] = field(default_factory=list)  # other (file, line) where the same bug may fairly be raised
+
+    @property
+    def locations(self) -> list[tuple[str, int]]:
+        return [(self.file, self.line), *self.also]
 
 
 @dataclass
@@ -83,6 +88,18 @@ def _change(case_id: str, raw: dict[str, Any], repo_root: Path) -> Change:
     return Change(raw["file"], before, after)
 
 
+def _locate(case_id: str, x: dict[str, Any], changes: list[Change]) -> tuple[str, int]:
+    """The (file, line) a marker names in the new text; the file may be implied when the case changes one file."""
+    by_file = {c.file: c for c in changes}
+    file = x.get("file") or (changes[0].file if len(changes) == 1 else None)
+    if file not in by_file:
+        raise ValueError(f"{case_id}: marker {x['marker']!r} needs a `file` that the case changes")
+    lines = [i for i, line in enumerate(by_file[file].after.splitlines(), 1) if x["marker"] in line]
+    if len(lines) != 1:
+        raise ValueError(f"{case_id}: marker {x['marker']!r} must match exactly one line of {file}, matched {len(lines)}")
+    return file, lines[0]
+
+
 def load_cases(path: Path, repo_root: Path) -> list[Case]:
     """Load cases. A case is one file (``file`` plus its fields) or several (``files``); ``repo_files`` are unchanged files to search."""
     cases = []
@@ -93,13 +110,9 @@ def load_cases(path: Path, repo_root: Path) -> list[Case]:
             raise ValueError(f"{raw['id']}: a file appears twice")
         expect = []
         for x in raw.get("expect") or []:
-            file = x.get("file") or (changes[0].file if len(changes) == 1 else None)
-            if file not in by_file:
-                raise ValueError(f"{raw['id']}: marker {x['marker']!r} needs a `file` that the case changes")
-            lines = [i for i, line in enumerate(by_file[file].after.splitlines(), 1) if x["marker"] in line]
-            if len(lines) != 1:
-                raise ValueError(f"{raw['id']}: marker {x['marker']!r} must match exactly one line of {file}, matched {len(lines)}")
-            expect.append(Expected(x["marker"], x.get("category"), lines[0], file))
+            file, line = _locate(raw["id"], x, changes)
+            # `also` lists other places the same bug may fairly be raised (a wrong return value and the caller that acts on it).
+            expect.append(Expected(x["marker"], x.get("category"), line, file, [_locate(raw["id"], a, changes) for a in x.get("also") or []]))
         repo_files = dict(raw.get("repo_files") or {})
         if any(not isinstance(k, str) or not isinstance(v, str) for k, v in repo_files.items()):
             raise ValueError(f"{raw['id']}: repo_files maps paths to file text")
@@ -121,7 +134,7 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
     acted = [f for f in shown if f["severity"] in ACTED_ON]
     per_bug = []
     for e in case.expect:
-        hits = [f for f in shown if _near(f, e.file, e.line)]
+        hits = [f for f in shown if any(_near(f, p, ln) for p, ln in e.locations)]
         per_bug.append({
             "file": e.file,
             "marker": e.marker,
@@ -130,7 +143,7 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
             "inform_only": bool(hits) and not any(f["severity"] in ACTED_ON for f in hits),
             "by": sorted({f["source"] for f in hits}),
         })
-    false_alarms = [f for f in acted if not any(_near(f, e.file, e.line) for e in case.expect)]
+    false_alarms = [f for f in acted if not any(_near(f, p, ln) for e in case.expect for p, ln in e.locations)]
     return {
         "case": case.id,
         "expected": len(case.expect),
