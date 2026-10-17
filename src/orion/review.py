@@ -38,6 +38,10 @@ from .verdict import preflight
 SEVERITIES = ("inform", "warn", "block")
 RANK = {s: i for i, s in enumerate(SEVERITIES)}
 CATEGORIES = ("correctness", "security", "performance", "maintainability", "data_contract", "operational")
+FILE_CONTEXT_LINES = 400  # changed files up to this long go to the model whole
+FILE_CONTEXT_BYTES = 200_000
+# Never send a whole file that may hold credentials; its hunks still go, as before.
+SECRET_PATH_RE = re.compile(r"(^|/)(\.env(\..*)?|.*\.(pem|key|p12|pfx|jks)|id_(rsa|dsa|ecdsa|ed25519)|credentials(\.\w+)?|\.netrc|\.npmrc|\.pypirc)$", re.I)
 EVIDENCE_RE = re.compile(r"^(hunk|constraint|incident|event|node|edge):(.+)$")
 
 FINDINGS_SCHEMA: dict[str, Any] = {
@@ -90,6 +94,7 @@ class ReviewContext:
     files: list[FileDiff]
     verdict: dict[str, Any] | None
     known: dict[str, set[str]] = field(default_factory=dict)  # evidence kind -> valid values
+    new_text: dict[str, str] = field(default_factory=dict)  # path -> full new file, when known
 
 
 def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[Constraint]) -> dict[str, set[str]]:
@@ -110,9 +115,22 @@ def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[C
     return known
 
 
-def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None) -> ReviewContext:
+def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None) -> ReviewContext:
     files = parse(diff_text)
     verdict = None
+    new_text: dict[str, str] = {}
+    for f in files:
+        if f.status == "deleted" or f.binary or SECRET_PATH_RE.search(f.path):
+            continue
+        if new_files and f.path in new_files:
+            text = new_files[f.path]
+        else:
+            current = _read_in_repo(repo_root, f.path)
+            # With a base ref the working tree is the new side; a diff from elsewhere may sit on either side.
+            sides = (None, current) if base_ref else both_sides(f, current)
+            text = sides[1] if sides else None
+        if text is not None and _is_new_side(f, text):
+            new_text[f.path] = text
     try:
         if base_ref:
             cs = collect_changes(store, repo_root, base_ref=base_ref, scope=scope, ignore=ignore)
@@ -132,7 +150,7 @@ def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[C
         verdict = preflight(store, cs, constraints, risk_model, record=False)
     except Exception as e:  # noqa: BLE001 - the review still runs without system context, and says so
         verdict = {"error": f"pre-flight failed: {e}", "severity": "inform", "constraints": [], "history": [], "affected": [], "change": {"touched": [], "unresolved": [], "ops": [], "ignored": []}, "summary": "", "risk": {"score": 0}}
-    return ReviewContext(files, verdict, _known_ids(store, verdict, constraints))
+    return ReviewContext(files, verdict, _known_ids(store, verdict, constraints), new_text)
 
 
 def _facts(ctx: ReviewContext) -> str:
@@ -156,11 +174,49 @@ def _facts(ctx: ReviewContext) -> str:
     return "\n".join(lines)
 
 
-def generate(provider: Provider, ctx: ReviewContext) -> tuple[list[dict[str, Any]], str | None]:
+def _read_in_repo(repo_root: Path, path: str) -> str | None:
+    """The file's text, or None if it is missing, too big, unreadable, or resolves outside the repo (a diff can name ``../x``)."""
+    root = repo_root.resolve()
+    p = (root / path).resolve()
+    if not p.is_relative_to(root):
+        return None
+    try:
+        return p.read_text(errors="replace") if p.is_file() and p.stat().st_size <= FILE_CONTEXT_BYTES else None
+    except OSError:
+        return None
+
+
+def _is_new_side(fd: FileDiff, text: str) -> bool:
+    """True when every added and context line of the diff sits at its line number in ``text``."""
+    lines = text.splitlines()
+    return all(n is not None and n <= len(lines) and lines[n - 1] == t for h in fd.hunks for op, n, t in h.lines if op != "-")
+
+
+def _file_context(ctx: ReviewContext, max_lines: int = FILE_CONTEXT_LINES, max_chars: int = 40_000) -> str:
+    """Whole new versions of small changed files, numbered like the diff, so the model sees definitions outside the hunks."""
+    parts, used = [], 0
+    for f in ctx.files:
+        text = ctx.new_text.get(f.path)
+        if text is None:
+            continue
+        lines = text.splitlines()
+        if not lines or len(lines) > max_lines:
+            continue
+        block = f"=== {f.path} (whole file after the change)\n" + "\n".join(f"{i:>5}   {t}" for i, t in enumerate(lines, 1)) + "\n"
+        if used + len(block) > max_chars:
+            break
+        parts.append(block)
+        used += len(block)
+    return "\n".join(parts)
+
+
+def generate(provider: Provider, ctx: ReviewContext, *, file_context: bool = True) -> tuple[list[dict[str, Any]], str | None]:
     diff = render(ctx.files)
     if not diff.strip():
         return [], None
-    user = f"System facts:\n{_facts(ctx)}\n\nDiff:\n{diff}"
+    files = _file_context(ctx) if file_context else ""
+    context = f"Changed files in full, for context only. Findings must still point at lines inside the diff below:\n{files}\n" if files else ""
+    user = f"System facts:\n{_facts(ctx)}\n\n{context}Diff:\n{diff}"
     try:
         out = provider.complete_json(SYSTEM, user, FINDINGS_SCHEMA, schema_name="report_findings")
     except ProviderError as e:
@@ -289,13 +345,13 @@ def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict
     return kept
 
 
-def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None) -> dict[str, Any]:
+def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, file_context: bool = True) -> dict[str, Any]:
     if diff_text is None:
         if not base_ref:
             raise ValueError("give a base ref or a diff")
         diff_text = git_diff(repo_root, base_ref)
-    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore)
-    candidates, provider_error = generate(provider, ctx)
+    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore, new_files=new_files)
+    candidates, provider_error = generate(provider, ctx, file_context=file_context)
     checked = validate(candidates, ctx)
     det = deterministic_findings(ctx)
     model = _dedupe(det, checked)

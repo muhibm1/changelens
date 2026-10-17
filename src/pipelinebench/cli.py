@@ -88,6 +88,7 @@ def review_eval_cmd(
     provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai (default from orion.yaml)."),
     model: str | None = typer.Option(None, "--model"),
     repeat: int = typer.Option(1, "--repeat", help="Run every case this many times."),
+    file_context: bool = typer.Option(True, "--file-context/--no-file-context", help="Send whole changed files to the model, not just the hunks."),
     case: list[str] = typer.Option([], "--case", help="Only these case ids."),
     cases_file: Path = typer.Option(REVIEW_CASES, "--cases"),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
@@ -112,7 +113,7 @@ def review_eval_cmd(
     cases = [c for c in load_cases(cases_file, cfg.root) if not case or c.id in case]
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     with console.status("reviewing") as status:
-        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
+        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, file_context=file_context, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "review-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))

@@ -366,3 +366,313 @@
   after: |
     create index concurrently if not exists orders_created_at_idx on orders (created_at);
   expect: []
+
+# Harder cases: the bug, or the reason a change is fine, sits outside the hunk's
+# three context lines, so a reviewer that sees only the diff cannot tell.
+
+- id: ctx-swapped-transfer-args
+  file: app/ledger.py
+  before: |
+    from decimal import Decimal
+
+
+    def transfer(src: str, dst: str, amount: Decimal) -> None:
+        """Move ``amount`` from account ``src`` to account ``dst``."""
+        debit(src, amount)
+        credit(dst, amount)
+
+
+    def debit(account: str, amount: Decimal) -> None:
+        BALANCES[account] -= amount
+
+
+    def credit(account: str, amount: Decimal) -> None:
+        BALANCES[account] += amount
+
+
+    BALANCES: dict[str, Decimal] = {}
+
+
+    def settle_refund(order) -> None:
+        pass
+  after: |
+    from decimal import Decimal
+
+
+    def transfer(src: str, dst: str, amount: Decimal) -> None:
+        """Move ``amount`` from account ``src`` to account ``dst``."""
+        debit(src, amount)
+        credit(dst, amount)
+
+
+    def debit(account: str, amount: Decimal) -> None:
+        BALANCES[account] -= amount
+
+
+    def credit(account: str, amount: Decimal) -> None:
+        BALANCES[account] += amount
+
+
+    BALANCES: dict[str, Decimal] = {}
+
+
+    def settle_refund(order) -> None:
+        # refund: money goes from the merchant back to the customer
+        transfer(order.customer_account, order.merchant_account, order.refund_amount)
+  expect:
+    - marker: "transfer(order.customer_account, order.merchant_account"
+      category: correctness
+
+- id: ctx-units-mismatch
+  file: app/shipping.py
+  before: |
+    SHIPPING_FLAT_DOLLARS = 7.5
+    FREE_SHIPPING_OVER_DOLLARS = 50
+
+
+    def item_total_cents(items) -> int:
+        return sum(i.price_cents * i.qty for i in items)
+
+
+    def order_total_cents(items) -> int:
+        return item_total_cents(items)
+  after: |
+    SHIPPING_FLAT_DOLLARS = 7.5
+    FREE_SHIPPING_OVER_DOLLARS = 50
+
+
+    def item_total_cents(items) -> int:
+        return sum(i.price_cents * i.qty for i in items)
+
+
+    def order_total_cents(items) -> int:
+        subtotal = item_total_cents(items)
+        if subtotal > FREE_SHIPPING_OVER_DOLLARS:
+            return subtotal
+        return subtotal + SHIPPING_FLAT_DOLLARS
+  expect:
+    - marker: "if subtotal > FREE_SHIPPING_OVER_DOLLARS:"
+      category: correctness
+
+- id: ctx-lock-bypassed
+  file: app/cache.py
+  before: |
+    import threading
+
+
+    class Counter:
+        def __init__(self):
+            self._lock = threading.Lock()
+            self._counts: dict[str, int] = {}
+
+        def incr(self, key: str) -> int:
+            with self._lock:
+                self._counts[key] = self._counts.get(key, 0) + 1
+                return self._counts[key]
+
+        def get(self, key: str) -> int:
+            with self._lock:
+                return self._counts.get(key, 0)
+  after: |
+    import threading
+
+
+    class Counter:
+        def __init__(self):
+            self._lock = threading.Lock()
+            self._counts: dict[str, int] = {}
+
+        def incr(self, key: str) -> int:
+            with self._lock:
+                self._counts[key] = self._counts.get(key, 0) + 1
+                return self._counts[key]
+
+        def get(self, key: str) -> int:
+            with self._lock:
+                return self._counts.get(key, 0)
+
+        def incr_many(self, keys: list[str]) -> None:
+            for key in keys:
+                self._counts[key] = 1 + self._counts.get(key, 0)
+  expect:
+    - marker: "self._counts[key] = 1 + self._counts.get(key, 0)"
+      category: correctness
+
+- id: ctx-timeout-milliseconds
+  file: app/http.py
+  before: |
+    import urllib.request
+
+
+    def fetch(url: str, timeout_ms: int = 2000) -> bytes:
+        """GET ``url``. ``timeout_ms`` is in milliseconds."""
+        with urllib.request.urlopen(url, timeout=timeout_ms / 1000) as r:
+            return r.read()
+
+
+    def health(base: str) -> bool:
+        return True
+  after: |
+    import urllib.request
+
+
+    def fetch(url: str, timeout_ms: int = 2000) -> bytes:
+        """GET ``url``. ``timeout_ms`` is in milliseconds."""
+        with urllib.request.urlopen(url, timeout=timeout_ms / 1000) as r:
+            return r.read()
+
+
+    def health(base: str) -> bool:
+        # the health endpoint is slow on cold start; give it 5 seconds
+        return fetch(base + "/health", 5) == b"ok"
+  expect:
+    - marker: "fetch(base + \"/health\", 5)"
+      category: correctness
+
+- id: ctx-null-guard-removed
+  file: app/profile.py
+  before: |
+    from dataclasses import dataclass
+
+
+    @dataclass
+    class User:
+        name: str
+        manager: "User | None" = None
+
+
+    def manager_name(user: User) -> str:
+        if user.manager is None:
+            return "(none)"
+        return user.manager.name
+  after: |
+    from dataclasses import dataclass
+
+
+    @dataclass
+    class User:
+        name: str
+        manager: "User | None" = None
+
+
+    def manager_name(user: User) -> str:
+        return user.manager.name.title()
+  expect:
+    - marker: "return user.manager.name.title()"
+      category: correctness
+
+# Correct changes whose correctness depends on code outside the hunk.
+
+- id: clean-ctx-helper-defined-above
+  file: app/report.py
+  before: |
+    def fmt_money(cents: int) -> str:
+        """Render integer cents as dollars, e.g. 1234 -> '$12.34'."""
+        return f"${cents // 100}.{cents % 100:02d}"
+
+
+    def header() -> str:
+        return "Monthly report"
+
+
+    def footer() -> str:
+        return "-- end --"
+
+
+    def line(name: str, cents: int) -> str:
+        return name + ": " + str(cents)
+  after: |
+    def fmt_money(cents: int) -> str:
+        """Render integer cents as dollars, e.g. 1234 -> '$12.34'."""
+        return f"${cents // 100}.{cents % 100:02d}"
+
+
+    def header() -> str:
+        return "Monthly report"
+
+
+    def footer() -> str:
+        return "-- end --"
+
+
+    def line(name: str, cents: int) -> str:
+        return f"{name}: {fmt_money(cents)}"
+  expect: []
+
+- id: clean-ctx-lock-held-by-caller
+  file: app/queue.py
+  before: |
+    import threading
+
+
+    class Queue:
+        """Callers of methods named ``_locked_*`` must hold ``self._lock``."""
+
+        def __init__(self):
+            self._lock = threading.Lock()
+            self._items: list = []
+
+        def push(self, item) -> None:
+            with self._lock:
+                self._locked_append(item)
+
+        def _locked_append(self, item) -> None:
+            self._items.append(item)
+  after: |
+    import threading
+
+
+    class Queue:
+        """Callers of methods named ``_locked_*`` must hold ``self._lock``."""
+
+        def __init__(self):
+            self._lock = threading.Lock()
+            self._items: list = []
+
+        def push(self, item) -> None:
+            with self._lock:
+                self._locked_append(item)
+
+        def _locked_append(self, item) -> None:
+            self._items.append(item)
+            if len(self._items) > 1000:
+                self._items.pop(0)
+  expect: []
+
+- id: clean-ctx-validated-earlier
+  file: app/upload.py
+  before: |
+    import re
+
+    SAFE_NAME = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
+
+
+    def save_upload(name: str, data: bytes, root: str) -> str:
+        if not SAFE_NAME.match(name) or name.startswith("."):
+            raise ValueError("bad file name")
+        return _write(root, name, data)
+
+
+    def _write(root: str, name: str, data: bytes) -> str:
+        path = root + "/" + name
+        open(path, "wb").write(data)
+        return path
+  after: |
+    import os
+    import re
+
+    SAFE_NAME = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
+
+
+    def save_upload(name: str, data: bytes, root: str) -> str:
+        if not SAFE_NAME.match(name) or name.startswith("."):
+            raise ValueError("bad file name")
+        return _write(root, name, data)
+
+
+    def _write(root: str, name: str, data: bytes) -> str:
+        path = os.path.join(root, name)
+        with open(path, "wb") as f:
+            f.write(data)
+        return path
+  expect: []

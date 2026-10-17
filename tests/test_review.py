@@ -237,3 +237,38 @@ new file mode 100644
     assert {f["title"] for f in r["findings"]} == {"pull_request_target runs fork code with secrets", "same file via ./"}
     assert all(f["path"] == wf for f in r["findings"])
     assert r["rejected"] == []
+
+
+def test_whole_changed_file_goes_to_the_model_unless_turned_off(synced_store, constraints):
+    stub = StubProvider()
+    _review(synced_store, constraints, APP_DIFF, stub)
+    _, user = stub.calls[0]
+    assert "app/service.py (whole file after the change)" in user
+    assert user.index("whole file after the change") < user.index("Diff:")
+    off = StubProvider()
+    review(synced_store, ROOT, off, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, file_context=False)
+    assert "whole file after the change" not in off.calls[0][1]
+    given = StubProvider()
+    review(synced_store, ROOT, given, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, new_files={"app/service.py": "import subprocess\n\n\ndef run(cmd):\n    return subprocess.run(cmd, shell=True)\n\n# SENTINEL\n"})
+    assert "# SENTINEL" in given.calls[0][1]
+
+
+def test_whole_file_context_skips_secret_files_and_mismatched_text(synced_store, constraints):
+    env_diff = APP_DIFF.replace("app/service.py", "deploy/.env.production")
+    stub = StubProvider()
+    _review(synced_store, constraints, env_diff, stub)
+    assert "whole file after the change" not in stub.calls[0][1]
+    wrong = StubProvider()
+    review(synced_store, ROOT, wrong, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, new_files={"app/service.py": "unrelated\ncontent\n"})
+    assert "whole file after the change" not in wrong.calls[0][1], "text that does not match the diff's new side is not sent"
+
+
+def test_whole_file_context_never_reads_outside_the_repo(tmp_path):
+    from orion.review import _read_in_repo
+
+    (tmp_path / "repo").mkdir()
+    (tmp_path / "outside.txt").write_text("secret\n")
+    (tmp_path / "repo" / "in.txt").write_text("ok\n")
+    assert _read_in_repo(tmp_path / "repo", "in.txt") == "ok\n"
+    assert _read_in_repo(tmp_path / "repo", "../outside.txt") is None
+    assert _read_in_repo(tmp_path / "repo", "missing.txt") is None

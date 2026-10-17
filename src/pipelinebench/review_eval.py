@@ -111,16 +111,16 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, progress=None) -> dict[str, Any]:
+def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, progress=None) -> dict[str, Any]:
     rows = []
     for n in range(repeat):
         for c in cases:
-            r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore)
+            r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={c.file: c.after}, file_context=file_context)
             g = grade(c, r) | {"run": n}
             rows.append(g)
             if progress:
                 progress(g)
-    return {"provider": provider.name, "repeat": repeat, "cases": len(cases), "rows": rows, "summary": summarize(rows)}
+    return {"provider": provider.name, "file_context": file_context, "repeat": repeat, "cases": len(cases), "rows": rows, "summary": summarize(rows)}
 
 
 def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -149,7 +149,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def to_markdown(res: dict[str, Any]) -> str:
     s = res["summary"]
     lines = [
-        f"# Review eval: `{res['provider']}`, {res['cases']} cases x {res['repeat']}",
+        f"# Review eval: `{res['provider']}`, {res['cases']} cases x {res['repeat']}, whole-file context {'on' if res.get('file_context', True) else 'off'}",
         "",
         "| metric | value |",
         "| --- | --- |",
