@@ -76,3 +76,15 @@ src/pipelinebench/
   runner.py       run, report, write_results, check_ground_truth
   cli.py          the pipelinebench command
 ```
+
+## Review eval
+
+`pipelinebench review-eval` scores `orion review` itself, not the pre-flight verdict. `review/cases.yaml` holds 25 one-file changes written by hand: 19 with a planted bug (Python, TypeScript, Go, SQL migrations, dbt models, an Airflow DAG) and 6 correct changes. Each bug is located by a marker string in the new file. A bug counts as caught when a shown finding of severity `warn` or `block` lands on the same file within three lines of it. A `warn` or `block` finding anywhere else is a false alarm.
+
+```bash
+.venv/bin/pipelinebench review-eval --provider anthropic            # one pass
+.venv/bin/pipelinebench review-eval --provider anthropic --repeat 3 # variance
+.venv/bin/pipelinebench review-eval --case py-sql-injection         # one case
+```
+
+First run (`results/review-sonnet-5-5-baseline.md`, Sonnet 5.5, one pass): all 19 bugs caught at warn or block, precision 0.905 (19 caught, 2 false alarms), 2 of 6 correct changes flagged, about 30k input and 8k output tokens. One false alarm comes from the model seeing only the diff hunks: it called a helper "not defined" because the helper sat outside the hunk's context lines. The set is still easy, since every planted bug is visible inside its own hunk. Harder cases (bugs that need the rest of the file, or several files, to see) are the next thing to add.

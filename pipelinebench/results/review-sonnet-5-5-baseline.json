@@ -1,0 +1,929 @@
+{
+ "provider": "anthropic:claude-sonnet-5-5",
+ "repeat": 1,
+ "cases": 25,
+ "rows": [
+  {
+   "case": "py-sql-injection",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "f\"select id, name",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1021,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 221,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-shell-injection",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "shell=True",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1044,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 343,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-off-by-one-total",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "range(1, len(lines))",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1020,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 397,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-mutable-default",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "items=[]",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1007,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 252,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-swallowed-exception",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "except Exception:",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1069,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 305,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-missing-await",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "asyncio.gather(*tasks)",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1028,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 506,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-identity-compare",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "is \"done\"",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 950,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 230,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-timezone-naive",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "datetime.now() - created_at",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1054,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 317,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-secret-in-code",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "sk_live_",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1012,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 264,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "py-auth-check-removed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "return serialize(order)",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1018,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 441,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "ts-xss-innerhtml",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "el.innerHTML",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1008,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 228,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "ts-unawaited-save",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "form.save();",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 972,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 253,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "sql-migration-not-null",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "add column region text not null",
+     "line": 1,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 950,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 383,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "go-unchecked-error",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "fmt.Fprintf(w",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1060,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 164,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-percent-as-amount",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "amount - discount_pct as net_amount",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1923,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 707,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-drop-locked-column",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "    paid_amount,",
+     "line": 10,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1883,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 613,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-left-to-inner-join",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "join {{ ref('stg_payments') }}",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2003,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 703,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-revenue-filter-widened",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "where status != 'cancelled'",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1795,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 458,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "airflow-retries-zeroed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "marker": "\"retries\": 0",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1587,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 402,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-refactor",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/pricing.py",
+     "line": 6,
+     "severity": "block",
+     "title": "Call to price_with_tax which is not defined or imported in this diff",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 999,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 227,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-docstring-and-types",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1021,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-test-added",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1025,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ts-rename",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1015,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-dbt-comment",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1163,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-sql-index",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "migrations/0043_orders_created_idx.sql",
+     "line": 1,
+     "severity": "warn",
+     "title": "CREATE INDEX CONCURRENTLY depends on how the migration runner handles transactions",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 949,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 440,
+    "output_tokens_details": {
+     "thinking_tokens": 140
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 0.905,
+  "duplicate_findings": 11,
+  "false_alarms": 2,
+  "clean_cases_flagged": "2/6",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 29576,
+  "tokens_out": 7894
+ }
+}
