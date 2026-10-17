@@ -37,5 +37,5 @@ def test_grading_counts_catches_inform_and_false_alarms(synced_store):
     assert s["recall"] == 0.5
     assert s["inform_only"] == 1
     assert s["false_alarms"] == 1 and s["clean_cases_flagged"] == "1/1"
-    assert s["precision"] == 0.5
+    assert s["precision"] == 0.5 and s["duplicate_findings"] == 0
     assert s["missed"] == [f"py-off-by-one-total@{obo.expect[0].line}"]

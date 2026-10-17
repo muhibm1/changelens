@@ -917,7 +917,8 @@
  "summary": {
   "recall": 1.0,
   "inform_only": 0,
-  "precision": 0.938,
+  "precision": 0.905,
+  "duplicate_findings": 11,
   "false_alarms": 2,
   "clean_cases_flagged": "2/6",
   "missed": [],

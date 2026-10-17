@@ -8,7 +8,8 @@ the new file. Correct changes (``expect: []``) count false alarms.
 A finding catches an expected bug when it is valid (shown to the user), on the
 same path, and within ``WINDOW`` lines of the marker. Severity ``warn`` or
 ``block`` is what a reviewer acts on, so recall and precision are reported at
-that bar; an ``inform`` that lands on a bug is counted separately.
+that bar, per bug rather than per finding; an ``inform`` that lands on a bug is
+counted separately.
 """
 
 from __future__ import annotations
@@ -133,7 +134,9 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "recall": round(caught / expected, 3) if expected else None,
         "inform_only": sum(b["inform_only"] for r in rows for b in r["bugs"]),
-        "precision": round((acted - alarms) / acted, 3) if acted else None,
+        # Per bug, not per finding, so three findings on one bug do not count three times.
+        "precision": round(caught / (caught + alarms), 3) if caught + alarms else None,
+        "duplicate_findings": acted - alarms - caught,
         "false_alarms": alarms,
         "clean_cases_flagged": f"{sum(bool(r['false_alarms']) for r in clean)}/{len(clean)}",
         "missed": sorted({f"{r['case']}@{b['line']}" for r in rows for b in r["bugs"] if not b["caught"]}),
@@ -152,7 +155,8 @@ def to_markdown(res: dict[str, Any]) -> str:
         "| --- | --- |",
         f"| recall (bugs raised at warn or block) | {s['recall']} |",
         f"| bugs raised only as inform | {s['inform_only']} |",
-        f"| precision (warn/block findings on a real bug) | {s['precision']} |",
+        f"| precision (caught bugs / (caught bugs + false alarms)) | {s['precision']} |",
+        f"| extra warn/block findings on an already-caught bug | {s['duplicate_findings']} |",
         f"| false alarms at warn/block | {s['false_alarms']} |",
         f"| correct changes flagged | {s['clean_cases_flagged']} |",
         f"| provider errors | {s['provider_errors']} |",

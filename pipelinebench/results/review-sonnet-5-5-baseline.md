@@ -4,7 +4,8 @@
 | --- | --- |
 | recall (bugs raised at warn or block) | 1.0 |
 | bugs raised only as inform | 0 |
-| precision (warn/block findings on a real bug) | 0.938 |
+| precision (caught bugs / (caught bugs + false alarms)) | 0.905 |
+| extra warn/block findings on an already-caught bug | 11 |
 | false alarms at warn/block | 2 |
 | correct changes flagged | 2/6 |
 | provider errors | 0 |
