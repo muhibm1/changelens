@@ -440,15 +440,32 @@ def propose(
             console.print("all proposals already exist under proposed/")
 
 
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True}, add_help_option=False)
+def record(ctx: typer.Context):
+    """Search and read the projects' written record: record search <query> | read <id> | index."""
+    from .record.__main__ import main as record_main
+
+    raise typer.Exit(record_main(ctx.args))
+
+
 @app.command()
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="stdio | streamable-http"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
-    """Run the MCP server (tools: preflight, explain, history, record_decision, propose_constraint, ask)."""
-    from .server import serve as run_server
+    """Run the MCP server (tools: preflight, explain, history, record_decision, propose_constraint, ask, review, search_record, read_record).
 
-    cfg = load_config(config)
+    Without an orion.yaml, only the record tools are served."""
+    from .server import serve as run_server
+    from .server import serve_record
+
+    try:
+        cfg = load_config(config)
+    except FileNotFoundError:
+        if config is not None:
+            raise
+        serve_record(transport=transport)
+        return
     run_server(cfg, transport=transport)
 
 

@@ -18,13 +18,26 @@ Code-context tools index what the repository says. Orion indexes what production
 | `orion history <asset>` | Ledger events for an asset, newest first. |
 | `orion preflight` | The verdict. Give it `--git <base>` (diff of the working tree), `--path`, `--intent "<sentence>"` or `--ops <json>`; get back typed change ops, the column-level blast radius, the constraints that fire, the incidents on the same path, a transparent risk score, recommended checks and a summary, every claim with evidence ids. `--format markdown` is what the PR comment uses. |
 | `orion gate` | CI entry point: pre-flight the diff and exit non-zero at `--fail-on warn|block`. The verdict is advisory until a team wires this in. |
-| `orion serve` | The MCP server. Seven tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask`, `review` (the same review as the CLI, on a base ref or a diff). No write path into the platform. |
+| `orion serve` | The MCP server. Nine tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask`, `review` (the same review as the CLI, on a base ref or a diff), and the record's `search_record` and `read_record`. No write path into the platform. Without an `orion.yaml` it serves the two record tools only. |
+| `orion record` | Search and read the projects' written record: design notes, decision records, plans, retros, and my build pipeline's lessons, ledger and run folders, across every repository `record.toml` names. Standard library only, no model call; see [The record](#the-record). |
 | `orion ask` | Graph-scoped retrieval over postmortems, descriptions and constraint reasons. Every sentence cites a chunk; unknown returns "not recorded". |
 | `orion record-decision` | Writes a human's approve / waive / reject on a verdict to the ledger. |
 | `orion postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
 | `orion propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A nightly workflow opens them as a pull request; merging is the approval. |
 | `pipelinebench` | The benchmark: fifty scenarios with hand-written ground truth, four context conditions (none, repo, rag, orion), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Orion and the ground truth honest with each other. |
 | `fixture/` | PipelineBench's fixture platform: a dbt project over DuckDB, three Airflow DAGs, CODEOWNERS, three postmortems, four constraints, and run history (an Airflow task-instance export, dbt `run_results.json` files, Iceberg table metadata with snapshots, a schema change and a partition-spec change). Realistic enough that the questions a verdict asks have non-trivial answers. |
+
+## The record
+
+Orion also holds what the projects wrote down about themselves, so one place answers both "what does this change touch?" and "why was it built this way?". `record.toml` lists the repositories (siblings of this checkout; all but my build pipeline's and Orion's are optional) and which of their files count. Markdown is cut at its `##` and `###` headings; my build pipeline's notes become one section per labelled lesson, its ledger one per run, and its run folders one per page part, decision and review. Ranking is BM25 with headings weighted three times.
+
+```bash
+PYTHONPATH=src python3 -m orion.record search "web app ship route cloud merge" --json   # nothing to install
+PYTHONPATH=src python3 -m orion.record read "pipeline:notes/playbooks/webapp.md#W2"
+orion record index                                                                    # once installed
+```
+
+Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson (`pipeline:notes/rulebook.md#R5`), `#TG-NN` for a ledger row, `#parts.N`, `#detail.N` and `decisions.json#N` for a run. `read` of an id the record does not hold prints an error and exits 1, so a citation that does not read back is not recorded. The index is cached under `.orion/record/` and rebuilt when a covered file is added, removed or changed. `ORION_RECORD` points at a different corpus file (needed when Orion is installed outside a checkout).
 
 ## Quickstart
 

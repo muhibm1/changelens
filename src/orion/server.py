@@ -1,4 +1,4 @@
-"""``orion serve``: the MCP server. Seven tools, each returning a judgement or a record.
+"""``orion serve``: the MCP server. Nine tools, each returning a judgement or a record.
 
 The server has no write path into the platform. It writes the ledger and
 drafts constraint files; nothing else.
@@ -23,6 +23,11 @@ from .retrieval import make_embedder
 from .store import Store
 from .verdict import load_risk, preflight, to_markdown
 
+RECORD_INSTRUCTIONS = """Orion also holds the projects' written record: design notes, decision records, plans, retrospectives and
+my build pipeline's lessons, ledger and runs. Call `search_record` before changing something whose reason you do not know,
+then `read_record` on the ids you need; cite those ids. `read_record` returns an error for an id the record does not hold,
+so a citation that does not read back is not recorded. Neither tool calls a model."""
+
 INSTRUCTIONS = """Orion is the pre-flight check for changes to data pipelines.
 Call `preflight` once with your diff, paths or intent BEFORE writing a change, and again before opening a PR.
 Every claim in a verdict carries evidence ids; cite them rather than paraphrasing. Orion never blocks on its own:
@@ -30,6 +35,19 @@ a `block` severity means a human or CI gate should decide. Use `explain`, `histo
 `record_decision` after a human approves or waives a check, and `propose_constraint` to lock in something learned.
 Call `review` on a finished diff for a full code review: deterministic findings from the platform first, then model
 findings that were checked against the diff and the store."""
+
+
+def register_record_tools(server: MCPServer) -> None:
+    """Add the two record tools, which need neither orion.yaml nor a synced graph."""
+    from . import record
+
+    @server.tool(name="search_record", description="Keyword search over the projects' written record (design notes, decisions, plans, retros, my build pipeline lessons, ledger and runs). Optionally limited to one repository. Returns section ids, headings and snippets.")
+    def search_record_tool(query: str, repo: str | None = None) -> list[dict[str, Any]]:
+        return record.search(query, repo=repo)
+
+    @server.tool(name="read_record", description="One section of the record in full by its id (repo:path#anchor), or an `error` for an id the record does not hold.")
+    def read_record_tool(section_id: str) -> dict[str, Any]:
+        return record.read(section_id)
 
 
 def _jsonable(obj: Any) -> Any:
@@ -41,7 +59,8 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
     store = Store(cfg.path(cfg.db))
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     risk_model = load_risk(cfg.path(cfg.risk) if cfg.risk else None)
-    server = MCPServer("orion", instructions=INSTRUCTIONS, version="0.1.0")
+    server = MCPServer("orion", instructions=INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
+    register_record_tools(server)
 
     @server.tool(name="preflight", description="Check a proposed change before making it. Give a git base ref (diff of the working tree against it), file paths, a sentence of intent, or explicit ops. Returns a verdict whose every claim carries evidence ids.")
     def preflight_tool(base_ref: str | None = None, paths: list[str] | None = None, intent: str | None = None, ops: list[dict[str, Any]] | None = None, format: str = "json") -> dict[str, Any] | str:
@@ -138,6 +157,17 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
         return review_md(r) if format == "markdown" else _jsonable(r)
 
     return server
+
+
+def build_record_server() -> MCPServer:
+    """A server with only the record tools, for a checkout with no orion.yaml."""
+    server = MCPServer("orion", instructions=RECORD_INSTRUCTIONS, version="0.1.0")
+    register_record_tools(server)
+    return server
+
+
+def serve_record(transport: str = "stdio", **kwargs: Any) -> None:
+    build_record_server().run(transport=transport, **kwargs)
 
 
 def serve(cfg: OrionConfig | None = None, transport: str = "stdio", **kwargs: Any) -> None:
