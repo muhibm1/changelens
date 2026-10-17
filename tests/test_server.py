@@ -8,13 +8,13 @@ from orion.server import build_server
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_server_exposes_seven_tools(synced_store):
+def test_server_exposes_nine_tools(synced_store):
     cfg = load_config(ROOT / "orion.yaml")
     cfg.db = str(synced_store.path)
     cfg.root = ROOT
     server = build_server(cfg)
     tools = asyncio.run(server.list_tools())
-    assert {t.name for t in tools} == {"preflight", "explain", "history", "record_decision", "propose_constraint", "ask", "review"}
+    assert {t.name for t in tools} == {"preflight", "explain", "history", "record_decision", "propose_constraint", "ask", "review", "search_record", "read_record"}
 
 
 def test_review_tool_runs_a_diff(synced_store):
