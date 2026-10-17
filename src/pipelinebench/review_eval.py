@@ -69,8 +69,8 @@ def load_cases(path: Path, repo_root: Path) -> list[Case]:
         expect = []
         for x in raw.get("expect") or []:
             lines = [i for i, line in enumerate(after.splitlines(), 1) if x["marker"] in line]
-            if not lines:
-                raise ValueError(f"{raw['id']}: marker {x['marker']!r} is not in the new file")
+            if len(lines) != 1:
+                raise ValueError(f"{raw['id']}: marker {x['marker']!r} must match exactly one line of the new file, matched {len(lines)}")
             expect.append(Expected(x["marker"], x.get("category"), lines[0]))
         cases.append(Case(raw["id"], raw["file"], before, after, expect))
     return cases
