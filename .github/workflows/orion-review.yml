@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   review:
+    # Fork pull requests get no secrets and a read-only token, so the comment could not be posted.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,12 +36,13 @@ jobs:
       - name: Review the diff
         env:
           ORION_ANTHROPIC_API_KEY: ${{ secrets.ORION_ANTHROPIC_API_KEY }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           provider=stub
           if [ -n "$ORION_ANTHROPIC_API_KEY" ]; then provider=anthropic; fi
           {
             echo "<!-- orion-review -->"
-            .venv/bin/orion review --git "origin/${{ github.base_ref }}" --provider "$provider" --format markdown \
+            .venv/bin/orion review --git "origin/$BASE_REF" --provider "$provider" --format markdown \
               || echo "Orion review did not complete; see the workflow log."
             if [ "$provider" = stub ]; then
               echo
@@ -52,7 +55,7 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- orion-review -->")) | .id' | tail -n1)
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- orion-review -->"))) | .id' | tail -n1)
           if [ -n "$id" ]; then
             gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/orion-review.md" > /dev/null
           else
