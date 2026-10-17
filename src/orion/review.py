@@ -29,10 +29,12 @@ from typing import Any
 
 from .changes import collect_changes
 from .constraints import Constraint
-from .diffparse import FileDiff, both_sides, git_diff, parse, render
+from .credscan import redact, secret_findings
+from .diffparse import FileDiff, batches, both_sides, git_diff, parse, render_file
 from .providers import Provider, ProviderError
 from .risk import RiskModel
 from .store import Store
+from .symbols import SymbolChange, symbol_changes
 from .verdict import preflight
 
 SEVERITIES = ("inform", "warn", "block")
@@ -42,7 +44,7 @@ FILE_CONTEXT_LINES = 400  # changed files up to this long go to the model whole
 FILE_CONTEXT_BYTES = 200_000
 # Never send a whole file that may hold credentials; its hunks still go, as before.
 SECRET_PATH_RE = re.compile(r"(^|/)(\.env(\..*)?|.*\.(pem|key|p12|pfx|jks)|id_(rsa|dsa|ecdsa|ed25519)|credentials(\.\w+)?|\.netrc|\.npmrc|\.pypirc)$", re.I)
-EVIDENCE_RE = re.compile(r"^(hunk|constraint|incident|event|node|edge):(.+)$")
+EVIDENCE_RE = re.compile(r"^(hunk|ref|constraint|incident|event|node|edge):(.+)$")
 
 FINDINGS_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -75,10 +77,10 @@ Report only real problems a reviewer would raise: bugs, security issues, broken 
 
 Every finding must:
 - point at a path and a line that appear in the diff (the numbers in the left column are new-file line numbers);
-- cite evidence: `hunk:<path>:<line>` for a line in the diff, or an id listed under "System facts" written exactly as given (`constraint:CON-031`, `incident:INC-230`, `event:ev_...`, `node:model:fct_orders`, `edge:e_...`);
+- cite evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference listed under "System facts", or an id listed there written exactly as given (`constraint:CON-031`, `incident:INC-230`, `event:ev_...`, `node:model:fct_orders`, `edge:e_...`);
 - use severity `block` only for a change that should not merge as is, `warn` for one that needs a check or a sign-off, `inform` otherwise.
 
-Never invent owners, dependencies, lineage, constraints, incidents or approvals. If the system facts do not cover something, do not claim it. An empty findings list is a valid answer."""
+Never invent owners, dependencies, lineage, constraints, incidents or approvals. If the system facts do not cover something, do not claim it. When the facts list the references to a changed symbol, they come from a search of the whole repository: do not warn about callers or consumers the facts show do not exist, and do not repeat a reference the facts say the diff already updates. An empty findings list is a valid answer."""
 
 
 def _norm_path(path: str) -> str:
@@ -95,10 +97,12 @@ class ReviewContext:
     verdict: dict[str, Any] | None
     known: dict[str, set[str]] = field(default_factory=dict)  # evidence kind -> valid values
     new_text: dict[str, str] = field(default_factory=dict)  # path -> full new file, when known
+    symbols: list[SymbolChange] = field(default_factory=list)
+    secrets: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[Constraint]) -> dict[str, set[str]]:
-    known: dict[str, set[str]] = {"constraint": {c.id for c in constraints}, "incident": set(), "event": set(), "node": set(), "edge": set()}
+    known: dict[str, set[str]] = {"constraint": {c.id for c in constraints}, "incident": set(), "event": set(), "node": set(), "edge": set(), "ref": set()}
     if verdict:
         for h in verdict["history"]:
             known["event"].add(h["event"])
@@ -115,7 +119,8 @@ def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[C
     return known
 
 
-def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None) -> ReviewContext:
+def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None) -> ReviewContext:
+    """``new_files``: the new text of changed files when the tree does not hold it. ``repo_files``: other files to search for references as if they were in the tree. ``search_root``: where that search runs (default: the repository)."""
     files = parse(diff_text)
     verdict = None
     new_text: dict[str, str] = {}
@@ -150,13 +155,47 @@ def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[C
         verdict = preflight(store, cs, constraints, risk_model, record=False)
     except Exception as e:  # noqa: BLE001 - the review still runs without system context, and says so
         verdict = {"error": f"pre-flight failed: {e}", "severity": "inform", "constraints": [], "history": [], "affected": [], "change": {"touched": [], "unresolved": [], "ops": [], "ignored": []}, "summary": "", "risk": {"score": 0}}
-    return ReviewContext(files, verdict, _known_ids(store, verdict, constraints), new_text)
+    ctx = ReviewContext(files, verdict, _known_ids(store, verdict, constraints), new_text)
+    ctx.symbols = symbol_changes(files, search_root or repo_root, {**(repo_files or {}), **new_text})
+    ctx.known["ref"].update(f"{r['path']}:{r['line']}" for sc in ctx.symbols for r in sc.refs)
+    ctx.secrets = secret_findings(files)
+    return ctx
+
+
+def _symbol_facts(ctx: ReviewContext) -> list[str]:
+    lines = []
+    for sc in ctx.symbols:
+        what = "removed" if sc.kind == "removed" else f"signature changed to `{sc.new}`"
+        head = f"- symbol `{sc.name}` defined in {sc.path}:{sc.line} ({what}; was `{sc.old}`):"
+        scope = "in the files of this diff (the rest of the repository could not be searched, so other callers may exist)" if sc.search_failed else "anywhere in the repository"
+        if not sc.refs:
+            lines.append(f"{head} no other reference to this name {scope}")
+            continue
+        uses = [r for r in sc.refs if r["kind"] == "use"]
+        inside = [r for r in uses if r["in_diff"]]
+        outside = [r for r in uses if not r["in_diff"]]
+        imports = [r for r in sc.refs if r["kind"] == "import"]
+        parts = []
+        if inside:
+            parts.append(f"{len(inside)} use{'s' if len(inside) != 1 else ''} on lines this diff changes (" + ", ".join(f"{r['path']}:{r['line']}" for r in inside[:10]) + ")")
+        if outside:
+            parts.append(f"{len(outside)} use{'s' if len(outside) != 1 else ''} on lines this diff does not touch (" + ", ".join(f"ref:{r['path']}:{r['line']} `{r['text'][:80]}`" for r in outside[:10]) + ")")
+        else:
+            parts.append("no use outside this diff")
+        if imports:
+            parts.append("imported at " + ", ".join(f"ref:{r['path']}:{r['line']}" for r in imports[:10]))
+        if sc.search_failed:
+            parts.append("only the files of this diff were searched; the rest of the repository could not be, so other callers may exist")
+        if sc.truncated:
+            parts.append(f"the search stopped at {len(sc.refs)} references, so there are more")
+        lines.append(head + " " + "; ".join(parts))
+    return lines
 
 
 def _facts(ctx: ReviewContext) -> str:
     v = ctx.verdict
     if not v or not v["change"]["ops"]:
-        return "No platform assets resolved for this diff; review it as ordinary code."
+        return "\n".join(["No platform assets resolved for this diff; review it as ordinary code.", *_symbol_facts(ctx)])
     lines = [f"Deterministic pre-flight: severity {v['severity']}, risk {v['risk']['score']}. {v.get('summary', '')}"]
     for o in v["change"]["ops"]:
         d = o.get("details") or {}
@@ -165,11 +204,14 @@ def _facts(ctx: ReviewContext) -> str:
     for c in v["constraints"]:
         if c["status"] == "fires":
             lines.append(f"- constraint:{c['id']} ({c['kind']}, {c['severity']}) fires: {c['detail']}. Reason: {c['reason']}")
-    for r in v.get("readers", []):
-        state = "also changed in this diff; check it no longer selects the old name" if r["in_change"] else "not changed in this diff, so it still selects the old name and will fail"
-        lines.append(f"- reader node:{r['reader']} selects {r['column']} ({r['op']}) {r['evidence'][0]}: {state}")
     readers = v.get("readers", [])
-    for col in sorted({r["column"] for r in readers}):
+    for r in readers:
+        if r["op"] in ("drop_column", "rename_column"):
+            state = "also changed in this diff; check it no longer selects the old name" if r["in_change"] else "not changed in this diff, so it still selects the old name and will fail"
+        else:
+            state = "also changed in this diff" if r["in_change"] else "not changed in this diff; it still builds, but the values it reads change"
+        lines.append(f"- reader node:{r['reader']} selects {r['column']} ({r['op']}) {' '.join(r.get('evidence') or [])}: {state}".replace(")  :", "):"))
+    for col in sorted({r["column"] for r in readers if r["op"] in ("drop_column", "rename_column")}):
         if all(r["in_change"] for r in readers if r["column"] == col):
             lines.append(f"- every model that selects {col} directly is changed in this diff; if those changes stop selecting the old name, assets further downstream are not broken by it")
     for a in v["affected"][:20]:
@@ -178,7 +220,7 @@ def _facts(ctx: ReviewContext) -> str:
     for h in v["history"][:10]:
         ref = f"incident:{h['ref']}" if h["kind"] in ("postmortem_filed", "incident_opened") else f"event:{h['event']}"
         lines.append(f"- history {ref} {h['kind']} {str(h['occurred_at'])[:10]}: {h.get('title') or ''} ({h['relevance']})")
-    return "\n".join(lines)
+    return "\n".join(lines + _symbol_facts(ctx))
 
 
 def _read_in_repo(repo_root: Path, path: str) -> str | None:
@@ -199,37 +241,74 @@ def _is_new_side(fd: FileDiff, text: str) -> bool:
     return all(n is not None and n <= len(lines) and lines[n - 1] == t for h in fd.hunks for op, n, t in h.lines if op != "-")
 
 
-def _file_context(ctx: ReviewContext, max_lines: int = FILE_CONTEXT_LINES, max_chars: int = 40_000) -> str:
-    """Whole new versions of small changed files, numbered like the diff, so the model sees definitions outside the hunks."""
+def _file_context(ctx: ReviewContext, files: list[FileDiff], max_lines: int = FILE_CONTEXT_LINES, max_chars: int = 40_000) -> str:
+    """Whole new versions of small changed files, numbered like the diff, so the model sees definitions outside the hunks.
+
+    A file that is too long, or does not fit the budget, is named as omitted so the model does not take silence for an empty file.
+    """
     parts, used = [], 0
-    for f in ctx.files:
+    for f in files:
         text = ctx.new_text.get(f.path)
         if text is None:
             continue
         lines = text.splitlines()
-        if not lines or len(lines) > max_lines:
+        if not lines:
+            continue
+        if len(lines) > max_lines:
+            parts.append(f"=== {f.path}: whole file not shown ({len(lines)} lines; only its hunks below)\n")
             continue
         block = f"=== {f.path} (whole file after the change)\n" + "\n".join(f"{i:>5}   {t}" for i, t in enumerate(lines, 1)) + "\n"
         if used + len(block) > max_chars:
-            break
+            parts.append(f"=== {f.path}: whole file not shown (over the context budget; only its hunks below)\n")
+            continue
         parts.append(block)
         used += len(block)
     return "\n".join(parts)
 
 
-def generate(provider: Provider, ctx: ReviewContext, *, file_context: bool = True) -> tuple[list[dict[str, Any]], str | None]:
-    diff = render(ctx.files)
-    if not diff.strip():
-        return [], None
-    files = _file_context(ctx) if file_context else ""
-    context = f"Changed files in full, for context only. Findings must still point at lines inside the diff below:\n{files}\n" if files else ""
-    user = f"System facts:\n{_facts(ctx)}\n\n{context}Diff:\n{diff}"
-    try:
-        out = provider.complete_json(SYSTEM, user, FINDINGS_SCHEMA, schema_name="report_findings")
-    except ProviderError as e:
-        return [], str(e)
-    items = out.get("findings") if isinstance(out, dict) else None
-    return [f for f in (items or []) if isinstance(f, dict)], None
+def _add_usage(total: dict[str, Any] | None, usage: Any) -> dict[str, Any] | None:
+    if not isinstance(usage, dict):
+        return total
+    total = dict(total or {})
+    for k, v in usage.items():
+        if isinstance(v, (int, float)):
+            total[k] = total.get(k, 0) + v
+    return total
+
+
+def generate(provider: Provider, ctx: ReviewContext, *, file_context: bool = True, groups: list[list[FileDiff]] | None = None, omitted: list[str] | None = None) -> tuple[list[dict[str, Any]], str | None, dict[str, Any] | None]:
+    """Candidate findings from the model, the first provider error, and summed token usage.
+
+    A diff that does not fit one call is reviewed in several, one group of files per call, each with the
+    same system facts and the whole-file context for its own files. Findings are pooled; a later group is
+    still reviewed when an earlier call fails. ``groups`` and ``omitted`` come from ``batches`` (computed
+    here when not given); omitted files are named in the facts so the model knows they exist.
+    """
+    if groups is None or omitted is None:
+        groups, omitted = batches(ctx.files)
+    facts = _facts(ctx)
+    if omitted:
+        facts += "\n- files in this change whose hunks are too large to show, so they are not under review here: " + ", ".join(omitted)
+    candidates: list[dict[str, Any]] = []
+    error: str | None = None
+    usage: dict[str, Any] | None = None
+    for i, group in enumerate(groups, 1):
+        diff = "\n".join(render_file(f) for f in group)
+        if not diff.strip():
+            continue
+        files = _file_context(ctx, group) if file_context else ""
+        context = f"Changed files in full, for context only. Findings must still point at lines inside the diff below:\n{files}\n" if files else ""
+        part = f" (part {i} of {len(groups)}; other files of this change are reviewed separately)" if len(groups) > 1 else ""
+        user = redact(f"System facts:\n{facts}\n\n{context}Diff{part}:\n{diff}")
+        try:
+            out = provider.complete_json(SYSTEM, user, FINDINGS_SCHEMA, schema_name="report_findings")
+        except ProviderError as e:
+            error = error or str(e)
+            continue
+        usage = _add_usage(usage, getattr(provider, "last_usage", None))
+        items = out.get("findings") if isinstance(out, dict) else None
+        candidates.extend(f for f in (items or []) if isinstance(f, dict))
+    return candidates, error, usage
 
 
 def _file(ctx: ReviewContext, path: str) -> FileDiff | None:
@@ -297,10 +376,22 @@ def validate(candidates: list[dict[str, Any]], ctx: ReviewContext) -> list[dict[
     return out
 
 
+def code_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
+    """Findings that need no platform graph: committed credentials, and removed symbols the diff leaves referenced."""
+    out = list(ctx.secrets)
+    for sc in ctx.symbols:
+        if sc.kind != "removed" or not sc.outside:
+            continue
+        refs = sc.outside
+        where = ", ".join(f"{r['path']}:{r['line']}" for r in refs[:5]) + (f" and {len(refs) - 5} more" if len(refs) > 5 else "")
+        out.append({"source": "deterministic", "path": sc.path, "line": sc.line, "end_line": None, "severity": "warn", "category": "correctness", "title": f"`{sc.name}` removed but still referenced at {where}", "body": f"This diff removes the definition of `{sc.name}` from {sc.path} and does not change the lines that reference it. A whole-word search of the repository found them; if they refer to a different `{sc.name}`, say so, otherwise update or remove them in the same change.", "evidence": [f"hunk:{sc.path}:{sc.line}"] + [f"ref:{r['path']}:{r['line']}" for r in refs[:10]], "status": "valid", "notes": []})
+    return out
+
+
 def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
     v = ctx.verdict
     if not v or not v["change"]["ops"]:
-        return []
+        return code_findings(ctx)
     op_files: dict[str, str] = {}
     for o in v["change"]["ops"]:
         for e in o.get("evidence", []):
@@ -317,7 +408,7 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
             return ctx.files[0].path, ctx.files[0].first_changed_line()
         return None, None
 
-    out = []
+    out: list[dict[str, Any]] = []
     incidents = [h for h in v["history"] if h["kind"] == "postmortem_filed"]
     for c in v["constraints"]:
         if c["status"] != "fires":
@@ -331,7 +422,7 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
             body += f" Sign-off needed from {', '.join(c['approvers'])}."
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": c["severity"], "category": "data_contract", "title": f"{c['id']} {c['kind']} fires", "body": body, "evidence": list(dict.fromkeys(ev)), "status": "valid", "notes": []})
     for r in v.get("readers", []):
-        if r["in_change"]:
+        if r["in_change"] or r["op"] not in ("drop_column", "rename_column"):
             continue
         path, line = locate([r["asset"]])
         verb = "drops" if r["op"] == "drop_column" else "renames"
@@ -340,7 +431,7 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
         tier1 = [a for a in v["affected"] if a["tier"] == 1]
         path, line = locate(v["change"]["touched"])
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": v["severity"], "category": "operational", "title": f"Change reaches {len(v['affected'])} downstream assets, {len(tier1)} tier 1", "body": v["summary"], "evidence": [f"node:{a['asset']}" for a in tier1[:5]] or [f"node:{t}" for t in v["change"]["touched"][:3]], "status": "valid", "notes": []})
-    return out
+    return out + code_findings(ctx)
 
 
 def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -358,13 +449,14 @@ def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict
     return kept
 
 
-def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, file_context: bool = True) -> dict[str, Any]:
+def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, file_context: bool = True) -> dict[str, Any]:
     if diff_text is None:
         if not base_ref:
             raise ValueError("give a base ref or a diff")
         diff_text = git_diff(repo_root, base_ref)
-    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore, new_files=new_files)
-    candidates, provider_error = generate(provider, ctx, file_context=file_context)
+    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore, new_files=new_files, repo_files=repo_files, search_root=search_root)
+    groups, omitted = batches(ctx.files)
+    candidates, provider_error, usage = generate(provider, ctx, file_context=file_context, groups=groups, omitted=omitted)
     checked = validate(candidates, ctx)
     det = deterministic_findings(ctx)
     model = _dedupe(det, checked)
@@ -383,9 +475,11 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
         "uncertain": [m for m in model if m["status"] == "uncertain"],
         "rejected": [m for m in model if m["status"] == "rejected"],
         "unresolved": v.get("change", {}).get("unresolved", []),
+        "omitted": omitted,
+        "symbols": [sc.to_dict() for sc in ctx.symbols],
         "verdict_id": v.get("verdict_id"),
         "verdict_summary": v.get("summary") or v.get("error"),
-        "usage": getattr(provider, "last_usage", None),
+        "usage": usage,
         "counts": {"deterministic": len(det), "model_valid": sum(m["status"] == "valid" for m in model), "uncertain": sum(m["status"] == "uncertain" for m in model), "rejected": sum(m["status"] == "rejected" for m in model)},
     }
 
@@ -409,6 +503,8 @@ def to_markdown(r: dict[str, Any]) -> str:
         lines += ["", f"{len(r['rejected'])} model findings rejected (location outside the diff or no title)."]
     if r["unresolved"]:
         lines += ["", "Unresolved: " + ", ".join(str(u.get("path") or u.get("intent")) for u in r["unresolved"])]
+    if r.get("omitted"):
+        lines += ["", "Not reviewed by the model (a single file's hunks are too large for a call): " + ", ".join(f"`{p}`" for p in r["omitted"])]
     return "\n".join(lines) + "\n"
 
 

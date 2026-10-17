@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -327,6 +329,8 @@ def review(
     provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai (default from orion.yaml)."),
     model: str | None = typer.Option(None, "--model"),
     fmt: str = typer.Option("text", "--format", help="text | json | markdown"),
+    post_github: str | None = typer.Option(None, "--post-github", help="Also post the review to this pull request as OWNER/REPO#NUMBER (token from GH_TOKEN or GITHUB_TOKEN)."),
+    head_sha: str | None = typer.Option(None, "--head-sha", help="With --post-github: the pull request's head commit (default: the working tree's HEAD)."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -339,6 +343,8 @@ def review(
 
     if not git and not diff_file:
         raise typer.BadParameter("give --git <base> or --diff-file <path>")
+    if post_github and not re.fullmatch(r"[\w.-]+/[\w.-]+#\d+", post_github.strip()):
+        raise typer.BadParameter("--post-github takes OWNER/REPO#NUMBER")  # checked before any paid model call
     cfg, store = _open(config)
     rc = cfg.review
     try:
@@ -351,6 +357,8 @@ def review(
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=_ignore(cfg))
+    if post_github:
+        _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":
         typer.echo(_json(r))
     elif fmt == "markdown":
@@ -374,6 +382,35 @@ def review(
         if r.get("usage"):
             u = r["usage"]
             console.print(f"  [dim]tokens in {u.get('input_tokens', u.get('prompt_tokens'))} out {u.get('output_tokens', u.get('completion_tokens'))}[/dim]")
+
+
+def _event_head_sha() -> str | None:
+    """Inside GitHub Actions the checkout is a merge commit; the pull request's own head is in the event payload."""
+    path = os.environ.get("GITHUB_EVENT_PATH")
+    if not path or not Path(path).is_file():
+        return None
+    try:
+        return (json.loads(Path(path).read_text()).get("pull_request") or {}).get("head", {}).get("sha")
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _post_github(target: str, head_sha: str | None, root: Path, r: dict, markdown: str, stub: bool) -> None:
+    """Post the review; a failure here is reported and never hides the review itself (the job is advisory)."""
+    import subprocess
+
+    from .github import GitHubClient, post_review
+
+    m = re.fullmatch(r"([\w.-]+/[\w.-]+)#(\d+)", target.strip())
+    assert m, "validated by the command"
+    note = "_Model review is off: add the `ORION_ANTHROPIC_API_KEY` repository secret to turn it on._" if stub else ""
+    try:
+        sha = head_sha or _event_head_sha() or subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        posted = post_review(GitHubClient(m.group(1)), int(m.group(2)), sha, r, markdown, note=note)
+    except Exception as e:  # noqa: BLE001 - whatever went wrong while posting, the review itself is still printed below
+        console.print(f"[yellow]could not post to {escape(target)}: {escape(str(e))}[/yellow]", highlight=False)
+        return
+    console.print(f"[dim]posted to {escape(target)}: {posted['new']} new, {posted['carried']} unchanged, {posted['resolved']} resolved; {posted['inline_posted']} inline comments[/dim]", highlight=False)
 
 
 @app.command()

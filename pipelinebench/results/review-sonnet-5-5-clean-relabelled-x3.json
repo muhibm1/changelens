@@ -1,0 +1,136 @@
+{
+ "provider": "anthropic:claude-sonnet-5-5",
+ "file_context": true,
+ "repeat": 3,
+ "cases": 2,
+ "rows": [
+  {
+   "case": "clean-sql-index",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1237,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ctx-helper-defined-above",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1346,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 185
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-sql-index",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1237,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-ctx-helper-defined-above",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/report.py",
+     "line": 16,
+     "severity": "warn",
+     "title": "line() output format changed from raw cents to dollar string",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1346,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 210
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-sql-index",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1237,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 2
+  },
+  {
+   "case": "clean-ctx-helper-defined-above",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1346,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 190
+   },
+   "run": 2
+  }
+ ],
+ "summary": {
+  "recall": null,
+  "inform_only": 0,
+  "precision": 0.0,
+  "duplicate_findings": 0,
+  "false_alarms": 1,
+  "clean_cases_flagged": "1/6",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 7749,
+  "tokens_out": 615
+ }
+}

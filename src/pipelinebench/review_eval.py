@@ -15,6 +15,8 @@ counted separately.
 from __future__ import annotations
 
 import difflib
+import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -58,6 +60,7 @@ class Case:
     id: str
     changes: list[Change]
     expect: list[Expected] = field(default_factory=list)
+    repo_files: dict[str, str] = field(default_factory=dict)  # files the change leaves alone but a reviewer could search
 
     @property
     def files(self) -> list[str]:
@@ -81,7 +84,7 @@ def _change(case_id: str, raw: dict[str, Any], repo_root: Path) -> Change:
 
 
 def load_cases(path: Path, repo_root: Path) -> list[Case]:
-    """Load cases. A case is one file (``file`` plus its fields) or several (``files``)."""
+    """Load cases. A case is one file (``file`` plus its fields) or several (``files``); ``repo_files`` are unchanged files to search."""
     cases = []
     for raw in yaml.safe_load(path.read_text()):
         changes = [_change(raw["id"], f, repo_root) for f in raw.get("files") or [raw]]
@@ -97,7 +100,12 @@ def load_cases(path: Path, repo_root: Path) -> list[Case]:
             if len(lines) != 1:
                 raise ValueError(f"{raw['id']}: marker {x['marker']!r} must match exactly one line of {file}, matched {len(lines)}")
             expect.append(Expected(x["marker"], x.get("category"), lines[0], file))
-        cases.append(Case(raw["id"], changes, expect))
+        repo_files = dict(raw.get("repo_files") or {})
+        if any(not isinstance(k, str) or not isinstance(v, str) for k, v in repo_files.items()):
+            raise ValueError(f"{raw['id']}: repo_files maps paths to file text")
+        if set(repo_files) & set(by_file):
+            raise ValueError(f"{raw['id']}: a repo_files entry is also changed by the case")
+        cases.append(Case(raw["id"], changes, expect, repo_files))
     return cases
 
 
@@ -139,13 +147,21 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
 
 def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, progress=None) -> dict[str, Any]:
     rows = []
-    for n in range(repeat):
-        for c in cases:
-            r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, file_context=file_context)
-            g = grade(c, r) | {"run": n}
-            rows.append(g)
-            if progress:
-                progress(g)
+    # Reference searches run against an empty repository plus each case's own files, so the eval
+    # never finds the symbol it planted mentioned in this repository's tests or results.
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            subprocess.run(["git", "init", "-q", tmp], check=True, capture_output=True)
+        except (OSError, subprocess.CalledProcessError) as e:
+            raise RuntimeError("the review eval needs git on PATH for its reference search") from e
+        search_root = Path(tmp)
+        for n in range(repeat):
+            for c in cases:
+                r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, repo_files=c.repo_files, search_root=search_root, file_context=file_context)
+                g = grade(c, r) | {"run": n}
+                rows.append(g)
+                if progress:
+                    progress(g)
     return {"provider": provider.name, "file_context": file_context, "repeat": repeat, "cases": len(cases), "rows": rows, "summary": summarize(rows)}
 
 
@@ -173,7 +189,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def to_markdown(res: dict[str, Any]) -> str:
-    s = res["summary"]
+    s = {k: ("n/a" if v is None else v) for k, v in res["summary"].items()}
     lines = [
         f"# Review eval: `{res['provider']}`, {res['cases']} cases x {res['repeat']}, whole-file context {'on' if res.get('file_context', True) else 'off'}",
         "",

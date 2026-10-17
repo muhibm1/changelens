@@ -1,6 +1,7 @@
-# Orion's code review on every pull request, posted as one comment that is
-# updated in place on each push. Model findings need the repository secret
-# ORION_ANTHROPIC_API_KEY; without it the review runs deterministic checks only.
+# Orion's code review on every pull request: inline comments on new findings and
+# one summary comment updated in place on each push. Model findings need the
+# repository secret ORION_ANTHROPIC_API_KEY; without it the review runs
+# deterministic checks only.
 # Advisory: this job never fails the pull request. Binding checks belong to orion-gate.
 name: orion-review
 
@@ -32,32 +33,20 @@ jobs:
         run: ../../.venv/bin/dbt parse --profiles-dir . -q
       - name: Build the graph
         run: .venv/bin/orion sync
-      # Output goes outside the checkout: the review diffs the working tree, untracked files included.
-      - name: Review the diff
+      # Inline comments on new findings, one summary comment updated in place, and a reply on findings
+      # that a push made go away. The head sha is the PR's own commit, not the merge commit the checkout holds.
+      - name: Review the diff and post it
+        continue-on-error: true
         env:
           ORION_ANTHROPIC_API_KEY: ${{ secrets.ORION_ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
           BASE_REF: ${{ github.base_ref }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           provider=stub
           if [ -n "$ORION_ANTHROPIC_API_KEY" ]; then provider=anthropic; fi
-          {
-            echo "<!-- orion-review -->"
-            .venv/bin/orion review --git "origin/$BASE_REF" --provider "$provider" --format markdown \
-              || echo "Orion review did not complete; see the workflow log."
-            if [ "$provider" = stub ]; then
-              echo
-              echo "_Model review is off: add the \`ORION_ANTHROPIC_API_KEY\` repository secret to turn it on._"
-            fi
-          } > "$RUNNER_TEMP/orion-review.md"
-      - name: Post or update the review comment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- orion-review -->"))) | .id' | tail -n1)
-          if [ -n "$id" ]; then
-            gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/orion-review.md" > /dev/null
-          else
-            gh pr comment "$PR" --body-file "$RUNNER_TEMP/orion-review.md"
-          fi
+          .venv/bin/orion review --git "origin/$BASE_REF" --provider "$provider" --format markdown \
+            --post-github "$REPO#$PR" --head-sha "$HEAD_SHA" \
+            || echo "::error::Orion review did not complete; see this step's log."

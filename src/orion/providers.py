@@ -40,7 +40,8 @@ ANTHROPIC_KEY_ENVS = ("ORION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
 RETRY_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
 
 
-def _post(url: str, headers: dict[str, str], body: dict[str, Any], *, timeout: float, retries: int, sleep: Callable[[float], None] = time.sleep) -> dict[str, Any]:
+def _post(url: str, headers: dict[str, str], body: dict[str, Any], *, timeout: float, retries: int, sleep: Callable[[float], None] | None = None) -> dict[str, Any]:
+    sleep = sleep or time.sleep
     data = json.dumps(body).encode()
     last: Exception | None = None
     for attempt in range(retries + 1):
@@ -53,11 +54,24 @@ def _post(url: str, headers: dict[str, str], body: dict[str, Any], *, timeout: f
             last = ProviderError(f"HTTP {e.code} from {url}: {detail}")
             if e.code not in RETRY_STATUS:
                 raise last from e
+            wait = _retry_after(e.headers.get("retry-after") if e.headers else None)
         except (urllib.error.URLError, TimeoutError) as e:
             last = ProviderError(f"request to {url} failed: {e}")
+            wait = None
         if attempt < retries:
-            sleep(min(2 ** attempt, 16))
+            sleep(wait if wait is not None else min(2 ** attempt, 16))
     raise last or ProviderError("request failed")
+
+
+def _retry_after(value: str | None, cap: float = 60.0) -> float | None:
+    """Seconds from a Retry-After header (only the delay-seconds form), capped; None for anything else, so backoff applies."""
+    if not value:
+        return None
+    try:
+        secs = float(value)
+    except ValueError:
+        return None
+    return min(secs, cap) if secs > 0 else None
 
 
 def _parse_json_text(text: str) -> dict[str, Any]:

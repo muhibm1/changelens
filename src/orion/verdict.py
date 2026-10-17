@@ -84,14 +84,15 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
 
 
 def column_readers(store: Store, cs: ChangeSet) -> list[dict[str, Any]]:
-    """Models that select a dropped or renamed column directly, and whether this change also edits them.
+    """Models that select a changed column directly, and whether this change also edits them.
 
-    A reader the change leaves alone still selects a name that is gone, so it fails to build.
+    A reader the change leaves alone still selects a name a drop or rename removed, so it fails to
+    build; after a retype or a new expression it still builds but its values change.
     """
     touched = set(cs.touched)
     rows: dict[tuple[str, str], dict[str, Any]] = {}
     for op in cs.ops:
-        if op.kind not in ("drop_column", "rename_column") or not op.column:
+        if op.kind not in ("drop_column", "rename_column", "change_type", "change_expression") or not op.column:
             continue
         col = f"{_short(op.asset)}.{op.column}"
         col_id = f"column:{col}"
@@ -134,7 +135,7 @@ def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], h
 
 def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hits: list[ConstraintHit], readers: list[dict[str, Any]]) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
-    broken = [r for r in readers if not r["in_change"]]
+    broken = [r for r in readers if not r["in_change"] and r["op"] in ("drop_column", "rename_column")]
     if broken:
         checks.append({"kind": "update_readers", "readers": sorted({r["reader"] for r in broken}), "columns": sorted({r["column"] for r in broken}), "evidence": [e for r in broken for e in r["evidence"]]})
     touched_owners = {(store.node(t) or {}).get("owner") for t in cs.touched}

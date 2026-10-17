@@ -50,15 +50,28 @@ class FileDiff:
         return self.hunks[0].new_start if self.hunks else None
 
 
+def _unquote(path: str) -> str:
+    """Git quotes paths with spaces or non-ASCII bytes as C strings."""
+    path = path.strip()
+    if len(path) >= 2 and path[0] == '"' and path[-1] == '"':
+        try:
+            return path[1:-1].encode("latin-1").decode("unicode_escape").encode("latin-1").decode("utf-8")
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            return path[1:-1]
+    return path
+
+
 def parse(text: str) -> list[FileDiff]:
     files: list[FileDiff] = []
     cur: FileDiff | None = None
     hunk: Hunk | None = None
     new_no = 0
     for raw in text.splitlines():
+        if raw.endswith("\r"):
+            raw = raw[:-1]
         if raw.startswith("diff --git "):
-            m = re.match(r"diff --git a/(.*) b/(.*)$", raw)
-            old, new = (m.group(1), m.group(2)) if m else (None, raw.split()[-1])
+            m = re.match(r'diff --git "?a/(.*?)"? "?b/(.*?)"?$', raw)
+            old, new = (_unquote(m.group(1)), _unquote(m.group(2))) if m else (None, raw.split()[-1])
             cur = FileDiff(path=new, old_path=old, status="modified")
             files.append(cur)
             hunk = None
@@ -71,15 +84,15 @@ def parse(text: str) -> list[FileDiff]:
             cur.status = "deleted"
         elif raw.startswith("rename from "):
             cur.status = "renamed"
-            cur.old_path = raw[len("rename from "):]
+            cur.old_path = _unquote(raw[len("rename from "):])
         elif raw.startswith("rename to "):
-            cur.path = raw[len("rename to "):]
+            cur.path = _unquote(raw[len("rename to "):])
         elif raw.startswith("Binary files"):
             cur.binary = True
         elif raw.startswith("--- ") and hunk is None:
             continue
         elif raw.startswith("+++ ") and hunk is None:
-            p = raw[4:].strip()
+            p = _unquote(raw[4:].split("\t")[0].strip())
             if p != "/dev/null":
                 cur.path = p[2:] if p.startswith("b/") else p
         elif (m := HUNK_RE.match(raw)):
@@ -160,22 +173,50 @@ def git_diff(repo_root: Path, base_ref: str, paths: list[str] | None = None) -> 
     return out
 
 
-def render(files: list[FileDiff], max_chars: int = 60_000) -> str:
-    """Hunks with new-side line numbers, the form the model sees and cites from."""
-    parts: list[str] = []
+def render_file(f: FileDiff) -> str:
+    """One file's hunks with new-side line numbers, the form the model sees and cites from."""
+    block = [f"=== {f.path} ({f.status})"]
+    for h in f.hunks:
+        block.append(f"@@ lines {h.new_start}-{h.new_end} {h.header}".rstrip())
+        for op, n, text in h.lines:
+            block.append(f"{n if n is not None else '':>5} {op} {text}")
+    return "\n".join(block) + "\n"
+
+
+def batches(files: list[FileDiff], max_chars: int = 60_000, hard_cap: int = 240_000) -> tuple[list[list[FileDiff]], list[str]]:
+    """Group files so each group's rendered hunks fit one model call.
+
+    A file larger than ``max_chars`` on its own still gets a call of its own, up to ``hard_cap``;
+    beyond that it is omitted and named, since a single hunk list that long is not reviewable in one pass.
+    """
+    groups: list[list[FileDiff]] = []
+    omitted: list[str] = []
+    cur: list[FileDiff] = []
     used = 0
     for f in files:
         if f.binary:
             continue
-        block = [f"=== {f.path} ({f.status})"]
-        for h in f.hunks:
-            block.append(f"@@ lines {h.new_start}-{h.new_end} {h.header}".rstrip())
-            for op, n, text in h.lines:
-                block.append(f"{n if n is not None else '':>5} {op} {text}")
-        chunk = "\n".join(block) + "\n"
-        if used + len(chunk) > max_chars:
-            parts.append(f"=== {f.path}: omitted, diff too large for one review call")
+        size = len(render_file(f))
+        if size > hard_cap:
+            omitted.append(f.path)
             continue
-        parts.append(chunk)
-        used += len(chunk)
-    return "\n".join(parts)
+        if cur and used + size > max_chars:
+            groups.append(cur)
+            cur, used = [], 0
+        cur.append(f)
+        used += size
+    if cur:
+        groups.append(cur)
+    return groups, omitted
+
+
+def render_with_omitted(files: list[FileDiff], max_chars: int = 60_000) -> tuple[str, list[str]]:
+    """Every file that fits one call, rendered, and the files left out of the budget (see ``batches``)."""
+    groups, omitted = batches(files, max_chars)
+    parts = [render_file(f) for g in groups for f in g]
+    parts += [f"=== {p}: omitted, diff too large for one review call\n" for p in omitted]
+    return "\n".join(parts), omitted
+
+
+def render(files: list[FileDiff], max_chars: int = 60_000) -> str:
+    return render_with_omitted(files, max_chars)[0]

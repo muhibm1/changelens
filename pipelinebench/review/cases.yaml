@@ -3,8 +3,9 @@
 # the same fields). `before`/`after` give a file; `before_from_repo` reads the
 # current file and `edits` rewrites it. `expect` lists the bugs a reviewer must
 # raise, each located by a `marker`: a substring of the line in the new file where
-# the bug is, plus `file` when the case changes several files. Cases with
-# `expect: []` are correct changes, used to count false alarms.
+# the bug is, plus `file` when the case changes several files. `repo_files` are
+# files the change leaves alone but that exist in the repository, for reference
+# searches. Cases with `expect: []` are correct changes, used to count false alarms.
 
 - id: py-sql-injection
   file: app/users.py
@@ -366,7 +367,10 @@
   file: migrations/0043_orders_created_idx.sql
   before: ""
   after: |
+    -- migrate:up transaction:false
     create index concurrently if not exists orders_created_at_idx on orders (created_at);
+    -- migrate:down transaction:false
+    drop index concurrently if exists orders_created_at_idx;
   expect: []
 
 # Harder cases: the bug, or the reason a change is fine, sits outside the hunk's
@@ -569,8 +573,9 @@
   file: app/report.py
   before: |
     def fmt_money(cents: int) -> str:
-        """Render integer cents as dollars, e.g. 1234 -> '$12.34'."""
-        return f"${cents // 100}.{cents % 100:02d}"
+        """Render integer cents as dollars, e.g. 1234 -> '$12.34', -5 -> '-$0.05'."""
+        sign, cents = ("-", -cents) if cents < 0 else ("", cents)
+        return f"{sign}${cents // 100}.{cents % 100:02d}"
 
 
     def header() -> str:
@@ -585,8 +590,9 @@
         return name + ": " + str(cents)
   after: |
     def fmt_money(cents: int) -> str:
-        """Render integer cents as dollars, e.g. 1234 -> '$12.34'."""
-        return f"${cents // 100}.{cents % 100:02d}"
+        """Render integer cents as dollars, e.g. 1234 -> '$12.34', -5 -> '-$0.05'."""
+        sign, cents = ("-", -cents) if cents < 0 else ("", cents)
+        return f"{sign}${cents // 100}.{cents % 100:02d}"
 
 
     def header() -> str:
@@ -865,3 +871,148 @@
   expect:
     - marker: "amount as gross_amount"
       category: data_contract
+
+# Hidden callers (`hidden-py-`): a file outside the diff still calls what the diff
+# renamed or re-signed. The repository search in Orion's system facts shows it.
+
+- id: hidden-py-renamed-fn-still-called
+  files:
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+
+        def fetch(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+
+        def fetch_bytes(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+    - file: app/health.py
+      before: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url) == b"ok"
+      after: |
+        from app.http import fetch_bytes
+
+
+        def ping(url: str) -> bool:
+            return fetch_bytes(url) == b"ok"
+  repo_files:
+    app/jobs.py: |
+      from app.http import fetch
+
+
+      def warm(urls: list[str]) -> None:
+          for u in urls:
+              fetch(u, timeout=3.0)
+  expect:
+    - file: app/http.py
+      marker: "def fetch_bytes("
+      category: correctness
+
+- id: hidden-py-kwarg-renamed-still-called
+  files:
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+
+        def fetch(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+
+        def fetch(url: str, *, timeout_s: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout_s) as r:
+                return r.read()
+    - file: app/health.py
+      before: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url, timeout=2.0) == b"ok"
+      after: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url, timeout_s=2.0) == b"ok"
+  repo_files:
+    app/jobs.py: |
+      from app.http import fetch
+
+
+      def warm(urls: list[str]) -> None:
+          for u in urls:
+              fetch(u, timeout=3.0)
+  expect:
+    - file: app/http.py
+      marker: "def fetch(url: str, *, timeout_s"
+      category: correctness
+
+- id: clean-py-renamed-fn-every-caller-updated
+  files:
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+
+        def fetch(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+
+        def fetch_bytes(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+    - file: app/health.py
+      before: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url) == b"ok"
+      after: |
+        from app.http import fetch_bytes
+
+
+        def ping(url: str) -> bool:
+            return fetch_bytes(url) == b"ok"
+    - file: app/jobs.py
+      before: |
+        from app.http import fetch
+
+
+        def warm(urls: list[str]) -> None:
+            for u in urls:
+                fetch(u, timeout=3.0)
+      after: |
+        from app.http import fetch_bytes
+
+
+        def warm(urls: list[str]) -> None:
+            for u in urls:
+                fetch_bytes(u, timeout=3.0)
+  repo_files:
+    app/cli.py: |
+      import sys
+
+      from app.health import ping
+
+
+      def main() -> int:
+          return 0 if ping(sys.argv[1]) else 1
+  expect: []

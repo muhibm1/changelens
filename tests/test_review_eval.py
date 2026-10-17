@@ -3,7 +3,7 @@ from pathlib import Path
 from orion.constraints import load_constraints
 from orion.providers import StubProvider
 from orion.risk import RiskModel
-from pipelinebench.review_eval import load_cases, run_eval
+from pipelinebench.review_eval import load_cases, run_eval, to_markdown
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "pipelinebench" / "review" / "cases.yaml"
@@ -65,3 +65,9 @@ def test_marker_in_a_multi_file_case_must_name_its_file(tmp_path):
     bad.write_text("- id: x\n  files:\n    - {file: a.py, before: '', after: 'a = 1\\n'}\n    - {file: b.py, before: '', after: 'b = 1\\n'}\n  expect:\n    - marker: 'b = 1'\n")
     with pytest.raises(ValueError, match="needs a `file`"):
         load_cases(bad, tmp_path)
+
+
+def test_markdown_shows_na_when_a_metric_has_no_denominator():
+    res = {"provider": "stub", "cases": 1, "repeat": 1, "summary": {"recall": None, "inform_only": 0, "precision": None, "duplicate_findings": 0, "false_alarms": 0, "clean_cases_flagged": 0, "provider_errors": 0, "tokens_in": 0, "tokens_out": 0, "missed": []}, "rows": []}
+    md = to_markdown(res)
+    assert "| recall (bugs raised at warn or block) | n/a |" in md and "| precision (caught bugs / (caught bugs + false alarms)) | n/a |" in md
