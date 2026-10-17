@@ -83,6 +83,28 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
     return out
 
 
+def column_readers(store: Store, cs: ChangeSet) -> list[dict[str, Any]]:
+    """Models that select a dropped or renamed column directly, and whether this change also edits them.
+
+    A reader the change leaves alone still selects a name that is gone, so it fails to build.
+    """
+    touched = set(cs.touched)
+    rows: dict[tuple[str, str], dict[str, Any]] = {}
+    for op in cs.ops:
+        if op.kind not in ("drop_column", "rename_column") or not op.column:
+            continue
+        col = f"{_short(op.asset)}.{op.column}"
+        col_id = f"column:{col}"
+        if store.node(col_id) is None:
+            continue
+        for cid, info in store.walk([col_id], "downstream", kinds=(EdgeKind.DERIVES_FROM,), max_hops=1, always_include_tier=None).items():
+            n = store.node(cid)
+            reader = n["properties"].get("asset") if n else None
+            if reader and reader != op.asset:
+                rows.setdefault((col, reader), {"column": col, "asset": op.asset, "op": op.kind, "reader": reader, "in_change": reader in touched, "evidence": [f"edge:{info['via_edge']}"]})
+    return list(rows.values())
+
+
 def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], horizon_days: int = 365) -> list[dict[str, Any]]:
     ids = set(cs.touched) | set(affected)
     since = datetime.now(UTC) - timedelta(days=horizon_days)
@@ -110,8 +132,11 @@ def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], h
     return rows
 
 
-def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hits: list[ConstraintHit]) -> list[dict[str, Any]]:
+def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hits: list[ConstraintHit], readers: list[dict[str, Any]]) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
+    broken = [r for r in readers if not r["in_change"]]
+    if broken:
+        checks.append({"kind": "update_readers", "readers": sorted({r["reader"] for r in broken}), "columns": sorted({r["column"] for r in broken}), "evidence": [e for r in broken for e in r["evidence"]]})
     touched_owners = {(store.node(t) or {}).get("owner") for t in cs.touched}
     for t in cs.touched:
         n = store.node(t)
@@ -163,7 +188,9 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
         parts.append(f"This path has incident history: {h['ref']} on {h['occurred_at']:%Y-%m-%d}.")
     asks = []
     for c in checks:
-        if c["kind"] == "get_approval":
+        if c["kind"] == "update_readers":
+            asks.append(f"update {', '.join(_short(r) for r in c['readers'])}, which still select{'s' if len(c['readers']) == 1 else ''} {', '.join(c['columns'])}")
+        elif c["kind"] == "get_approval":
             asks.append(f"get sign-off from {', '.join(c['from'])}")
         elif c["kind"] == "run_tests":
             asks.append(f"run tests for {c['target']}")
@@ -220,9 +247,12 @@ def preflight(
     )
     firing_sev = [h.constraint.severity for h in hits if h.status == "fires"]
     sev = severity(risk_model, risk.score, firing_sev)
+    readers = column_readers(store, cs)
+    # Readers left selecting a removed column are a check and a review finding, not a severity bump:
+    # PipelineBench's hand-written rule rates those drops by tier and constraints alone.
     if cs.unresolved and sev == "inform":
         sev = "warn"
-    checks = _checks(store, cs, affected, hits)
+    checks = _checks(store, cs, affected, hits, readers)
     verdict = {
         "verdict_id": verdict_id,
         "issued_at": now,
@@ -231,6 +261,7 @@ def preflight(
         "change": {"source": cs.source, "ops": [o.to_dict() for o in cs.ops], "touched": cs.touched, "unresolved": cs.unresolved, "ignored": cs.ignored},
         "affected": affected_rows,
         "constraints": [h.to_dict() for h in hits],
+        "readers": readers,
         "history": history,
         "risk": risk.to_dict(),
         "checks": checks,

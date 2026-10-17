@@ -1,0 +1,1049 @@
+{
+ "provider": "anthropic:claude-sonnet-5-5",
+ "file_context": true,
+ "repeat": 3,
+ "cases": 9,
+ "rows": [
+  {
+   "case": "dbt-percent-as-amount",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "amount - discount_pct as net_amount",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2238,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 630,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-drop-locked-column",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "    paid_amount,",
+     "line": 10,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2285,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 408,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-left-to-inner-join",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "join {{ ref('stg_payments') }}",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2482,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 713,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-revenue-filter-widened",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_revenue.sql",
+     "marker": "where status != 'cancelled'",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2153,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 399,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-dbt-comment",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1324,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Column rename region -> country changes staging contract",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2386,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 573,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2374,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2008,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 570,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 4,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2800,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 393,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-percent-as-amount",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "amount - discount_pct as net_amount",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2238,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 480,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "dbt-drop-locked-column",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "    paid_amount,",
+     "line": 10,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2285,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 423,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "dbt-left-to-inner-join",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "join {{ ref('stg_payments') }}",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2482,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 661,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "dbt-revenue-filter-widened",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_revenue.sql",
+     "marker": "where status != 'cancelled'",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2153,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 413,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-dbt-comment",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1324,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Column rename in staging model not verified against downstream consumers",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2386,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 657,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2374,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2008,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 380,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 4,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2800,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 364,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "dbt-percent-as-amount",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "amount - discount_pct as net_amount",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2238,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 573,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "dbt-drop-locked-column",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "    paid_amount,",
+     "line": 10,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2285,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 400,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "dbt-left-to-inner-join",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "join {{ ref('stg_payments') }}",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2482,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 476,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "dbt-revenue-filter-widened",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_revenue.sql",
+     "marker": "where status != 'cancelled'",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2153,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 437,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "clean-dbt-comment",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1324,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Column rename breaks the staging contract for downstream assets",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2386,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 616,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2374,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 10,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2008,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 388,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 4,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2800,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 434,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 0.875,
+  "duplicate_findings": 31,
+  "false_alarms": 3,
+  "clean_cases_flagged": "0/6",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 60150,
+  "tokens_out": 10448
+ }
+}

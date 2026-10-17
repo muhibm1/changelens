@@ -1,0 +1,1021 @@
+{
+ "provider": "anthropic:claude-sonnet-5-5",
+ "file_context": true,
+ "repeat": 3,
+ "cases": 8,
+ "rows": [
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Public fetch signature changed in a breaking way",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1438,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 378,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/prices.py",
+     "line": 1,
+     "severity": "warn",
+     "title": "Return unit changed from dollars to cents without verifying other callers",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1349,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 405,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "web/src/types.ts",
+     "line": 1,
+     "severity": "warn",
+     "title": "Removing \"inactive\" from UserStatus is a breaking change for other consumers",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1267,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 465,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2168,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 632,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Public fetch() signature renamed and made keyword-only; other callers may break",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1376,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 213,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Staging column region renamed to country; any other consumer of stg_customers.region will break",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2156,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 593,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1780,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 474,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2361,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 460,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Renaming `timeout` to `timeout_s` and making it keyword-only breaks the public signature",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1438,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 384,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/prices.py",
+     "line": 1,
+     "severity": "warn",
+     "title": "Unit change from dollars to cents may break other callers and the price table",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1349,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 422,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1267,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 276,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Column rename breaks downstream consumers",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2168,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 828,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Public fetch() signature change breaks callers using the old keyword or positional timeout",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1376,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 233,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Staging column renamed region -> country; any other consumers of stg_customers.region will break",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2156,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 611,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1780,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 479,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2361,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 499,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 1
+  },
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Public fetch signature changed (rename plus keyword-only)",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1438,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 365,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/prices.py",
+     "line": 1,
+     "severity": "warn",
+     "title": "Price unit changed from dollars to cents without migrating table data",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1349,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 445,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "web/src/types.ts",
+     "line": 1,
+     "severity": "warn",
+     "title": "Removing \"inactive\" from UserStatus is a breaking change",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1267,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 452,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Column rename region -> country breaks the staging contract",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2168,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 817,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "app/http.py",
+     "line": 4,
+     "severity": "warn",
+     "title": "Public fetch() signature renamed and made keyword-only; other callers may break",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1376,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 234,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "line": 6,
+     "severity": "warn",
+     "title": "Staging column rename region -> country affects any consumer of stg_customers.region",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2156,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 589,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1780,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 444,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2361,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 479,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   },
+   "run": 2
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 0.529,
+  "duplicate_findings": 6,
+  "false_alarms": 16,
+  "clean_cases_flagged": "6/6",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 41685,
+  "tokens_out": 11177
+ }
+}

@@ -272,3 +272,29 @@ def test_whole_file_context_never_reads_outside_the_repo(tmp_path):
     assert _read_in_repo(tmp_path / "repo", "in.txt") == "ok\n"
     assert _read_in_repo(tmp_path / "repo", "../outside.txt") is None
     assert _read_in_repo(tmp_path / "repo", "missing.txt") is None
+
+
+def test_dropped_column_still_selected_downstream_is_a_finding(synced_store, constraints):
+    from pipelinebench.review_eval import Change
+
+    stg, ico = "fixture/dbt_project/models/staging/stg_customers.sql", "fixture/dbt_project/models/intermediate/int_customer_orders.sql"
+    stg_old, ico_old = (ROOT / stg).read_text(), (ROOT / ico).read_text()
+    drop = Change(stg, stg_old, stg_old.replace("as signup_date,\n    region\n", "as signup_date\n"))
+    seen = {}
+
+    def respond(system, user):
+        seen["user"] = user
+        return {"findings": []}
+
+    r = _review(synced_store, constraints, drop.diff(), StubProvider(respond))
+    det = [f for f in r["findings"] if f["source"] == "deterministic"]
+    assert [f["title"] for f in det] == ["int_customer_orders still selects stg_customers.region"]
+    assert det[0]["path"] == stg and det[0]["severity"] == "warn" and "node:model:int_customer_orders" in det[0]["evidence"]
+    assert "reader node:model:int_customer_orders selects stg_customers.region (drop_column)" in seen["user"]
+    assert "update int_customer_orders, which still selects stg_customers.region" in seen["user"]
+
+    # The same drop with the reader rewritten in the same diff is not flagged.
+    fixed = Change(ico, ico_old, ico_old.replace("    c.region,\n", "    null as region,\n"))
+    r = _review(synced_store, constraints, drop.diff() + fixed.diff(), StubProvider(respond))
+    assert not [f for f in r["findings"] if f["source"] == "deterministic"]
+    assert "also changed in this diff" in seen["user"]

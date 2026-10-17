@@ -1,8 +1,10 @@
 # Review eval cases. Ground truth is written by hand and never derived from Orion.
-# Each case is one file change. `before`/`after` give the file; `before_from_repo`
-# reads the current file and `edits` rewrites it. `expect` lists the bugs a reviewer
-# must raise, each located by a `marker`: a substring of the line in the new file
-# where the bug is. Cases with `expect: []` are correct changes, used to count false alarms.
+# A case changes one file (`file` plus its fields) or several (`files`, a list of
+# the same fields). `before`/`after` give a file; `before_from_repo` reads the
+# current file and `edits` rewrites it. `expect` lists the bugs a reviewer must
+# raise, each located by a `marker`: a substring of the line in the new file where
+# the bug is, plus `file` when the case changes several files. Cases with
+# `expect: []` are correct changes, used to count false alarms.
 
 - id: py-sql-injection
   file: app/users.py
@@ -676,3 +678,190 @@
             f.write(data)
         return path
   expect: []
+
+# Cross-file changes (`xf-`): the bug is on a changed line in one file, and only
+# the change to another file in the same diff shows it is a bug.
+
+- id: xf-py-kwarg-renamed
+  files:
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+
+        def fetch(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+
+        def fetch(url: str, *, timeout_s: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout_s) as r:
+                return r.read()
+    - file: app/health.py
+      before: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url) == b"ok"
+      after: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url) == b"ok"
+
+
+        def ping_fast(url: str) -> bool:
+            return fetch(url, timeout=1.0) == b"ok"
+  expect:
+    - file: app/health.py
+      marker: "fetch(url, timeout=1.0)"
+      category: correctness
+
+- id: xf-py-cents-vs-dollars
+  files:
+    - file: app/prices.py
+      before: |
+        def unit_price(sku: str, table: dict[str, float]) -> float:
+            """Price in dollars."""
+            return table[sku]
+      after: |
+        def unit_price(sku: str, table: dict[str, int]) -> int:
+            """Price in integer cents, to avoid float rounding."""
+            return table[sku]
+    - file: app/quote.py
+      before: |
+        from app.prices import unit_price
+
+
+        def quote(sku: str, qty: int, table) -> str:
+            return f"{qty} x {sku}"
+      after: |
+        from app.prices import unit_price
+
+
+        def quote(sku: str, qty: int, table) -> str:
+            total = unit_price(sku, table) * qty
+            return f"{qty} x {sku}: ${total:.2f}"
+  expect:
+    - file: app/quote.py
+      marker: "${total:.2f}"
+      category: correctness
+
+- id: xf-ts-status-value-renamed
+  files:
+    - file: web/src/types.ts
+      before: |
+        export type UserStatus = "active" | "inactive";
+      after: |
+        export type UserStatus = "active" | "suspended" | "deleted";
+    - file: web/src/billing.ts
+      before: |
+        import type { UserStatus } from "./types";
+
+        export function shouldBill(status: UserStatus): boolean {
+          return status === "active";
+        }
+      after: |
+        import type { UserStatus } from "./types";
+
+        export function shouldBill(status: UserStatus): boolean {
+          return status === "active";
+        }
+
+        export function shouldPurge(status: string): boolean {
+          return status === "inactive";
+        }
+  expect:
+    - file: web/src/billing.ts
+      marker: "status === \"inactive\""
+      category: correctness
+
+- id: xf-dbt-renamed-column-still-read
+  files:
+    - file: fixture/dbt_project/models/staging/stg_customers.sql
+      before_from_repo: true
+      edits:
+        - old: "    region\n"
+          new: "    region as country\n"
+    - file: fixture/dbt_project/models/intermediate/int_customer_orders.sql
+      before_from_repo: true
+      edits:
+        - old: "    c.region,\n"
+          new: "    upper(c.region) as region,\n"
+  expect:
+    - file: fixture/dbt_project/models/intermediate/int_customer_orders.sql
+      marker: "upper(c.region) as region"
+      category: data_contract
+
+- id: clean-xf-py-rename-with-caller
+  files:
+    - file: app/http.py
+      before: |
+        import urllib.request
+
+
+        def fetch(url: str, timeout: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
+                return r.read()
+      after: |
+        import urllib.request
+
+
+        def fetch(url: str, *, timeout_s: float = 10.0) -> bytes:
+            with urllib.request.urlopen(url, timeout=timeout_s) as r:
+                return r.read()
+    - file: app/health.py
+      before: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url, timeout=2.0) == b"ok"
+      after: |
+        from app.http import fetch
+
+
+        def ping(url: str) -> bool:
+            return fetch(url, timeout_s=2.0) == b"ok"
+  expect: []
+
+- id: clean-xf-dbt-rename-with-consumer
+  files:
+    - file: fixture/dbt_project/models/staging/stg_customers.sql
+      before_from_repo: true
+      edits:
+        - old: "    region\n"
+          new: "    region as country\n"
+    - file: fixture/dbt_project/models/intermediate/int_customer_orders.sql
+      before_from_repo: true
+      edits:
+        - old: "    c.region,\n"
+          new: "    c.country as region,\n"
+  expect: []
+
+# Hidden consumers (`hidden-`): the change looks fine on its own, but a file that is
+# not in the diff still reads what it removes. Only the repo's lineage shows it.
+
+- id: hidden-dbt-column-dropped
+  file: fixture/dbt_project/models/staging/stg_customers.sql
+  before_from_repo: true
+  edits:
+    - old: "    cast(signup_date as date) as signup_date,\n    region\n"
+      new: "    cast(signup_date as date) as signup_date\n"
+  expect:
+    - marker: "as signup_date"
+      category: data_contract
+
+- id: hidden-dbt-column-renamed
+  file: fixture/dbt_project/models/staging/stg_orders.sql
+  before_from_repo: true
+  edits:
+    - old: "    amount,\n"
+      new: "    amount as gross_amount,\n"
+  expect:
+    - marker: "amount as gross_amount"
+      category: data_contract

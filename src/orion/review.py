@@ -165,9 +165,16 @@ def _facts(ctx: ReviewContext) -> str:
     for c in v["constraints"]:
         if c["status"] == "fires":
             lines.append(f"- constraint:{c['id']} ({c['kind']}, {c['severity']}) fires: {c['detail']}. Reason: {c['reason']}")
+    for r in v.get("readers", []):
+        state = "also changed in this diff; check it no longer selects the old name" if r["in_change"] else "not changed in this diff, so it still selects the old name and will fail"
+        lines.append(f"- reader node:{r['reader']} selects {r['column']} ({r['op']}) {r['evidence'][0]}: {state}")
+    readers = v.get("readers", [])
+    for col in sorted({r["column"] for r in readers}):
+        if all(r["in_change"] for r in readers if r["column"] == col):
+            lines.append(f"- every model that selects {col} directly is changed in this diff; if those changes stop selecting the old name, assets further downstream are not broken by it")
     for a in v["affected"][:20]:
         edge = next((e for e in a["evidence"] if e.startswith("edge:")), "")
-        lines.append(f"- affected node:{a['asset']} tier {a['tier']} owner {a['owner']} {edge}".rstrip())
+        lines.append(f"- downstream node:{a['asset']} tier {a['tier']} owner {a['owner']} {edge} (reached by lineage; whether it breaks depends on what it reads)".rstrip())
     for h in v["history"][:10]:
         ref = f"incident:{h['ref']}" if h["kind"] in ("postmortem_filed", "incident_opened") else f"event:{h['event']}"
         lines.append(f"- history {ref} {h['kind']} {str(h['occurred_at'])[:10]}: {h.get('title') or ''} ({h['relevance']})")
@@ -323,6 +330,12 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
         if c.get("approvers"):
             body += f" Sign-off needed from {', '.join(c['approvers'])}."
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": c["severity"], "category": "data_contract", "title": f"{c['id']} {c['kind']} fires", "body": body, "evidence": list(dict.fromkeys(ev)), "status": "valid", "notes": []})
+    for r in v.get("readers", []):
+        if r["in_change"]:
+            continue
+        path, line = locate([r["asset"]])
+        verb = "drops" if r["op"] == "drop_column" else "renames"
+        out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": "warn", "category": "data_contract", "title": f"{r['reader'].split(':', 1)[1]} still selects {r['column']}", "body": f"This change {verb} {r['column']}, and {r['reader']} selects it directly but is not changed in this diff, so it will fail to build. Update it in the same change.", "evidence": [f"node:{r['reader']}"] + r["evidence"], "status": "valid", "notes": []})
     if not out and v["severity"] in ("warn", "block"):
         tier1 = [a for a in v["affected"] if a["tier"] == 1]
         path, line = locate(v["change"]["touched"])

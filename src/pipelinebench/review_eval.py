@@ -1,12 +1,12 @@
 """Review eval: does ``orion review`` catch planted bugs without raising false alarms?
 
 PipelineBench scores the pre-flight verdict; this scores code review. Each case
-in ``pipelinebench/review/cases.yaml`` is one file change with hand-written
-expectations: the bugs a reviewer must raise, each located by a marker string in
-the new file. Correct changes (``expect: []``) count false alarms.
+in ``pipelinebench/review/cases.yaml`` is a change to one or more files with
+hand-written expectations: the bugs a reviewer must raise, each located by a
+marker string in a new file. Correct changes (``expect: []``) count false alarms.
 
 A finding catches an expected bug when it is valid (shown to the user), on the
-same path, and within ``WINDOW`` lines of the marker. Severity ``warn`` or
+bug's path, and within ``WINDOW`` lines of the marker. Severity ``warn`` or
 ``block`` is what a reviewer acts on, so recall and precision are reported at
 that bar, per bug rather than per finding; an ``inform`` that lands on a bug is
 counted separately.
@@ -36,15 +36,14 @@ class Expected:
     marker: str
     category: str | None = None
     line: int = 0
+    file: str = ""
 
 
 @dataclass
-class Case:
-    id: str
+class Change:
     file: str
     before: str
     after: str
-    expect: list[Expected] = field(default_factory=list)
 
     def diff(self) -> str:
         old, new = self.before.splitlines(keepends=True), self.after.splitlines(keepends=True)
@@ -54,25 +53,51 @@ class Case:
         return head + body
 
 
+@dataclass
+class Case:
+    id: str
+    changes: list[Change]
+    expect: list[Expected] = field(default_factory=list)
+
+    @property
+    def files(self) -> list[str]:
+        return [c.file for c in self.changes]
+
+    def diff(self) -> str:
+        return "".join(c.diff() for c in self.changes)
+
+
+def _change(case_id: str, raw: dict[str, Any], repo_root: Path) -> Change:
+    before = (repo_root / raw["file"]).read_text() if raw.get("before_from_repo") else raw.get("before", "")
+    after = raw.get("after", before)
+    for e in raw.get("edits", []):
+        if after.count(e["old"]) != 1:
+            raise ValueError(f"{case_id}: edit target must occur exactly once in {raw['file']}: {e['old']!r}")
+        after = after.replace(e["old"], e["new"])
+    after += raw.get("append", "")
+    if after == before:
+        raise ValueError(f"{case_id}: {raw['file']} is not changed")
+    return Change(raw["file"], before, after)
+
+
 def load_cases(path: Path, repo_root: Path) -> list[Case]:
+    """Load cases. A case is one file (``file`` plus its fields) or several (``files``)."""
     cases = []
     for raw in yaml.safe_load(path.read_text()):
-        before = (repo_root / raw["file"]).read_text() if raw.get("before_from_repo") else raw.get("before", "")
-        after = raw.get("after", before)
-        for e in raw.get("edits", []):
-            if after.count(e["old"]) != 1:
-                raise ValueError(f"{raw['id']}: edit target must occur exactly once: {e['old']!r}")
-            after = after.replace(e["old"], e["new"])
-        after += raw.get("append", "")
-        if after == before:
-            raise ValueError(f"{raw['id']}: the case changes nothing")
+        changes = [_change(raw["id"], f, repo_root) for f in raw.get("files") or [raw]]
+        by_file = {c.file: c for c in changes}
+        if len(by_file) != len(changes):
+            raise ValueError(f"{raw['id']}: a file appears twice")
         expect = []
         for x in raw.get("expect") or []:
-            lines = [i for i, line in enumerate(after.splitlines(), 1) if x["marker"] in line]
+            file = x.get("file") or (changes[0].file if len(changes) == 1 else None)
+            if file not in by_file:
+                raise ValueError(f"{raw['id']}: marker {x['marker']!r} needs a `file` that the case changes")
+            lines = [i for i, line in enumerate(by_file[file].after.splitlines(), 1) if x["marker"] in line]
             if len(lines) != 1:
-                raise ValueError(f"{raw['id']}: marker {x['marker']!r} must match exactly one line of the new file, matched {len(lines)}")
-            expect.append(Expected(x["marker"], x.get("category"), lines[0]))
-        cases.append(Case(raw["id"], raw["file"], before, after, expect))
+                raise ValueError(f"{raw['id']}: marker {x['marker']!r} must match exactly one line of {file}, matched {len(lines)}")
+            expect.append(Expected(x["marker"], x.get("category"), lines[0], file))
+        cases.append(Case(raw["id"], changes, expect))
     return cases
 
 
@@ -88,15 +113,16 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
     acted = [f for f in shown if f["severity"] in ACTED_ON]
     per_bug = []
     for e in case.expect:
-        hits = [f for f in shown if _near(f, case.file, e.line)]
+        hits = [f for f in shown if _near(f, e.file, e.line)]
         per_bug.append({
+            "file": e.file,
             "marker": e.marker,
             "line": e.line,
             "caught": any(f["severity"] in ACTED_ON for f in hits),
             "inform_only": bool(hits) and not any(f["severity"] in ACTED_ON for f in hits),
             "by": sorted({f["source"] for f in hits}),
         })
-    false_alarms = [f for f in acted if not any(_near(f, case.file, e.line) for e in case.expect)]
+    false_alarms = [f for f in acted if not any(_near(f, e.file, e.line) for e in case.expect)]
     return {
         "case": case.id,
         "expected": len(case.expect),
@@ -115,7 +141,7 @@ def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: 
     rows = []
     for n in range(repeat):
         for c in cases:
-            r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={c.file: c.after}, file_context=file_context)
+            r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, file_context=file_context)
             g = grade(c, r) | {"run": n}
             rows.append(g)
             if progress:

@@ -79,7 +79,7 @@ src/pipelinebench/
 
 ## Review eval
 
-`pipelinebench review-eval` scores `orion review` itself, not the pre-flight verdict. `review/cases.yaml` holds 33 one-file changes written by hand: 24 with a planted bug (Python, TypeScript, Go, SQL migrations, dbt models, an Airflow DAG) and 9 correct changes. The eight `ctx-` cases are ones where the bug, or the reason a change is fine, sits outside the hunk's context lines. Each bug is located by a marker string in the new file. A bug counts as caught when a shown finding of severity `warn` or `block` lands on the same file within three lines of it. A `warn` or `block` finding anywhere else is a false alarm.
+`pipelinebench review-eval` scores `orion review` itself, not the pre-flight verdict. `review/cases.yaml` holds 41 changes written by hand: 30 with a planted bug (Python, TypeScript, Go, SQL migrations, dbt models, an Airflow DAG) and 11 correct changes. The eight `ctx-` cases are ones where the bug, or the reason a change is fine, sits outside the hunk's context lines. The six `xf-` cases change two files, and the bug in one only shows against the change to the other. The two `hidden-` cases change one dbt model while a model outside the diff still reads what was removed or renamed; only the lineage in Orion's system facts shows that. Each bug is located by a marker string in a new file. A bug counts as caught when a shown finding of severity `warn` or `block` lands on the bug's file within three lines of it. A `warn` or `block` finding anywhere else is a false alarm.
 
 ```bash
 .venv/bin/pipelinebench review-eval --provider anthropic            # one pass
@@ -90,7 +90,7 @@ src/pipelinebench/
 
 First run (`results/review-sonnet-5-5-baseline.md`, Sonnet 5.5, one pass over the first 25 cases, hunks only): all 19 bugs caught at warn or block, 2 false alarms. One came from the model seeing only the hunks: it called a helper "not defined" because the helper sat outside the context lines. That led to the comparison below.
 
-Whole-file context (Sonnet 5.5, all 33 cases run 3 times each way; `results/review-sonnet-5-5-*-x3.md`):
+Whole-file context (Sonnet 5.5, the first 33 cases run 3 times each way; `results/review-sonnet-5-5-{no-,}file-context-x3.md`):
 
 | | hunks only | whole changed files |
 | --- | --- | --- |
@@ -102,3 +102,9 @@ Whole-file context (Sonnet 5.5, all 33 cases run 3 times each way; `results/revi
 
 Sending each changed file whole (up to 400 lines) cut false alarms by two thirds for about 16% more input tokens, so it is now the default. Recall did not move: the model caught every planted bug both ways, including the `ctx-` ones, whose hunks still carry hints (names, comments, a removed guard). The set still needs bugs that are genuinely invisible without the rest of the file, or that span files. Of the 5 remaining false alarms, 3 are `clean-sql-index`, where the model warns that `CREATE INDEX CONCURRENTLY` fails inside a transactional migration, and 2 are `clean-ctx-helper-defined-above`, where it notes that `fmt_money` renders negative cents wrongly. Both warnings are arguably fair, so those two labels may be what's wrong. This is one model over 3 runs; treat the size of the gap as indicative.
 
+
+Cross-file and hidden-consumer cases (Sonnet 5.5, the 8 `xf-`, `clean-xf-` and `hidden-` cases run 3 times each; `results/review-sonnet-5-5-cross-file-*.md`). Recall was 1.0 from the start; the problem was false alarms. On the first run every correct cross-file change was flagged (6/6, precision 0.53). The model warned on the producer side that "other callers" or "downstream consumers" might break, even when the one consumer was fixed in the same diff.
+
+That run led to a deterministic reader check. For a dropped or renamed column, the pre-flight lists each model that selects it directly and says whether the diff also changes that model. A reader left untouched becomes a `warn` finding from code ("int_customer_orders still selects stg_customers.region"), and `update_readers` becomes a pre-flight check. When every direct reader is in the diff, the facts say so, and other downstream assets are labelled as reached by lineage rather than broken. Re-running the 9 dbt cases (`results/review-sonnet-5-5-dbt-readers-x3.md`) gave recall 1.0, precision 0.875, and 0/6 correct changes flagged. `clean-xf-dbt-rename-with-consumer` went from flagged 3/3 to 0/3, and `hidden-dbt-column-dropped` is now caught by code as well as by the model. The 3 remaining false alarms are on `xf-dbt-renamed-column-still-read`, where the model also warns on the rename itself; that warning is close to fair. On the Python and TypeScript cross-file cases the model still warns that a public signature change may break callers it cannot see. Orion has no call graph for application code, so it has nothing to rule that out with.
+
+The pre-flight severity is unchanged by the reader check. PipelineBench's hand-written rule rates column drops by tier and constraints alone (PB-016 and PB-018 expect `inform` for drops that a tier 2 model still selects), so the reader check adds a finding and a check, not a severity bump.
