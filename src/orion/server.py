@@ -43,11 +43,17 @@ def register_record_tools(server: MCPServer) -> None:
 
     @server.tool(name="search_record", description="Keyword search over the projects' written record (design notes, decisions, plans, retros, my build pipeline lessons, ledger and runs). Optionally limited to one repository. Returns section ids, headings and snippets.")
     def search_record_tool(query: str, repo: str | None = None) -> list[dict[str, Any]]:
-        return record.search(query, repo=repo)
+        try:
+            return record.search(query, repo=repo)
+        except (OSError, ValueError) as e:  # a missing required repository, or a corpus file that does not parse
+            return [{"error": f"record unavailable: {e}"}]
 
     @server.tool(name="read_record", description="One section of the record in full by its id (repo:path#anchor), or an `error` for an id the record does not hold.")
     def read_record_tool(section_id: str) -> dict[str, Any]:
-        return record.read(section_id)
+        try:
+            return record.read(section_id)
+        except (OSError, ValueError) as e:
+            return {"error": f"record unavailable: {e}"}
 
 
 def _jsonable(obj: Any) -> Any:

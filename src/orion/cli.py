@@ -456,17 +456,17 @@ def serve(
     """Run the MCP server (tools: preflight, explain, history, record_decision, propose_constraint, ask, review, search_record, read_record).
 
     Without an orion.yaml, only the record tools are served."""
+    import sys
+
+    from .config import repo_root
     from .server import serve as run_server
     from .server import serve_record
 
-    try:
-        cfg = load_config(config)
-    except FileNotFoundError:
-        if config is not None:
-            raise
+    if config is None and not any(p.exists() for p in (Path.cwd() / "orion.yaml", repo_root(Path.cwd()) / "orion.yaml")):
+        print("orion serve: no orion.yaml here, serving the record tools only", file=sys.stderr)
         serve_record(transport=transport)
         return
-    run_server(cfg, transport=transport)
+    run_server(load_config(config), transport=transport)
 
 
 if __name__ == "__main__":

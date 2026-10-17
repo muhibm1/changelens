@@ -37,7 +37,7 @@ PYTHONPATH=src python3 -m orion.record read "pipeline:notes/playbooks/webapp.md#
 orion record index                                                                    # once installed
 ```
 
-Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson (`pipeline:notes/rulebook.md#R5`), `#TG-NN` for a ledger row, `#parts.N`, `#detail.N` and `decisions.json#N` for a run. `read` of an id the record does not hold prints an error and exits 1, so a citation that does not read back is not recorded. The index is cached under `.orion/record/` and rebuilt when a covered file is added, removed or changed. `ORION_RECORD` points at a different corpus file (needed when Orion is installed outside a checkout).
+Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson (`pipeline:notes/rulebook.md#R5`), `#TG-NN` for a ledger row, `#parts.N`, `#detail.N` and `decisions.json#N` for a run. `read` of an id the record does not hold prints an error and exits 1, so a citation that does not read back is not recorded. Every search checks whether a covered file was added, removed or changed and rebuilds the index if so, so a running server sees a new lesson on its next search. The index is cached in the user cache folder (`~/.cache/orion/record/`, or `ORION_RECORD_CACHE`), never inside a repository, and a cache that cannot be written is skipped. `ORION_RECORD` points at a different corpus file (needed when Orion is installed outside a checkout). A required repository that is missing makes search and read return `record unavailable` rather than a partial answer.
 
 ## Quickstart
 
