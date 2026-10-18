@@ -3,7 +3,7 @@
 * ``scripted``: a deterministic reader. With a verdict it follows the verdict; with files or chunks it
   keyword-matches constraints and incidents that mention the changed assets. It is the floor, and the
   proof that the harness measures the context rather than the model.
-* ``claude``: the Anthropic Messages API (``pip install anthropic``, ``ORION_ANTHROPIC_API_KEY`` or ``ANTHROPIC_API_KEY``).
+* ``claude``: the Anthropic Messages API through Orion's provider interface (``ORION_ANTHROPIC_API_KEY`` or ``ANTHROPIC_API_KEY``).
 * ``command``: any executable that reads the prompt JSON on stdin and writes a Decision JSON on stdout,
   so an OpenHands, Codex or in-house agent can sit in the same harness.
 """
@@ -110,24 +110,44 @@ class ScriptedAgent:
         return Decision(decision=SEV_TO_DECISION[sev], cited=cited, affected=affected, approvers=sorted(approvers), rationale=f"{len(cited)} ids mention the changed assets")
 
 
+DECISION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "decision": {"type": "string", "enum": sorted(DECISIONS)},
+        "cited": {"type": "array", "items": {"type": "string"}},
+        "affected": {"type": "array", "items": {"type": "string"}},
+        "approvers": {"type": "array", "items": {"type": "string"}},
+        "rationale": {"type": "string"},
+    },
+    "required": ["decision", "cited", "affected", "approvers", "rationale"],
+    "additionalProperties": False,
+}
+
+
 class ClaudeAgent:
-    def __init__(self, model: str = "claude-sonnet-5-5", max_tokens: int = 800):
-        import anthropic  # type: ignore[import-not-found]
+    """A model behind Orion's provider interface (no vendor SDK); token use is summed in ``usage``."""
 
-        from orion.providers import ANTHROPIC_KEY_ENVS
+    def __init__(self, model: str = "claude-sonnet-5-5", max_tokens: int = 2000):
+        from orion.providers import AnthropicProvider
 
-        api_key = next((os.environ[k] for k in ANTHROPIC_KEY_ENVS if os.environ.get(k)), None)
-        if not api_key:
-            raise RuntimeError(f"no Anthropic API key; set {' or '.join(ANTHROPIC_KEY_ENVS)}")
         self.name = f"claude:{model}"
         self.model = model
-        self.max_tokens = max_tokens
-        self.client = anthropic.Anthropic(api_key=api_key)
+        self.provider = AnthropicProvider(model=model, max_tokens=max_tokens, effort=None)
+        self.usage = {"input_tokens": 0, "output_tokens": 0, "errors": 0}
 
     def decide(self, prompt: Prompt) -> Decision:
-        msg = self.client.messages.create(model=self.model, max_tokens=self.max_tokens, system=SYSTEM, messages=[{"role": "user", "content": prompt.user_text()}])
-        text = "".join(getattr(b, "text", "") for b in msg.content)
-        return parse_decision(text)
+        from orion.providers import ProviderError
+
+        self.provider.last_usage = None  # a failed call must not count the previous call's tokens again
+        try:
+            data = self.provider.complete_json(SYSTEM, prompt.user_text(), DECISION_SCHEMA, schema_name="decision")
+        except ProviderError as e:
+            self.usage["errors"] += 1
+            return Decision(decision="proceed", rationale=f"provider error: {e}")  # graded as the agent's answer, so an outage cannot look safe
+        finally:
+            for k in ("input_tokens", "output_tokens"):
+                self.usage[k] += int((self.provider.last_usage or {}).get(k) or 0)
+        return parse_decision(json.dumps(data))
 
 
 class CommandAgent:

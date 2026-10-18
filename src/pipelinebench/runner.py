@@ -50,6 +50,7 @@ def run(
                     if progress:
                         progress(agent.name, cond, s.id, g)
             cells[f"{agent.name}|{cond}"] = {"agent": agent.name, "condition": cond, **aggregate(rows)}
+    usage = {a.name: dict(a.usage) for a in agents if getattr(a, "usage", None)}
     return {
         "benchmark": "PipelineBench",
         "version": "0.1.0",
@@ -59,6 +60,7 @@ def run(
         "scenarios": len(scenarios),
         "seeds": seeds,
         "cells": list(cells.values()),
+        "usage": usage,
         "details": details,
     }
 
@@ -67,6 +69,7 @@ def report(results: dict[str, Any]) -> str:
     """A markdown table: one row per agent x condition."""
     lines = [
         f"PipelineBench {results['version']}: {results['scenarios']} scenarios, {results['seeds']} seed(s), ran {results['ran_at'][:19]}Z",
+        *[f"{name}: {u.get('input_tokens', 0)} tokens in, {u.get('output_tokens', 0)} out, {u.get('errors', 0)} provider errors (each graded as proceed)" for name, u in (results.get("usage") or {}).items()],
         "",
         "| agent | condition | accuracy | unsafe | cite recall | name recall | approvers | fabricated | score |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",

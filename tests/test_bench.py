@@ -80,3 +80,26 @@ def test_scripted_baseline_shows_the_gradient(synced_store):
     assert all(by_cond["orion"]) and not any(by_cond["repo"]) and not any(by_cond["rag"]), "only lineage catches upstream column changes"
     md = report(res)
     assert "| scripted | orion |" in md
+
+
+def test_the_model_agent_goes_through_the_provider_and_counts_tokens(monkeypatch, synced_store):
+    from orion import providers
+    from pipelinebench.agents import ClaudeAgent
+
+    sent = []
+
+    def post(url, headers, body, **kw):
+        sent.append(body)
+        if len(sent) == 2:
+            raise providers.ProviderError("down")
+        return {"content": [{"type": "text", "text": '{"decision": "escalate", "cited": ["CON-031"], "affected": [], "approvers": [], "rationale": "r"}'}], "usage": {"input_tokens": 10, "output_tokens": 3}, "stop_reason": "end_turn"}
+
+    monkeypatch.setattr(providers, "_post", post)
+    monkeypatch.setenv("ORION_ANTHROPIC_API_KEY", "k")
+    scenarios = load_scenarios(SCENARIOS)[:2]
+    res = run(scenarios, [ClaudeAgent("m")], ["none"], repo_root=ROOT, store=synced_store)
+    assert sent[0]["output_config"]["format"]["schema"]["required"]
+    first, second = [d for d in res["details"]]
+    assert first["decided"] == "escalate" and second["decided"] == "proceed" and "provider error" in second["rationale"]
+    assert res["usage"] == {"claude:m": {"input_tokens": 10, "output_tokens": 3, "errors": 1}}
+    assert "claude:m: 10 tokens in, 3 out, 1 provider errors (each graded as proceed)" in report(res)
