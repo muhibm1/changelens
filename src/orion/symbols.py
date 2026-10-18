@@ -212,6 +212,21 @@ def _enclosing(lines: list[str], line: int, lang: str | None) -> int:
     return 0
 
 
+_CLASS_DEF = re.compile(r"^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s")
+
+
+def _class_body(lines: list[str], line: int) -> list[str]:
+    """The lines of the class the access on ``line`` (1-based) sits in, by indentation, so ``self``/``this`` members are looked up in that class only; the whole file when no class encloses it (Go, free functions)."""
+    indent = _indent(lines[line - 1]) if line <= len(lines) else 0
+    for i in range(min(line, len(lines)) - 2, -1, -1):
+        if lines[i].strip() and _indent(lines[i]) < indent:
+            indent = _indent(lines[i])
+            if _CLASS_DEF.match(lines[i]):
+                end = next((j for j in range(i + 1, len(lines)) if lines[j].strip() and _indent(lines[j]) <= indent and not lines[j].strip().startswith("}")), len(lines))
+                return lines[i:end]
+    return lines
+
+
 def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None) -> str | None:
     """The class the receiver of a member access on ``line`` is, as far as the file says: the class itself or a construction of it (``Client.fetch``, ``Client().fetch()``, ``new Client()``, ``Client::new()``, ``Client.new``), or a plain name bound to a capitalised type between the enclosing definition and the access (``c: Client``, ``c = Client(...)``, ``c := &Client{}``, ``let c = Client::new()``, a Go parameter ``c *Client``), the nearest such binding winning. Nothing else is inferred, so a lower-case receiver with no such binding is None."""
     r = receiver.strip().lstrip("&*")
@@ -222,15 +237,68 @@ def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None)
         return m.group(1) if m else None
     if m := re.fullmatch(_CLASS + r"(?:\(.*\)|::new\b.*|\.new\b.*)?", r, re.DOTALL):
         return m.group(1)
+    if m := re.fullmatch(r"((?:self|this)\.)?([a-z_$][\w$]*)\(.*\)", r, re.DOTALL):
+        return _returns(_class_body(lines, line) if m.group(1) else lines, m.group(2))  # ``make_client().fetch()``, ``self.make().fetch()``
+    if m := re.fullmatch(r"(?:(self|this)\.|@|([a-z_]\w*)\.)([A-Za-z_$][\w$]*)", r):
+        if m.group(2) and lang != "go":
+            return None  # ``a.b.fetch()``: only a field of self, or of a Go method's receiver, is looked up
+        return _field_type(lines, m.group(3), lang, _class_body(lines, line) if not m.group(2) else lines)
     if not _NAME_RE.fullmatch(r) or r in SELF:
         return None
     name = re.escape(r)
     binding = rf"(?<![\w$.]){name}\s*(?::\s*(?:&(?:'\w+\s+)?|\*|mut\s+)*|=\s*(?:new\s+|&)?|:=\s*&?){_CLASS}{_AFTER_CLASS}"
     if lang == "go":
         binding += rf"|(?<![\w$.]){name}\s+\*?{_CLASS}{_AFTER_CLASS}"
+    # ``c = make_client()``: the type the called function in this file declares it returns; any other call leaves the type unknown
+    call = rf"(?<![\w$.]){name}\s*(?::=|=)\s*(?:await\s+|try\s+)?((?:[\w$]+\.)*)([a-z_$][\w$]*)\s*\("
     window = "\n".join(lines[_enclosing(lines, line, lang) : line])
-    found = [next(g for g in m.groups() if g) for m in re.finditer(binding, window)]
-    return found[-1] if found else None
+    found = [(m.start(), next(g for g in m.groups() if g)) for m in re.finditer(binding, window)]
+    for m in re.finditer(call, window):
+        found.append((m.start(), _returns(lines if not m.group(1) else _class_body(lines, line), m.group(2)) if m.group(1) in ("", "self.", "this.") else None))
+    return max(found, key=lambda x: x[0])[1] if found else None
+
+
+def _returns(lines: list[str], func: str) -> str | None:
+    """The class a function or method defined in this file declares it returns (``-> Client``, ``): Client``, Go ``*Client``, Rust ``-> Client``); None when it declares none, or two definitions disagree."""
+    f = re.escape(func)
+    text = "\n".join(lines)
+    opt = r"(?:['\"]|Optional\[|Awaitable\[|Promise<)*"
+    pats = (
+        rf"\bdef\s+{f}\s*\([^)]*\)\s*->\s*{opt}{_CLASS}",
+        rf"(?:\bfunction\s+|^\s*(?:(?:public|private|protected|static|async)\s+)*){f}\s*(?:<[^>]*>)?\([^)]*\)\s*:\s*{opt}{_CLASS}",
+        rf"\bfunc\s+(?:\([^)]*\)\s*)?{f}\s*\([^)]*\)\s*\(?\*?{_CLASS}",
+        rf"\bfn\s+{f}\s*(?:<[^>]*>)?\([^)]*\)\s*->\s*(?:Option<|Result<)?{_CLASS}",
+    )
+    types = {m.group(1) for p in pats for m in re.finditer(p, text, re.M)}
+    return types.pop() if len(types) == 1 else None
+
+
+def _field_type(lines: list[str], field_name: str, lang: str | None, body: list[str] | None = None) -> str | None:
+    """The class this file declares a field as (``self.client: Client``, ``self.client = Client()``, a ``client: Client`` field or
+    constructor parameter property, a Go struct field ``client *Client``), or as the annotated parameter assigned to it
+    (``self.client = client`` with ``client: Client``); None when the file says nothing, or two declarations disagree.
+    ``body``: the enclosing class's lines, where the field is looked up; free functions are still looked up in the whole file."""
+    f = re.escape(field_name)
+    body = body if body is not None else lines
+    text = "\n".join(body)
+    mods = r"(?:(?:private|public|protected|readonly|static|declare|pub|override)\s+)*"
+    pats = [
+        rf"(?:self|this)\.{f}\s*:\s*{_CLASS}{_AFTER_CLASS}",
+        rf"(?:(?:self|this)\.|@){f}\s*=\s*(?:new\s+|&)?{_CLASS}{_AFTER_CLASS}",
+        rf"^\s*{mods}{f}\??\s*:\s*{_CLASS}{_AFTER_CLASS}",
+        rf"(?:private|public|protected|readonly)\s+{f}\??\s*:\s*{_CLASS}{_AFTER_CLASS}",
+    ]
+    if lang == "go":
+        pats.append(rf"^\s*{f}\s+\*?{_CLASS}{_AFTER_CLASS}")
+    types = {m.group(1) for p in pats for m in re.finditer(p, text, re.M)}
+    for m in re.finditer(rf"(?:self|this)\.{f}\s*=\s*([a-z_]\w*)\s*$", text, re.M):
+        line = text.count("\n", 0, m.start()) + 1  # the parameter is looked up only in the function this assignment sits in
+        scope = "\n".join(body[_enclosing(body, line, lang) : line])
+        types |= {a.group(1) for a in re.finditer(rf"(?<![\w$.]){re.escape(m.group(1))}\s*:\s*{_CLASS}{_AFTER_CLASS}", scope)}
+    for m in re.finditer(rf"(?:self|this)\.{f}\s*=\s*(self\.|this\.)?([a-z_]\w*)\s*\(", text):
+        if t := _returns(body if m.group(1) else lines, m.group(2)):
+            types.add(t)
+    return types.pop() if len(types) == 1 else None
 
 
 def _file_refs(path: str, text: str, name: str, word: re.Pattern[str], owner: str | None = None) -> list[Ref]:

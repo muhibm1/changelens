@@ -626,3 +626,72 @@ def test_a_removed_method_with_a_typed_caller_elsewhere_is_a_finding(synced_stor
     assert "1 method or attribute access `.fetch` on some object, which may or may not be this definition (ref:app/jobs.py:6)" in user
     assert "1 access `.fetch` on an object the file types as `Cache`, not this definition's class, so not this definition (ref:app/jobs.py:7)" in user
     assert r["symbols"][0]["owner"] == "Client"
+
+
+def test_receivers_typed_by_a_field_or_a_declared_return_are_linked(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for d in ("app", "other", "web", "gosvc"):
+        (tmp_path / d).mkdir()
+    gap = "".join(f"    x{i} = {i}\n" for i in range(12))
+    old = "class Client:\n    def fetch(self, url):\n        return url\n\n" + gap + "    def get(self, url):\n        return url\n"
+    new = "class Client:\n" + gap + "    def get(self, url):\n        return url\n"
+    (tmp_path / "app" / "client.py").write_text(old)
+    (tmp_path / "other" / "service.py").write_text(
+        "from app.client import Client\n\n\n"
+        "def make_client() -> Client:\n    return Client()\n\n\n"
+        "def make_other() -> Cache:\n    return Cache()\n\n\n"
+        "class Service:\n"
+        "    def __init__(self, client: Client, cache):\n        self.client = client\n        self.cache = cache\n\n"
+        "    def run(self):\n"
+        "        self.client.fetch(1)\n"  # 18: field set from an annotated parameter
+        "        self.cache.fetch(2)\n"  # 19: untyped field
+        "        c = make_client()\n        c.fetch(3)\n"  # 21: declared return
+        "        d = make_other()\n        d.fetch(4)\n"  # 23: another class
+        "        make_client().fetch(5)\n"  # 24
+        "        e = unknown()\n        e.fetch(6)\n"  # 26: a call this file does not declare
+        "\n\ndef helper(cache: Cache):\n    return cache\n"  # another function's parameter does not type the field
+    )
+    [sc] = symbol_changes(parse(Change("app/client.py", old, new).diff()), tmp_path, {"app/client.py": new})
+    by = {r["line"]: r["receiver_type"] for r in sc.refs if r["path"] == "other/service.py"}
+    assert by == {18: "Client", 19: None, 21: "Client", 23: "Cache", 24: "Client", 26: None}
+    assert sorted(r["line"] for r in sc.linked_outside if r["path"] == "other/service.py") == [18, 21, 24]
+
+    ts_old = "export class Client {\n  fetch(u: string) { return u; }\n" + "".join(f"  x{i} = {i};\n" for i in range(12)) + "  get(u: string) { return u; }\n}\n"
+    ts_new = "export class Client {\n" + "".join(f"  x{i} = {i};\n" for i in range(12)) + "  get(u: string) { return u; }\n}\n"
+    (tmp_path / "web" / "client.ts").write_text(ts_old)
+    (tmp_path / "web" / "use.ts").write_text(
+        'import { Client } from "./client";\n'
+        "function build(): Client { return new Client(); }\n"
+        "export class Api {\n  constructor(private client: Client, private other: Other) {}\n"
+        '  run() {\n    this.client.fetch("u");\n    this.other.fetch("u");\n    const c = build();\n    c.fetch("u");\n  }\n}\n'
+    )
+    [sc] = symbol_changes(parse(Change("web/client.ts", ts_old, ts_new).diff()), tmp_path, {"web/client.ts": ts_new})
+    assert sorted(r["line"] for r in sc.linked_outside if r["path"] == "web/use.ts") == [6, 9]
+
+    go_old = "package gosvc\n\ntype Client struct{}\n\nfunc (c *Client) Fetch(u string) string { return u }\n\nfunc (c *Client) Get(u string) string { return u }\n"
+    go_new = "package gosvc\n\ntype Client struct{}\n\nfunc (c *Client) Get(u string) string { return u }\n"
+    (tmp_path / "gosvc" / "client.go").write_text(go_old)
+    (tmp_path / "gosvc" / "use.go").write_text(
+        "package gosvc\n\ntype Svc struct {\n\tclient *Client\n}\n\n"
+        "func newClient() (*Client, error) { return &Client{}, nil }\n\n"
+        "func (s *Svc) Run() {\n\ts.client.Fetch(\"u\")\n\tc, _ := newClient()\n\tc.Fetch(\"u\")\n}\n"
+    )
+    [sc] = symbol_changes(parse(Change("gosvc/client.go", go_old, go_new).diff()), tmp_path, {"gosvc/client.go": go_new})
+    assert sorted(r["line"] for r in sc.linked_outside if r["path"] == "gosvc/use.go") == [10]
+
+
+def test_a_self_member_is_typed_by_its_own_class_only():
+    from orion.symbols import _lang, _receiver_type
+
+    lines = (
+        "class A:\n"
+        "    def __init__(self, client: Client):\n        self.client = client\n\n"
+        "    def build(self) -> Client:\n        return Client()\n\n"
+        "    def run(self):\n        self.client.fetch()\n        self.build().fetch()\n\n\n"
+        "class B:\n"
+        "    def run(self):\n        self.client.fetch()\n        self.build().fetch()\n"
+    ).splitlines()
+    assert _receiver_type(lines, "self.client", 9, _lang("a.py")) == "Client"
+    assert _receiver_type(lines, "self.build()", 10, _lang("a.py")) == "Client"
+    assert _receiver_type(lines, "self.client", 15, _lang("a.py")) is None
+    assert _receiver_type(lines, "self.build()", 16, _lang("a.py")) is None
