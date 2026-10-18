@@ -44,3 +44,31 @@ def test_ledger_is_append_only():
     assert first == second
     stored = s.events_for(["model:a"])
     assert len(stored) == 1 and stored[0]["payload"] == {}
+
+
+def test_bulk_write_matches_upserts_one_by_one():
+    def rows(s):
+        return (
+            s.con.execute("SELECT id, kind, name, properties, tier, owner FROM nodes ORDER BY id").fetchall(),
+            s.con.execute("SELECT id, src, dst, kind, confidence, properties FROM edges ORDER BY id").fetchall(),
+            s.con.execute("SELECT subject_id, adapter, source, ref FROM provenance ORDER BY ALL").fetchall(),
+        )
+
+    first = [Node(NodeKind.MODEL, "a", properties={"v": 1}, tier=2, provenance=[prov()]), Node(NodeKind.MODEL, "b", owner="team/x", provenance=[prov()])]
+    again = [Node(NodeKind.MODEL, "a", properties={"v": 2}, provenance=[prov(), Provenance("dbt", "manifest.json", "abc")]), Node(NodeKind.MODEL, "b", owner="team/y", provenance=[prov()])]
+    edges = [Edge("model:b", "model:a", EdgeKind.CONSUMES, Confidence.PARSED, provenance=[prov()])]
+    one, bulk = Store(":memory:"), Store(":memory:")
+    for n in first + again:
+        one.upsert_node(n)
+    for e in edges + edges:
+        one.upsert_edge(e)
+    bulk.write_graph(first, edges)
+    bulk.write_graph(again, edges)
+    assert rows(one) == rows(bulk)
+    assert rows(bulk)[0][0][3:5] == ('{"v": 2}', 2), "properties replaced, tier kept when the new row has none"
+    with pytest.raises(ProvenanceRequired):
+        bulk.write_graph([Node(NodeKind.MODEL, "c")], [])
+
+    dupes = Store(":memory:")
+    dupes.write_graph(first + again, edges + edges)
+    assert rows(dupes) == rows(one), "duplicate ids within one batch merge like successive upserts"

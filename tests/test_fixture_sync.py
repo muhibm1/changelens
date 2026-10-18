@@ -1,5 +1,6 @@
 """End-to-end: sync the fixture platform and ask the graph the questions a verdict will ask."""
 
+import json
 from pathlib import Path
 
 from orion.constraints import load_constraints
@@ -83,3 +84,24 @@ def test_path_resolver_maps_model_files(synced_store):
 def test_tier_inference_fills_gaps_upstream_of_tier_one(synced_store):
     node = synced_store.node("model:int_order_payments")
     assert node["tier"] == 1 and node["properties"].get("tier_source") == "inferred"
+
+
+def test_column_lineage_is_cached_between_syncs(tmp_path):
+    from orion.adapters import dbt as dbt_adapter
+
+    project = ROOT / "fixture" / "dbt_project"
+    cache = tmp_path / "lineage-cache.json"
+    first = dbt_adapter.load(project, ROOT, cache_path=cache)
+    assert cache.exists() and json.loads(cache.read_text())
+    calls = []
+    real = dbt_adapter._lineage_job
+    dbt_adapter._lineage_job = lambda job: calls.append(job[0]) or real(job)
+    try:
+        again = dbt_adapter.load(project, ROOT, cache_path=cache)
+    finally:
+        dbt_adapter._lineage_job = real
+    assert calls == [], "nothing changed, so nothing is recomputed"
+    edges = lambda e: sorted((x.src, x.dst, str(x.kind)) for x in e.edges)  # noqa: E731
+    assert edges(first) == edges(again)
+    cache.write_text(json.dumps({k: "not an entry" for k in json.loads(cache.read_text())}))
+    assert edges(dbt_adapter.load(project, ROOT, cache_path=cache)) == edges(first), "a malformed cache is recomputed"

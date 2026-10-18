@@ -380,6 +380,27 @@ def test_a_review_against_a_base_ref_takes_the_commit_messages_as_intent(synced_
     assert r["intent_source"] is None and "Stated intent" not in stub.calls[0][1]
 
 
+def test_a_warning_raised_only_by_unmapped_paths_says_so(synced_store, constraints):
+    dim = "fixture/dbt_project/models/marts/dim_products.sql"
+    new = "fixture/dbt_project/macros/cents.sql"
+    diff = f"""diff --git a/{dim} b/{dim}
+--- a/{dim}
++++ b/{dim}
+@@ -1 +1 @@
+-select product_id, product_name, category, unit_price
++select product_id, product_name, category, unit_price, 1 as is_active
+diff --git a/{new} b/{new}
+new file mode 100644
+--- /dev/null
++++ b/{new}
+@@ -0,0 +1 @@
++{{% macro cents(x) %}}{{{{ x }}}} * 100{{% endmacro %}}
+"""
+    r = _review(synced_store, constraints, diff, StubProvider())
+    det = [f for f in r["findings"] if f["source"] == "deterministic"]
+    assert len(det) == 1 and det[0]["severity"] == "warn"
+    assert det[0]["title"] == "1 changed path is not mapped to any asset"
+    assert det[0]["path"] == new and new in det[0]["body"]
 def test_a_second_reading_never_lowers_a_finding_below_its_constraint_floor(synced_store, constraints):
     first = {"findings": [{"path": FCT, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount now wrong for finance", "body": "b", "failure": "finance reads a null discount", "evidence": ["hunk:" + FCT + ":8", "constraint:CON-031"]}]}
     sent = []

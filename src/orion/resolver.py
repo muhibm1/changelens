@@ -7,6 +7,7 @@ and turn a repository path into the assets whose definition lives there.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Any
@@ -64,16 +65,20 @@ def resolve_ref(store: Store, ref: str) -> Resolution:
 
 
 class PathResolver:
-    """Map repository paths to assets by the ``path`` property adapters record."""
+    """Map repository paths to assets by the ``path`` property adapters record, plus the schema .yml
+    (``schema_path``) and hand-written test files (``test_paths``) dbt records for a node."""
 
     def __init__(self, store: Store):
         self.by_path: dict[str, list[str]] = {}
-        for n in store.con.execute(
-            "SELECT id, json_extract_string(properties, '$.path') FROM nodes WHERE kind <> 'column' AND json_extract_string(properties, '$.path') IS NOT NULL"
+        self.by_test: dict[str, list[str]] = {}
+        for nid, path, schema_path, test_paths in store.con.execute(
+            "SELECT id, json_extract_string(properties, '$.path'), json_extract_string(properties, '$.schema_path'),"
+            " json_extract(properties, '$.test_paths') FROM nodes WHERE kind <> 'column'"
         ).fetchall():
-            nid, path = n
-            if path:
-                self.by_path.setdefault(str(PurePosixPath(path)), []).append(nid)
+            for p in dict.fromkeys(x for x in (path, schema_path) if x):
+                self.by_path.setdefault(str(PurePosixPath(p)), []).append(nid)
+            for p in json.loads(test_paths) if test_paths else []:
+                self.by_test.setdefault(str(PurePosixPath(p)), []).append(nid)
 
     def resolve(self, path: str) -> list[str]:
         p = str(PurePosixPath(path))
@@ -81,3 +86,7 @@ class PathResolver:
             return list(self.by_path[p])
         # a schema.yml names several assets; a model file names one
         return [nid for k, ids in self.by_path.items() if k.endswith(p) or p.endswith(k) for nid in ids]
+
+    def tested_by(self, path: str) -> list[str]:
+        """Assets a hand-written test file at ``path`` reads."""
+        return list(self.by_test.get(str(PurePosixPath(path)), []))

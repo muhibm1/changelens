@@ -532,6 +532,12 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
     if not out and v["severity"] in ("warn", "block"):
         tier1 = [a for a in v["affected"] if a["tier"] == 1]
         path, line = locate(v["change"]["touched"])
+        unmapped = [u["path"] for u in v["change"]["unresolved"] if u.get("path")]
+        if unmapped and v.get("raised_for_unresolved"):
+            # the warning is the gap, not a known impact: say so rather than dress it as blast radius
+            fd = _file(ctx, unmapped[0])
+            out.append({"source": "deterministic", "path": fd.path if fd else path, "line": fd.first_changed_line() if fd else line, "end_line": None, "severity": v["severity"], "category": "operational", "title": f"{len(unmapped)} changed path{'s are' if len(unmapped) != 1 else ' is'} not mapped to any asset", "body": "Orion cannot say what these affect, so it warns rather than pass them silently: " + ", ".join(f"`{p}`" for p in unmapped[:8]) + ("…" if len(unmapped) > 8 else "") + f". The mapped part of the change: {v['summary']}", "evidence": [f"node:{t}" for t in v["change"]["touched"][:3]], "status": "valid", "notes": []})
+            return out + code_findings(ctx)
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": v["severity"], "category": "operational", "title": f"Change reaches {len(v['affected'])} downstream assets, {len(tier1)} tier 1", "body": v["summary"], "evidence": [f"node:{a['asset']}" for a in tier1[:5]] or [f"node:{t}" for t in v["change"]["touched"][:3]], "status": "valid", "notes": []})
     return out + code_findings(ctx)
 

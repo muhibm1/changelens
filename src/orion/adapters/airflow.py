@@ -90,6 +90,14 @@ def _rshift_chain(expr: ast.AST) -> list[list[str]]:
     return [[]]
 
 
+def _split(cmd: str) -> list[str]:
+    """Shell words; a command with unbalanced quotes (often a Jinja template) falls back to whitespace splitting."""
+    try:
+        return shlex.split(cmd)
+    except ValueError:
+        return cmd.split()
+
+
 def parse_bash_command(cmd: str) -> dict[str, list[str]]:
     """Pull dbt selectors and table-ish flags out of a shell command."""
     out: dict[str, list[str]] = {"dbt_select": [], "produces": [], "consumes": [], "partition_by": [], "dbt_command": []}
@@ -98,14 +106,14 @@ def parse_bash_command(cmd: str) -> dict[str, list[str]]:
     m = DBT_CMD_RE.search(cmd)
     if m:
         out["dbt_command"].append(m.group(1))
-        toks = shlex.split(m.group(2))
+        toks = _split(m.group(2))
         for i, t in enumerate(toks):
             if t in ("--select", "-s", "--models", "-m"):
                 j = i + 1
                 while j < len(toks) and not toks[j].startswith("-"):
                     out["dbt_select"].append(toks[j])
                     j += 1
-    toks = shlex.split(cmd) if cmd else []
+    toks = _split(cmd) if cmd else []
     for i, t in enumerate(toks[:-1]):
         val = toks[i + 1]
         if t in ("--target", "--to", "--output"):

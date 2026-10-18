@@ -20,10 +20,7 @@ ORDER = ("dbt", "airflow", "git", "incidents", "runs")
 
 
 def _write(store: Store, emitted: Emitted, result: SyncResult) -> None:
-    for n in emitted.nodes:
-        store.upsert_node(n)
-    for e in emitted.edges:
-        store.upsert_edge(e)
+    store.write_graph(emitted.nodes, emitted.edges)
     for ev in emitted.events:
         store.append_event(ev)
     result.nodes = len(emitted.nodes)
@@ -45,7 +42,7 @@ def run_sync(cfg: OrionConfig, store: Store, only: list[str] | None = None, forc
             if not force and store.last_digest(name, str(project)) == digest:
                 res.skipped = True
             else:
-                _write(store, dbt_adapter.load(project, root), res)
+                _write(store, dbt_adapter.load(project, root, cache_path=store.path.parent / "lineage-cache.json" if str(store.path) != ":memory:" else None), res)
                 store.mark_synced(name, str(project), digest)
         elif name == "airflow" and cfg.adapters.airflow:
             dags = cfg.path(cfg.adapters.airflow.dags)

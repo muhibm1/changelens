@@ -137,6 +137,82 @@ class Store:
         )
         self._add_provenance(edge.id, edge.provenance)
 
+    def write_graph(self, nodes: list[Node], edges: list[Edge]) -> None:
+        """Bulk upsert with the same meaning as ``upsert_node`` / ``upsert_edge`` one by one, in one transaction.
+
+        Rows are staged through newline-delimited JSON files and merged with set-based SQL: a dbt project with tens
+        of thousands of columns would otherwise take one statement per row plus one provenance scan per row.
+        Duplicate ids in the batch merge as successive upserts would: last properties, last non-null tier and owner.
+        """
+        import tempfile
+
+        for x in [*nodes, *edges]:
+            if not x.provenance:
+                raise ProvenanceRequired(f"{'node' if isinstance(x, Node) else 'edge'} {x.id} has no provenance")
+        merged: dict[str, dict[str, Any]] = {}
+        for n in nodes:
+            row = merged.setdefault(n.id, {"id": n.id, "kind": str(n.kind), "name": n.name, "tier": None, "owner": None})
+            row["properties"] = json.dumps(n.properties)
+            row["tier"] = n.tier if n.tier is not None else row["tier"]
+            row["owner"] = n.owner if n.owner is not None else row["owner"]
+        erows = {e.id: {"id": e.id, "src": e.src, "dst": e.dst, "kind": str(e.kind), "confidence": str(e.confidence), "properties": json.dumps(e.properties)} for e in edges}
+        prov: dict[tuple[str, str, str, str | None], str] = {}
+        for x in [*nodes, *edges]:
+            for p in x.provenance:
+                prov[(x.id, p.adapter, p.source, p.ref)] = p.observed_at.isoformat()
+        prows = [{"subject_id": k[0], "adapter": k[1], "source": k[2], "ref": k[3], "observed_at": v} for k, v in prov.items()]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            def stage(name: str, rows: list[dict[str, Any]], columns: dict[str, str]) -> None:
+                f = Path(tmp) / f"{name}.ndjson"
+                f.write_text("".join(json.dumps(r) + "\n" for r in rows))
+                cols = "{" + ", ".join(f"'{k}': '{v}'" for k, v in columns.items()) + "}"
+                self.con.execute(f"CREATE OR REPLACE TEMP TABLE {name} AS SELECT * FROM read_json(?, format = 'newline_delimited', columns = {cols}, maximum_object_size = 1073741824)", [str(f)])
+
+            self.con.execute("BEGIN TRANSACTION")
+            try:
+                if merged:
+                    stage("stage_nodes", list(merged.values()), {"id": "VARCHAR", "kind": "VARCHAR", "name": "VARCHAR", "properties": "VARCHAR", "tier": "INTEGER", "owner": "VARCHAR"})
+                    self.con.execute(
+                        """
+                        INSERT INTO nodes (id, kind, name, properties, tier, owner, updated_at)
+                        SELECT id, kind, name, properties, tier, owner, now() FROM stage_nodes
+                        ON CONFLICT (id) DO UPDATE SET
+                            properties = excluded.properties,
+                            tier = COALESCE(excluded.tier, nodes.tier),
+                            owner = COALESCE(excluded.owner, nodes.owner),
+                            updated_at = now()
+                        """
+                    )
+                if erows:
+                    stage("stage_edges", list(erows.values()), {"id": "VARCHAR", "src": "VARCHAR", "dst": "VARCHAR", "kind": "VARCHAR", "confidence": "VARCHAR", "properties": "VARCHAR"})
+                    self.con.execute(
+                        """
+                        INSERT INTO edges (id, src, dst, kind, confidence, properties, updated_at)
+                        SELECT id, src, dst, kind, confidence, properties, now() FROM stage_edges
+                        ON CONFLICT (id) DO UPDATE SET
+                            confidence = excluded.confidence,
+                            properties = excluded.properties,
+                            updated_at = now()
+                        """
+                    )
+                if prows:
+                    stage("stage_prov", prows, {"subject_id": "VARCHAR", "adapter": "VARCHAR", "source": "VARCHAR", "ref": "VARCHAR", "observed_at": "TIMESTAMPTZ"})
+                    self.con.execute(
+                        """
+                        DELETE FROM provenance USING stage_prov s
+                        WHERE provenance.subject_id = s.subject_id AND provenance.adapter = s.adapter
+                          AND provenance.source = s.source AND provenance.ref IS NOT DISTINCT FROM s.ref
+                        """
+                    )
+                    self.con.execute("INSERT INTO provenance (subject_id, adapter, source, ref, observed_at) SELECT subject_id, adapter, source, ref, observed_at FROM stage_prov")
+                self.con.execute("COMMIT")
+            except Exception:
+                self.con.execute("ROLLBACK")
+                raise
+            for t in ("stage_nodes", "stage_edges", "stage_prov"):
+                self.con.execute(f"DROP TABLE IF EXISTS {t}")
+
     def set_tier(self, node_id: str, tier: int) -> None:
         self.con.execute("UPDATE nodes SET tier = ? WHERE id = ?", [tier, node_id])
 

@@ -23,3 +23,5 @@ def test_parse_bash_command_flags():
     dbt = parse_bash_command("dbt run --select stg_events+ tag:orders --threads 4")
     assert dbt["dbt_select"] == ["stg_events+", "tag:orders"]
     assert dbt["dbt_command"] == ["run"]
+    odd = parse_bash_command("dbt run --select stg_a --vars '{{ params.vars }} --target raw_b")
+    assert odd["dbt_select"] == ["stg_a"] and odd["produces"] == ["raw_b"], "unbalanced quotes fall back to whitespace words"

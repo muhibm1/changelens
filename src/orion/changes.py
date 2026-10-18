@@ -54,7 +54,7 @@ class ChangeSet:
     unresolved: list[dict[str, Any]] = field(default_factory=list)
     touched: list[str] = field(default_factory=list)  # node ids, in order of first appearance
     source: str = ""
-    ignored: list[str] = field(default_factory=list)  # paths outside the platform's configured roots
+    ignored: list[str] = field(default_factory=list)  # paths outside the platform's roots, and prose
 
     def add(self, op: ChangeOp) -> None:
         self.ops.append(op)
@@ -193,7 +193,27 @@ def ops_from_dag_change(store: Store, path: str, old_src: str | None, new_src: s
     return ops, notes
 
 
-def ops_from_yaml_change(resolver: PathResolver, store: Store, path: str, old_text: str | None, new_text: str | None) -> list[ChangeOp]:
+def _schema_entries(doc: Any) -> dict[str, dict[str, Any]]:
+    """The named entries of a dbt schema .yml: models, seeds, snapshots, exposures, and source tables as ``source.table``."""
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(doc, dict):
+        return out
+    for section in ("models", "seeds", "snapshots", "exposures"):
+        for m in doc.get(section) or []:
+            if isinstance(m, dict) and m.get("name"):
+                out[str(m["name"])] = m
+    for src in doc.get("sources") or []:
+        if not isinstance(src, dict):
+            continue
+        for t in src.get("tables") or []:
+            if isinstance(t, dict) and t.get("name"):
+                out[f"{src.get('name')}.{t['name']}"] = t
+    return out
+
+
+def ops_from_yaml_change(resolver: PathResolver, store: Store, path: str, old_text: str | None, new_text: str | None, missing: list[str] | None = None) -> list[ChangeOp]:
+    """One op per schema entry the diff changed, so editing one model's tests in a shared .yml does not
+    touch every model the file documents. Falls back to every asset at the path when no entry is named."""
     ev = [f"diff:{path}"]
     ops: list[ChangeOp] = []
     try:
@@ -201,21 +221,36 @@ def ops_from_yaml_change(resolver: PathResolver, store: Store, path: str, old_te
         new = yaml.safe_load(new_text) if new_text else {}
     except yaml.YAMLError as e:
         return [ChangeOp("modify", a, details={"note": f"YAML did not parse: {e}"}, evidence=ev) for a in resolver.resolve(path)]
-    old_models = {m["name"]: m for m in (old or {}).get("models", []) or []}
-    new_models = {m["name"]: m for m in (new or {}).get("models", []) or []}
-    for name, m in new_models.items():
-        r = resolve_ref(store, name)
-        if not r.ok:
+    old_entries, new_entries = _schema_entries(old), _schema_entries(new)
+    for name in sorted(set(old_entries) | set(new_entries)):
+        om, m = old_entries.get(name) or {}, new_entries.get(name) or {}
+        if om == m:
             continue
-        om = old_models.get(name, {})
+        r = resolve_ref(store, name)
+        if not r.ok or r.method == "fuzzy":
+            if missing is not None:
+                missing.append(name)
+            continue
+        before = len(ops)
         for key in ("owner", "tier", "contract"):
             if (om.get("meta") or {}).get(key) != (m.get("meta") or {}).get(key):
                 ops.append(ChangeOp("change_metadata", r.node_id, details={"field": key, "from": (om.get("meta") or {}).get(key), "to": (m.get("meta") or {}).get(key)}, evidence=ev))
-        o_cols = {c["name"] for c in om.get("columns", []) or []}
-        n_cols = {c["name"] for c in m.get("columns", []) or []}
+        o_cols = {c["name"] for c in om.get("columns", []) or [] if isinstance(c, dict) and "name" in c}
+        n_cols = {c["name"] for c in m.get("columns", []) or [] if isinstance(c, dict) and "name" in c}
         for c in sorted(o_cols - n_cols):
             ops.append(ChangeOp("change_metadata", r.node_id, c, {"field": "column documentation removed"}, ev))
-    if not ops:
+        if len(ops) == before:
+            keys = sorted(k for k in set(om) | set(m) if om.get(k) != m.get(k))
+            if not m:
+                note = "schema entry removed"
+            elif not om:
+                note = "schema entry added"
+            else:
+                note = "schema entry changed: " + ", ".join(keys)
+            # config in a schema file can change how the model builds; tests and docs cannot
+            kind = "modify" if "config" in keys else "change_metadata"
+            ops.append(ChangeOp(kind, r.node_id, details={"field" if kind == "change_metadata" else "note": note}, evidence=ev))
+    if not ops and not (old_entries or new_entries):
         ops.extend(ChangeOp("modify", a, details={"note": "yaml changed"}, evidence=ev) for a in resolver.resolve(path))
     return ops
 
@@ -223,23 +258,35 @@ def ops_from_yaml_change(resolver: PathResolver, store: Store, path: str, old_te
 def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_text: str | None, new_text: str | None, tmp: Path) -> tuple[list[ChangeOp], list[dict[str, Any]]]:
     assets = resolver.resolve(path)
     unresolved: list[dict[str, Any]] = []
+    missing = (
+        "deleted, and the graph has no asset here; sync the graph from the base branch so deleted assets are known"
+        if new_text is None and old_text is not None
+        else "no asset defined at this path"
+    )
     if path.endswith(".py") and ("/dags/" in f"/{path}" or path.startswith("dags/")):
         ops, _ = ops_from_dag_change(store, path, old_text, new_text, tmp)
         return ops, unresolved
+    if path.endswith(".sql") and (tested := resolver.tested_by(path)):
+        return [ChangeOp("change_metadata", a, details={"field": "singular test"}, evidence=[f"diff:{path}"]) for a in tested], unresolved
     if path.endswith(".sql"):
         if not assets:
-            unresolved.append({"path": path, "reason": "no asset defined at this path"})
+            unresolved.append({"path": path, "reason": missing})
             return [], unresolved
         schema = _graph_schema(store)
         ops: list[ChangeOp] = []
         for a in assets:
             ops.extend(ops_from_sql_change(a, path, old_text, new_text, schema))
         return ops, unresolved
-    if path.endswith((".yml", ".yaml")) and assets:
-        return ops_from_yaml_change(resolver, store, path, old_text, new_text), unresolved
+    if path.endswith((".yml", ".yaml")):
+        missing: list[str] = []
+        ops = ops_from_yaml_change(resolver, store, path, old_text, new_text, missing)
+        if missing:
+            unresolved.append({"path": path, "reason": "changed schema entries the graph has no asset for: " + ", ".join(missing[:10]) + ("…" if len(missing) > 10 else "")})
+        if ops or assets or missing:
+            return ops, unresolved
     if assets:
         return [ChangeOp("modify", a, evidence=[f"diff:{path}"]) for a in assets], unresolved
-    unresolved.append({"path": path, "reason": "no asset defined at this path"})
+    unresolved.append({"path": path, "reason": missing})
     return [], unresolved
 
 
@@ -356,6 +403,9 @@ def collect_changes(
     if file_changes:
         cs.source = cs.source or "file changes"
     for path, old, new in changes:
+        if path.endswith(".md") and not resolver.resolve(path):
+            cs.ignored.append(path)  # prose (dbt doc blocks, READMEs) changes no asset
+            continue
         file_ops, unresolved = ops_from_file_change(store, resolver, path, old, new, tmpdir)
         for op in file_ops:
             cs.add(op)

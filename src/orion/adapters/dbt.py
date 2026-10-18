@@ -7,16 +7,34 @@ SQL, so it needs no warehouse connection.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-from ..lineage import column_lineage, dejinja, schema_key
+from ..lineage import column_lineage, dejinja, parse_model, schema_key, tables_schema
 from ..model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance, node_id
 from . import Emitted, repo_relative
 
 ADAPTER = "dbt"
 
 EXPOSURE_KIND = {"dashboard": NodeKind.DASHBOARD}
+
+# dbt adapter type -> sqlglot dialect. Unknown adapters are parsed as duckdb, which reads most ANSI SQL.
+DIALECTS = {"bigquery": "bigquery", "snowflake": "snowflake", "redshift": "redshift", "postgres": "postgres", "duckdb": "duckdb", "databricks": "databricks", "spark": "spark", "trino": "trino", "athena": "athena", "clickhouse": "clickhouse", "sqlserver": "tsql", "fabric": "tsql", "oracle": "oracle", "mysql": "mysql", "teradata": "teradata"}
+
+
+def _model_sql(n: dict, relations: dict[str, str]) -> str | None:
+    """The SQL to read lineage from. dbt's compiled SQL has every macro expanded, so it is used when the manifest has it,
+    with each relation it reads renamed to the key the graph uses; otherwise the raw SQL with Jinja reduced (``dejinja``)."""
+    compiled = n.get("compiled_code")
+    if compiled:
+        for rel in sorted(relations, key=len, reverse=True):
+            if rel in compiled:
+                compiled = compiled.replace(rel, relations[rel])
+        return compiled
+    return dejinja(n["raw_code"]) if n.get("raw_code") else None
 
 
 def _meta(d: dict) -> dict:
@@ -25,12 +43,89 @@ def _meta(d: dict) -> dict:
     return meta
 
 
+def _patch_path(n: dict, project_dir: Path, repo_root: Path) -> str | None:
+    """The schema .yml that documents and tests this node; dbt writes it as ``<project>://models/x.yml``."""
+    patch = n.get("patch_path")
+    return repo_relative(project_dir / patch.split("://", 1)[-1], repo_root) if patch else None
+
+
+def _singular_tests(manifest: dict, uid: str, project_dir: Path, repo_root: Path) -> list[str]:
+    """Paths of the hand-written test .sql files that read this node (generic tests live in the schema .yml)."""
+    out = []
+    for t in manifest.get("child_map", {}).get(uid, []):
+        path = (manifest.get("nodes", {}).get(t) or {}).get("original_file_path") or ""
+        if t.startswith("test.") and path.endswith(".sql"):
+            out.append(repo_relative(project_dir / path, repo_root))
+    return sorted(set(out))
+
+
 def _owner_node(owner: str, prov: Provenance) -> Node:
     kind = NodeKind.TEAM if owner.startswith("team/") else NodeKind.PERSON
     return Node(kind=kind, name=owner, provenance=[prov])
 
 
-def load(project_dir: Path, repo_root: Path) -> Emitted:
+PARALLEL_MIN = 40  # below this many models, column lineage runs in this process
+
+
+def _lineage_job(job: tuple[str, str, dict[str, dict[str, str]], str]) -> tuple[str, list[str], dict[str, list[tuple[str, str]]], str | None]:
+    gid, sql, schema, dialect = job
+    lin = column_lineage(sql, schema, dialect)
+    return gid, lin.columns, {c: sorted(d) for c, d in lin.derives.items()}, lin.error
+
+
+LINEAGE_VERSION = 1  # bump when column lineage changes what it computes, so cached results are recomputed
+
+
+def _job_key(sql: str, schema: dict[str, dict[str, str]], dialect: str) -> str:
+    return hashlib.sha1(json.dumps([LINEAGE_VERSION, sql, dialect, sorted((k, sorted(v)) for k, v in schema.items())]).encode()).hexdigest()
+
+
+def _all_lineage(jobs: list[tuple[str, str, dict[str, dict[str, str]], str]], cache_path: Path | None, notes: list[str] | None = None) -> list[tuple[str, list[str], dict[str, list[tuple[str, str]]], str | None]]:
+    """Column lineage for every model. A model whose SQL, dialect and input tables are unchanged since the last sync is
+    read from ``cache_path``; the rest are computed, across processes when there are many (sqlglot is pure Python)."""
+    cache: dict[str, list] = {}
+    if cache_path and cache_path.exists():
+        try:
+            raw = json.loads(cache_path.read_text())
+        except (OSError, ValueError):
+            raw = {}
+        # an entry in any other shape (an older format, a hand edit) is recomputed, not trusted
+        cache = {k: v for k, v in raw.items() if isinstance(v, list) and len(v) == 3 and isinstance(v[0], list) and isinstance(v[1], dict)} if isinstance(raw, dict) else {}
+    keys = {j[0]: _job_key(j[1], j[2], j[3]) for j in jobs}
+    todo = [j for j in jobs if keys[j[0]] not in cache]
+    results: dict[str, tuple] = {}
+    if len(todo) >= PARALLEL_MIN and (os.cpu_count() or 1) > 1:
+        try:
+            with ProcessPoolExecutor(max_workers=min(os.cpu_count() or 1, 8)) as pool:
+                for r in pool.map(_lineage_job, todo, chunksize=4):
+                    results[r[0]] = r
+        except Exception as e:  # noqa: BLE001 - a broken pool falls back to computing what is left in this process
+            if notes is not None:
+                notes.append(f"column lineage fell back to one process for {len(todo) - len(results)} models: the process pool failed ({type(e).__name__}: {e})")
+    for j in todo:
+        if j[0] not in results:
+            results[j[0]] = _lineage_job(j)
+    fresh = {}
+    out = []
+    for gid, *_ in jobs:
+        k = keys[gid]
+        r = results.get(gid) or (gid, *cache[k])
+        cols, derives, err = r[1], {c: [tuple(x) for x in d] for c, d in r[2].items()}, r[3]
+        out.append((gid, cols, derives, err))
+        fresh[k] = [cols, {c: [list(x) for x in d] for c, d in derives.items()}, err]
+    if cache_path:
+        try:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = cache_path.with_name(cache_path.name + ".tmp")
+            tmp.write_text(json.dumps(fresh))
+            tmp.replace(cache_path)  # atomic, so an interrupted sync never leaves a half-written cache
+        except OSError:
+            pass
+    return out
+
+
+def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> Emitted:
+    """``cache_path``: where to keep column lineage between syncs, so a re-sync only recomputes changed models."""
     out = Emitted()
     target = project_dir / "target"
     manifest_path = target / "manifest.json"
@@ -40,6 +135,14 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
     catalog_path = target / "catalog.json"
     catalog = json.loads(catalog_path.read_text()) if catalog_path.exists() else {"nodes": {}, "sources": {}}
     prov = Provenance(adapter=ADAPTER, source=repo_relative(manifest_path, repo_root))
+    dialect = DIALECTS.get(str((manifest.get("metadata") or {}).get("adapter_type") or "").lower(), "duckdb")
+    relations: dict[str, str] = {}  # quoted relation name in compiled SQL -> schema key
+    for src in manifest.get("sources", {}).values():
+        if src.get("relation_name"):
+            relations[src["relation_name"]] = schema_key(f"{src['source_name']}.{src['name']}")
+    for n in manifest.get("nodes", {}).values():
+        if n.get("relation_name") and n.get("resource_type") in ("model", "seed", "snapshot"):
+            relations[n["relation_name"]] = schema_key(n["name"])
 
     unique_to_graph: dict[str, str] = {}  # dbt unique_id -> graph node id
     sql_by_graph: dict[str, str] = {}
@@ -103,6 +206,8 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
                 "contract": bool(meta.get("contract") or ((n.get("config") or {}).get("contract") or {}).get("enforced")),
                 "meta": meta,
                 "tests": [t for t in manifest.get("child_map", {}).get(uid, []) if t.startswith("test.")],
+                "schema_path": _patch_path(n, project_dir, repo_root),
+                "test_paths": _singular_tests(manifest, uid, project_dir, repo_root),
                 "columns": sorted(cols),
                 "declared_columns": sorted(declared_cols),
             },
@@ -114,8 +219,8 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
         unique_to_graph[uid] = node.id
         if cols:
             schema[schema_key(n["name"])] = cols
-        if kind is NodeKind.MODEL and n.get("raw_code"):
-            sql_by_graph[node.id] = dejinja(n["raw_code"])
+        if kind is NodeKind.MODEL and (sql := _model_sql(n, relations)):
+            sql_by_graph[node.id] = sql
         if owner:
             owners.add(owner)
             out.edges.append(Edge(node.id, node_id(NodeKind.TEAM if owner.startswith("team/") else NodeKind.PERSON, owner), EdgeKind.OWNED_BY, Confidence.DECLARED, provenance=[prov]))
@@ -181,7 +286,7 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
         for gid, sql in list(pending.items()):
             key = schema_key(gid.split(":", 1)[1])
             try:
-                cols = output_columns(sql, schema)
+                cols = output_columns(sql, schema, dialect)
             except Exception as e:  # noqa: BLE001
                 out.notes.append(f"{gid}: could not infer columns ({e})")
                 pending.pop(gid)
@@ -202,17 +307,18 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
                 node.properties["columns_source"] = "sql"
 
     col_prov = Provenance(adapter=ADAPTER, source="sqlglot column lineage over model SQL")
-    for gid, sql in sql_by_graph.items():
+    ids = set(unique_to_graph.values())
+    jobs = [(gid, sql, tables_schema(parse_model(sql, dialect), schema) if _parses(sql, dialect) else {}, dialect) for gid, sql in sql_by_graph.items()]
+    for gid, columns, derives, error in _all_lineage(jobs, cache_path, out.notes):
         name = gid.split(":", 1)[1]
-        lin = column_lineage(sql, schema)
-        if lin.error:
-            out.notes.append(f"{gid}: {lin.error}")
-        for col in lin.columns:
+        if error:
+            out.notes.append(f"{gid}: {error}")
+        for col in columns:
             cnode = Node(NodeKind.COLUMN, f"{name}.{col}", properties={"asset": gid}, provenance=[col_prov])
             out.nodes.append(cnode)
             out.edges.append(Edge(cnode.id, gid, EdgeKind.COLUMN_OF, Confidence.PARSED, provenance=[col_prov]))
-            for table, src_col in lin.derives.get(col, set()):
-                src_asset = _asset_id_for_table(table, unique_to_graph)
+            for table, src_col in derives.get(col, []):
+                src_asset = _asset_id_for_table(table, ids)
                 if src_asset is None:
                     continue
                 src_name = src_asset.split(":", 1)[1]
@@ -223,8 +329,15 @@ def load(project_dir: Path, repo_root: Path) -> Emitted:
     return out
 
 
-def _asset_id_for_table(table: str, unique_to_graph: dict[str, str]) -> str | None:
-    ids = set(unique_to_graph.values())
+def _parses(sql: str, dialect: str) -> bool:
+    try:
+        parse_model(sql, dialect)
+    except Exception:  # noqa: BLE001 - sqlglot raises several kinds; column_lineage reports the error itself
+        return False
+    return True
+
+
+def _asset_id_for_table(table: str, ids: set[str]) -> str | None:
     for kind in (NodeKind.MODEL, NodeKind.SEED, NodeKind.SNAPSHOT, NodeKind.SOURCE_TABLE):
         cand = node_id(kind, table)
         if cand in ids:

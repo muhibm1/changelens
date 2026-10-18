@@ -120,3 +120,65 @@ def test_risk_factors_are_transparent(synced_store, constraints, tmp_path):
     names = {f["name"] for f in v["risk"]["factors"]}
     assert names == {"tier1_consumers", "block_constraint", "incident_recency", "destructive_op", "blast_radius"}
     assert v["risk"]["score"] == round(min(100, sum(f["contribution"] for f in v["risk"]["factors"])))
+
+
+SCHEMA_YML = ROOT / "fixture" / "dbt_project" / "models" / "marts" / "schema.yml"
+
+
+def test_schema_yml_edit_touches_only_the_entries_it_changes(synced_store, constraints, tmp_path):
+    old = SCHEMA_YML.read_text()
+    tests_only = old.replace("        tests: [unique, not_null]\n", "        tests: [unique, not_null, relationships]\n")
+    rel = str(SCHEMA_YML.relative_to(ROOT))
+    cs, v = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, tests_only)])
+    assert [(o.kind, o.asset) for o in cs.ops] == [("change_metadata", "model:fct_orders")]
+    assert cs.ops[0].details["field"] == "schema entry changed: columns"
+    assert not cs.unresolved
+
+    config = old.replace("      contract: { enforced: false }\n", "      contract: { enforced: false }\n      materialized: table\n")
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, config)])
+    assert [(o.kind, o.asset) for o in cs.ops] == [("modify", "model:fct_revenue")], "config in a schema file can change the build"
+
+
+def test_prose_is_ignored_and_a_deleted_unknown_model_says_why(synced_store, constraints, tmp_path):
+    cs, v = run(synced_store, constraints, tmp_path, file_changes=[
+        ("fixture/dbt_project/models/docs/orders.md", "{% docs orders %}old{% enddocs %}", "{% docs orders %}new{% enddocs %}"),
+        ("fixture/dbt_project/models/marts/fct_gone.sql", "select 1 as id", None),
+    ])
+    assert cs.ignored == ["fixture/dbt_project/models/docs/orders.md"]
+    assert [u["path"] for u in cs.unresolved] == ["fixture/dbt_project/models/marts/fct_gone.sql"]
+    assert cs.unresolved[0]["reason"].startswith("deleted")
+    assert v["severity"] == "warn" and v["raised_for_unresolved"]
+
+
+def test_schema_files_and_singular_tests_map_to_their_models(tmp_path):
+    from orion.adapters.dbt import _patch_path, _singular_tests
+    from orion.model import Node, NodeKind, Provenance
+    from orion.resolver import PathResolver
+    from orion.store import Store
+
+    project = tmp_path / "warehouse"
+    manifest = {
+        "nodes": {
+            "model.p.orders": {"resource_type": "model", "patch_path": "p://models/_orders.yml"},
+            "test.p.orders_balance": {"resource_type": "test", "original_file_path": "tests/orders_balance.sql"},
+            "test.p.not_null_orders_id": {"resource_type": "test", "original_file_path": "models/_orders.yml"},
+        },
+        "child_map": {"model.p.orders": ["test.p.orders_balance", "test.p.not_null_orders_id"]},
+    }
+    assert _patch_path(manifest["nodes"]["model.p.orders"], project, tmp_path) == "warehouse/models/_orders.yml"
+    assert _singular_tests(manifest, "model.p.orders", project, tmp_path) == ["warehouse/tests/orders_balance.sql"]
+
+    store = Store(":memory:")
+    store.upsert_node(Node(NodeKind.MODEL, "orders", properties={"path": "warehouse/models/orders.sql", "schema_path": "warehouse/models/_orders.yml", "test_paths": ["warehouse/tests/orders_balance.sql"]}, provenance=[Provenance("test", "unit")]))
+    r = PathResolver(store)
+    assert r.resolve("warehouse/models/_orders.yml") == ["model:orders"]
+    assert r.tested_by("warehouse/tests/orders_balance.sql") == ["model:orders"]
+    assert r.resolve("warehouse/tests/orders_balance.sql") == []
+
+
+def test_a_changed_schema_entry_the_graph_lacks_is_unresolved_not_dropped(synced_store, constraints, tmp_path):
+    old = SCHEMA_YML.read_text()
+    new = old.replace("  - name: fct_refunds\n", "  - name: fct_returns_v9\n    description: new\n  - name: fct_refunds\n")
+    rel = str(SCHEMA_YML.relative_to(ROOT))
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new)])
+    assert cs.unresolved == [{"path": rel, "reason": "changed schema entries the graph has no asset for: fct_returns_v9"}]

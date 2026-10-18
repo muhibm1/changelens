@@ -162,7 +162,7 @@ def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hi
     return checks
 
 
-def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[ConstraintHit], history: list[dict[str, Any]], checks: list[dict[str, Any]], sev: str) -> str:
+def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[ConstraintHit], history: list[dict[str, Any]], checks: list[dict[str, Any]], sev: str, tiers_recorded: bool = True) -> str:
     if not cs.ops:
         return "No change could be resolved to a known asset; nothing to check. Map the paths listed under unresolved."
     first = cs.ops[0]
@@ -174,7 +174,7 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
     if affected_rows:
         names = ", ".join(_short(a["asset"]) for a in tier1[:3])
         parts[0] += f" reaches {len(affected_rows)} downstream asset{'s' if len(affected_rows) != 1 else ''}"
-        parts[0] += f", {len(tier1)} of them tier 1 ({names}{'…' if len(tier1) > 3 else ''})." if tier1 else "; none are tier 1."
+        parts[0] += f", {len(tier1)} of them tier 1 ({names}{'…' if len(tier1) > 3 else ''})." if tier1 else ("; none are tier 1." if tiers_recorded else "; no tiers are recorded, so none is known to be tier 1.")
     else:
         parts[0] += " reaches no downstream assets."
     firing = [h for h in hits if h.status == "fires"]
@@ -251,7 +251,8 @@ def preflight(
     readers = column_readers(store, cs)
     # Readers left selecting a removed column are a check and a review finding, not a severity bump:
     # PipelineBench's hand-written rule rates those drops by tier and constraints alone.
-    if cs.unresolved and sev == "inform":
+    raised = bool(cs.unresolved) and sev == "inform"
+    if raised:
         sev = "warn"
     checks = _checks(store, cs, affected, hits, readers)
     verdict = {
@@ -259,6 +260,7 @@ def preflight(
         "issued_at": now,
         "graph_as_of": as_of,
         "severity": sev,
+        "raised_for_unresolved": raised,
         "change": {"source": cs.source, "ops": [o.to_dict() for o in cs.ops], "touched": cs.touched, "unresolved": cs.unresolved, "ignored": cs.ignored},
         "affected": affected_rows,
         "constraints": [h.to_dict() for h in hits],
@@ -268,7 +270,8 @@ def preflight(
         "checks": checks,
         "summary": "",
     }
-    verdict["summary"] = _summary(cs, affected_rows, hits, history, checks, sev)
+    tiers_recorded = store.con.execute("SELECT count(*) FROM nodes WHERE tier IS NOT NULL").fetchone()[0] > 0
+    verdict["summary"] = _summary(cs, affected_rows, hits, history, checks, sev, tiers_recorded)
     if record:
         store.put_verdict(verdict_id, verdict)
         store.append_event(
