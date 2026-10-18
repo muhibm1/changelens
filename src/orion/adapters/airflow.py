@@ -318,7 +318,11 @@ def load(dags_dir: Path, repo_root: Path, graph_assets: dict[str, dict[str, Any]
     for path in sorted(dags_dir.rglob("*.py")):
         if any(g in path.parents for g in gusty):
             continue  # a gusty task with front matter, read below
-        parsed = parse_dag_file(path)
+        try:
+            parsed = parse_dag_file(path)
+        except (SyntaxError, UnicodeDecodeError, ValueError) as e:
+            out.notes.append(f"skipped {repo_relative(path, repo_root)}: not parseable as Python ({type(e).__name__})")
+            continue
         if not parsed:
             continue
         rel = repo_relative(path, repo_root)

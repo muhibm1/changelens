@@ -677,7 +677,22 @@ def test_receivers_typed_by_a_field_or_a_declared_return_are_linked(tmp_path):
         "func (s *Svc) Run() {\n\ts.client.Fetch(\"u\")\n\tc, _ := newClient()\n\tc.Fetch(\"u\")\n}\n"
     )
     [sc] = symbol_changes(parse(Change("gosvc/client.go", go_old, go_new).diff()), tmp_path, {"gosvc/client.go": go_new})
-    assert sorted(r["line"] for r in sc.linked_outside if r["path"] == "gosvc/use.go") == [10]
+    assert sorted(r["line"] for r in sc.linked_outside if r["path"] == "gosvc/use.go") == [10, 12], "c, _ := newClient() binds the first result"
+
+
+def test_a_bare_call_is_typed_only_by_a_free_function():
+    from orion.symbols import _receiver_type
+
+    py = "class Other:\n    def make(self) -> Client:\n        return Client()\n\n\ndef run():\n    c = make()\n    c.fetch()\n"
+    assert _receiver_type(py.splitlines(), "c", 8, "py") is None, "make() with no receiver is not Other.make"
+    py_free = py + "\n\ndef make() -> Cache:\n    return Cache()\n"
+    assert _receiver_type(py_free.splitlines(), "c", 8, "py") == "Cache"
+    go = "package x\n\nfunc (o *Other) make() *Client { return nil }\n\nfunc run() {\n\tc, err := make()\n\tc.Fetch()\n}\n"
+    assert _receiver_type(go.splitlines(), "c", 7, "go") is None
+    go2 = "package x\n\nfunc newClient() (*Client, error) { return nil, nil }\n\nfunc run() {\n\tn, c := newClient()\n\tc.Fetch()\n\tm, err := newClient()\n\terr.Error()\n}\n"
+    assert _receiver_type(go2.splitlines(), "c", 7, "go") is None, "only the first name takes the first result"
+    assert _receiver_type(go2.splitlines(), "err", 9, "go") is None
+    assert _receiver_type(go2.splitlines(), "m", 9, "go") == "Client"
 
 
 def test_a_self_member_is_typed_by_its_own_class_only():

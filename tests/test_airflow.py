@@ -60,3 +60,16 @@ def test_gusty_folders_are_dags_and_their_files_are_tasks(tmp_path):
     assert ("dag:create_external_tables", "dag:sync_payments", "depends_on") in edges
     assert dags / "create_external_tables" / "README.md" not in dag_files(dags)
     assert ext / "payments" / "settlements.yml" in dag_files(dags)
+
+
+def test_a_dag_file_that_does_not_parse_is_noted_and_skipped(tmp_path):
+    from orion.adapters.airflow import load
+
+    dags = tmp_path / "dags"
+    dags.mkdir()
+    (dags / "broken.py").write_text("from airflow import DAG\nwith DAG(dag_id='x' as dag:\n")
+    (dags / "latin1.py").write_bytes(b"# caf\xe9\n")
+    (dags / "ok.py").write_text("from airflow import DAG\nwith DAG(dag_id='ok_dag') as dag:\n    pass\n")
+    out = load(dags, tmp_path, {}, [])
+    assert "dag:ok_dag" in {n.id for n in out.nodes}
+    assert sorted(out.notes) == ["skipped dags/broken.py: not parseable as Python (SyntaxError)", "skipped dags/latin1.py: not parseable as Python (UnicodeDecodeError)"]

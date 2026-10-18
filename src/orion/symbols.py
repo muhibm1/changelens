@@ -238,7 +238,7 @@ def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None)
     if m := re.fullmatch(_CLASS + r"(?:\(.*\)|::new\b.*|\.new\b.*)?", r, re.DOTALL):
         return m.group(1)
     if m := re.fullmatch(r"((?:self|this)\.)?([a-z_$][\w$]*)\(.*\)", r, re.DOTALL):
-        return _returns(_class_body(lines, line) if m.group(1) else lines, m.group(2))  # ``make_client().fetch()``, ``self.make().fetch()``
+        return _returns(_class_body(lines, line) if m.group(1) else lines, m.group(2), free=not m.group(1))  # ``make_client().fetch()``, ``self.make().fetch()``
     if m := re.fullmatch(r"(?:(self|this)\.|@|([a-z_]\w*)\.)([A-Za-z_$][\w$]*)", r):
         if m.group(2) and lang != "go":
             return None  # ``a.b.fetch()``: only a field of self, or of a Go method's receiver, is looked up
@@ -250,24 +250,28 @@ def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None)
     if lang == "go":
         binding += rf"|(?<![\w$.]){name}\s+\*?{_CLASS}{_AFTER_CLASS}"
     # ``c = make_client()``: the type the called function in this file declares it returns; any other call leaves the type unknown
-    call = rf"(?<![\w$.]){name}\s*(?::=|=)\s*(?:await\s+|try\s+)?((?:[\w$]+\.)*)([a-z_$][\w$]*)\s*\("
+    rest = r"(?:\s*,\s*[\w$]+)*" if lang == "go" else ""  # Go's ``c, err := newClient()`` binds the first result; ``n, c :=`` does not type c
+    call = rf"(?<![\w$.])(?<!,)(?<!,\s){name}{rest}\s*(?::=|=)\s*(?:await\s+|try\s+)?((?:[\w$]+\.)*)([a-z_$][\w$]*)\s*\("
     window = "\n".join(lines[_enclosing(lines, line, lang) : line])
     found = [(m.start(), next(g for g in m.groups() if g)) for m in re.finditer(binding, window)]
     for m in re.finditer(call, window):
-        found.append((m.start(), _returns(lines if not m.group(1) else _class_body(lines, line), m.group(2)) if m.group(1) in ("", "self.", "this.") else None))
+        found.append((m.start(), _returns(lines if not m.group(1) else _class_body(lines, line), m.group(2), free=not m.group(1)) if m.group(1) in ("", "self.", "this.") else None))
     return max(found, key=lambda x: x[0])[1] if found else None
 
 
-def _returns(lines: list[str], func: str) -> str | None:
-    """The class a function or method defined in this file declares it returns (``-> Client``, ``): Client``, Go ``*Client``, Rust ``-> Client``); None when it declares none, or two definitions disagree."""
+def _returns(lines: list[str], func: str, free: bool = False) -> str | None:
+    """The class a function or method defined in this file declares it returns (``-> Client``, ``): Client``, Go ``*Client``, Rust ``-> Client``); None when it declares none, or two definitions disagree.
+    ``free``: the call has no receiver, so only a free function can answer it, never a method of some class in the file."""
     f = re.escape(func)
     text = "\n".join(lines)
     opt = r"(?:['\"]|Optional\[|Awaitable\[|Promise<)*"
+    go_recv = "" if free else r"(?:\([^)]*\)\s*)?"
+    rust_lead = r"^(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?" if free else r"\b"
     pats = (
-        rf"\bdef\s+{f}\s*\([^)]*\)\s*->\s*{opt}{_CLASS}",
-        rf"(?:\bfunction\s+|^\s*(?:(?:public|private|protected|static|async)\s+)*){f}\s*(?:<[^>]*>)?\([^)]*\)\s*:\s*{opt}{_CLASS}",
-        rf"\bfunc\s+(?:\([^)]*\)\s*)?{f}\s*\([^)]*\)\s*\(?\*?{_CLASS}",
-        rf"\bfn\s+{f}\s*(?:<[^>]*>)?\([^)]*\)\s*->\s*(?:Option<|Result<)?{_CLASS}",
+        rf"^(?:async\s+)?def\s+{f}\s*\([^)]*\)\s*->\s*{opt}{_CLASS}" if free else rf"\bdef\s+{f}\s*\([^)]*\)\s*->\s*{opt}{_CLASS}",
+        rf"\bfunction\s+{f}\s*(?:<[^>]*>)?\([^)]*\)\s*:\s*{opt}{_CLASS}" if free else rf"(?:\bfunction\s+|^\s*(?:(?:public|private|protected|static|async)\s+)*){f}\s*(?:<[^>]*>)?\([^)]*\)\s*:\s*{opt}{_CLASS}",
+        rf"\bfunc\s+{go_recv}{f}\s*\([^)]*\)\s*\(?\*?{_CLASS}",
+        rf"{rust_lead}fn\s+{f}\s*(?:<[^>]*>)?\([^)]*\)\s*->\s*(?:Option<|Result<)?{_CLASS}",
     )
     types = {m.group(1) for p in pats for m in re.finditer(p, text, re.M)}
     return types.pop() if len(types) == 1 else None
@@ -296,7 +300,7 @@ def _field_type(lines: list[str], field_name: str, lang: str | None, body: list[
         scope = "\n".join(body[_enclosing(body, line, lang) : line])
         types |= {a.group(1) for a in re.finditer(rf"(?<![\w$.]){re.escape(m.group(1))}\s*:\s*{_CLASS}{_AFTER_CLASS}", scope)}
     for m in re.finditer(rf"(?:self|this)\.{f}\s*=\s*(self\.|this\.)?([a-z_]\w*)\s*\(", text):
-        if t := _returns(body if m.group(1) else lines, m.group(2)):
+        if t := _returns(body if m.group(1) else lines, m.group(2), free=not m.group(1)):
             types.add(t)
     return types.pop() if len(types) == 1 else None
 
