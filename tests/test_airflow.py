@@ -73,3 +73,80 @@ def test_a_dag_file_that_does_not_parse_is_noted_and_skipped(tmp_path):
     out = load(dags, tmp_path, {}, [])
     assert "dag:ok_dag" in {n.id for n in out.nodes}
     assert sorted(out.notes) == ["skipped dags/broken.py: not parseable as Python (SyntaxError)", "skipped dags/latin1.py: not parseable as Python (UnicodeDecodeError)"]
+
+
+TASKFLOW = '''
+from airflow.decorators import dag, task, task_group
+from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
+from utils import helpers
+
+
+@dag(schedule="0 6 * * *", tags=["daily"], default_args=helpers.set_default_args(owner="team/loans", retries=2))
+def daily_loans():
+    @task_group(group_id="extract")
+    def extract():
+        AirbyteTriggerSyncOperator(task_id="ignored_unassigned", connection_id="x")
+        sync = AirbyteTriggerSyncOperator(task_id="sync_loans", connection_id="x")
+
+        @task.bash
+        def load_rates():
+            return "python load.py --target raw_rates"
+
+        load_rates()
+
+    @task.datacoves_dbt(connection_id="main")
+    def transform(files: list = []):
+        def label():
+            return "not a command"
+
+        if files:
+            return "dbt build -s result:error+ --state logs"
+        return "dbt build -s 'tag:daily+ stg_rates' && echo done"
+
+    @task
+    def notify(result):
+        return None
+
+    loaded = [extract()]
+    built = transform()
+    loaded >> built
+    notify(built)
+
+
+daily_loans()
+'''
+
+
+def test_taskflow_dags_read_tasks_groups_commands_and_dependencies(tmp_path):
+    path = tmp_path / "loans.py"
+    path.write_text(TASKFLOW)
+    parsed = parse_dag_file(path)
+    assert parsed["dag"]["dag_id"] == "daily_loans" and parsed["dag"]["schedule"] == "0 6 * * *"
+    assert parsed["default_args"]["owner"] == "team/loans"
+    tasks = {k: t["task_id"] for k, t in parsed["tasks"].items()}
+    assert tasks == {"sync": "extract.sync_loans", "load_rates": "extract.load_rates", "transform": "transform", "notify": "notify"}
+    assert parsed["tasks"]["load_rates"]["bash_command"] == "python load.py --target raw_rates"
+    assert "not a command" not in parsed["tasks"]["transform"]["bash_command"], "a nested helper's return is not the task's command"
+    cmd = parse_bash_command(parsed["tasks"]["transform"]["bash_command"])
+    assert sorted(cmd["dbt_select"]) == ["result:error+", "stg_rates", "tag:daily+"], "both commands, quoted selectors split, shell operators stop the list"
+    assert set(parsed["deps"]) == {("sync", "transform"), ("load_rates", "transform"), ("transform", "notify")}
+
+
+def test_taskflow_dbt_task_builds_what_a_source_tag_selects(tmp_path):
+    from orion.adapters.airflow import load
+
+    dags = tmp_path / "dags"
+    dags.mkdir()
+    (dags / "loans.py").write_text(TASKFLOW)
+    assets = {
+        "source_table:raw.loans": {"kind": "source_table", "name": "raw.loans", "properties": {"tags": ["daily"]}},
+        "model:stg_loans": {"kind": "model", "name": "stg_loans", "properties": {}},
+        "model:fct_loans": {"kind": "model", "name": "fct_loans", "properties": {}},
+        "model:stg_rates": {"kind": "model", "name": "stg_rates", "properties": {}},
+        "model:unrelated": {"kind": "model", "name": "unrelated", "properties": {}},
+    }
+    consumes = [("model:stg_loans", "source_table:raw.loans"), ("model:fct_loans", "model:stg_loans")]
+    out = load(dags, tmp_path, assets, consumes)
+    built = {e.dst for e in out.edges if e.src == "task:daily_loans.transform" and e.kind.value == "produces"}
+    assert built == {"model:stg_loans", "model:fct_loans", "model:stg_rates"}, "the tagged source is the start, not something dbt builds"
+    assert ("task:daily_loans.transform", "task:daily_loans.extract.sync_loans") in {(e.src, e.dst) for e in out.edges if e.kind.value == "depends_on"}

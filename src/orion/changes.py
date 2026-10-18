@@ -100,7 +100,7 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
     if old_sql is None:
         return [ChangeOp("add_asset", asset, evidence=ev)]
     ops: list[ChangeOp] = []
-    old_plain, new_plain = dejinja(old_sql), dejinja(new_sql)
+    old_plain, new_plain = dejinja(old_sql, asset), dejinja(new_sql, asset)
     try:
         old_cols = output_columns(old_plain, schema)
         new_cols = output_columns(new_plain, schema)
@@ -290,6 +290,8 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
             return ops, unresolved
         if Path(path).name == "dbt_project.yml":
             missing = "dbt project configuration; Orion does not map its settings to the models they apply to, so check which models it changes"
+        elif Path(path).name in ("packages.yml", "package-lock.yml", "dependencies.yml"):
+            missing = "dbt package versions; an upgrade can change any macro the models call, so build the whole project before merging"
     if assets:
         return [ChangeOp("modify", a, evidence=[f"diff:{path}"]) for a in assets], unresolved
     unresolved.append({"path": path, "reason": missing})

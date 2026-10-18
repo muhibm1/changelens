@@ -19,7 +19,14 @@
 - A diff given as a file is filtered by the platform roots, as a git diff already was.
 - A renamed file is diffed against its old path; before, a renamed model read as a new file.
 - A schema entry removed together with its model's SQL file is accounted for, not unmapped.
-- An unmapped `dbt_project.yml` says why in words. Before, the reason was an empty list.
+- An unmapped `dbt_project.yml` says why in words. Before, the reason was an empty list. A changed `packages.yml` or `package-lock.yml` says a package upgrade can change any macro the models call.
+- With the default model, the replay of 26 changes from httpx, hono and cobra has 5 warnings, none of them noise, and catches the confirmed bug (`pipelinebench/results/replay.md`).
+
+### Real dbt and Airflow projects
+
+- Model SQL read without a compiled manifest (`dbt parse` only) handles versioned refs (`ref('m', v=2)`), package refs (`ref('pkg', 'm')`), `{{ this }}` in incremental filters, and macro calls in expressions and as a whole CTE body. On datacoves/balboa, models whose columns could not be read fell from 7 to 1 (a Snowflake semantic view, which is not SQL).
+- TaskFlow DAGs are read: a `@dag` function's `@task` functions and operators become tasks, `@task_group` prefixes their ids, and dependencies come from `>>` chains and from passing one task's result to another. A bash or dbt task's command is the string it returns. On balboa, Airflow went from 0 DAGs to 32 DAGs and 53 tasks.
+- A dbt selector in quotes (`-s 'tag:a+ tag:b+'`) is read as two selectors, and a tag on a source selects the models downstream of it.
 
 ## 0.1.0 (2026-10-18)
 

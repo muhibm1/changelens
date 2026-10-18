@@ -314,3 +314,6 @@ def test_an_unmapped_dbt_project_file_says_why_in_words(synced_store, constraint
     cs, _ = run(synced_store, constraints, tmp_path, file_changes=[("fixture/dbt_project/dbt_project.yml", "name: x\n", "name: x\nvars:\n  a: 1\n")])
     [u] = cs.unresolved
     assert isinstance(u["reason"], str) and "dbt project configuration" in u["reason"]
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[("fixture/dbt_project/package-lock.yml", "packages: []\n", "packages:\n  - package: dbt-labs/dbt_utils\n    version: 1.4.1\n")])
+    [u] = cs.unresolved
+    assert "dbt package versions" in u["reason"]

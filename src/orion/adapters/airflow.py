@@ -5,6 +5,9 @@ Airflow install and cannot run a side effect. It recovers the DAG, its
 tasks, ``>>`` dependencies, cross-DAG sensors, and the dbt selectors and
 table flags inside bash commands, and links them to graph assets.
 
+TaskFlow DAGs (``@dag`` functions with ``@task`` and ``@task_group`` inside) are read the same way: a task is
+named after its function, prefixed by its group, and a bash or dbt task's command is the string it returns.
+
 Gusty DAGs are read too: a folder with ``METADATA.yml`` is a DAG, and every
 ``.yml``, ``.sql`` or ``.py`` file under it (with YAML front matter for the
 last two) is a task named after the file, with ``dependencies`` and
@@ -45,6 +48,133 @@ def _kwargs(call: ast.Call) -> dict[str, Any]:
     return {kw.arg: _const(kw.value) for kw in call.keywords if kw.arg}
 
 
+def _call_name(func: ast.AST) -> str | None:
+    """``DAG`` or ``models.DAG`` -> ``DAG``; ``task.bash`` -> ``task.bash``; ``airflow.decorators.dag`` -> ``dag``."""
+    if isinstance(func, ast.Name):
+        return func.id
+    if isinstance(func, ast.Attribute):
+        if isinstance(func.value, ast.Name) and func.value.id == "task":
+            return f"task.{func.attr}"
+        return func.attr
+    return None
+
+
+def _decorator(fn: ast.FunctionDef | ast.AsyncFunctionDef, names: tuple[str, ...]) -> tuple[str, dict[str, Any]] | None:
+    """The first decorator of ``fn`` named in ``names`` (bare or called), with its keyword arguments."""
+    for d in fn.decorator_list:
+        call = d if isinstance(d, ast.Call) else None
+        name = _call_name(call.func if call else d)
+        if name and (name in names or name.split(".")[0] in names):
+            return name, (_kwargs(call) if call else {})
+    return None
+
+
+def _default_args(value: ast.AST) -> dict[str, Any]:
+    """A literal dict, or the keyword arguments of a helper call such as ``dict(owner=...)`` or ``set_default_args(owner=...)``."""
+    if isinstance(value, ast.Call):
+        return _kwargs(value)
+    v = _const(value)
+    return v if isinstance(v, dict) else {}
+
+
+def _returned_string(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> str | None:
+    """The literal command strings a TaskFlow bash or dbt task returns, joined: a task that picks one of two commands
+    at run time may run either."""
+    found: list[str] = []
+    stack: list[ast.AST] = list(fn.body)
+    while stack:  # the function's own returns, not those of a helper defined inside it
+        n = stack.pop(0)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
+            continue
+        if isinstance(n, ast.Return) and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str):
+            found.append(n.value.value)
+        stack.extend(ast.iter_child_nodes(n))
+    return " && ".join(found) or None
+
+
+def _parse_taskflow(tree: ast.Module) -> dict[str, Any] | None:
+    """A ``@dag`` function: its tasks are ``@task`` functions and classic operators inside it, ``@task_group`` functions
+    prefix their tasks' ids, and dependencies come from ``>>`` chains and from passing one task's result to another."""
+    fn = next((n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and _decorator(n, ("dag",))), None)
+    if fn is None:
+        return None
+    _, dag = _decorator(fn, ("dag",)) or ("", {})
+    dag = {**dag, "dag_id": dag.get("dag_id") if isinstance(dag.get("dag_id"), str) else fn.name}
+    deco = next((d for d in fn.decorator_list if isinstance(d, ast.Call) and _call_name(d.func) == "dag"), None)
+    default_args = next((_default_args(kw.value) for kw in (deco.keywords if deco else []) if kw.arg == "default_args"), {})
+    tasks: dict[str, dict[str, Any]] = {}  # function or variable name -> task info
+    groups: dict[str, list[str]] = {}  # task_group function name -> the task keys inside it
+
+    def visit(body: list[ast.stmt], prefix: str, members: list[str]) -> None:
+        for node in body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                g = _decorator(node, ("task_group",))
+                t = _decorator(node, ("task",))
+                if g:
+                    gid = g[1].get("group_id") if isinstance(g[1].get("group_id"), str) else node.name
+                    inner: list[str] = []
+                    visit(node.body, f"{prefix}{gid}.", inner)
+                    groups[node.name] = inner
+                    members.extend(inner)
+                elif t:
+                    name, kw = t
+                    tid = kw.get("task_id") if isinstance(kw.get("task_id"), str) else node.name
+                    info: dict[str, Any] = {"operator": name, **{k: v for k, v in kw.items() if k in ("sla", "pool")}, "task_id": prefix + tid}
+                    if any(w in name for w in ("bash", "dbt")) and (cmd := _returned_string(node)):
+                        info["bash_command"] = cmd
+                    tasks[node.name] = info
+                    members.append(node.name)
+                continue
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Assign) and isinstance(sub.value, ast.Call) and len(sub.targets) == 1 and isinstance(sub.targets[0], ast.Name):
+                    kw = _kwargs(sub.value)
+                    if isinstance(kw.get("task_id"), str):
+                        tasks[sub.targets[0].id] = {"operator": _call_name(sub.value.func), **kw, "task_id": prefix + kw["task_id"]}
+                        members.append(sub.targets[0].id)
+
+    visit(fn.body, "", [])
+    alias: dict[str, list[str]] = {}
+
+    def keys(e: ast.AST) -> list[str]:
+        """The task keys an expression stands for: a task call, a group call, a name bound to either, or a list of them."""
+        if isinstance(e, ast.Call):
+            name = _call_name(e.func)
+            if name in groups:
+                return groups[name]
+            if name in tasks:
+                return [name]
+            return []
+        if isinstance(e, ast.Name):
+            return alias.get(e.id) or ([e.id] if e.id in tasks else [])
+        if isinstance(e, (ast.List, ast.Tuple)):
+            return [k for x in e.elts for k in keys(x)]
+        return []
+
+    deps: list[tuple[str, str]] = []
+
+    def chain(e: ast.AST) -> list[list[str]]:
+        if isinstance(e, ast.BinOp) and isinstance(e.op, ast.RShift):
+            return chain(e.left) + chain(e.right)
+        if isinstance(e, ast.BinOp) and isinstance(e.op, ast.LShift):
+            return chain(e.right) + chain(e.left)
+        return [keys(e)]
+
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            ks = keys(node.value)
+            if ks and node.targets[0].id not in tasks:
+                alias[node.targets[0].id] = ks
+        if isinstance(node, ast.Call) and _call_name(node.func) in tasks:  # data passing: b(a()) or b(x) where x = a()
+            down = _call_name(node.func)
+            for arg in [*node.args, *(kw.value for kw in node.keywords)]:
+                deps.extend((up, down) for up in keys(arg) if up != down)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.RShift, ast.LShift)):
+            links = chain(node)
+            for a, b in zip(links, links[1:], strict=False):
+                deps.extend((x, y) for x in a for y in b)
+    return {"dag": dag, "tasks": tasks, "deps": list(dict.fromkeys(deps)), "default_args": default_args}
+
+
 def parse_dag_file(path: Path) -> dict[str, Any] | None:
     tree = ast.parse(path.read_text(), filename=str(path))
     dag: dict[str, Any] | None = None
@@ -61,12 +191,12 @@ def parse_dag_file(path: Path) -> dict[str, Any] | None:
         ):
             value = _const(node.value)
             default_args = value if isinstance(value, dict) else {}
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "DAG":
+        if isinstance(node, ast.Call) and _call_name(node.func) == "DAG":
             dag = _kwargs(node)
             if isinstance(dag.get("default_args"), dict):
                 default_args = {**default_args, **dag["default_args"]}
     if dag is None:
-        return None
+        return _parse_taskflow(tree)
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign) and isinstance(node.value, ast.Call) and len(node.targets) == 1:
@@ -183,8 +313,8 @@ def parse_bash_command(cmd: str) -> dict[str, list[str]]:
         for i, t in enumerate(toks):
             if t in ("--select", "-s", "--models", "-m"):
                 j = i + 1
-                while j < len(toks) and not toks[j].startswith("-"):
-                    out["dbt_select"].append(toks[j])
+                while j < len(toks) and not toks[j].startswith("-") and toks[j] not in ("&&", "||", ";", "|"):
+                    out["dbt_select"].extend(toks[j].split())  # -s 'tag:a+ tag:b+' is two selectors
                     j += 1
     toks = _split(cmd) if cmd else []
     for i, t in enumerate(toks[:-1]):
@@ -228,6 +358,8 @@ def load(dags_dir: Path, repo_root: Path, graph_assets: dict[str, dict[str, Any]
     """``graph_assets``: {node_id: node} already in the store (dbt first), used to link tasks to assets."""
     out = Emitted()
     models = {n["name"]: n["properties"] for n in graph_assets.values() if n["kind"] in ("model", "seed", "snapshot")}
+    # a selector can start at a source (`tag:daily+` where the tag is on the source); dbt builds only what is downstream
+    selectable = {**{n["name"]: n["properties"] for n in graph_assets.values() if n["kind"] == "source_table"}, **models}
     children: dict[str, set[str]] = {}
     parents: dict[str, set[str]] = {}
     for src, dst in consumes_edges:  # src consumes dst
@@ -291,7 +423,8 @@ def load(dags_dir: Path, repo_root: Path, graph_assets: dict[str, dict[str, Any]
         # dbt selectors -> the models this task builds
         built: set[str] = set()
         for sel in cmd["dbt_select"]:
-            built |= _resolve_dbt_selector(sel, models, children, parents)
+            built |= _resolve_dbt_selector(sel, selectable, children, parents)
+        built &= models.keys()
         dbt_kind = EdgeKind.CONSUMES if cmd["dbt_command"] == ["test"] else EdgeKind.PRODUCES
         for mname in sorted(built):
             mid = by_short_name.get(mname)

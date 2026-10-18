@@ -1,0 +1,343 @@
+{
+ "provider": "anthropic",
+ "model": null,
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1d73150",
+   "title": "Cleanup response.json() method (#2911)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 761,
+     "title": "response.json() now ignores the declared Content-Type charset",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14583,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 755
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "359f77d",
+   "title": "Clean up URL signature (#3245)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 15477,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "41597ad",
+   "title": "Move remaining utility functions to _models.py (#3387)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 18498,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6212e8f",
+   "title": "Move utility functions to _multipart.py (#3388)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13455,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "75a13a1",
+   "title": "Remove typeshed iscoroutine workaround (#2466)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3510,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "83a8518",
+   "title": "Move normalize header functions to _models.py (#3382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9083,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "8752e26",
+   "title": "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 17468,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 535
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "9baf3a6",
+   "title": "Drop RawURL (#2241)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 11080,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 204
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b97c059",
+   "title": "Streaming multipart support (#2382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14195,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 435
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "ba2e512",
+   "title": "Review urlescape percent-safe set (#3373)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8182,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 801
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "3a67f7f3",
+   "title": "Merge commit from fork",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13166,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "4b44abe1",
+   "title": "perf(router): share null object creation (#5267)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14969,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6cadf753",
+   "title": "fix(lambda-edge): descriptive error on a malformed event (#5358)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8673,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 240
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7075369e",
+   "title": "Revert fix(etag) incremental hashing (#5199)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/middleware/etag/digest.ts",
+     "line": 33,
+     "title": "Revert reintroduces wrong ETag for multi-chunk bodies",
+     "verdict": "confirmed"
+    }
+   ],
+   "confirmed_expected": 1,
+   "confirmed_caught": 1,
+   "usage": {
+    "input_tokens": 6284,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 482
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8a5852d4",
+   "title": "fix(etag): incremental hashing for chunked responses (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3551,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1946287",
+   "title": "fix(pattern-router/linear-router): prefix overmatch (#5252)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7241,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 711
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1e4ac7d",
+   "title": "perf(cors): pre-join static array header options (#5210)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 5983,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "c409d855",
+   "title": "fix(request): serialize cached JSON body in cloneRawRequest (#5288)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3819,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 442
+   }
+  }
+ ],
+ "summary": {
+  "changes": 18,
+  "errors": 0,
+  "changes_warned": 2,
+  "warns": 2,
+  "warns_per_change": 0.11,
+  "confirmed": 1,
+  "plausible": 1,
+  "noise": 0,
+  "unjudged": 0,
+  "setup": 0,
+  "confirmed_recall": "1/1",
+  "tokens_in": 189217,
+  "tokens_out": 4695
+ }
+}

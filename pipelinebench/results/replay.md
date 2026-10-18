@@ -48,6 +48,20 @@ reading as a problem.
 **Unchanged on the review eval.** The 61 planted-bug cases still have recall 1.0, with 1 false alarm
 (`review-haiku-5-5-verify-kinds.md`).
 
+## With the default model
+
+The CI default is Sonnet 5.5. One run on the 26 changes from httpx, hono and cobra (about 0.29M input tokens,
+roughly $1); cal-itp was not rerun.
+
+| Sonnet 5.5, one run | warnings | per change | confirmed (of 1) | plausible | noise |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| httpx and hono (`replay-sonnet-5-5-httpx-hono.md`) | 2 | 0.11 | 1 | 1 | 0 |
+| cobra (`replay-sonnet-5-5-cobra.md`) | 3 | 0.38 | | 3 | 0 |
+
+The two PowerShell claims Haiku made on cobra do not appear. A rule in the second reading telling the model to check
+the language's own semantics did not remove them from Haiku in two runs, so it was not kept: the claims come from
+what the smaller model believes about PowerShell, not from how it is asked.
+
 ## Limits
 
 - One run per condition. A difference of one or two warnings is within run-to-run variance.

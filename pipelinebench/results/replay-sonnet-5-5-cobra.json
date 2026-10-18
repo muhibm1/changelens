@@ -1,0 +1,179 @@
+{
+ "provider": "anthropic",
+ "model": null,
+ "cases": [
+  {
+   "repo": "cobra",
+   "commit": "24ada7f",
+   "title": "Remove the default completion cmd if it is alone (#1559)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9809,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 765
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "5bef9d8",
+   "title": "Fix --version help and output for plugins (#2180)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6235,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 193
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6c3c116",
+   "title": "feat: add CompletionFunc type (#2220)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 4764,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "8607918",
+   "title": "feat: make InitDefaultCompletionCmd public (#1467)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 2704,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a0a6ae0",
+   "title": "Improve API to get flag completion function (#2063)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 4529,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a4ab3fa",
+   "title": "powershell completion with custom comp (#1208)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 71,
+     "title": "Command line split on single space loses quoting and breaks on multiple spaces",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 99,
+     "title": "Directive parsing crashes when the program outputs nothing",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 164,
+     "title": "Where-Object filter block rewrites names and emits the wrong value for equal-sign flags",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 33456,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1293
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b84ef40",
+   "title": "Rename BashCompDirectives to ShellCompDirectives (#1082)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 29314,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "fce8d8a",
+   "title": "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6082,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  }
+ ],
+ "summary": {
+  "changes": 8,
+  "errors": 0,
+  "changes_warned": 1,
+  "warns": 3,
+  "warns_per_change": 0.38,
+  "confirmed": 0,
+  "plausible": 3,
+  "noise": 0,
+  "unjudged": 0,
+  "setup": 0,
+  "confirmed_recall": "0/0",
+  "tokens_in": 96893,
+  "tokens_out": 2301
+ }
+}

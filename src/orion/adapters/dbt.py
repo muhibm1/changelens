@@ -34,7 +34,7 @@ def _model_sql(n: dict, relations: dict[str, str]) -> str | None:
             if rel in compiled:
                 compiled = compiled.replace(rel, relations[rel])
         return compiled
-    return dejinja(n["raw_code"]) if n.get("raw_code") else None
+    return dejinja(n["raw_code"], n.get("name")) if n.get("raw_code") else None
 
 
 def _meta(d: dict) -> dict:
@@ -167,6 +167,7 @@ def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> 
                 "identifier": src.get("identifier"),
                 "description": src.get("description", ""),
                 "meta": meta,
+                "tags": src.get("tags", []),
                 "columns": sorted(cols),
             },
             tier=int(tier) if tier is not None else None,
