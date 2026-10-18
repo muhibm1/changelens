@@ -41,6 +41,8 @@ def _scope(cfg) -> list[str]:
 
 
 def _ignore(cfg) -> list[str]:
+    if not (cfg.adapters.dbt or cfg.adapters.airflow):
+        return ["*"]  # no platform adapter: no file here defines an asset, so none is an unmapped platform change
     out = []
     if cfg.constraints:
         out.append(cfg.constraints)

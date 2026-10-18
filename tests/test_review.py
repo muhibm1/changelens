@@ -488,3 +488,35 @@ def test_a_base_that_moved_on_is_not_shown_as_this_branch_undoing_it(tmp_path):
     assert [p for p, _, _ in git_changes(tmp_path, "main")] == ["b.py"], "main's own later change to a.py is not part of this branch"
     assert fork_point(tmp_path, "main") == git("rev-parse", "main~1")
     assert fork_point(tmp_path, "no-such-ref") == "no-such-ref"
+
+
+def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tmp_path):
+    import subprocess
+
+    from orion.changes import ChangeSet, _settle_removed_entries, git_changes
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
+
+    git("init", "-q", "-b", "main")
+    body = "select\n" + "".join(f"    col_{i},\n" for i in range(20)) + "    id\nfrom t\n"
+    (tmp_path / "stg_old.sql").write_text(body)
+    git("add", ".")
+    git("commit", "-qm", "init")
+    git("mv", "stg_old.sql", "int_new.sql")
+    (tmp_path / "int_new.sql").write_text(body.replace("col_3,", "col_3b,"))
+    git("commit", "-qam", "rename")
+    renames: dict[str, str] = {}
+    changes = git_changes(tmp_path, "HEAD~1", renames)
+    assert renames == {"int_new.sql": "stg_old.sql"}
+    [(path, old, new)] = changes
+    assert path == "int_new.sql" and old == body, "a rename carries the old file's text, not None"
+
+    cs = ChangeSet(unresolved=[
+        {"path": "_stg.yml", "reason": "changed schema entries the graph has no asset for: stg_old", "entries": ["stg_old"]},
+        {"path": "_x.yml", "reason": "changed schema entries the graph has no asset for: stg_old, other", "entries": ["stg_old", "other"]},
+        {"path": "elsewhere/_y.yml", "reason": "changed schema entries the graph has no asset for: stg_old", "entries": ["stg_old"]},
+    ])
+    _settle_removed_entries(cs, changes, renames)
+    assert [u["entries"] for u in cs.unresolved] == [["other"], ["stg_old"]], "an entry in another folder is not the renamed file's"
+    assert any("stg_old" in i for i in cs.ignored)

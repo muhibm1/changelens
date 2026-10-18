@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Real-repository noise
+
+- An `orion.yaml` with no dbt or Airflow adapter (an application repository) no longer reports every changed file as unmapped. Before, every review in such a repository was `warn` with no finding to explain it.
+- A diff given as a file is filtered by the platform roots, as a git diff already was.
+- A renamed file is diffed against its old path; before, a renamed model read as a new file.
+- A schema entry removed together with its model's SQL file is accounted for, not unmapped.
+- An unmapped `dbt_project.yml` says why in words. Before, the reason was an empty list.
+
 ## 0.1.0 (2026-10-18)
 
 The first release. Orion reviews any diff, and when it knows your data platform it also says what the change reaches in production, which decisions it breaks, and what happened the last time.

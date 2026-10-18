@@ -181,7 +181,7 @@ def test_a_changed_schema_entry_the_graph_lacks_is_unresolved_not_dropped(synced
     new = old.replace("  - name: fct_refunds\n", "  - name: fct_returns_v9\n    description: new\n  - name: fct_refunds\n")
     rel = str(SCHEMA_YML.relative_to(ROOT))
     cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new)])
-    assert cs.unresolved == [{"path": rel, "reason": "changed schema entries the graph has no asset for: fct_returns_v9"}]
+    assert cs.unresolved == [{"path": rel, "reason": "changed schema entries the graph has no asset for: fct_returns_v9", "entries": ["fct_returns_v9"]}]
 
 
 def test_an_intent_naming_the_diffs_change_adds_evidence_not_a_second_op(synced_store, constraints, tmp_path):
@@ -199,6 +199,21 @@ def test_run_history_and_dbt_build_output_are_not_platform_changes():
 
     out = _ignore(load_config(ROOT / "orion.yaml"))
     assert {"fixture/dbt_project/target", "fixture/runs/airflow_runs.jsonl", "fixture/runs/dbt/*.run_results.json", "fixture/runs/iceberg"} <= set(out)
+
+
+def test_a_config_with_no_platform_adapter_maps_no_file_and_raises_nothing(tmp_path):
+    from orion.cli import _ignore
+    from orion.config import OrionConfig
+    from orion.store import Store
+
+    cfg = OrionConfig(root=tmp_path)  # an orion.yaml naming only a database, as in an application repository
+    assert _ignore(cfg) == ["*"]
+    (tmp_path / "main.go").write_text("package main\n")
+    store = Store(tmp_path / "g.duckdb")
+    cs = collect_changes(store, tmp_path, file_changes=[("main.go", "package main\n", "package main\n\nfunc f() {}\n")], ignore=_ignore(cfg))
+    v = preflight(store, cs, [], RiskModel.load(None), record=False)
+    assert cs.unresolved == [] and cs.ignored == ["main.go"]
+    assert v["severity"] == "inform"
 
 
 def test_ignore_roots_and_globs():
@@ -238,3 +253,9 @@ def test_routine_tests_are_not_worded_as_a_gate(synced_store, constraints, tmp_p
     assert "**Routine checks**" in to_markdown(v)
     _, block = run(synced_store, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
     assert "Before merging: " in block["summary"] and "**Recommended checks**" in to_markdown(block)
+
+
+def test_an_unmapped_dbt_project_file_says_why_in_words(synced_store, constraints, tmp_path):
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[("fixture/dbt_project/dbt_project.yml", "name: x\n", "name: x\nvars:\n  a: 1\n")])
+    [u] = cs.unresolved
+    assert isinstance(u["reason"], str) and "dbt project configuration" in u["reason"]

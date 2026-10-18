@@ -282,12 +282,14 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
             ops.extend(ops_from_sql_change(a, path, old_text, new_text, schema))
         return ops, unresolved
     if path.endswith((".yml", ".yaml")):
-        missing: list[str] = []
-        ops = ops_from_yaml_change(resolver, store, path, old_text, new_text, missing)
-        if missing:
-            unresolved.append({"path": path, "reason": "changed schema entries the graph has no asset for: " + ", ".join(missing[:10]) + ("…" if len(missing) > 10 else "")})
-        if ops or assets or missing:
+        entries: list[str] = []
+        ops = ops_from_yaml_change(resolver, store, path, old_text, new_text, entries)
+        if entries:
+            unresolved.append({"path": path, "reason": "changed schema entries the graph has no asset for: " + ", ".join(entries[:10]) + ("…" if len(entries) > 10 else ""), "entries": entries})
+        if ops or assets or entries:
             return ops, unresolved
+        if Path(path).name == "dbt_project.yml":
+            missing = "dbt project configuration; Orion does not map its settings to the models they apply to, so check which models it changes"
     if assets:
         return [ChangeOp("modify", a, evidence=[f"diff:{path}"]) for a in assets], unresolved
     unresolved.append({"path": path, "reason": missing})
@@ -302,23 +304,51 @@ def fork_point(repo_root: Path, base_ref: str) -> str:
     return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else base_ref
 
 
-def git_changes(repo_root: Path, base_ref: str) -> list[tuple[str, str | None, str | None]]:
-    """(path, old_text, new_text) for every file that differs between where this branch left base_ref and the working tree."""
+def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, str | None]], renames: dict[str, str]) -> None:
+    """A schema entry removed for a model whose SQL file this same change deletes or renames is accounted for:
+    the graph (synced after the change) has no asset by the old name because the change removed it."""
+    # Matched by directory and name: a schema file documents the models beside it.
+    gone = {(str(Path(old).parent), Path(old).stem) for new, old in renames.items() if old.endswith(".sql")}
+    gone |= {(str(Path(p).parent), Path(p).stem) for p, old, new in changes if p.endswith(".sql") and old is not None and new is None}
+    if not gone:
+        return
+    kept = []
+    for u in cs.unresolved:
+        entries = u.get("entries")
+        here = str(Path(u.get("path") or "").parent)
+        settled = [e for e in entries or [] if (here, e) in gone]
+        if entries and len(settled) == len(entries):
+            cs.ignored.append(f"{u['path']}: schema entries for {', '.join(entries)}, removed with their SQL file")
+            continue
+        if settled:
+            left = [e for e in entries if e not in settled]
+            u = {**u, "entries": left, "reason": "changed schema entries the graph has no asset for: " + ", ".join(left[:10]) + ("…" if len(left) > 10 else "")}
+        kept.append(u)
+    cs.unresolved = kept
+
+
+def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:
+    """(path, old_text, new_text) for every file that differs between where this branch left base_ref and the working tree.
+
+    A renamed file is reported at its new path with the old path's text, so it reads as an edit, not a new file;
+    ``renames`` (new path -> old path) collects them for callers that need the old name."""
     base_ref = fork_point(repo_root, base_ref)
     out: list[tuple[str, str | None, str | None]] = []
     status = subprocess.run(["git", "-C", str(repo_root), "diff", "--name-status", base_ref], check=True, capture_output=True, text=True).stdout
     untracked = subprocess.run(["git", "-C", str(repo_root), "ls-files", "--others", "--exclude-standard"], check=True, capture_output=True, text=True).stdout.split()
-    entries: list[tuple[str, str]] = []
+    entries: list[tuple[str, str, str]] = []
     for line in status.splitlines():
         parts = line.split("\t")
         if len(parts) >= 2:
             code, path = parts[0][0], parts[-1]
-            entries.append((code, path))
-    entries += [("A", p) for p in untracked]
-    for code, path in entries:
+            entries.append((code, path, parts[1] if code == "R" and len(parts) >= 3 else path))
+    entries += [("A", p, p) for p in untracked]
+    for code, path, old_path in entries:
         old = None
+        if old_path != path and renames is not None:
+            renames[path] = old_path
         if code != "A":
-            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{path}"], capture_output=True, text=True)
+            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True, text=True)
             old = r.stdout if r.returncode == 0 else None
         new_path = repo_root / path
         new = new_path.read_text() if new_path.exists() and code != "D" else None
@@ -407,15 +437,23 @@ def collect_changes(
     cs = ChangeSet()
     resolver = PathResolver(store)
     tmpdir = tmp or Path(tempfile.mkdtemp(prefix="orion-"))
-    changes = list(file_changes or [])
+    def platform_path(path: str) -> bool:
+        inside = not scope or any(path == r or path.startswith(r.rstrip("/") + "/") for r in scope)
+        if inside and not ignored_path(path, ignore or []):
+            return True
+        cs.ignored.append(path)
+        return False
+
+    # A diff from a file is filtered like one from git, so a path outside the platform is never "unmapped".
+    changes = [c for c in file_changes or [] if platform_path(c[0])]
+    if paths and not (base_ref or file_changes):
+        cs.source = "paths"  # kept even when every path is outside the platform
+    paths = [p for p in paths or [] if platform_path(p)] or None
+    renames: dict[str, str] = {}
     if base_ref:
-        for path, old, new in git_changes(repo_root, base_ref):
-            inside = not scope or any(path == r or path.startswith(r.rstrip("/") + "/") for r in scope)
-            skipped = ignored_path(path, ignore or [])
-            if inside and not skipped:
+        for path, old, new in git_changes(repo_root, base_ref, renames):
+            if platform_path(path):
                 changes.append((path, old, new))
-            else:
-                cs.ignored.append(path)
         cs.source = f"git diff {base_ref}"
     if file_changes:
         cs.source = cs.source or "file changes"
@@ -427,6 +465,7 @@ def collect_changes(
         for op in file_ops:
             cs.add(op)
         cs.unresolved.extend(unresolved)
+    _settle_removed_entries(cs, changes, renames)
     if paths:
         cs.source = cs.source or "paths"
         for p in paths:
