@@ -128,6 +128,27 @@ class AnthropicProvider:
         return _parse_json_text(text)
 
 
+def strict_schema(schema: Any) -> Any:
+    """The strict form OpenAI-compatible structured output needs (some endpoints accept nothing else): every object
+    closed and every property required, with the ones that were optional made nullable. Validation treats null as absent."""
+    if isinstance(schema, list):
+        return [strict_schema(s) for s in schema]
+    if not isinstance(schema, dict):
+        return schema
+    out = {k: strict_schema(v) for k, v in schema.items()}
+    if out.get("type") == "object" and isinstance(out.get("properties"), dict):
+        required = set(schema.get("required") or [])
+        for name, prop in out["properties"].items():
+            if name not in required and isinstance(prop, dict) and "type" in prop:
+                types = prop["type"] if isinstance(prop["type"], list) else [prop["type"]]
+                prop["type"] = types + ([] if "null" in types else ["null"])
+                if "enum" in prop:
+                    prop["enum"] = list(prop["enum"]) + ([] if None in prop["enum"] else [None])
+        out["required"] = list(out["properties"])
+        out["additionalProperties"] = False
+    return out
+
+
 @dataclass
 class OpenAICompatibleProvider:
     model: str = "gpt-5"
@@ -146,7 +167,7 @@ class OpenAICompatibleProvider:
         body = {
             "model": self.model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-            "response_format": {"type": "json_schema", "json_schema": {"name": schema_name, "schema": schema}},
+            "response_format": {"type": "json_schema", "json_schema": {"name": schema_name, "schema": strict_schema(schema), "strict": True}},
         }
         headers = {"authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         resp = _post(f"{self.base_url.rstrip('/')}/chat/completions", headers, body, timeout=self.timeout, retries=self.retries)

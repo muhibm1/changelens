@@ -380,6 +380,20 @@ def test_a_review_against_a_base_ref_takes_the_commit_messages_as_intent(synced_
     assert r["intent_source"] is None and "Stated intent" not in stub.calls[0][1]
 
 
+def test_openai_requests_use_the_strict_schema_form(monkeypatch):
+    from orion.providers import strict_schema
+
+    sent = []
+    monkeypatch.setattr(providers.urllib.request, "urlopen", lambda req, timeout: sent.append(json.loads(req.data)) or _Resp(json.dumps({"choices": [{"message": {"content": '{"findings": []}'}}]}).encode()))
+    OpenAICompatibleProvider(model="m", api_key="k").complete_json("s", "u", FINDINGS_SCHEMA)
+    fmt = sent[0]["response_format"]["json_schema"]
+    assert fmt["strict"] is True
+    item = fmt["schema"]["properties"]["findings"]["items"]
+    assert item["additionalProperties"] is False and set(item["required"]) == set(item["properties"])
+    s = strict_schema({"type": "object", "properties": {"a": {"type": "string"}, "b": {"type": "integer", "enum": [1, 2]}}, "required": ["a"]})
+    assert s["properties"]["a"]["type"] == "string" and s["properties"]["b"] == {"type": ["integer", "null"], "enum": [1, 2, None]}
+
+
 def test_a_warning_raised_only_by_unmapped_paths_says_so(synced_store, constraints):
     dim = "fixture/dbt_project/models/marts/dim_products.sql"
     new = "fixture/dbt_project/macros/cents.sql"
@@ -401,6 +415,8 @@ new file mode 100644
     assert len(det) == 1 and det[0]["severity"] == "warn"
     assert det[0]["title"] == "1 changed path is not mapped to any asset"
     assert det[0]["path"] == new and new in det[0]["body"]
+
+
 def test_a_second_reading_never_lowers_a_finding_below_its_constraint_floor(synced_store, constraints):
     first = {"findings": [{"path": FCT, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount now wrong for finance", "body": "b", "failure": "finance reads a null discount", "evidence": ["hunk:" + FCT + ":8", "constraint:CON-031"]}]}
     sent = []
