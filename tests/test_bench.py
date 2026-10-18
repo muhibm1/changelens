@@ -12,9 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "pipelinebench" / "scenarios"
 
 
-def test_fifty_scenarios_with_consistent_ground_truth():
+def test_sixty_scenarios_with_consistent_ground_truth():
     scenarios = load_scenarios(SCENARIOS)
-    assert len(scenarios) == 50
+    assert len(scenarios) == 60
     ids = known_ids(ROOT / "fixture")
     for s in scenarios:
         assert s.change.ops or s.change.intent, s.id

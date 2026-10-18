@@ -1,0 +1,24 @@
+id: PB-060
+title: Add fee to stg_payments
+family: additive_upstream
+task: Add a processing fee column to stg_payments.
+change:
+  ops:
+  - kind: add_column
+    asset: stg_payments
+    column: fee
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_payments.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: A new column reaches nothing yet.
+tags:
+- column
+- additive

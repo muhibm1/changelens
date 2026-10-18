@@ -1,0 +1,26 @@
+id: PB-058
+title: Drop refund_amount from stg_refunds
+family: tier1_unlocked
+task: Drop refund_amount from stg_refunds; refunds are read from the payments processor
+  now.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_refunds
+    column: refund_amount
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: refund_amount -> fct_refunds.refund_amount, and the finance close export reads
+    the whole of fct_refunds.
+tags:
+- column
+- destructive
+- lineage

@@ -1,0 +1,24 @@
+id: PB-057
+title: Backfill fct_revenue overnight
+family: backfill
+task: Rebuild fct_revenue for the quarter at 02:00 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: fct_revenue
+    details:
+      at: '2026-10-20T02:00:00+00:00'
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - dash_revenue_weekly
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: No window applies to fct_revenue, but the rebuild reaches two tier-1 exposures.
+tags:
+- backfill

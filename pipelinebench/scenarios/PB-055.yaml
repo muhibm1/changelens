@@ -1,0 +1,30 @@
+id: PB-055
+title: Repartition stg_events by ingest_ts
+family: partition
+task: Repartition stg_events by ingest_ts to match the loader.
+change:
+  ops:
+  - kind: change_partition
+    asset: stg_events
+    details:
+      to: ingest_ts
+      from: event_date
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_events.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-014
+  - INC-214
+  must_name:
+  - fct_daily_active_users
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: CON-014 covers stg_events as well as raw_events.
+tags:
+- partition
+- destructive

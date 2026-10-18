@@ -1,0 +1,28 @@
+id: PB-056
+title: Backfill raw_events at 06:00 UTC
+family: backfill
+task: Backfill raw_events for the last 7 days, starting at 06:00 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: raw_events
+    details:
+      at: '2026-10-20T06:00:00+00:00'
+      days: 7
+  intent: null
+  files: []
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-022
+  - INC-241
+  must_name: []
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: The CON-022 window starts at 06:00.
+tags:
+- backfill
+- destructive

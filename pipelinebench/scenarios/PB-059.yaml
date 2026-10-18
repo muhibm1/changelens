@@ -1,0 +1,26 @@
+id: PB-059
+title: Drop event_type from stg_events
+family: unlocked_column
+task: Drop event_type from stg_events; no model groups by it.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_events
+    column: event_type
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_events.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: No column lineage leaves event_type; CON-014 is about the partition key, not
+    columns.
+tags:
+- column
+- destructive
+- harmless

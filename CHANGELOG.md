@@ -22,6 +22,10 @@
 - An unmapped `dbt_project.yml` says why in words. Before, the reason was an empty list. A changed `packages.yml` or `package-lock.yml` says a package upgrade can change any macro the models call.
 - With the default model, the replay of 26 changes from httpx, hono and cobra has 5 warnings, none of them noise, and catches the confirmed bug (`pipelinebench/results/replay.md`).
 
+### PipelineBench
+
+- Ten more scenarios (PB-051 to PB-060), with ground truth written by hand: lineage through renamed, redefined and retyped columns, a constraint scoped to a downstream model (CON-014 on `stg_events`), the start of the CON-022 window, a backfill reaching tier-1 exposures, and a tier-1 export that reads a whole model. PB-001 to PB-050 keep their ids, so earlier agent runs still compare. Orion agrees with all sixty.
+
 ### Real dbt and Airflow projects
 
 - Model SQL read without a compiled manifest (`dbt parse` only) handles versioned refs (`ref('m', v=2)`), package refs (`ref('pkg', 'm')`), `{{ this }}` in incremental filters, and macro calls in expressions and as a whole CTE body. On datacoves/balboa, models whose columns could not be read fell from 7 to 1 (a Snowflake semantic view, which is not SQL).

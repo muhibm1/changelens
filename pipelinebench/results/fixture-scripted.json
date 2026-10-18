@@ -1,61 +1,62 @@
 {
  "benchmark": "PipelineBench",
  "version": "0.1.0",
- "ran_at": "2026-10-16T19:35:11.281642+00:00",
- "seconds": 3.1,
+ "ran_at": "2026-10-18T21:53:55.140577+00:00",
+ "seconds": 3.9,
  "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
- "scenarios": 50,
+ "scenarios": 60,
  "seeds": 1,
  "cells": [
   {
    "agent": "scripted",
    "condition": "none",
-   "scenarios": 50,
-   "accuracy": 0.4,
-   "unsafe_rate": 0.4,
-   "cite_recall": 0.46,
-   "name_recall": 0.56,
-   "approvers_ok": 0.46,
+   "scenarios": 60,
+   "accuracy": 0.367,
+   "unsafe_rate": 0.433,
+   "cite_recall": 0.45,
+   "name_recall": 0.517,
+   "approvers_ok": 0.45,
    "fabrication_rate": 0.0,
-   "score": 0.444
+   "score": 0.417
   },
   {
    "agent": "scripted",
    "condition": "repo",
-   "scenarios": 50,
-   "accuracy": 0.6,
-   "unsafe_rate": 0.28,
-   "cite_recall": 0.93,
-   "name_recall": 0.77,
-   "approvers_ok": 0.88,
+   "scenarios": 60,
+   "accuracy": 0.533,
+   "unsafe_rate": 0.333,
+   "cite_recall": 0.892,
+   "name_recall": 0.708,
+   "approvers_ok": 0.833,
    "fabrication_rate": 0.0,
-   "score": 0.638
+   "score": 0.578
   },
   {
    "agent": "scripted",
    "condition": "rag",
-   "scenarios": 50,
-   "accuracy": 0.6,
-   "unsafe_rate": 0.26,
-   "cite_recall": 0.91,
-   "name_recall": 0.56,
-   "approvers_ok": 0.78,
+   "scenarios": 60,
+   "accuracy": 0.533,
+   "unsafe_rate": 0.317,
+   "cite_recall": 0.85,
+   "name_recall": 0.517,
+   "approvers_ok": 0.717,
    "fabrication_rate": 0.0,
-   "score": 0.616
+   "score": 0.56
   },
   {
    "agent": "scripted",
    "condition": "orion",
-   "scenarios": 50,
+   "scenarios": 60,
    "accuracy": 1.0,
    "unsafe_rate": 0.0,
    "cite_recall": 1.0,
-   "name_recall": 0.94,
+   "name_recall": 0.933,
    "approvers_ok": 1.0,
    "fabrication_rate": 0.0,
-   "score": 0.988
+   "score": 0.987
   }
  ],
+ "usage": {},
  "details": [
   {
    "scenario": "PB-001",
@@ -1049,6 +1050,206 @@
    "name_recall": 0.0,
    "approvers_ok": true,
    "score": 0.4,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-051",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-052",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-053",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-054",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-055",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-056",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-057",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.4,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-058",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.4,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-059",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "none",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-060",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
    "agent": "scripted",
    "condition": "none",
    "seed": 0,
@@ -2435,6 +2636,242 @@
    "rationale": "9 ids mention the changed assets"
   },
   {
+   "scenario": "PB-051",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-052",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-053",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-054",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-055",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.8,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-056",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "CON-014",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "4 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-057",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "escalate",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_customer_health",
+    "dash_product_analytics",
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-058",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.4,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-059",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "escalate",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-060",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "escalate",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "repo",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
    "scenario": "PB-001",
    "family": "locked_direct",
    "expected": "escalate",
@@ -3611,6 +4048,220 @@
    "rationale": "no material given; nothing suggests a problem"
   },
   {
+   "scenario": "PB-051",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-052",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-053",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-054",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
+   "scenario": "PB-055",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 0.5,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "1 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-056",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": false,
+   "score": 0.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [
+    "INC-241",
+    "CON-022",
+    "INC-214",
+    "CON-014"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "4 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-057",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "escalate",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.4,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "2 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-058",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.4,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "0 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-059",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "1 ids mention the changed assets"
+  },
+  {
+   "scenario": "PB-060",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "rag",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "no material given; nothing suggests a problem"
+  },
+  {
    "scenario": "PB-001",
    "family": "locked_direct",
    "expected": "escalate",
@@ -3720,7 +4371,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Change type on fct_revenue.gross_revenue reaches 4 downstream assets, 2 of them tier 1 (dash_revenue_weekly, finance_close_job). Fires CON-031 (block). This path has incident history: INC-230 on 2026-08-18. Before merging: run tests for fct_revenue+; get sign-off from team/finance-data. Severity blo"
+   "rationale": "Change type on fct_revenue.gross_revenue reaches 4 downstream assets, 2 of them tier 1 (dash_revenue_weekly, finance_close_job). Fires CON-031 (block). Earlier incidents on these assets (INC-230) are not from this kind of change. Before merging: run tests for fct_revenue+; get sign-off from team/fin"
   },
   {
    "scenario": "PB-005",
@@ -3776,7 +4427,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Change expression on fct_revenue.collected_revenue reaches 4 downstream assets, 2 of them tier 1 (dash_revenue_weekly, finance_close_job). Fires CON-031 (block). This path has incident history: INC-230 on 2026-08-18. Before merging: run tests for fct_revenue+; get sign-off from team/finance-data. Se"
+   "rationale": "Change expression on fct_revenue.collected_revenue reaches 4 downstream assets, 2 of them tier 1 (dash_revenue_weekly, finance_close_job). Fires CON-031 (block). Earlier incidents on these assets (INC-230) are not from this kind of change. Before merging: run tests for fct_revenue+; get sign-off fro"
   },
   {
    "scenario": "PB-007",
@@ -3806,7 +4457,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Drop column on fct_orders.paid_amount reaches 5 downstream assets, 3 of them tier 1 (dash_revenue_weekly, fct_revenue, finance_close_job). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for fct_orders+; get sign-off from team/finance-data; tell"
+   "rationale": "Drop column on fct_orders.paid_amount reaches 5 downstream assets, 3 of them tier 1 (dash_revenue_weekly, fct_revenue, finance_close_job). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update fct_revenue, which still selects fct_orders.paid_amount; run "
   },
   {
    "scenario": "PB-008",
@@ -3829,7 +4480,7 @@
    ],
    "affected": [],
    "approvers": [],
-   "rationale": "Add column on fct_orders.currency_rate reaches no downstream assets. This path has incident history: INC-241 on 2026-09-03. Before merging: run tests for fct_orders+. Severity inform."
+   "rationale": "Add column on fct_orders.currency_rate reaches no downstream assets. Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Nothing beyond normal review and CI: run tests for fct_orders+. Severity inform."
   },
   {
    "scenario": "PB-009",
@@ -3851,7 +4502,7 @@
    ],
    "affected": [],
    "approvers": [],
-   "rationale": "Add column on fct_revenue.refund_total reaches no downstream assets. This path has incident history: INC-230 on 2026-08-18. Before merging: run tests for fct_revenue+. Severity inform."
+   "rationale": "Add column on fct_revenue.refund_total reaches no downstream assets. Earlier incidents on these assets (INC-230) are not from this kind of change. Nothing beyond normal review and CI: run tests for fct_revenue+. Severity inform."
   },
   {
    "scenario": "PB-010",
@@ -3911,7 +4562,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Drop column on stg_orders.discount_pct reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for stg_orders+; get sign-off from team/finance-data; te"
+   "rationale": "Drop column on stg_orders.discount_pct reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update int_order_payments, which still selects stg_orders.discount"
   },
   {
    "scenario": "PB-012",
@@ -3943,7 +4594,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Drop column on stg_orders.currency reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for stg_orders+; get sign-off from team/finance-data; tell t"
+   "rationale": "Drop column on stg_orders.currency reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update int_order_payments, which still selects stg_orders.currency; ru"
   },
   {
    "scenario": "PB-013",
@@ -3974,7 +4625,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Change type on int_order_payments.amount reaches 6 downstream assets, 4 of them tier 1 (fct_orders, dash_revenue_weekly, fct_revenue\u2026). Fires CON-031 (block). This path has incident history: INC-241 on 2026-09-03. Before merging: run tests for int_order_payments+; get sign-off from team/finance-data"
+   "rationale": "Change type on int_order_payments.amount reaches 6 downstream assets, 4 of them tier 1 (fct_orders, dash_revenue_weekly, fct_revenue\u2026). Fires CON-031 (block). Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Before merging: run tests for int_order_payments+; get"
   },
   {
    "scenario": "PB-014",
@@ -4006,7 +4657,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Drop column on stg_payments.paid_amount reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for stg_payments+; get sign-off from team/finance-data;"
+   "rationale": "Drop column on stg_payments.paid_amount reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update int_order_payments, which still selects stg_payments.paid_"
   },
   {
    "scenario": "PB-015",
@@ -4026,7 +4677,7 @@
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Drop column on stg_payments.payment_method reaches no downstream assets. Before merging: run tests for stg_payments+. Severity inform."
+   "rationale": "Drop column on stg_payments.payment_method reaches no downstream assets. Nothing beyond normal review and CI: run tests for stg_payments+. Severity inform."
   },
   {
    "scenario": "PB-016",
@@ -4049,7 +4700,7 @@
     "ml_churn_training"
    ],
    "approvers": [],
-   "rationale": "Drop column on stg_customers.region reaches 6 downstream assets; none are tier 1. Before merging: run tests for stg_customers+. Severity inform."
+   "rationale": "Drop column on stg_customers.region reaches 6 downstream assets; none are tier 1. Before merging: update int_customer_orders, which still selects stg_customers.region; run tests for stg_customers+. Severity inform."
   },
   {
    "scenario": "PB-017",
@@ -4073,7 +4724,7 @@
     "dash_product_analytics"
    ],
    "approvers": [],
-   "rationale": "Rename column on stg_events.session_id reaches 3 downstream assets; none are tier 1. This path has incident history: INC-214 on 2026-07-01. Before merging: run tests for stg_events+. Severity inform."
+   "rationale": "Rename column on stg_events.session_id reaches 3 downstream assets; none are tier 1. Earlier incidents on these assets (INC-214) are not from this kind of change. Before merging: update int_sessions, which still selects stg_events.session_id; run tests for stg_events+. Severity inform."
   },
   {
    "scenario": "PB-018",
@@ -4096,7 +4747,7 @@
     "ml_churn_training"
    ],
    "approvers": [],
-   "rationale": "Drop column on int_customer_orders.order_count reaches 5 downstream assets; none are tier 1. Before merging: run tests for int_customer_orders+. Severity inform."
+   "rationale": "Drop column on int_customer_orders.order_count reaches 5 downstream assets; none are tier 1. Before merging: update dim_customers, which still selects int_customer_orders.order_count; run tests for int_customer_orders+. Severity inform."
   },
   {
    "scenario": "PB-019",
@@ -4116,7 +4767,7 @@
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Add column on stg_orders.channel reaches no downstream assets. Before merging: run tests for stg_orders+. Severity inform."
+   "rationale": "Add column on stg_orders.channel reaches no downstream assets. Nothing beyond normal review and CI: run tests for stg_orders+. Severity inform."
   },
   {
    "scenario": "PB-020",
@@ -4146,7 +4797,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Drop column on stg_orders.status reaches 4 downstream assets, 3 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for stg_orders+; get sign-off from team/finance-data; tell team"
+   "rationale": "Drop column on stg_orders.status reaches 4 downstream assets, 3 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update int_order_payments, which still selects stg_orders.status; run tes"
   },
   {
    "scenario": "PB-021",
@@ -4197,13 +4848,9 @@
     "INC-241",
     "INC-214"
    ],
-   "affected": [
-    "dash_product_analytics",
-    "dash_customer_health",
-    "ml_churn_training"
-   ],
+   "affected": [],
    "approvers": [],
-   "rationale": "Change partition on raw.raw_events reaches 10 downstream assets; none are tier 1. The same kind of change caused INC-214 on 2026-07-01. Severity inform."
+   "rationale": "Change partition on raw.raw_events to the key it already has reaches no downstream assets. Earlier incidents on these assets (INC-241, INC-214) are not from this kind of change. Severity inform."
   },
   {
    "scenario": "PB-023",
@@ -4265,7 +4912,7 @@
     "ml_churn_training"
    ],
    "approvers": [],
-   "rationale": "Change partition on raw.raw_orders reaches 18 downstream assets, 6 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). This path has incident history: INC-241 on 2026-09-03. Before merging: tell team/finance-data. Severity warn."
+   "rationale": "Change partition on raw.raw_orders reaches 18 downstream assets, 6 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Before merging: tell team/finance-data. Severity warn."
   },
   {
    "scenario": "PB-025",
@@ -4490,7 +5137,7 @@
     "ml_churn_training"
    ],
    "approvers": [],
-   "rationale": "Backfill on stg_events reaches 10 downstream assets; none are tier 1. This path has incident history: INC-214 on 2026-07-01. Before merging: run tests for stg_events+; schedule the backfill off-hours. Severity inform."
+   "rationale": "Backfill on stg_events reaches 10 downstream assets; none are tier 1. Earlier incidents on these assets (INC-214) are not from this kind of change. Before merging: run tests for stg_events+; schedule the backfill off-hours. Severity inform."
   },
   {
    "scenario": "PB-033",
@@ -4518,7 +5165,7 @@
     "team/data-platform",
     "team/finance-data"
    ],
-   "rationale": "Change schedule on orders_pipeline reaches 1 downstream asset; none are tier 1. Fires CON-040 (warn). This path has incident history: INC-241 on 2026-09-03. Before merging: get sign-off from team/finance-data, team/data-platform. Severity warn."
+   "rationale": "Change schedule on orders_pipeline reaches 1 downstream asset; none are tier 1. Fires CON-040 (warn). Earlier incidents on these assets (INC-241) are not from this kind of change. Before merging: get sign-off from team/finance-data, team/data-platform. Severity warn."
   },
   {
    "scenario": "PB-034",
@@ -4546,7 +5193,7 @@
     "team/data-platform",
     "team/finance-data"
    ],
-   "rationale": "Change schedule on orders_pipeline reaches 1 downstream asset; none are tier 1. Fires CON-040 (warn). This path has incident history: INC-241 on 2026-09-03. Before merging: get sign-off from team/finance-data, team/data-platform; confirm the resolved assets. Severity warn."
+   "rationale": "Change schedule on orders_pipeline reaches 1 downstream asset; none are tier 1. Fires CON-040 (warn). Earlier incidents on these assets (INC-241) are not from this kind of change. Before merging: get sign-off from team/finance-data, team/data-platform; confirm the resolved assets. Severity warn."
   },
   {
    "scenario": "PB-035",
@@ -4569,7 +5216,7 @@
    ],
    "affected": [],
    "approvers": [],
-   "rationale": "Change schedule on events_pipeline reaches no downstream assets. This path has incident history: INC-241 on 2026-09-03. Severity inform."
+   "rationale": "Change schedule on events_pipeline reaches no downstream assets. Earlier incidents on these assets (INC-241, INC-214) are not from this kind of change. Severity inform."
   },
   {
    "scenario": "PB-036",
@@ -4613,7 +5260,7 @@
     "finance_close"
    ],
    "approvers": [],
-   "rationale": "Modify on orders_pipeline reaches 1 downstream asset; none are tier 1. This path has incident history: INC-241 on 2026-09-03. Severity inform."
+   "rationale": "Modify on orders_pipeline reaches 1 downstream asset; none are tier 1. Earlier incidents on these assets (INC-241) are not from this kind of change. Severity inform."
   },
   {
    "scenario": "PB-038",
@@ -4668,7 +5315,7 @@
    "approvers": [
     "team/product-analytics"
    ],
-   "rationale": "Modify on fct_sessions reaches 8 downstream assets; none are tier 1. Fires CON-050 (warn). This path has incident history: INC-214 on 2026-07-01. Before merging: run tests for fct_sessions+; get sign-off from team/product-analytics. Severity warn."
+   "rationale": "Modify on fct_sessions reaches 8 downstream assets; none are tier 1. Fires CON-050 (warn). Earlier incidents on these assets (INC-214) are not from this kind of change. Before merging: run tests for fct_sessions+; get sign-off from team/product-analytics. Severity warn."
   },
   {
    "scenario": "PB-040",
@@ -4766,7 +5413,7 @@
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Add column on dim_customers.tenure reaches no downstream assets. Before merging: run tests for dim_customers+. Severity inform."
+   "rationale": "Add column on dim_customers.tenure reaches no downstream assets. Nothing beyond normal review and CI: run tests for dim_customers+. Severity inform."
   },
   {
    "scenario": "PB-044",
@@ -4820,7 +5467,7 @@
    ],
    "affected": [],
    "approvers": [],
-   "rationale": "Add column on fct_orders.currency_rate and 1 more change reaches no downstream assets. This path has incident history: INC-241 on 2026-09-03. Before merging: run tests for fct_orders+; run tests for fct_revenue+. Severity inform."
+   "rationale": "Add column on fct_orders.currency_rate and 1 more change reaches no downstream assets. Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Nothing beyond normal review and CI: run tests for fct_orders+; run tests for fct_revenue+. Severity inform."
   },
   {
    "scenario": "PB-046",
@@ -4840,7 +5487,7 @@
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Drop column on stg_payments.payment_method and 1 more change reaches no downstream assets. Before merging: run tests for stg_payments+. Severity inform."
+   "rationale": "Drop column on stg_payments.payment_method and 1 more change reaches no downstream assets. Nothing beyond normal review and CI: run tests for stg_payments+. Severity inform."
   },
   {
    "scenario": "PB-047",
@@ -4893,7 +5540,7 @@
     "dash_product_analytics"
    ],
    "approvers": [],
-   "rationale": "Modify on stg_products reaches 3 downstream assets; none are tier 1. Before merging: run tests for stg_products+. Severity inform."
+   "rationale": "Modify on stg_products reaches 3 downstream assets; none are tier 1. Nothing beyond normal review and CI: run tests for stg_products+. Severity inform."
   },
   {
    "scenario": "PB-049",
@@ -4913,7 +5560,7 @@
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Drop column on dim_products.unit_price reaches no downstream assets. Before merging: run tests for dim_products+. Severity inform."
+   "rationale": "Drop column on dim_products.unit_price reaches no downstream assets. Nothing beyond normal review and CI: run tests for dim_products+. Severity inform."
   },
   {
    "scenario": "PB-050",
@@ -4937,7 +5584,289 @@
     "finance_close_job"
    ],
    "approvers": [],
-   "rationale": "Rename column on fct_refunds.reason reaches 2 downstream assets, 1 of them tier 1 (finance_close_job). The same kind of change caused INC-230 on 2026-08-18. Before merging: run tests for fct_refunds+. Severity warn."
+   "rationale": "Rename column on fct_refunds.reason reaches 2 downstream assets, 1 of them tier 1 (finance_close_job). The same kind of change caused INC-230 on 2026-08-18. Nothing beyond normal review and CI: run tests for fct_refunds+. Severity warn."
+  },
+  {
+   "scenario": "PB-051",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_customer_health",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "finance_close_job",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Rename column on stg_orders.amount reaches 12 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update int_customer_orders, int_order_payments, which still select st"
+  },
+  {
+   "scenario": "PB-052",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "finance_close_job"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Change expression on stg_payments.paid_amount reaches 7 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Before merging: run tests for stg_payments"
+  },
+  {
+   "scenario": "PB-053",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_customer_health",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "finance_close_job",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Change type on stg_orders.order_date reaches 12 downstream assets, 5 of them tier 1 (int_order_payments, fct_orders, dash_revenue_weekly\u2026). Fires CON-031 (block). Earlier incidents on these assets (INC-241, INC-230) are not from this kind of change. Before merging: run tests for stg_orders+; get sig"
+  },
+  {
+   "scenario": "PB-054",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_refunds",
+    "finance_close_job"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Drop column on int_order_payments.customer_id reaches 6 downstream assets, 4 of them tier 1 (fct_orders, dash_revenue_weekly, fct_refunds\u2026). Fires CON-031 (block). The same kind of change caused INC-230 on 2026-08-18. Before merging: update fct_orders, which still selects int_order_payments.customer"
+  },
+  {
+   "scenario": "PB-055",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 0.0,
+   "approvers_ok": true,
+   "score": 0.8,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "dash_product_analytics",
+    "dash_customer_health",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Change partition on stg_events reaches 10 downstream assets; none are tier 1. Fires CON-014 (block). The same kind of change caused INC-214 on 2026-07-01. Before merging: run tests for stg_events+; get sign-off from team/data-platform. Severity block."
+  },
+  {
+   "scenario": "PB-056",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "dash_product_analytics",
+    "dash_customer_health",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Backfill on raw.raw_events reaches 10 downstream assets; none are tier 1. Fires CON-022 (block). The same kind of change caused INC-241 on 2026-09-03. Before merging: get sign-off from team/data-platform; schedule the backfill off-hours. Severity block."
+  },
+  {
+   "scenario": "PB-057",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job"
+   ],
+   "approvers": [],
+   "rationale": "Backfill on fct_revenue reaches 6 downstream assets, 2 of them tier 1 (dash_revenue_weekly, finance_close_job). Earlier incidents on these assets (INC-230) are not from this kind of change. Before merging: run tests for fct_revenue+; schedule the backfill off-hours. Severity warn."
+  },
+  {
+   "scenario": "PB-058",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "fct_refunds",
+    "finance_close_job"
+   ],
+   "approvers": [],
+   "rationale": "Drop column on stg_refunds.refund_amount reaches 3 downstream assets, 2 of them tier 1 (fct_refunds, finance_close_job). The same kind of change caused INC-230 on 2026-08-18. Before merging: update fct_refunds, which still selects stg_refunds.refund_amount; run tests for stg_refunds+. Severity warn."
+  },
+  {
+   "scenario": "PB-059",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Drop column on stg_events.event_type reaches no downstream assets. Earlier incidents on these assets (INC-214) are not from this kind of change. Nothing beyond normal review and CI: run tests for stg_events+. Severity inform."
+  },
+  {
+   "scenario": "PB-060",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "scripted",
+   "condition": "orion",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Add column on stg_payments.fee reaches no downstream assets. Nothing beyond normal review and CI: run tests for stg_payments+. Severity inform."
   }
  ]
 }

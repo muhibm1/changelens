@@ -1,0 +1,29 @@
+id: PB-054
+title: Drop customer_id from int_order_payments
+family: locked_via_lineage
+task: Drop customer_id from int_order_payments; customers are joined in the marts.
+change:
+  ops:
+  - kind: drop_column
+    asset: int_order_payments
+    column: customer_id
+  intent: null
+  files:
+  - fixture/dbt_project/models/intermediate/int_order_payments.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_orders
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: int_order_payments.customer_id -> fct_orders.customer_id, a locked column.
+tags:
+- column
+- destructive
+- lineage

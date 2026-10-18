@@ -1,0 +1,31 @@
+id: PB-051
+title: Rename amount in stg_orders
+family: locked_via_lineage
+task: Rename stg_orders.amount to gross_amount to say what it holds.
+change:
+  ops:
+  - kind: rename_column
+    asset: stg_orders
+    column: amount
+    details:
+      to: gross_amount
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_orders
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: stg_orders.amount -> int_order_payments.amount -> fct_orders.amount and net_amount.
+tags:
+- column
+- destructive
+- lineage

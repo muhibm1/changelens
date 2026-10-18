@@ -40,7 +40,7 @@ def _store(config: Path | None, need_graph: bool = True) -> tuple[Path, Store]:
 
 @app.command()
 def generate(directory: Path = typer.Option(SCENARIOS, "--dir")):
-    """Write the fifty scenario files from the generator (ground truth is hand-written there)."""
+    """Write the sixty scenario files from the generator (ground truth is hand-written there)."""
     paths = write_scenarios(directory)
     console.print(f"wrote {len(paths)} scenarios to {directory}")
 

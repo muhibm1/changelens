@@ -24,7 +24,7 @@ Code-context tools index what the repository says. Orion indexes what production
 | `orion record-decision` | Writes a human's approve / waive / reject on a verdict to the ledger. |
 | `orion postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
 | `orion propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A nightly workflow opens them as a pull request; merging is the approval. |
-| `pipelinebench` | The benchmark: fifty scenarios with hand-written ground truth, four context conditions (none, repo, rag, orion), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Orion and the ground truth honest with each other. |
+| `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, orion), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Orion and the ground truth honest with each other. |
 | `fixture/` | PipelineBench's fixture platform: a dbt project over DuckDB, three Airflow DAGs, CODEOWNERS, three postmortems, four constraints, and run history (an Airflow task-instance export, dbt `run_results.json` files, Iceberg table metadata with snapshots, a schema change and a partition-spec change). Realistic enough that the questions a verdict asks have non-trivial answers. |
 
 ## The record
@@ -262,7 +262,7 @@ The end-to-end tests parse the fixture dbt project on the fly, so they need no w
 1. **Fixture and graph** (done): graph, adapters, lineage, `explain`.
 2. **Pre-flight** (done): typed change ops, blast-radius walk, predicates, risk, the verdict, `gate`, the MCP server, graph-scoped `ask`.
 3. **Ledger and post-flight** (done): run history and Iceberg snapshot ingestion, the post-flight watcher that writes `outcome_observed`, constraint proposals from ledger patterns and the nightly proposal PR, hybrid and embedding rankers behind `ask`.
-4. **PipelineBench** (done): fifty scenarios, four conditions, scripted / Claude / command agents, mechanical graders, and runs with language-model agents (`pipelinebench/results/`).
+4. **PipelineBench** (done): sixty scenarios (fifty in the first agent runs), four conditions, scripted / Claude / command agents, mechanical graders, and runs with language-model agents (`pipelinebench/results/`).
 5. **Review loop** (done): `orion review` on any diff, with or without platform config. Behind it: a provider interface (Anthropic, any OpenAI-compatible endpoint), the `review` MCP tool, and inline pull-request comments with memory across pushes. It parses symbol references, typing receivers by annotation, construction, field or declared return type. It also scans for credentials, reads the stated intent, and requires a concrete failing case for every warning, with a second reading. Evidence: the review eval, and design-partner runs on httpx, hono, cobra and cal-itp.
 6. **Real platforms** (done for dbt and Airflow): dbt at the scale of 625 models with column lineage, gusty YAML DAGs, and post-flight on real `dbt build` results.
 

@@ -1,0 +1,31 @@
+id: PB-053
+title: Retype order_date in stg_orders
+family: locked_via_lineage
+task: Keep stg_orders.order_date as a timestamp instead of casting it to a date.
+change:
+  ops:
+  - kind: change_type
+    asset: stg_orders
+    column: order_date
+    details:
+      to: timestamp
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_revenue
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: order_date -> fct_orders.order_date -> fct_revenue.revenue_date.
+tags:
+- column
+- destructive
+- lineage

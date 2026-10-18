@@ -80,11 +80,11 @@ Neither model proceeded on a change it had to escalate, in any condition. Withou
 ## Layout
 
 ```
-pipelinebench/scenarios/PB-001.yaml ...   the fifty scenarios (generated; edit generate.py, not these)
+pipelinebench/scenarios/PB-001.yaml ...   the sixty scenarios (generated; edit generate.py, not these)
 pipelinebench/results/                    results JSON and markdown reports
 src/pipelinebench/
   scenarios.py    Scenario, Change, Expected; known_ids
-  generate.py     the fifty scenarios and their ground truth, by hand
+  generate.py     the sixty scenarios and their ground truth, by hand
   conditions.py   none / repo / rag / orion context builders
   agents.py       scripted, claude, command; Decision parsing
   grader.py       mechanical grading and aggregation

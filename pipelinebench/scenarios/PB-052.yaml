@@ -1,0 +1,30 @@
+id: PB-052
+title: Redefine paid_amount in stg_payments
+family: locked_via_lineage
+task: Count refunded payments as negative in stg_payments.paid_amount.
+change:
+  ops:
+  - kind: change_expression
+    asset: stg_payments
+    column: paid_amount
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_payments.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_revenue
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: paid_amount -> int_order_payments.paid_amount -> fct_orders.paid_amount ->
+    fct_revenue.collected_revenue.
+tags:
+- column
+- destructive
+- lineage
