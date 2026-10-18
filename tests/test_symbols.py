@@ -73,6 +73,17 @@ def test_typescript_and_go_definitions():
     assert (sc.name, sc.kind) == ("Load", "signature_changed")
 
 
+def test_function_local_variables_are_not_definitions():
+    old = 'export const LIMIT = 10;\nexport function load(url: string) {\n  const res = fetch(url);\n  let headers = {};\n  return res;\n}\n'
+    new = 'export const LIMIT = 20;\nexport function load(url: string) {\n  const response = fetch(url);\n  return response;\n}\n'
+    changes = changed_definitions(parse(Change("web/load.ts", old, new).diff())[0], new)
+    assert [(sc.name, sc.kind) for sc in changes] == [("LIMIT", "signature_changed")]
+    old = "export namespace Api {\n  export const VERSION = 1;\n}\n"
+    new = "export namespace Api {\n  export const VERSION = 2;\n}\n"
+    [sc] = changed_definitions(parse(Change("web/api.ts", old, new).diff())[0], new)
+    assert (sc.name, sc.kind) == ("VERSION", "signature_changed")
+
+
 def test_references_search_the_repository_and_an_overlay(empty_repo, tmp_path):
     # A file in the working tree (untracked is enough) is found through git grep; a non-code file is not.
     repo = tmp_path / "repo"

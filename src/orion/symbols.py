@@ -30,12 +30,14 @@ from .diffparse import FileDiff
 CODE_EXT = (".py", ".pyi", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".go", ".rs", ".java", ".kt", ".rb", ".sql")
 _ID = r"([A-Za-z_$][\w$]*)"
 # Definition line patterns by file extension, matched after leading whitespace is stripped.
+# A JS/TS variable counts as a definition only at module level: an indented ``const res = ...`` is a function local, which other files cannot reference. An indented ``export const`` (inside a ``namespace`` or ``declare module``) still counts.
+_TOP_LEVEL_VAR = re.compile(r"^(?:export\s+)?(?:const|let|var)\s+" + _ID + r"\s*[:=]")
 DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
     "py": [re.compile(r"^(?:async\s+)?def\s+" + _ID + r"\s*\("), re.compile(r"^class\s+" + _ID)],
     "js": [
         re.compile(r"^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s*\*?\s*" + _ID),
         re.compile(r"^(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?class\s+" + _ID),
-        re.compile(r"^(?:export\s+)?(?:const|let|var)\s+" + _ID + r"\s*[:=]"),
+        _TOP_LEVEL_VAR,
         re.compile(r"^(?:export\s+)?(?:declare\s+)?(?:type|interface|enum)\s+" + _ID),
         # A class method: ``fetch(u: string): string {`` with optional modifiers. Parameters with nested parens or strings are left to the parser.
         re.compile(r"^(?:(?:public|private|protected|static|async|readonly|override|get|set)\s+)*(?!(?:if|else|for|while|do|switch|case|catch|with|function|return|constructor|super|new|await|yield|throw|typeof|delete|void|import|export)\b)" + _ID + r"\s*(?:<[^>]*>)?\s*\([^()\"'`]*\)\s*(?::\s*[^{;=]+)?\s*\{"),
@@ -91,6 +93,8 @@ def _lang(path: str) -> str | None:
 def _definition(lang: str, text: str) -> str | None:
     s = text.strip()
     for pat in DEF_PATTERNS[lang]:
+        if pat is _TOP_LEVEL_VAR and _indent(text) and not s.startswith("export"):
+            continue
         if m := pat.match(s):
             return m.group(1)
     return None
