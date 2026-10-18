@@ -37,6 +37,8 @@ DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
         re.compile(r"^(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?class\s+" + _ID),
         re.compile(r"^(?:export\s+)?(?:const|let|var)\s+" + _ID + r"\s*[:=]"),
         re.compile(r"^(?:export\s+)?(?:declare\s+)?(?:type|interface|enum)\s+" + _ID),
+        # A class method: ``fetch(u: string): string {`` with optional modifiers. Parameters with nested parens or strings are left to the parser.
+        re.compile(r"^(?:(?:public|private|protected|static|async|readonly|override|get|set)\s+)*(?!(?:if|else|for|while|do|switch|case|catch|with|function|return|constructor|super|new|await|yield|throw|typeof|delete|void|import|export)\b)" + _ID + r"\s*(?:<[^>]*>)?\s*\([^()\"'`]*\)\s*(?::\s*[^{;=]+)?\s*\{"),
     ],
     "go": [re.compile(r"^func\s+(?:\([^)]*\)\s*)?" + _ID + r"\s*\("), re.compile(r"^type\s+" + _ID + r"\s")],
     "rs": [re.compile(r"^(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+" + _ID), re.compile(r"^(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type)\s+" + _ID)],
@@ -59,12 +61,13 @@ class SymbolChange:
     line: int | None  # new-side line of the definition, or where the removed one stood
     old: str
     new: str | None
-    refs: list[dict[str, Any]] = field(default_factory=list)  # {path, line, text, kind, scope, receiver, in_diff}; kind in syntax.KINDS, scope in SCOPES
+    owner: str | None = None  # the class, struct, impl, trait or module the definition sits in, when it is a method
+    refs: list[dict[str, Any]] = field(default_factory=list)  # {path, line, text, kind, scope, receiver, receiver_type, owner_scope, in_diff}; kind in syntax.KINDS, scope in SCOPES
     search_failed: bool = False  # git grep could not run, so only the overlay (the diff's own files) was searched
     truncated: bool = False  # the search stopped at MAX_REFS references; more exist
 
     def to_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "path": self.path, "kind": self.kind, "line": self.line, "old": self.old, "new": self.new, "refs": self.refs, "search_failed": self.search_failed, "truncated": self.truncated}
+        return {"name": self.name, "path": self.path, "kind": self.kind, "line": self.line, "old": self.old, "new": self.new, "owner": self.owner, "refs": self.refs, "search_failed": self.search_failed, "truncated": self.truncated}
 
     @property
     def outside(self) -> list[dict[str, Any]]:
@@ -93,13 +96,38 @@ def _definition(lang: str, text: str) -> str | None:
     return None
 
 
+# A line that opens a class-like block, after leading whitespace: ``class X``, ``export abstract class X``, ``impl<T> Trait for X``, ``type X struct``, ``module X``.
+OWNER_RE = re.compile(r"^(?:(?:export|default|declare|abstract|public|private|protected|static|final|data|sealed|open|unsafe|pub(?:\([^)]*\))?)\s+)*(?:class|interface|trait|module|object|struct|enum|type|impl(?:<[^>]*>)?(?:\s+\S+\s+for)?)\s+" + _ID)
+GO_RECEIVER_RE = re.compile(r"^func\s+\([^)]*?\*?\s*" + _ID + r"(?:\[[^\]]*\])?\s*\)")
+
+
+def _indent(line: str) -> int:
+    return len(line) - len(line.lstrip())
+
+
+def _owner(lang: str, text: str, before: list[str]) -> str | None:
+    """The class-like block a definition line sits in: for Go, the receiver type on the line; otherwise the nearest less-indented line above it, when that opens a class, impl, trait or module (a function or a brace does not)."""
+    if lang == "go":
+        m = GO_RECEIVER_RE.match(text.strip())
+        return m.group(1) if m else None
+    indent = _indent(text)
+    if indent == 0:
+        return None
+    for line in reversed(before):
+        if line.strip() and _indent(line) < indent:
+            m = OWNER_RE.match(line.strip())
+            return m.group(1) if m else None
+    return None
+
+
 def changed_definitions(fd: FileDiff, new_text: str | None) -> list[SymbolChange]:
     """Definitions on removed lines of ``fd`` that no added line defines again (removed), or defines differently (signature changed)."""
     lang = _lang(fd.path)
     if not lang or fd.binary or fd.status == "deleted":
         return []
-    old: dict[str, tuple[str, int | None]] = {}
+    old: dict[str, tuple[str, int | None, str | None]] = {}
     new: dict[str, str] = {}
+    new_lines = new_text.splitlines() if new_text is not None else None
     for h in fd.hunks:
         for i, (op, _n, text) in enumerate(h.lines):
             name = _definition(lang, text)
@@ -107,17 +135,21 @@ def changed_definitions(fd: FileDiff, new_text: str | None) -> list[SymbolChange
                 continue
             if op == "-":
                 where = next((m for o, m, _ in h.lines[i:] if m is not None), h.new_end)
-                old.setdefault(name, (text.strip(), where))
+                # The enclosing class is looked for on the hunk's old side first, then above the spot in the new text (the class is still there when only a method went).
+                owner = _owner(lang, text, [t for o, _, t in h.lines[:i] if o != "+"])
+                if owner is None and new_lines is not None and where and _indent(text) and lang != "go":
+                    owner = _owner(lang, text, new_lines[: where - 1])
+                old.setdefault(name, (text.strip(), where, owner))
             elif op == "+":
                 new.setdefault(name, text.strip())
     still_defined = {_definition(lang, t) for t in new_text.splitlines()} - {None} if new_text is not None else set(new)
     out = []
-    for name, (old_line, where) in old.items():
+    for name, (old_line, where, owner) in old.items():
         if name in new:
             if new[name] != old_line:
-                out.append(SymbolChange(name, fd.path, "signature_changed", where, old_line, new[name]))
+                out.append(SymbolChange(name, fd.path, "signature_changed", where, old_line, new[name], owner))
         elif name not in still_defined:
-            out.append(SymbolChange(name, fd.path, "removed", where, old_line, None))
+            out.append(SymbolChange(name, fd.path, "removed", where, old_line, None, owner))
     return out
 
 
@@ -147,6 +179,8 @@ class Ref:
     import_sources: set[str] = field(default_factory=set)  # the modules the file's imports of the symbol name, as written
     wildcard_sources: set[str] = field(default_factory=set)  # modules the file imports wholesale, as written
     unsourced_import: bool = False  # an import binds the symbol but names no module that can be resolved
+    receiver_type: str | None = None  # for a member access, the class the file types the receiver as (see ``_receiver_type``)
+    owner_syntax: Any = None  # when that class is the definition's owner: the file's imports and definitions of it (a ``syntax.FileSyntax``), for scoping
 
 
 @dataclass
@@ -156,25 +190,68 @@ class Search:
     truncated: bool = False  # stopped at MAX_REFS
 
 
-def _file_refs(path: str, text: str, name: str, word: re.Pattern[str]) -> list[Ref]:
+_NAME_RE = re.compile(r"[A-Za-z_$][\w$]*")
+
+
+_CLASS = r"([A-Z][\w$]*)"
+_AFTER_CLASS = r"(?![\w$])(?!\.(?!new\b))(?!::(?!new\b))"  # ``Client.fetch()`` or ``Client::other()`` is a value, not the class
+
+
+def _enclosing(lines: list[str], line: int, lang: str | None) -> int:
+    """Index of the definition line the access on ``line`` (1-based) sits in: the nearest line above with less indentation that defines something, walking out through blocks; 0 when there is none."""
+    indent = _indent(lines[line - 1]) if line <= len(lines) else 0
+    for i in range(min(line, len(lines)) - 2, -1, -1):
+        if lines[i].strip() and _indent(lines[i]) < indent:
+            indent = _indent(lines[i])
+            if lang and _definition(lang, lines[i]):
+                return i
+    return 0
+
+
+def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None) -> str | None:
+    """The class the receiver of a member access on ``line`` is, as far as the file says: the class itself or a construction of it (``Client.fetch``, ``Client().fetch()``, ``new Client()``, ``Client::new()``, ``Client.new``), or a plain name bound to a capitalised type between the enclosing definition and the access (``c: Client``, ``c = Client(...)``, ``c := &Client{}``, ``let c = Client::new()``, a Go parameter ``c *Client``), the nearest such binding winning. Nothing else is inferred, so a lower-case receiver with no such binding is None."""
+    r = receiver.strip().lstrip("&*")
+    while r.startswith("(") and r.endswith(")"):
+        r = r[1:-1].strip()
+    if r.startswith("new "):
+        m = re.match(_CLASS, r[4:].lstrip())
+        return m.group(1) if m else None
+    if m := re.fullmatch(_CLASS + r"(?:\(.*\)|::new\b.*|\.new\b.*)?", r, re.DOTALL):
+        return m.group(1)
+    if not _NAME_RE.fullmatch(r) or r in SELF:
+        return None
+    name = re.escape(r)
+    binding = rf"(?<![\w$.]){name}\s*(?::\s*(?:&(?:'\w+\s+)?|\*|mut\s+)*|=\s*(?:new\s+|&)?|:=\s*&?){_CLASS}{_AFTER_CLASS}"
+    if lang == "go":
+        binding += rf"|(?<![\w$.]){name}\s+\*?{_CLASS}{_AFTER_CLASS}"
+    window = "\n".join(lines[_enclosing(lines, line, lang) : line])
+    found = [next(g for g in m.groups() if g) for m in re.finditer(binding, window)]
+    return found[-1] if found else None
+
+
+def _file_refs(path: str, text: str, name: str, word: re.Pattern[str], owner: str | None = None) -> list[Ref]:
     """References to ``name`` in one file: by syntax when the file parses here, else by whole-word text match. A definition of the name is not a reference to it."""
     fs = syntax.occurrences(path, text, name)
     lines = text.splitlines()
     if fs is not None:
         seen: set[tuple[int, str, str | None]] = set()
         out = []
+        owner_syntax: Any = None
         for occ in fs.occurrences:
             if occ.kind == "definition" or (occ.line, occ.kind, occ.receiver) in seen:
                 continue
             seen.add((occ.line, occ.kind, occ.receiver))
             line = lines[occ.line - 1] if occ.line <= len(lines) else ""
-            out.append(Ref(path, occ.line, line.strip()[:160], occ.kind, True, fs.imports_name, fs.defines_name, occ.receiver, fs.imported_modules, fs.import_sources, fs.wildcard_sources, fs.unsourced_import))
+            typed = _receiver_type(lines, occ.receiver, occ.line, _lang(path)) if owner and occ.receiver else None  # only a method has a class to compare with
+            if typed and typed == owner and owner_syntax is None:
+                owner_syntax = syntax.occurrences(path, text, owner)
+            out.append(Ref(path, occ.line, line.strip()[:160], occ.kind, True, fs.imports_name, fs.defines_name, occ.receiver, fs.imported_modules, fs.import_sources, fs.wildcard_sources, fs.unsourced_import, typed, owner_syntax if typed == owner else None))
         return out
     return [Ref(path, i, line.strip()[:160], "import" if IMPORT_RE.match(line) else "use") for i, line in enumerate(lines, 1) if word.search(line)]
 
 
-def search(repo_root: Path, name: str, files: dict[str, str]) -> Search:
-    """Every reference to ``name`` in the repository or in ``files`` (text that overrides or extends the tree), and whether that search was complete."""
+def search(repo_root: Path, name: str, files: dict[str, str], owner: str | None = None) -> Search:
+    """Every reference to ``name`` in the repository or in ``files`` (text that overrides or extends the tree), and whether that search was complete. Member accesses carry the class their file types the receiver as; with ``owner``, those typed as that class also carry its imports for scoping."""
     word = re.compile(r"(?<![\w$])" + re.escape(name) + r"(?![\w$])")
     found = _git_grep_files(repo_root, name)
     result = Search(failed=found is None)
@@ -191,7 +268,7 @@ def search(repo_root: Path, name: str, files: dict[str, str]) -> Search:
                 text = full.read_text(errors="replace")
             except OSError:
                 continue
-        for ref in _file_refs(p, text, name, word):
+        for ref in _file_refs(p, text, name, word, owner):
             result.refs.append(ref)
             if len(result.refs) >= MAX_REFS:
                 result.truncated = True
@@ -207,10 +284,14 @@ def is_linked(r: dict[str, Any]) -> bool:
     """Whether a reference resolves to the changed definition as far as syntax can tell. A ``.name`` access in another file is not linked even when that file imports the name: it may be a method on some other object, so it reaches the model as a fact instead."""
     if r["scope"] in ("unknown", "imports_module"):
         return True
+    # A qualified access is linked when the file types its receiver as the class the definition belongs to and that class resolves here (``c: Client`` with
+    # ``Client`` imported from the definition's module, ``Client::name``).
+    if r.get("owner_scope") in LINKED:
+        return True
     if r["kind"] in ("use", "call", "import"):
         return r["scope"] in LINKED
-    # A member access is linked only in the definition's own file, on the instance itself (``self.name``, ``this.name``) or on a type or module named there
-    # (``Foo.name``, ``Self::name``); ``obj.name`` anywhere else is a fact for the model.
+    # Otherwise a member access is linked only in the definition's own file, on the instance itself (``self.name``, ``this.name``) or on a type or module
+    # named there (``Foo.name``, ``Self::name``). ``obj.name`` anywhere else is a fact for the model.
     receiver = r.get("receiver") or ""
     return r["scope"] == "same_file" and (receiver in SELF or receiver[:1].isupper())
 
@@ -261,7 +342,9 @@ def _scope(sc: SymbolChange, ref: Ref) -> str:
         return "unknown"
     if ref.path == sc.path:
         return "same_file"
-    if ref.receiver is not None and _lang(ref.path) == _lang(sc.path):
+    if _lang(ref.path) != _lang(sc.path):  # a file in another language cannot import this one
+        return "no_import"
+    if ref.receiver is not None:
         # ``http.fetch`` / ``http::fetch`` / ``pkg.Fetch``: linked when the qualifier is the definition's module (Go: its package directory) and the file imports something by that name.
         module_path = Path(sc.path).parent if sc.path.endswith(".go") else _module_path(sc.path)
         qualifier = re.split(r"[.:]", ref.receiver)[-1]
@@ -288,6 +371,19 @@ def _scope(sc: SymbolChange, ref: Ref) -> str:
     return "no_import"
 
 
+def _owner_scope(sc: SymbolChange, ref: Ref) -> str | None:
+    """How the referencing file relates to the definition's owner class, for a member access whose receiver the file types as that class."""
+    if not sc.owner or ref.receiver_type != sc.owner:
+        return None
+    if ref.path == sc.path:
+        return "same_file"
+    o = ref.owner_syntax
+    if o is None:
+        return "unknown"
+    autoloaded = not syntax.IMPORTS.get(o.grammar)  # Ruby names a class without importing it, so the class name is taken to mean this class
+    return _scope(sc, Ref(ref.path, ref.line, "", "use", True, o.imports_name or autoloaded, o.defines_name, None, o.imported_modules, o.import_sources, o.wildcard_sources, o.unsourced_import or autoloaded))
+
+
 def symbol_changes(files: list[FileDiff], repo_root: Path, overlay: dict[str, str]) -> list[SymbolChange]:
     """Removed and re-signed definitions across the diff, each with its references, how each referencing file relates to the definition, and whether the diff touches the reference."""
     by_path = {f.path: f for f in files}
@@ -295,7 +391,7 @@ def symbol_changes(files: list[FileDiff], repo_root: Path, overlay: dict[str, st
     try:
         for fd in files:
             for sc in changed_definitions(fd, overlay.get(fd.path)):
-                found = search(repo_root, sc.name, overlay)
+                found = search(repo_root, sc.name, overlay, sc.owner)
                 sc.search_failed, sc.truncated = found.failed, found.truncated
                 for ref in found.refs:
                     # The parser already leaves definitions out. For a text match, skip the definition's own line and the old definition's replacement when it was renamed in place.
@@ -303,7 +399,7 @@ def symbol_changes(files: list[FileDiff], repo_root: Path, overlay: dict[str, st
                         continue
                     fd2 = by_path.get(ref.path)
                     # Reference text is quoted in the facts and the review JSON, so a credential on that line is redacted here, once.
-                    sc.refs.append({"path": ref.path, "line": ref.line, "text": redact(ref.text), "kind": ref.kind, "scope": _scope(sc, ref), "receiver": ref.receiver, "in_diff": bool(fd2 and fd2.contains(ref.line))})
+                    sc.refs.append({"path": ref.path, "line": ref.line, "text": redact(ref.text), "kind": ref.kind, "scope": _scope(sc, ref), "receiver": ref.receiver, "receiver_type": ref.receiver_type, "owner_scope": _owner_scope(sc, ref), "in_diff": bool(fd2 and fd2.contains(ref.line))})
                 sc.refs.sort(key=lambda r: (r["path"], r["line"]))
                 out.append(sc)
     finally:

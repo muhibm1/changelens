@@ -962,6 +962,73 @@
       marker: "def fetch(url: str, *, timeout_s"
       category: correctness
 
+- id: hidden-py-removed-method-typed-caller
+  files:
+    - file: app/client.py
+      before: |
+        class Client:
+            def __init__(self, base: str) -> None:
+                self.base = base
+
+            def fetch(self, path: str) -> bytes:
+                return (self.base + path).encode()
+
+            def get(self, path: str) -> str:
+                return self.fetch(path).decode()
+      after: |
+        class Client:
+            def __init__(self, base: str) -> None:
+                self.base = base
+
+            def get(self, path: str) -> str:
+                return (self.base + path).encode().decode()
+  repo_files:
+    app/jobs.py: |
+      from app.client import Client
+
+
+      def warm(client: Client, paths: list[str]) -> None:
+          for p in paths:
+              client.fetch(p)
+  expect:
+    - file: app/client.py
+      marker: "def get(self, path: str) -> str:"
+      category: correctness
+
+- id: clean-py-removed-method-other-object-has-its-own
+  files:
+    - file: app/client.py
+      before: |
+        class Client:
+            def __init__(self, base: str) -> None:
+                self.base = base
+
+            def fetch(self, path: str) -> bytes:
+                return (self.base + path).encode()
+
+            def get(self, path: str) -> str:
+                return self.fetch(path).decode()
+      after: |
+        class Client:
+            def __init__(self, base: str) -> None:
+                self.base = base
+
+            def get(self, path: str) -> str:
+                return (self.base + path).encode().decode()
+  repo_files:
+    app/cache.py: |
+      class Cache:
+          def fetch(self, key: str) -> bytes | None:
+              return None
+    app/jobs.py: |
+      from app.cache import Cache
+
+
+      def warm(cache: Cache, keys: list[str]) -> None:
+          for k in keys:
+              cache.fetch(k)
+  expect: []
+
 - id: clean-py-renamed-fn-every-caller-updated
   files:
     - file: app/http.py

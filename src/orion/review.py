@@ -34,7 +34,7 @@ from .diffparse import FileDiff, batches, both_sides, git_diff, parse, render_fi
 from .providers import Provider, ProviderError
 from .risk import RiskModel
 from .store import Store
-from .symbols import SymbolChange, is_linked, symbol_changes
+from .symbols import LINKED, SymbolChange, is_linked, symbol_changes
 from .verdict import preflight
 
 SEVERITIES = ("inform", "warn", "block")
@@ -190,12 +190,20 @@ def _symbol_facts(ctx: ReviewContext) -> list[str]:
             parts.append(f"{len(inside)} use{'s' if len(inside) != 1 else ''} on lines this diff changes (" + ", ".join(f"{r['path']}:{r['line']}" for r in inside[:10]) + ")")
         if outside:
             parts.append(f"{len(outside)} use{'s' if len(outside) != 1 else ''} on lines this diff does not touch (" + ", ".join(f"ref:{r['path']}:{r['line']} `{r['text'][:80]}`" for r in outside[:10]) + ")")
+            typed = [r for r in outside if r.get("owner_scope") in LINKED]
+            if typed:
+                parts.append(f"{len(typed)} of them on an object the file types as `{sc.owner}`, the class this definition belongs to (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in typed[:10]) + ")")
         else:
             parts.append("no use outside this diff in the same file, in a file that imports the name, or in the same package")
         if imports:
             parts.append("imported at " + ", ".join(f"ref:{r['path']}:{r['line']}" for r in imports[:10]))
-        if members:
-            parts.append(f"{len(members)} method or attribute access{'es' if len(members) != 1 else ''} `.{sc.name}` on some object, which may or may not be this definition (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in members[:10]) + ")")
+        other_typed = [r for r in members if r.get("receiver_type")]
+        untyped = [r for r in members if not r.get("receiver_type")]
+        if untyped:
+            parts.append(f"{len(untyped)} method or attribute access{'es' if len(untyped) != 1 else ''} `.{sc.name}` on some object, which may or may not be this definition (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in untyped[:10]) + ")")
+        if other_typed:
+            types = sorted({f"another `{r['receiver_type']}`" if r["receiver_type"] == sc.owner else f"`{r['receiver_type']}`" for r in other_typed})
+            parts.append(f"{len(other_typed)} access{'es' if len(other_typed) != 1 else ''} `.{sc.name}` on an object the file types as {', '.join(types)}, not this definition's class, so not this definition (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in other_typed[:10]) + ")")
         if unlinked:
             why = "do not import the name" + (" or define their own" if any(r["scope"] == "defines_own" for r in unlinked) else "") + (" or import it from another module" if any(r["scope"] == "imports_other" for r in unlinked) else "")
             parts.append(f"{len(unlinked)} mention{'s' if len(unlinked) != 1 else ''} in files that {why}, so probably a different `" + sc.name + "` (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in unlinked[:10]) + ")")
@@ -400,7 +408,8 @@ def code_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
         refs = sc.linked_outside
         unparsed = [r for r in refs if r["scope"] == "unknown"]
         text_matches = ", ".join(f"{r['path']}:{r['line']}" for r in unparsed[:5])
-        how = "A whole-word search of the repository found them" if len(unparsed) == len(refs) else "They are uses or imports of the name in the same file, in files that import it or its module, or in the same package, found by parsing those files" + (f" (except {text_matches}, whole-word text matches in files that could not be parsed)" if unparsed else "")
+        typed = f", or calls on an object typed as `{sc.owner}`, the class it belongs to" if any(r.get("owner_scope") in LINKED for r in refs) else ""
+        how = "A whole-word search of the repository found them" if len(unparsed) == len(refs) else f"They are uses or imports of the name in the same file, in files that import it or its module, or in the same package{typed}, found by parsing those files" + (f" (except {text_matches}, whole-word text matches in files that could not be parsed)" if unparsed else "")
         where = ", ".join(f"{r['path']}:{r['line']}" for r in refs[:5]) + (f" and {len(refs) - 5} more" if len(refs) > 5 else "")
         out.append({"source": "deterministic", "path": sc.path, "line": sc.line, "end_line": None, "severity": "warn", "category": "correctness", "title": f"`{sc.name}` removed but still referenced at {where}", "body": f"This diff removes the definition of `{sc.name}` from {sc.path} and does not change the lines that reference it. {how}; if they refer to a different `{sc.name}`, say so, otherwise update or remove them in the same change.", "evidence": [f"hunk:{sc.path}:{sc.line}"] + [f"ref:{r['path']}:{r['line']}" for r in refs[:10]], "status": "valid", "notes": []})
     return out

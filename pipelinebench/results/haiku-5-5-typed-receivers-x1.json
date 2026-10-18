@@ -1,0 +1,68 @@
+{
+ "provider": "anthropic:claude-haiku-5-5",
+ "file_context": true,
+ "repeat": 1,
+ "cases": 2,
+ "rows": [
+  {
+   "case": "hidden-py-removed-method-typed-caller",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/client.py",
+     "marker": "def get(self, path: str) -> str:",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1388,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 514
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-removed-method-other-object-has-its-own",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1385,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 117
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 1.0,
+  "duplicate_findings": 1,
+  "false_alarms": 0,
+  "clean_cases_flagged": "0/1",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 2773,
+  "tokens_out": 631
+ }
+}

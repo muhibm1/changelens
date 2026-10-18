@@ -394,7 +394,8 @@ def test_a_removed_method_called_on_self_in_its_own_file_is_linked(tmp_path):
     [sc] = symbol_changes(parse(diff), tmp_path, {"app/client.py": new})
     by = {(r["path"], r["line"]): (r["kind"], r["scope"]) for r in sc.refs}
     assert by[("app/client.py", 15)] == by[("app/client.py", 16)] == ("method_call", "same_file") and by[("other/use.py", 3)] == ("method_call", "no_import")
-    assert [(r["path"], r["line"]) for r in sc.linked_outside] == [("app/client.py", 16)], "self.fetch in the class's own file is linked; other.fetch there and .fetch elsewhere are facts for the model"
+    assert sc.owner == "Client"
+    assert [(r["path"], r["line"]) for r in sc.linked_outside] == [("app/client.py", 16), ("other/use.py", 3)], "self.fetch in the class's own file and Client().fetch where Client is imported are linked; other.fetch is a fact for the model"
     # Ruby: a bare call is a call; a call on self or on a constant in the same file is linked, one on another object is not.
     rb_old = "class Client\n  def fetch(u)\n    u\n  end\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u, other)\n    other.fetch(u)\n    Client.fetch(u)\n    fetch(u)\n    self.fetch(u)\n  end\nend\n"
     rb_new = "class Client\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u, other)\n    other.fetch(u)\n    Client.fetch(u)\n    fetch(u)\n    self.fetch(u)\n  end\nend\n"
@@ -533,3 +534,84 @@ def test_an_import_of_the_name_from_another_module_is_not_linked(tmp_path):
     diff = Change("rs/http.rs", rs_old, "").diff()
     [sc] = symbol_changes(parse(diff), tmp_path, {"rs/http.rs": ""})
     assert {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"].endswith(".rs")} == {"rs/a.rs": "imports_it", "rs/b.rs": "imports_other", "rs/c.rs": "imports_it", "rs/d.rs": "imports_it", "rs/sub/mod.rs": "imports_it", "rs/sub/e.rs": "imports_other"}
+
+
+@needs_parser
+def test_a_removed_method_called_on_a_receiver_typed_as_its_class_is_linked(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for d in ("app", "other", "web", "gosvc", "rs", "rb"):
+        (tmp_path / d).mkdir()
+    gap = "".join(f"    x{i} = {i}\n" for i in range(12))
+    old = "class Client:\n    def fetch(self, url):\n        return url\n\n" + gap + "    def get(self, url):\n        return url\n"
+    new = "class Client:\n" + gap + "    def get(self, url):\n        return url\n"
+    (tmp_path / "app" / "client.py").write_text(old)
+    (tmp_path / "other" / "typed.py").write_text("from app.client import Client\n\n\ndef run(c: Client, d, e: Cache):\n    c.fetch('u')\n    d.fetch('u')\n    e.fetch('u')\n")
+    (tmp_path / "other" / "built.py").write_text("from app.client import Client\n\nc = Client(1)\nc.fetch('u')\nClient.fetch(c, 'u')\n")
+    (tmp_path / "other" / "value.py").write_text("from app.client import Client\n\nr = Client.fetch(1)\nr.fetch('u')\n")  # r is a result, not a Client
+    (tmp_path / "other" / "elsewhere.py").write_text("from other.client import Client\n\nc = Client()\nc.fetch('u')\n")  # a different Client
+    (tmp_path / "other" / "own.py").write_text("class Client:\n    pass\n\nc = Client()\nc.fetch('u')\n")
+    # A binding holds between the enclosing definition and the access: the same name elsewhere in the file is untyped or typed by its own binding.
+    (tmp_path / "other" / "scoped.py").write_text("from app.client import Client\n\n\ndef a(c: Client):\n    if c:\n        c.fetch(1)\n\n\ndef b(c):\n    c.fetch(2)\n\n\ndef d():\n    c = Client()\n    c = Cache()\n    c.fetch(3)\n")
+    diff = Change("app/client.py", old, new).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/client.py": new})
+    assert sc.owner == "Client"
+    by = {(r["path"], r["line"]): (r["receiver_type"], r["owner_scope"]) for r in sc.refs if r["path"] != sc.path}
+    assert by == {
+        ("other/typed.py", 5): ("Client", "imports_it"),
+        ("other/typed.py", 6): (None, None),
+        ("other/typed.py", 7): ("Cache", None),
+        ("other/built.py", 4): ("Client", "imports_it"),
+        ("other/built.py", 5): ("Client", "imports_it"),
+        ("other/value.py", 3): ("Client", "imports_it"),
+        ("other/value.py", 4): (None, None),
+        ("other/elsewhere.py", 4): ("Client", "imports_other"),
+        ("other/own.py", 5): ("Client", "defines_own"),
+        ("other/scoped.py", 6): ("Client", "imports_it"),
+        ("other/scoped.py", 10): (None, None),
+        ("other/scoped.py", 16): ("Cache", None),
+    }
+    assert sorted((r["path"], r["line"]) for r in sc.linked_outside) == [("other/built.py", 4), ("other/built.py", 5), ("other/scoped.py", 6), ("other/typed.py", 5), ("other/value.py", 3)]
+    # A module-level function has no owner, so nothing is typed.
+    [sc] = symbol_changes(parse(Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()), tmp_path, {"app/http.py": HTTP_REMOVED})
+    assert sc.owner is None
+    # TypeScript: ``new Client()`` and an annotated parameter; Go: a receiver method and a typed parameter; Rust: ``impl`` and ``let c = Client::new()``; Ruby: ``Client.new``.
+    ts_old = "export class Client {\n  fetch(u: string) { return u; }\n" + "".join(f"  x{i} = {i};\n" for i in range(12)) + "  get(u: string) { return u; }\n}\n"
+    ts_new = "export class Client {\n" + "".join(f"  x{i} = {i};\n" for i in range(12)) + "  get(u: string) { return u; }\n}\n"
+    (tmp_path / "web" / "client.ts").write_text(ts_old)
+    (tmp_path / "web" / "use.ts").write_text('import { Client } from "./client";\nconst c = new Client();\nc.fetch("u");\nnew Client().fetch("u");\nfunction f(d: Client, e: Other) { d.fetch("u"); e.fetch("u"); }\n')
+    [sc] = symbol_changes(parse(Change("web/client.ts", ts_old, ts_new).diff()), tmp_path, {"web/client.ts": ts_new})
+    assert sc.owner == "Client" and sorted(r["line"] for r in sc.linked_outside if r["path"] == "web/use.ts") == [3, 4, 5]
+    go_old = "package gosvc\n\ntype Client struct{}\n\nfunc (c *Client) Fetch(u string) string { return u }\n\nfunc (c *Client) Get(u string) string { return u }\n"
+    go_new = "package gosvc\n\ntype Client struct{}\n\nfunc (c *Client) Get(u string) string { return u }\n"
+    (tmp_path / "gosvc" / "client.go").write_text(go_old)
+    (tmp_path / "gosvc" / "use.go").write_text("package gosvc\n\nfunc run(c *Client, d Other) {\n\tc.Fetch(\"u\")\n\td.Fetch(\"u\")\n\te := &Client{}\n\te.Fetch(\"u\")\n}\n")
+    [sc] = symbol_changes(parse(Change("gosvc/client.go", go_old, go_new).diff()), tmp_path, {"gosvc/client.go": go_new})
+    assert sc.owner == "Client" and sorted(r["line"] for r in sc.linked_outside if r["path"] == "gosvc/use.go") == [4, 7]
+    rs_old = "pub struct Client;\n\nimpl Client {\n    pub fn fetch(&self, u: u32) -> u32 { u }\n" + "".join(f"    pub const X{i}: u32 = {i};\n" for i in range(12)) + "    pub fn get(&self, u: u32) -> u32 { u }\n}\n"
+    rs_new = "pub struct Client;\n\nimpl Client {\n" + "".join(f"    pub const X{i}: u32 = {i};\n" for i in range(12)) + "    pub fn get(&self, u: u32) -> u32 { u }\n}\n"
+    (tmp_path / "rs" / "client.rs").write_text(rs_old)
+    (tmp_path / "rs" / "use.rs").write_text("use crate::client::Client;\n\nfn run(d: &Other) {\n    let c = Client::new();\n    c.fetch(1);\n    d.fetch(1);\n    Client::fetch(&c, 1);\n}\n")
+    [sc] = symbol_changes(parse(Change("rs/client.rs", rs_old, rs_new).diff()), tmp_path, {"rs/client.rs": rs_new})
+    assert sc.owner == "Client" and sorted(r["line"] for r in sc.linked_outside if r["path"] == "rs/use.rs") == [5, 7]
+    rb_old = "class Client\n  def fetch(u)\n    u\n  end\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u)\n    u\n  end\nend\n"
+    rb_new = "class Client\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u)\n    u\n  end\nend\n"
+    (tmp_path / "rb" / "client.rb").write_text(rb_old)
+    (tmp_path / "rb" / "use.rb").write_text("c = Client.new\nc.fetch(1)\nd.fetch(1)\nClient.new.fetch(1)\n")
+    [sc] = symbol_changes(parse(Change("rb/client.rb", rb_old, rb_new).diff()), tmp_path, {"rb/client.rb": rb_new})
+    assert sc.owner == "Client" and sorted(r["line"] for r in sc.linked_outside if r["path"] == "rb/use.rb") == [2, 4], "Ruby has no imports to resolve, so a typed receiver is linked fail-open"
+
+
+@needs_parser
+def test_a_removed_method_with_a_typed_caller_elsewhere_is_a_finding(synced_store, constraints, empty_repo):
+    gap = "".join(f"    x{i} = {i}\n" for i in range(12))
+    old = "class Client:\n    def fetch(self, url):\n        return url\n\n" + gap + "    def get(self, url):\n        return url\n"
+    new = "class Client:\n" + gap + "    def get(self, url):\n        return url\n"
+    stub = StubProvider()
+    r = _run(synced_store, constraints, Change("app/client.py", old, new).diff(), stub, search_root=empty_repo, new_files={"app/client.py": new}, repo_files={"app/jobs.py": "from app.client import Client\n\n\ndef run(c: Client, d, e: Cache):\n    c.fetch('u')\n    d.fetch('u')\n    e.fetch('u')\n"})
+    [f] = [f for f in r["findings"] if f["source"] == "deterministic"]
+    assert f["title"] == "`fetch` removed but still referenced at app/jobs.py:5" and "calls on an object typed as `Client`, the class it belongs to" in f["body"]
+    user = stub.calls[0][1]
+    assert "1 of them on an object the file types as `Client`, the class this definition belongs to (ref:app/jobs.py:5)" in user
+    assert "1 method or attribute access `.fetch` on some object, which may or may not be this definition (ref:app/jobs.py:6)" in user
+    assert "1 access `.fetch` on an object the file types as `Cache`, not this definition's class, so not this definition (ref:app/jobs.py:7)" in user
+    assert r["symbols"][0]["owner"] == "Client"
