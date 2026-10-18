@@ -50,12 +50,12 @@ changed symbols, all module-level (`mergeBuffers`, `handleParent`, `createReques
   the program prints nothing. `Where-Object { $_ -ne $Out[-1] }` drops every line equal to the directive, not
   only the last one. `$Arguments.Split(" ")` splits quoted arguments. A filter block also mutates the hashtable.
   The first two lines are still in cobra today, so these are latent edge cases rather than reported bugs.
-- **Noise (5).** In `c409d855`, the model warns that `JSON.stringify` may fail on a cached value, but that value
-  came from parsing JSON. It also flags a deleted comment. In `24ada7f`, it raises `&&`/`||` precedence that is
-  correct as written, speculates about call ordering ("Verify"), and objects that a command is added and then
-  removed.
+- **Noise (4 warnings and 1 inform).** `c409d855` warns that `JSON.stringify` may fail on a cached value that
+  came from parsing JSON, and warns about a deleted comment. `24ada7f` warns about `&&`/`||` precedence that is
+  correct as written and speculates about call ordering ("Verify"). Its inform objects to a command being added
+  and then removed.
 
-Precision of the model's warnings on these 16 changes: 1 confirmed, 4 plausible and 4 noise. The deterministic
+Of the 9 warnings, 1 is confirmed, 4 are plausible and 4 are noise. Of the 3 informs, 2 are accurate and 1 is noise. The deterministic
 review stayed silent, which is correct, because none of these merged changes broke a caller.
 
 To rerun, follow `partner-httpx-sonnet-5-5.md`, using the commits above.
