@@ -6,7 +6,7 @@ Orion started as **the pre-flight check for agents touching data pipelines**, an
 
 Code-context tools index what the repository says. Orion indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. It fuses that into one cited verdict an agent reads *before* it writes.
 
-> Status: all four slices are built against the bundled fixture platform: the asset graph, adapters, column lineage, ledger, `explain`, the pre-flight verdict, the CI gate, the MCP server, run-history ingestion, the post-flight watcher, constraint proposals, and PipelineBench (fifty scenarios, four conditions, mechanical graders). Benchmark numbers so far come from a scripted baseline, not language-model agents; see `pipelinebench/README.md`.
+> Status: 0.1.0, the first release (see `CHANGELOG.md`). Review works on any repository. System context has been tested on the bundled fixture, on cal-itp/data-infra (625 dbt models, 21 gusty Airflow DAGs), and on real dbt builds for post-flight. On PipelineBench, language-model agents given Orion's verdict made no forbidden decision and got every escalation right (`pipelinebench/results/llm-agents.md`).
 
 ## What is in the box
 
@@ -218,7 +218,7 @@ src/orion/
   retrieval.py        graph-scoped retrieval (BM25, hybrid, embedding) over postmortems, descriptions and constraint reasons
   postflight.py       verdict -> landing commit -> next N runs -> outcome_observed; calibration table
   proposals.py        ledger patterns -> draft constraints with evidence, written under proposed/
-  server.py           the MCP server (seven tools)
+  server.py           the MCP server (nine tools)
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
   providers.py        Provider interface; stub, Anthropic, OpenAI-compatible; retries and timeouts
   review.py           gather, generate, validate, format; deterministic findings first
@@ -262,11 +262,11 @@ The end-to-end tests parse the fixture dbt project on the fly, so they need no w
 1. **Fixture and graph** (done): graph, adapters, lineage, `explain`.
 2. **Pre-flight** (done): typed change ops, blast-radius walk, predicates, risk, the verdict, `gate`, the MCP server, graph-scoped `ask`.
 3. **Ledger and post-flight** (done): run history and Iceberg snapshot ingestion, the post-flight watcher that writes `outcome_observed`, constraint proposals from ledger patterns and the nightly proposal PR, hybrid and embedding rankers behind `ask`.
-4. **PipelineBench** (harness done): fifty scenarios, four conditions, scripted / Claude / command agents, mechanical graders, a results file from the scripted baseline. Still to do: runs with language-model agents over several seeds, and a larger fixture.
+4. **PipelineBench** (done): fifty scenarios, four conditions, scripted / Claude / command agents, mechanical graders, and runs with language-model agents (`pipelinebench/results/`).
+5. **Review loop** (done): `orion review` on any diff, with or without platform config. Behind it: a provider interface (Anthropic, any OpenAI-compatible endpoint), the `review` MCP tool, and inline pull-request comments with memory across pushes. It parses symbol references, typing receivers by annotation, construction, field or declared return type. It also scans for credentials, reads the stated intent, and requires a concrete failing case for every warning, with a second reading. Evidence: the review eval, and design-partner runs on httpx, hono, cobra and cal-itp.
+6. **Real platforms** (done for dbt and Airflow): dbt at the scale of 625 models with column lineage, gusty YAML DAGs, and post-flight on real `dbt build` results.
 
-5. **Review loop** (built after the scope document of 2026-10-16): `orion review` on any diff with a provider interface, the `review` MCP tool, inline pull-request comments with memory across pushes, symbol references, credential scanning, and `pipelinebench review-eval` with live Sonnet numbers (`pipelinebench/README.md`). Both models are in the eval and references are classified by parsing rather than text; imports of a changed name are resolved to the file they name, and a removed method called on a receiver another file types as its class is a finding. The model reads the change's stated intent, and design partner runs on ten merged httpx changes and sixteen hono (TypeScript) and cobra (Go) changes are in `pipelinebench/results/partner-httpx-sonnet-5-5.md` and `partner-hono-cobra-sonnet-5-5.md`. Still to do: receivers typed only by inference (a call result, a field) stay facts for the model.
-
-Next: a design partner's platform behind the adapters, the LLM intent extractor behind `ops_from_intent`, Postgres as the team store, and the benchmark numbers that matter.
+Next: more platform adapters (Dagster, Snowflake query history), Postgres as a shared team store, an LLM intent extractor behind `ops_from_intent`, and more seeds and a larger fixture for PipelineBench.
 
 ## License
 
