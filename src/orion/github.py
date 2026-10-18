@@ -117,8 +117,10 @@ def inline_body(f: dict[str, Any]) -> str:
     return f"**{f['severity']}** {f['title']} _({tag}, {f['category']})_\n\n{f['body']}\n\n{_fails(f)}Evidence: {', '.join(f'`{e}`' for e in f['evidence'])}\n<!-- orion:{f['id']} -->"
 
 
-def summary_body(review: dict[str, Any], markdown: str, new: list, carried: list, resolved: list, head_sha: str, state: list[dict[str, Any]], note: str = "") -> str:
+def summary_body(review: dict[str, Any], markdown: str, new: list, carried: list, resolved: list, head_sha: str, state: list[dict[str, Any]], note: str = "", unchecked: list | None = None) -> str:
     counts = f"{len(new)} new, {len(carried)} unchanged since the last push, {len(resolved)} no longer raised"
+    if unchecked:
+        counts += f", {len(unchecked)} earlier model finding{'s' if len(unchecked) != 1 else ''} not re-checked (model unavailable): " + "; ".join((f"`{u['path']}:{u['line']}` " if u.get("path") else "") + u["title"] for u in unchecked)
     body = f"{MARKER}\n{markdown.rstrip()}\n\n_Reviewed `{head_sha[:7]}`: {counts}._"
     if note:
         body += f"\n\n{note}"
@@ -139,6 +141,9 @@ def post_review(client: GitHubClient, pr: int, head_sha: str, review: dict[str, 
     previous = parse_state(previous_comment["body"]) if previous_comment else []
     findings = [dict(f) for f in review["findings"]]
     new, carried, resolved = match_previous(findings, previous)
+    # With the model unavailable its earlier findings were not re-checked, so they stay open rather than being called resolved.
+    unchecked = [p for p in resolved if p.get("source") == "model"] if review.get("provider_error") else []
+    resolved = [p for p in resolved if p not in unchecked]
 
     rank = {"block": 0, "warn": 1, "inform": 2}
     placeable = sorted([f for f in new if f["path"] and isinstance(f.get("line"), int)], key=lambda f: rank.get(f["severity"], 3))[:MAX_INLINE]
@@ -170,12 +175,13 @@ def post_review(client: GitHubClient, pr: int, head_sha: str, review: dict[str, 
                 replied += 1
             except RuntimeError:
                 pass
-    body = summary_body(review, markdown, new, carried, resolved, head_sha, _state_of(findings), note)
+    body = summary_body(review, markdown, new, carried, resolved, head_sha, _state_of(findings) + unchecked, note, unchecked)
     if previous_comment:
         client.call("PATCH", f"issues/comments/{previous_comment['id']}", {"body": body})
     else:
         client.call("POST", f"issues/{pr}/comments", {"body": body})
-    return {"new": len(new), "carried": len(carried), "resolved": len(resolved), "inline_posted": posted, "replies": replied}
+    out = {"new": len(new), "carried": len(carried), "resolved": len(resolved), "inline_posted": posted, "replies": replied}
+    return {**out, "unchecked": len(unchecked)} if unchecked else out
 
 
 __all__ = ["GitHubClient", "post_review", "match_previous", "finding_id", "parse_state", "find_summary"]

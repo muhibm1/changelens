@@ -132,3 +132,17 @@ def test_a_failed_readback_of_comment_ids_does_not_claim_the_comments_were_not_p
     assert out["inline_posted"] == 2
     summary = next(b for m, p, b in gh.calls if m == "POST" and p == "issues/1/comments")["body"]
     assert "could not be posted" not in summary and all(s["comment_id"] is None for s in parse_state(summary))
+
+
+def test_model_findings_stay_open_when_the_model_is_unavailable():
+    first = FakeGitHub()
+    post_review(first, 1, "aaaaaaa", REVIEW, "md")
+    sticky = next(b for m, p, b in first.calls if m == "POST" and p == "issues/1/comments")["body"]
+    gh = FakeGitHub(comments=[{"id": 5, "user": {"login": "github-actions[bot]"}, "body": sticky}])
+    down = {"severity": "inform", "findings": [], "provider_error": "HTTP 400: credit balance is too low"}
+    out = post_review(gh, 1, "bbbbbbb", down, "md2")
+    assert out == {"new": 0, "carried": 0, "resolved": 1, "inline_posted": 0, "replies": 1, "unchecked": 2}, "only the deterministic finding is resolved"
+    assert [p for m, p, b in gh.calls if p.endswith("/replies")] == ["pulls/1/comments/900/replies"]
+    patch = next(b for m, p, b in gh.calls if m == "PATCH")["body"]
+    assert "1 no longer raised, 2 earlier model findings not re-checked (model unavailable): `app/a.py:10` Null deref; No location" in patch
+    assert [s["title"] for s in parse_state(patch)] == ["Null deref", "No location"], "kept in state, so the next run with the model matches them"
