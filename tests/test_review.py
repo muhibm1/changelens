@@ -430,3 +430,36 @@ def test_a_second_reading_never_lowers_a_finding_below_its_constraint_floor(sync
     r = _review(synced_store, constraints, DROP_DIFF, StubProvider(respond))
     f = next(f for f in r["findings"] if f["title"] == "net_amount now wrong for finance")
     assert f["severity"] == "block" and sent == [], "the firing block constraint sets the floor; there is nothing to second-guess"
+
+
+def test_review_runs_without_orion_yaml_as_a_general_review(tmp_path, monkeypatch):
+    import subprocess
+
+    from typer.testing import CliRunner
+
+    from orion.cli import app
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "m.py").write_text("def total(xs):\n    return sum(xs)\n")
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", "commit", "-qam", "init", "--allow-empty"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "m.py"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", "commit", "-qm", "add"], check=True)
+    (tmp_path / "m.py").write_text("def total(xs):\n    return sum(xs)\n\nKEY = \"AKIAZ3MQ7XK2P9LDWQ4N\"\n")  # pragma: allowlist secret
+    monkeypatch.chdir(tmp_path)
+    res = CliRunner().invoke(app, ["review", "--git", "HEAD", "--format", "json"])
+    assert res.exit_code == 0, res.output
+    r = json.loads(res.stdout[res.stdout.index("{"):])
+    assert r["unresolved"] == [] and [f["title"] for f in r["findings"]] == ["Possible AWS access key committed"]
+
+
+def test_a_model_finding_repeating_the_credential_block_is_dropped():
+    from orion.review import _dedupe
+
+    det = [{"path": "m.py", "line": 4, "category": "security", "title": "Possible AWS access key committed", "evidence": ["hunk:m.py:4"]}]
+    model = [
+        {"path": "m.py", "line": 4, "title": "Hardcoded AWS credential", "body": "b", "evidence": ["hunk:m.py:4"], "status": "valid", "notes": []},
+        {"path": "m.py", "line": 4, "title": "Constant is unused", "body": "the token is also logged", "evidence": ["hunk:m.py:4"], "status": "valid", "notes": []},
+    ]
+    out = _dedupe(det, model)
+    assert [(m["title"], m["status"]) for m in out] == [("Hardcoded AWS credential", "rejected"), ("Constant is unused", "valid")]
+    assert out[0]["notes"] == ["repeats the credential scan's block on this line"]

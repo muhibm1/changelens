@@ -20,7 +20,7 @@ from .resolver import resolve_ref
 from .store import Store
 from .sync import run_sync
 
-app = typer.Typer(help="Pre-flight checks for agents touching data pipelines.", no_args_is_help=True)
+app = typer.Typer(help="Code review and change intelligence: review any diff, and see what it affects in production.", no_args_is_help=True)
 console = Console()
 
 
@@ -362,7 +362,14 @@ def review(
         raise typer.BadParameter("give --git <base> or --diff-file <path>")
     if post_github and not re.fullmatch(r"[\w.-]+/[\w.-]+#\d+", post_github.strip()):
         raise typer.BadParameter("--post-github takes OWNER/REPO#NUMBER")  # checked before any paid model call
-    cfg, store = _open(config)
+    from .config import OrionConfig, repo_root
+
+    general = config is None and not any(p.exists() for p in (Path.cwd() / "orion.yaml", repo_root(Path.cwd()) / "orion.yaml"))
+    if general:  # no platform configured: review the code alone, with an empty graph and every path outside the platform
+        cfg, store = OrionConfig(root=repo_root(Path.cwd())), Store(":memory:")
+        print("orion review: no orion.yaml here, so this is a general code review with no system context", file=sys.stderr)
+    else:
+        cfg, store = _open(config)
     rc = cfg.review
     try:
         prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env)
@@ -373,7 +380,7 @@ def review(
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=_verifier(rc))
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=_verifier(rc))
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":

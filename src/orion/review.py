@@ -542,10 +542,18 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
     return out + code_findings(ctx)
 
 
+SECRET_WORDS = re.compile(r"hard-?coded|committed|credential|api key|access key|secret key|private key", re.I)
+
+
 def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict[str, Any]]:
     covered = {(d["path"], e) for d in det for e in d["evidence"] if e.startswith("constraint:")}
+    secrets = {(d["path"], d["line"]) for d in det if d["category"] == "security" and d["title"].startswith("Possible ") and d["title"].endswith(" committed")}
     kept = []
     for m in model:
+        if m["status"] == "valid" and (m["path"], m["line"]) in secrets and SECRET_WORDS.search(m["title"]):
+            # The credential scan already blocks this line; a model finding titled as the same committed secret repeats it, so it is kept but rejected, never lost.
+            m["status"] = "rejected"
+            m["notes"] = [*m.get("notes", []), "repeats the credential scan's block on this line"]
         # A finding that only restates a firing constraint is a duplicate; one that points at a diff line says something new.
         restates = not any(e.startswith("hunk:") for e in m["evidence"])
         if m["status"] == "valid" and restates and any((m["path"], e) in covered for e in m["evidence"] if e.startswith("constraint:")):

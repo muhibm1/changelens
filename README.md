@@ -41,6 +41,18 @@ Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson
 
 ## Quickstart
 
+Review a change in any git repository, with no setup beyond an API key:
+
+```bash
+pip install "git+https://github.com/muhibm1/orion"
+export ORION_ANTHROPIC_API_KEY=...        # or ANTHROPIC_API_KEY
+orion review --git main --provider anthropic
+```
+
+With no `orion.yaml`, this is a general code review. The credential scan, symbol references and the model's findings are all included, each with evidence, but there is no system context. Add an `orion.yaml` that points at your dbt project, DAGs and constraints to get blast radius, constraints and incident history in the same review.
+
+The full tour, on the bundled fixture platform:
+
 ```bash
 uv venv .venv && uv pip install -e ".[fixture,dev,syntax]"
 
