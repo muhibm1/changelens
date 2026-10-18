@@ -37,6 +37,8 @@ def test_review_tool_runs_a_diff(synced_store):
     titles = [f["title"] for f in r["findings"]]
     assert titles[0].startswith("CON-031"), "deterministic finding from the platform first"
     assert "net_amount reads a dropped column" in titles, "model finding survives validation"
+    asyncio.run(server.call_tool("review", {"diff": text, "intent": "Drop discount_pct"}))
+    assert "<<<INTENT\nDrop discount_pct\nINTENT>>>" in stub.calls[-1][1]
     missing = asyncio.run(server.call_tool("review", {}))
     assert "give base_ref or diff" in str(missing)
     bad_ref = asyncio.run(server.call_tool("review", {"base_ref": "no-such-ref"}))

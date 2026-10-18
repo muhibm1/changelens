@@ -18,6 +18,7 @@ def test_every_case_loads_and_every_marker_resolves():
         assert c.diff().startswith(f"diff --git a/{c.files[0]} b/{c.files[0]}\n")
         assert c.diff().count("diff --git ") == len(c.files)
         assert all(e.line > 0 for e in c.expect)
+    assert cases[[c.id for c in cases].index("clean-intent-py-query-spaces-as-plus")].intent.startswith("Encode spaces")
 
 
 def test_grading_counts_catches_inform_and_false_alarms(synced_store):

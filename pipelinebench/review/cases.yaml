@@ -1029,6 +1029,65 @@
               cache.fetch(k)
   expect: []
 
+# Stated intent (`intent`): the PR title and body a reviewer would read. An intended,
+# announced behaviour change is not a bug; a change the intent does not cover still is.
+- id: clean-intent-py-query-spaces-as-plus
+  intent: |
+    Encode spaces in query strings as '+' instead of '%20'
+
+    Servers we talk to expect application/x-www-form-urlencoded query strings, so
+    build_query now uses quote_plus. This changes the wire format on purpose.
+  file: app/query.py
+  before: |
+    from urllib.parse import quote
+
+
+    def build_query(params: dict[str, str]) -> str:
+        return "&".join(f"{quote(k, safe='')}={quote(v, safe='')}" for k, v in params.items())
+  after: |
+    from urllib.parse import quote_plus
+
+
+    def build_query(params: dict[str, str]) -> str:
+        return "&".join(f"{quote_plus(k, safe='')}={quote_plus(v, safe='')}" for k, v in params.items())
+  expect: []
+
+- id: intent-py-refactor-changes-default-timeout
+  intent: |
+    Move the HTTP helper into its own function
+
+    Pure refactor: pulls the request code out of sync_all into fetch_json.
+    No behaviour change.
+  file: app/sync.py
+  before: |
+    import json
+    import urllib.request
+
+
+    def sync_all(urls: list[str]) -> list[dict]:
+        out = []
+        for u in urls:
+            with urllib.request.urlopen(u, timeout=30) as r:
+                out.append(json.loads(r.read()))
+        return out
+  after: |
+    import json
+    import urllib.request
+
+
+    def fetch_json(url: str, timeout: float = 3) -> dict:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return json.loads(r.read())
+
+
+    def sync_all(urls: list[str]) -> list[dict]:
+        return [fetch_json(u) for u in urls]
+  expect:
+    - marker: "timeout: float = 3"
+      category: correctness
+      also:
+        - marker: "return [fetch_json(u) for u in urls]"  # the call that now takes the 3 s default
+
 - id: clean-py-renamed-fn-every-caller-updated
   files:
     - file: app/http.py

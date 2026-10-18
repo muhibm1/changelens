@@ -1,0 +1,297 @@
+{
+ "provider": "anthropic:claude-haiku-5-5",
+ "file_context": true,
+ "repeat": 1,
+ "cases": 11,
+ "rows": [
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1894,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 414
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1794,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 462
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1711,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 560
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1823,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 244
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-renamed-fn-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch_bytes(",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1764,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 421
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-kwarg-renamed-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch(url: str, *, timeout_s",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1854,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 546
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-removed-method-typed-caller",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/client.py",
+     "marker": "def get(self, path: str) -> str:",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1571,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 434
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-removed-method-other-object-has-its-own",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1568,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 91
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-intent-py-query-spaces-as-plus",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1595,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 173
+   },
+   "run": 0
+  },
+  {
+   "case": "intent-py-refactor-changes-default-timeout",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/sync.py",
+     "marker": "timeout: float = 3",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1688,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 434
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-renamed-fn-every-caller-updated",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1918,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 1.0,
+  "duplicate_findings": 2,
+  "false_alarms": 0,
+  "clean_cases_flagged": "0/4",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 19180,
+  "tokens_out": 3789
+ }
+}

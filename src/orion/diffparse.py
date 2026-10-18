@@ -173,6 +173,15 @@ def git_diff(repo_root: Path, base_ref: str, paths: list[str] | None = None) -> 
     return out
 
 
+def git_messages(repo_root: Path, base_ref: str) -> str | None:
+    """The commit messages between ``base_ref`` and HEAD, oldest first, or None when there are none or git cannot say."""
+    res = subprocess.run(["git", "-C", str(repo_root), "log", "--reverse", "--no-merges", "--format=%B%x00", f"{base_ref}..HEAD"], capture_output=True, text=True)
+    if res.returncode != 0:
+        return None
+    text = "\n\n".join(m.strip() for m in res.stdout.split("\0") if m.strip())
+    return text or None
+
+
 def render_file(f: FileDiff) -> str:
     """One file's hunks with new-side line numbers, the form the model sees and cites from."""
     block = [f"=== {f.path} ({f.status})"]

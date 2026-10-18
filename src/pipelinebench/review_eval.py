@@ -66,6 +66,7 @@ class Case:
     changes: list[Change]
     expect: list[Expected] = field(default_factory=list)
     repo_files: dict[str, str] = field(default_factory=dict)  # files the change leaves alone but a reviewer could search
+    intent: str | None = None  # what the author says the change does, as a PR title and body would
 
     @property
     def files(self) -> list[str]:
@@ -118,7 +119,7 @@ def load_cases(path: Path, repo_root: Path) -> list[Case]:
             raise ValueError(f"{raw['id']}: repo_files maps paths to file text")
         if set(repo_files) & set(by_file):
             raise ValueError(f"{raw['id']}: a repo_files entry is also changed by the case")
-        cases.append(Case(raw["id"], changes, expect, repo_files))
+        cases.append(Case(raw["id"], changes, expect, repo_files, raw.get("intent")))
     return cases
 
 
@@ -170,7 +171,7 @@ def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: 
         search_root = Path(tmp)
         for n in range(repeat):
             for c in cases:
-                r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, repo_files=c.repo_files, search_root=search_root, file_context=file_context)
+                r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, repo_files=c.repo_files, search_root=search_root, file_context=file_context, intent=c.intent)
                 g = grade(c, r) | {"run": n}
                 rows.append(g)
                 if progress:
