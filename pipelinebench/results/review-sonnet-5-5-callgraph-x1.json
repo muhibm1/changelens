@@ -1,0 +1,202 @@
+{
+ "provider": "anthropic:claude-sonnet-5-5",
+ "file_context": true,
+ "repeat": 1,
+ "cases": 7,
+ "rows": [
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1711,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 177
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1611,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 212
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1528,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 448
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1640,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-renamed-fn-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch_bytes(",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1581,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 242
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-kwarg-renamed-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch(url: str, *, timeout_s",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1671,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 240
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-renamed-fn-every-caller-updated",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1735,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 1.0,
+  "duplicate_findings": 1,
+  "false_alarms": 0,
+  "clean_cases_flagged": "0/2",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 11477,
+  "tokens_out": 1339
+ }
+}

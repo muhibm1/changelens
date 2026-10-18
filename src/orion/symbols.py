@@ -4,10 +4,14 @@ A reviewer who sees only the diff cannot know whether a renamed function has
 callers outside it, so a model warns that "other callers may break" whether
 or not any exist. This module answers that from the repository: for each
 definition a diff removes or re-signs, it lists every reference by file and
-line and says which of those lines the diff touches. The answer comes from a
-word search over the working tree (``git grep``, so ignored files stay out),
-not from a type checker, so it is a fact about text: a same-named symbol in
-another package shows up as a reference too, and the facts say so.
+line and says which of those lines the diff touches. Candidate files come
+from a word search over the working tree (``git grep``, so ignored files stay
+out). Each candidate is then parsed (``syntax``, when the ``syntax`` extra is
+installed) so a call is told from a comment, a string, or a same-named
+definition elsewhere, and each reference carries a ``scope``: whether the file
+is the definition's own, imports the name, defines its own, or merely mentions
+it. Without the parser the references are a fact about text and say so
+(``scope: unknown``). Nothing here is a type checker.
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from . import syntax
 from .credscan import redact
 from .diffparse import FileDiff
 
@@ -38,6 +43,10 @@ DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
 }
 _LANG = {".py": "py", ".pyi": "py", ".ts": "js", ".tsx": "js", ".js": "js", ".jsx": "js", ".mjs": "js", ".cjs": "js", ".go": "go", ".rs": "rs", ".rb": "rb"}
 MAX_REFS = 50
+# How a referencing file relates to the changed definition. ``unknown`` means the file was not parsed (text search only).
+SCOPES = ("same_file", "imports_it", "imports_module", "same_package", "defines_own", "no_import", "unknown")
+LINKED = ("same_file", "imports_it", "imports_module", "same_package")
+SELF = ("self", "this", "cls", "super", "Self", "@")
 IMPORT_RE = re.compile(r"^\s*(?:from\s+\S+\s+import\b|import\b|export\s+.*\bfrom\b|.*\brequire\s*\()")
 
 
@@ -49,7 +58,7 @@ class SymbolChange:
     line: int | None  # new-side line of the definition, or where the removed one stood
     old: str
     new: str | None
-    refs: list[dict[str, Any]] = field(default_factory=list)  # {path, line, text, kind: import | use, in_diff}
+    refs: list[dict[str, Any]] = field(default_factory=list)  # {path, line, text, kind, scope, receiver, in_diff}; kind in syntax.KINDS, scope in SCOPES
     search_failed: bool = False  # git grep could not run, so only the overlay (the diff's own files) was searched
     truncated: bool = False  # the search stopped at MAX_REFS references; more exist
 
@@ -59,6 +68,16 @@ class SymbolChange:
     @property
     def outside(self) -> list[dict[str, Any]]:
         return [r for r in self.refs if not r["in_diff"]]
+
+    @property
+    def linked_outside(self) -> list[dict[str, Any]]:
+        """References outside the diff that resolve to this definition as far as syntax can tell (see ``is_linked``)."""
+        return [r for r in self.outside if is_linked(r)]
+
+    @property
+    def parsed(self) -> bool:
+        """Every reference came from parsed syntax (true when there are none)."""
+        return all(r["scope"] != "unknown" for r in self.refs)
 
 
 def _lang(path: str) -> str | None:
@@ -114,19 +133,48 @@ def _git_grep_files(repo_root: Path, name: str) -> list[str] | None:
 
 
 @dataclass
+class Ref:
+    path: str
+    line: int
+    text: str
+    kind: str = "use"  # one of syntax.KINDS
+    parsed: bool = False  # kind came from the parser; otherwise this is a whole-word text match
+    imports_name: bool = False  # the file names the symbol in an import statement
+    defines_name: bool = False  # the file has its own definition of the symbol
+    receiver: str | None = None  # for a qualified access, the text before the name (``http`` in ``http.fetch``)
+    imported_modules: set[str] = field(default_factory=set)  # module paths, names and aliases the file's imports mention, as written
+
+
+@dataclass
 class Search:
-    refs: list[tuple[str, int, str]] = field(default_factory=list)  # (path, line, text)
+    refs: list[Ref] = field(default_factory=list)
     failed: bool = False  # the repository could not be searched; refs come from ``files`` only
     truncated: bool = False  # stopped at MAX_REFS
 
 
+def _file_refs(path: str, text: str, name: str, word: re.Pattern[str]) -> list[Ref]:
+    """References to ``name`` in one file: by syntax when the file parses here, else by whole-word text match. A definition of the name is not a reference to it."""
+    fs = syntax.occurrences(path, text, name)
+    lines = text.splitlines()
+    if fs is not None:
+        seen: set[tuple[int, str, str | None]] = set()
+        out = []
+        for occ in fs.occurrences:
+            if occ.kind == "definition" or (occ.line, occ.kind, occ.receiver) in seen:
+                continue
+            seen.add((occ.line, occ.kind, occ.receiver))
+            line = lines[occ.line - 1] if occ.line <= len(lines) else ""
+            out.append(Ref(path, occ.line, line.strip()[:160], occ.kind, True, fs.imports_name, fs.defines_name, occ.receiver, fs.imported_modules))
+        return out
+    return [Ref(path, i, line.strip()[:160], "import" if IMPORT_RE.match(line) else "use") for i, line in enumerate(lines, 1) if word.search(line)]
+
+
 def search(repo_root: Path, name: str, files: dict[str, str]) -> Search:
-    """Every (path, line, text) that mentions ``name`` as a whole word, in the repository or in ``files`` (text that overrides or extends the tree), and whether that search was complete."""
+    """Every reference to ``name`` in the repository or in ``files`` (text that overrides or extends the tree), and whether that search was complete."""
     word = re.compile(r"(?<![\w$])" + re.escape(name) + r"(?![\w$])")
     found = _git_grep_files(repo_root, name)
     result = Search(failed=found is None)
     paths = list(dict.fromkeys([*(found or []), *files]))
-    out = result.refs
     for p in paths:
         if not p.lower().endswith(CODE_EXT):
             continue
@@ -139,35 +187,82 @@ def search(repo_root: Path, name: str, files: dict[str, str]) -> Search:
                 text = full.read_text(errors="replace")
             except OSError:
                 continue
-        for i, line in enumerate(text.splitlines(), 1):
-            if word.search(line):
-                out.append((p, i, line.strip()[:160]))
-                if len(out) >= MAX_REFS:
-                    result.truncated = True
-                    return result
+        for ref in _file_refs(p, text, name, word):
+            result.refs.append(ref)
+            if len(result.refs) >= MAX_REFS:
+                result.truncated = True
+                return result
     return result
 
 
 def references(repo_root: Path, name: str, files: dict[str, str]) -> list[tuple[str, int, str]]:
-    return search(repo_root, name, files).refs
+    return [(r.path, r.line, r.text) for r in search(repo_root, name, files).refs]
+
+
+def is_linked(r: dict[str, Any]) -> bool:
+    """Whether a reference resolves to the changed definition as far as syntax can tell. A ``.name`` access in another file is not linked even when that file imports the name: it may be a method on some other object, so it reaches the model as a fact instead."""
+    if r["scope"] in ("unknown", "imports_module"):
+        return True
+    if r["kind"] in ("use", "call", "import"):
+        return r["scope"] in LINKED
+    # A member access is linked only in the definition's own file, on the instance itself (``self.name``, ``this.name``) or on a type or module named there
+    # (``Foo.name``, ``Self::name``); ``obj.name`` anywhere else is a fact for the model.
+    receiver = r.get("receiver") or ""
+    return r["scope"] == "same_file" and (receiver in SELF or receiver[:1].isupper())
+
+
+def _imports_module(imported: str, module_path: Path) -> bool:
+    """Whether an import written as ``imported`` can name the module at ``module_path``: its trailing segments match the module's trailing path parts as far as both go (``other.http`` does not name ``app/http.py``; ``./http`` and ``example.com/x/svc`` are accepted)."""
+    segs = [x for x in re.findall(r"[\w$]+", imported) if x not in ("crate", "self", "super")]
+    parts = list(module_path.parts)
+    if not segs or segs[-1] != parts[-1]:
+        return False
+    return all(a == b for a, b in zip(reversed(segs), reversed(parts), strict=False))
+
+
+def _scope(sc: SymbolChange, ref: Ref) -> str:
+    if not ref.parsed:
+        return "unknown"
+    if ref.path == sc.path:
+        return "same_file"
+    if ref.receiver is not None and _lang(ref.path) == _lang(sc.path):
+        # ``http.fetch`` / ``http::fetch`` / ``pkg.Fetch``: linked when the qualifier is the definition's module (Go: its package directory) and the file imports something by that name.
+        module_path = Path(sc.path).parent if sc.path.endswith(".go") else Path(sc.path).with_suffix("")
+        qualifier = re.split(r"[.:]", ref.receiver)[-1]
+        for imported in ref.imported_modules:
+            alias, _, path = imported.partition("=")
+            if path:  # ``alias=path`` from ``import app.http as h`` and the like
+                if alias == qualifier and _imports_module(path, module_path):
+                    return "imports_module"
+            elif qualifier == module_path.name and _imports_module(imported, module_path):
+                return "imports_module"
+    if ref.defines_name:  # a local definition shadows an import of the same name
+        return "defines_own"
+    if ref.imports_name:
+        return "imports_it"
+    if sc.path.endswith(".go") and ref.path.endswith(".go") and Path(ref.path).parent == Path(sc.path).parent:
+        return "same_package"
+    return "no_import"
 
 
 def symbol_changes(files: list[FileDiff], repo_root: Path, overlay: dict[str, str]) -> list[SymbolChange]:
-    """Removed and re-signed definitions across the diff, each with its references and whether the diff touches them."""
+    """Removed and re-signed definitions across the diff, each with its references, how each referencing file relates to the definition, and whether the diff touches the reference."""
     by_path = {f.path: f for f in files}
     out = []
-    for fd in files:
-        for sc in changed_definitions(fd, overlay.get(fd.path)):
-            # Skip the definition's own line, and the old definition's replacement when it was renamed in place.
-            def_lines = {(sc.path, sc.line)}
-            found = search(repo_root, sc.name, overlay)
-            sc.search_failed, sc.truncated = found.failed, found.truncated
-            for p, ln, text in found.refs:
-                if (p, ln) in def_lines or (p == sc.path and _definition(_lang(p) or "py", text) == sc.name):
-                    continue
-                fd2 = by_path.get(p)
-                # Reference text is quoted in the facts and the review JSON, so a credential on that line is redacted here, once.
-                sc.refs.append({"path": p, "line": ln, "text": redact(text), "kind": "import" if IMPORT_RE.match(text) else "use", "in_diff": bool(fd2 and fd2.contains(ln))})
-            sc.refs.sort(key=lambda r: (r["path"], r["line"]))
-            out.append(sc)
+    try:
+        for fd in files:
+            for sc in changed_definitions(fd, overlay.get(fd.path)):
+                found = search(repo_root, sc.name, overlay)
+                sc.search_failed, sc.truncated = found.failed, found.truncated
+                for ref in found.refs:
+                    # The parser already leaves definitions out. For a text match, skip the definition's own line and the old definition's replacement when it was renamed in place.
+                    if not ref.parsed and ((ref.path, ref.line) == (sc.path, sc.line) or (ref.path == sc.path and _definition(_lang(ref.path) or "py", ref.text) == sc.name)):
+                        continue
+                    fd2 = by_path.get(ref.path)
+                    # Reference text is quoted in the facts and the review JSON, so a credential on that line is redacted here, once.
+                    sc.refs.append({"path": ref.path, "line": ref.line, "text": redact(ref.text), "kind": ref.kind, "scope": _scope(sc, ref), "receiver": ref.receiver, "in_diff": bool(fd2 and fd2.contains(ref.line))})
+                sc.refs.sort(key=lambda r: (r["path"], r["line"]))
+                out.append(sc)
+    finally:
+        syntax.clear_cache()  # trees are only useful across the symbols of one review
     return out

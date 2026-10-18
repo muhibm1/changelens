@@ -42,7 +42,7 @@ Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson
 ## Quickstart
 
 ```bash
-uv venv .venv && uv pip install -e ".[fixture,dev]"
+uv venv .venv && uv pip install -e ".[fixture,dev,syntax]"
 
 # build the fixture warehouse so dbt writes manifest.json and catalog.json
 (cd fixture/dbt_project && export PIPELINEBENCH_DB=warehouse.duckdb && ../../.venv/bin/dbt seed --profiles-dir . && ../../.venv/bin/dbt build --profiles-dir . && ../../.venv/bin/dbt docs generate --profiles-dir .)
@@ -79,7 +79,7 @@ With `--provider anthropic` (or `openai`, or `review.provider` in `orion.yaml`),
 
 Three more things come from code, not the model, on any diff:
 
-- **Who else uses what you changed.** For every definition a diff removes or re-signs (Python, TypeScript and JavaScript, Go, Rust, Ruby), the system facts list each reference to it in the repository, by file and line, and say which of those lines the diff touches. A removed definition that an untouched line still references is a `warn` finding. For dbt models the same holds for columns: a model that still selects a dropped or renamed column is listed, and flagged if the diff leaves it alone.
+- **Who else uses what you changed.** For every definition a diff removes or re-signs (Python, TypeScript and JavaScript, Go, Rust, Ruby), the system facts list each reference to it in the repository, by file and line, and say which of those lines the diff touches. Candidate files come from `git grep`; with the `syntax` extra (`pip install -e ".[syntax]"`, tree-sitter grammars) each one is parsed, so a comment, a string, a `.name` call on some other object and a file with its own same-named definition are told apart from a real use, and each reference says whether its file is the definition's own, imports the name or the module (`http.fetch`, `svc.Fetch`, `http::fetch`), or merely mentions it. A removed definition that a linked, untouched line still references is a `warn` finding; the other mentions go to the model as facts that say what they are. Without the extra the search is textual and the facts say so. For dbt models the same holds for columns: a model that still selects a dropped or renamed column is listed, and flagged if the diff leaves it alone.
 - **Credentials.** An added line that looks like an AWS, GitHub, Slack, Google, Anthropic, OpenAI or Stripe key, a private key, a JWT, a password in a database URL, or a long literal assigned to a name like `password`, is a `block` finding. The value is redacted before the diff leaves the machine; a line ending in `pragma: allowlist secret` is skipped.
 - **Nothing dropped quietly.** A diff too large for one model call is reviewed in several, one group of files per call. A changed file too long to send whole is named as not shown. A file whose hunks alone exceed the hard cap is named as not reviewed, to the model and in the output.
 
@@ -210,6 +210,7 @@ src/orion/
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
   providers.py        Provider interface; stub, Anthropic, OpenAI-compatible; retries and timeouts
   review.py           gather, generate, validate, format; deterministic findings first
+  symbols.py, syntax.py  definitions a diff removes or re-signs and their references, classified by parsing (tree-sitter, optional)
   sync.py, cli.py     orchestration and the command
 src/pipelinebench/    the benchmark (see pipelinebench/README.md)
 ```
@@ -251,7 +252,7 @@ The end-to-end tests parse the fixture dbt project on the fly, so they need no w
 3. **Ledger and post-flight** (done): run history and Iceberg snapshot ingestion, the post-flight watcher that writes `outcome_observed`, constraint proposals from ledger patterns and the nightly proposal PR, hybrid and embedding rankers behind `ask`.
 4. **PipelineBench** (harness done): fifty scenarios, four conditions, scripted / Claude / command agents, mechanical graders, a results file from the scripted baseline. Still to do: runs with language-model agents over several seeds, and a larger fixture.
 
-5. **Review loop** (built after the scope document of 2026-10-16): `orion review` on any diff with a provider interface, the `review` MCP tool, inline pull-request comments with memory across pushes, symbol references, credential scanning, and `pipelinebench review-eval` with live Sonnet numbers (`pipelinebench/README.md`). Still to do: a second model in the eval, and a call graph deeper than a word search.
+5. **Review loop** (built after the scope document of 2026-10-16): `orion review` on any diff with a provider interface, the `review` MCP tool, inline pull-request comments with memory across pushes, symbol references, credential scanning, and `pipelinebench review-eval` with live Sonnet numbers (`pipelinebench/README.md`). Both models are in the eval and references are classified by parsing rather than text; still to do: cross-file resolution of imports (today "imports the name" is syntactic, not resolved).
 
 Next: a design partner's platform behind the adapters, the LLM intent extractor behind `ops_from_intent`, Postgres as the team store, and the benchmark numbers that matter.
 

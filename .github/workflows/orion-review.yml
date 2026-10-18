@@ -25,7 +25,7 @@ jobs:
       - name: Install
         run: |
           uv venv .venv
-          uv pip install -e ".[fixture]"
+          uv pip install -e ".[fixture,syntax]"
       - name: Parse the dbt project
         working-directory: fixture/dbt_project
         env:

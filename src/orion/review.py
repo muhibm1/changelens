@@ -34,7 +34,7 @@ from .diffparse import FileDiff, batches, both_sides, git_diff, parse, render_fi
 from .providers import Provider, ProviderError
 from .risk import RiskModel
 from .store import Store
-from .symbols import SymbolChange, symbol_changes
+from .symbols import SymbolChange, is_linked, symbol_changes
 from .verdict import preflight
 
 SEVERITIES = ("inform", "warn", "block")
@@ -171,19 +171,33 @@ def _symbol_facts(ctx: ReviewContext) -> list[str]:
         if not sc.refs:
             lines.append(f"{head} no other reference to this name {scope}")
             continue
-        uses = [r for r in sc.refs if r["kind"] == "use"]
-        inside = [r for r in uses if r["in_diff"]]
-        outside = [r for r in uses if not r["in_diff"]]
-        imports = [r for r in sc.refs if r["kind"] == "import"]
-        parts = []
+        unparsed = [r for r in sc.refs if r["scope"] == "unknown"]
+        if not unparsed:
+            how = "from parsed syntax, so comments, strings and same-named definitions are excluded"
+        elif len(unparsed) == len(sc.refs):
+            how = "from a whole-word text search, so a comment, string or same-named symbol counts too"
+        else:
+            how = f"from parsed syntax except {len(unparsed)} in files that could not be parsed ({', '.join(sorted({r['path'] for r in unparsed})[:5])}), which are whole-word text matches"
+        linked = [r for r in sc.refs if is_linked(r)]
+        rest = [r for r in sc.refs if not is_linked(r) and not r["in_diff"]]
+        inside = [r for r in linked if r["in_diff"] and r["kind"] != "import"]
+        outside = [r for r in linked if not r["in_diff"] and r["kind"] != "import"]
+        imports = [r for r in linked if r["kind"] == "import"]
+        members = [r for r in rest if r["kind"] in ("method_call", "attribute")]
+        unlinked = [r for r in rest if r["kind"] not in ("method_call", "attribute")]
+        parts = [f"references {how}"]
         if inside:
             parts.append(f"{len(inside)} use{'s' if len(inside) != 1 else ''} on lines this diff changes (" + ", ".join(f"{r['path']}:{r['line']}" for r in inside[:10]) + ")")
         if outside:
             parts.append(f"{len(outside)} use{'s' if len(outside) != 1 else ''} on lines this diff does not touch (" + ", ".join(f"ref:{r['path']}:{r['line']} `{r['text'][:80]}`" for r in outside[:10]) + ")")
         else:
-            parts.append("no use outside this diff")
+            parts.append("no use outside this diff in the same file, in a file that imports the name, or in the same package")
         if imports:
             parts.append("imported at " + ", ".join(f"ref:{r['path']}:{r['line']}" for r in imports[:10]))
+        if members:
+            parts.append(f"{len(members)} method or attribute access{'es' if len(members) != 1 else ''} `.{sc.name}` on some object, which may or may not be this definition (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in members[:10]) + ")")
+        if unlinked:
+            parts.append(f"{len(unlinked)} mention{'s' if len(unlinked) != 1 else ''} in files that do not import the name" + (" or define their own" if any(r["scope"] == "defines_own" for r in unlinked) else "") + ", so probably a different `" + sc.name + "` (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in unlinked[:10]) + ")")
         if sc.search_failed:
             parts.append("only the files of this diff were searched; the rest of the repository could not be, so other callers may exist")
         if sc.truncated:
@@ -380,11 +394,14 @@ def code_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
     """Findings that need no platform graph: committed credentials, and removed symbols the diff leaves referenced."""
     out = list(ctx.secrets)
     for sc in ctx.symbols:
-        if sc.kind != "removed" or not sc.outside:
+        if sc.kind != "removed" or not sc.linked_outside:
             continue
-        refs = sc.outside
+        refs = sc.linked_outside
+        unparsed = [r for r in refs if r["scope"] == "unknown"]
+        text_matches = ", ".join(f"{r['path']}:{r['line']}" for r in unparsed[:5])
+        how = "A whole-word search of the repository found them" if len(unparsed) == len(refs) else "They are uses or imports of the name in the same file, in files that import it or its module, or in the same package, found by parsing those files" + (f" (except {text_matches}, whole-word text matches in files that could not be parsed)" if unparsed else "")
         where = ", ".join(f"{r['path']}:{r['line']}" for r in refs[:5]) + (f" and {len(refs) - 5} more" if len(refs) > 5 else "")
-        out.append({"source": "deterministic", "path": sc.path, "line": sc.line, "end_line": None, "severity": "warn", "category": "correctness", "title": f"`{sc.name}` removed but still referenced at {where}", "body": f"This diff removes the definition of `{sc.name}` from {sc.path} and does not change the lines that reference it. A whole-word search of the repository found them; if they refer to a different `{sc.name}`, say so, otherwise update or remove them in the same change.", "evidence": [f"hunk:{sc.path}:{sc.line}"] + [f"ref:{r['path']}:{r['line']}" for r in refs[:10]], "status": "valid", "notes": []})
+        out.append({"source": "deterministic", "path": sc.path, "line": sc.line, "end_line": None, "severity": "warn", "category": "correctness", "title": f"`{sc.name}` removed but still referenced at {where}", "body": f"This diff removes the definition of `{sc.name}` from {sc.path} and does not change the lines that reference it. {how}; if they refer to a different `{sc.name}`, say so, otherwise update or remove them in the same change.", "evidence": [f"hunk:{sc.path}:{sc.line}"] + [f"ref:{r['path']}:{r['line']}" for r in refs[:10]], "status": "valid", "notes": []})
     return out
 
 

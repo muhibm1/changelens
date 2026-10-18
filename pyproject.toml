@@ -20,6 +20,7 @@ fixture = ["dbt-core>=1.8", "dbt-duckdb>=1.8"]
 dev = ["pytest>=8", "ruff>=0.6"]
 bench = ["anthropic>=0.40"]
 embed = ["sentence-transformers>=3"]
+syntax = ["tree-sitter>=0.23", "tree-sitter-language-pack>=1.22"]
 
 [project.scripts]
 orion = "orion.cli:app"

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from orion import providers
+from orion import providers, syntax
 from orion.constraints import load_constraints
 from orion.credscan import find_secrets, redact
 from orion.diffparse import batches, parse, render_with_omitted
@@ -81,7 +81,10 @@ def test_references_search_the_repository_and_an_overlay(empty_repo, tmp_path):
     (repo / "lib" / "a.py").write_text("def render_file(f):\n    return f\n")
     (repo / "lib" / "b.py").write_text("from lib.a import render_file\nrender_file(1)\n")
     (repo / "notes.md").write_text("render_file is documented here\n")
-    assert references(repo, "render_file", {}) == [("lib/a.py", 1, "def render_file(f):"), ("lib/b.py", 1, "from lib.a import render_file"), ("lib/b.py", 2, "render_file(1)")]
+    expected = [("lib/b.py", 1, "from lib.a import render_file"), ("lib/b.py", 2, "render_file(1)")]
+    if not syntax.available():  # the text search cannot tell the definition from a reference
+        expected.insert(0, ("lib/a.py", 1, "def render_file(f):"))
+    assert references(repo, "render_file", {}) == expected
     # Overlay files are searched too, and an empty repository contributes nothing.
     refs = references(empty_repo, "zz_only_in_overlay", {"app/a.py": "x = zz_only_in_overlay()\nzz_only_in_overlay_more = 1\n"})
     assert refs == [("app/a.py", 1, "x = zz_only_in_overlay()")]
@@ -93,7 +96,7 @@ def test_search_reports_a_failed_repository_search_and_truncation(tmp_path):
     plain = tmp_path / "plain"
     plain.mkdir()
     res = search(plain, "fetch", {"app/x.py": "fetch(1)\n"})
-    assert res.failed and res.refs == [("app/x.py", 1, "fetch(1)")] and not res.truncated
+    assert res.failed and [(r.path, r.line, r.text) for r in res.refs] == [("app/x.py", 1, "fetch(1)")] and not res.truncated
     diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
     [sc] = symbol_changes(parse(diff), plain, {"app/http.py": HTTP_REMOVED, "app/jobs.py": "fetch(2)\n"})
     assert sc.search_failed and sc.to_dict()["search_failed"]
@@ -113,7 +116,7 @@ def test_symbol_facts_say_when_the_search_was_incomplete(synced_store, constrain
     ctx = gather(synced_store, ROOT, diff, constraints=constraints, risk_model=RiskModel.load(None), new_files={"app/util.py": new}, search_root=plain)
     [line] = _symbol_facts(ctx)
     assert "could not be searched" in line and "no other reference" in line
-    ctx.symbols[0].refs.append({"path": "app/jobs.py", "line": 3, "text": "fetch(u)", "kind": "use", "in_diff": False})
+    ctx.symbols[0].refs.append({"path": "app/jobs.py", "line": 3, "text": "fetch(u)", "kind": "use", "scope": "unknown", "in_diff": False})
     ctx.symbols[0].truncated = True
     [line] = _symbol_facts(ctx)
     assert "ref:app/jobs.py:3" in line and "could not be" in line and "stopped at 1 references" in line
@@ -130,7 +133,7 @@ def test_symbol_changes_mark_which_references_the_diff_touches(tmp_path):
     files = parse(diff)
     [sc] = symbol_changes(files, tmp_path, {"app/http.py": HTTP_RENAMED, "app/health.py": health_new})
     by = {(r["path"], r["line"]): r for r in sc.refs}
-    assert by[("app/health.py", 5)]["in_diff"] and by[("app/health.py", 5)]["kind"] == "use"
+    assert by[("app/health.py", 5)]["in_diff"] and by[("app/health.py", 5)]["kind"] == ("call" if syntax.available() else "use")
     assert not by[("app/jobs.py", 5)]["in_diff"]
     assert by[("app/jobs.py", 1)]["kind"] == "import"
     assert ("app/http.py", 10) in by and not by[("app/http.py", 10)]["in_diff"], "a use further down the same file counts too"
@@ -289,3 +292,187 @@ class _Resp(io.BytesIO):
 
     def __exit__(self, *a):
         return False
+
+
+needs_parser = pytest.mark.skipif(not syntax.available(), reason="tree-sitter-language-pack (the syntax extra) is not installed")
+
+
+@needs_parser
+def test_syntax_classifies_each_occurrence_of_a_name():
+    py = 'from app.http import fetch\n\n\ndef run(client):\n    # fetch the page\n    print("fetch")\n    x = fetch(1)\n    y = client.fetch(2)\n    z = client.fetch\n    return x, y, z, fetch\n'
+    fs = syntax.occurrences("app/run.py", py, "fetch")
+    assert fs is not None and fs.grammar == "python" and fs.imports_name and not fs.defines_name
+    assert [(o.line, o.kind) for o in fs.occurrences] == [(1, "import"), (7, "call"), (8, "method_call"), (9, "attribute"), (10, "use")], "the comment and the string are not occurrences"
+    own = syntax.occurrences("lib/other.py", "def fetch(a):\n    return a\n\nfetch(3)\n", "fetch")
+    assert own.defines_name and [(o.line, o.kind) for o in own.occurrences] == [(1, "definition"), (4, "call")]
+    ts = syntax.occurrences("web/a.ts", 'import { fetch } from "./http";\nexport function go() { return fetch(1) + this.fetch(2); }\n', "fetch")
+    assert ts.imports_name and [(o.line, o.kind) for o in ts.occurrences] == [(1, "import"), (2, "call"), (2, "method_call")]
+    go = syntax.occurrences("svc/a.go", 'package svc\n\nfunc fetch(id int) int { return id }\n\nfunc Load() int { return fetch(1) }\n', "fetch")
+    assert go.defines_name and [(o.line, o.kind) for o in go.occurrences] == [(3, "definition"), (5, "call")]
+    assert syntax.occurrences("notes.md", "fetch", "fetch") is None, "an unparsed language falls back to the text search"
+
+
+@needs_parser
+def test_parsed_references_tell_a_caller_from_a_coincidence(synced_store, constraints, tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for d in ("app", "lib", "svc"):
+        (tmp_path / d).mkdir()
+    (tmp_path / "app" / "http.py").write_text(HTTP_OLD)
+    (tmp_path / "app" / "jobs.py").write_text("from app.http import fetch\n\n\ndef warm(url):\n    # fetch everything\n    return fetch(url, timeout=9.0)\n")
+    (tmp_path / "lib" / "own.py").write_text("def fetch(x):\n    return x\n\n\nfetch(1)\n")
+    (tmp_path / "lib" / "client.py").write_text('class Client:\n    def get(self):\n        return self.session.fetch("fetch")\n')
+    (tmp_path / "svc" / "loose.py").write_text("print(fetch)\n")
+    (tmp_path / "svc" / "shadow.py").write_text("from app.http import fetch\n\n\ndef fetch(x):\n    return x\n\n\nfetch(1)\n")
+    (tmp_path / "svc" / "pathseg.py").write_text("from fetch import x\nimport app.fetch\nfrom app.http import fetch as f\n\nx(fetch)\n")  # fetch only as a module path or behind an alias
+    (tmp_path / "svc" / "method.py").write_text("from app.http import fetch\n\n\nclass C:\n    def fetch(self):\n        return fetch(1)\n")
+    diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/http.py": HTTP_REMOVED})
+    assert sc.parsed and not sc.search_failed
+    by = {(r["path"], r["line"]): (r["kind"], r["scope"]) for r in sc.refs}
+    assert by[("app/jobs.py", 1)] == ("import", "imports_it") and by[("app/jobs.py", 6)] == ("call", "imports_it")
+    assert ("app/jobs.py", 5) not in by, "a comment is not a reference"
+    assert by[("lib/own.py", 5)] == ("call", "defines_own") and ("lib/own.py", 1) not in by, "a file with its own fetch is not a caller of ours"
+    assert by[("lib/client.py", 3)] == ("method_call", "no_import")
+    assert by[("svc/loose.py", 1)] == ("use", "no_import")
+    assert by[("svc/shadow.py", 8)] == ("call", "defines_own"), "a local definition shadows the import"
+    assert by[("svc/method.py", 6)] == ("call", "imports_it"), "a method of the same name does not shadow the import"
+    assert by[("svc/pathseg.py", 5)] == ("use", "no_import"), "a module path segment or an aliased-away name is not an import of the symbol"
+    # Only the linked references make the deterministic finding; the rest are facts for the model.
+    assert [(r["path"], r["line"]) for r in sc.linked_outside] == [("app/http.py", 5), ("app/jobs.py", 1), ("app/jobs.py", 6), ("svc/method.py", 1), ("svc/method.py", 6)]
+    stub = StubProvider()
+    r = _run(synced_store, constraints, diff, stub, search_root=tmp_path, new_files={"app/http.py": HTTP_REMOVED})
+    [f] = [f for f in r["findings"] if f["source"] == "deterministic"]
+    assert f["title"] == "`fetch` removed but still referenced at app/http.py:5, app/jobs.py:1, app/jobs.py:6, svc/method.py:1, svc/method.py:6" and "parsing those files" in f["body"]
+    user = stub.calls[0][1]
+    assert "from parsed syntax" in user and "ref:app/jobs.py:6" in user
+    assert "1 method or attribute access `.fetch`" in user and "ref:lib/client.py:3" in user
+    assert "8 mentions in files that do not import the name or define their own" in user and "ref:lib/own.py:5" in user and "ref:svc/loose.py:1" in user
+    assert [(x["path"], x["scope"]) for x in r["symbols"][0]["refs"]][:3] == [("app/http.py", "same_file"), ("app/jobs.py", "imports_it"), ("app/jobs.py", "imports_it")]
+
+
+@needs_parser
+def test_go_callers_in_the_same_package_are_linked_without_an_import(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "svc").mkdir()
+    (tmp_path / "other").mkdir()
+    old = "package svc\n\nfunc fetch(id int) int { return id }\n"
+    (tmp_path / "svc" / "a.go").write_text(old)
+    (tmp_path / "svc" / "b.go").write_text("package svc\n\nfunc Load() int { return fetch(1) }\n")
+    (tmp_path / "other" / "c.go").write_text("package other\n\nfunc fetch() {}\n\nfunc X() { fetch() }\n")
+    diff = Change("svc/a.go", old, "package svc\n").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"svc/a.go": "package svc\n"})
+    by = {(r["path"], r["line"]): r["scope"] for r in sc.refs}
+    assert by[("svc/b.go", 3)] == "same_package" and by[("other/c.go", 5)] == "defines_own"
+    assert [(r["path"], r["line"]) for r in sc.linked_outside] == [("svc/b.go", 3)]
+
+
+def test_text_search_references_carry_an_unknown_scope(monkeypatch, tmp_path):
+    # Without the parser (or for a language it lacks) every reference is a text match and the facts say so.
+    monkeypatch.setattr(syntax, "occurrences", lambda *a, **k: None)
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "app").mkdir()
+    (tmp_path / "app" / "http.py").write_text(HTTP_OLD)
+    (tmp_path / "app" / "jobs.py").write_text("from app.http import fetch\n# fetch it\nfetch(1)\n")
+    diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/http.py": HTTP_REMOVED})
+    assert not sc.parsed and {r["scope"] for r in sc.refs} == {"unknown"}
+    assert [(r["path"], r["line"], r["kind"]) for r in sc.refs if r["path"] == "app/jobs.py"] == [("app/jobs.py", 1, "import"), ("app/jobs.py", 2, "use"), ("app/jobs.py", 3, "use")]
+    assert len(sc.linked_outside) == len(sc.outside), "with no parse every reference counts"
+
+
+@needs_parser
+def test_a_removed_method_called_on_self_in_its_own_file_is_linked(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "app").mkdir()
+    gap = "".join(f"    x{i} = {i}\n" for i in range(12))  # keeps the call out of the hunk's context lines
+    old = "class Client:\n    def fetch(self, url):\n        return url\n\n" + gap + "    def get(self, url, other):\n        other.fetch(url)\n        return self.fetch(url)\n"
+    new = "class Client:\n" + gap + "    def get(self, url, other):\n        other.fetch(url)\n        return self.fetch(url)\n"
+    (tmp_path / "app" / "client.py").write_text(old)
+    (tmp_path / "other").mkdir()
+    (tmp_path / "other" / "use.py").write_text("from app.client import Client\n\nClient().fetch('u')\n")
+    diff = Change("app/client.py", old, new).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/client.py": new})
+    by = {(r["path"], r["line"]): (r["kind"], r["scope"]) for r in sc.refs}
+    assert by[("app/client.py", 15)] == by[("app/client.py", 16)] == ("method_call", "same_file") and by[("other/use.py", 3)] == ("method_call", "no_import")
+    assert [(r["path"], r["line"]) for r in sc.linked_outside] == [("app/client.py", 16)], "self.fetch in the class's own file is linked; other.fetch there and .fetch elsewhere are facts for the model"
+    # Ruby: a bare call is a call; a call on self or on a constant in the same file is linked, one on another object is not.
+    rb_old = "class Client\n  def fetch(u)\n    u\n  end\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u, other)\n    other.fetch(u)\n    Client.fetch(u)\n    fetch(u)\n    self.fetch(u)\n  end\nend\n"
+    rb_new = "class Client\n" + "".join(f"  X{i} = {i}\n" for i in range(10)) + "  def get(u, other)\n    other.fetch(u)\n    Client.fetch(u)\n    fetch(u)\n    self.fetch(u)\n  end\nend\n"
+    (tmp_path / "app" / "client.rb").write_text(rb_old)
+    diff = Change("app/client.rb", rb_old, rb_new).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/client.rb": rb_new})
+    kinds = {r["line"]: (r["kind"], r["receiver"]) for r in sc.refs}
+    assert kinds[13] == ("method_call", "other") and kinds[14] == ("method_call", "Client") and kinds[15] == ("call", None) and kinds[16] == ("method_call", "self")
+    assert [r["line"] for r in sc.linked_outside] == [14, 15, 16]
+
+
+@needs_parser
+def test_qualified_calls_through_an_imported_module_are_linked(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for d in ("app", "svc", "cmd", "web", "rs"):
+        (tmp_path / d).mkdir()
+    # Python: ``import app.http`` then ``app.http.fetch(...)``; a ``.fetch`` on an unrelated object is not linked.
+    (tmp_path / "app" / "http.py").write_text(HTTP_OLD)
+    (tmp_path / "app" / "jobs.py").write_text("import app.http\n\n\ndef warm(url, client):\n    client.fetch(url)\n    return app.http.fetch(url, timeout=9.0)\n")
+    (tmp_path / "app" / "other_jobs.py").write_text("import other.http\n\nother.http.fetch(1)\n")  # a same-named module in another package
+    (tmp_path / "app" / "alias_jobs.py").write_text("import app.http as h\nfrom app import http as hh\n\nh.fetch(1)\nhh.fetch(2)\n")
+    diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/http.py": HTTP_REMOVED})
+    by = {(r["path"], r["line"]): (r["kind"], r["scope"]) for r in sc.refs}
+    assert by[("app/jobs.py", 6)] == ("method_call", "imports_module") and by[("app/jobs.py", 5)] == ("method_call", "no_import")
+    assert by[("app/other_jobs.py", 3)] == ("method_call", "no_import"), "other.http is not app/http.py"
+    assert by[("app/alias_jobs.py", 4)] == by[("app/alias_jobs.py", 5)] == ("method_call", "imports_module"), "an alias of the module counts"
+    assert [(r["path"], r["line"]) for r in sc.linked_outside if r["path"] == "app/jobs.py"] == [("app/jobs.py", 6)]
+    # Go: an exported function called as ``svc.Fetch`` from a package that imports "x/svc".
+    go_old = "package svc\n\nfunc Fetch(id int) int { return id }\n"
+    (tmp_path / "svc" / "a.go").write_text(go_old)
+    (tmp_path / "cmd" / "main.go").write_text('package main\n\nimport "example.com/x/svc"\n\nfunc main() { svc.Fetch(1) }\n')
+    (tmp_path / "cmd" / "alias.go").write_text('package main\n\nimport s "example.com/x/svc"\n\nfunc run() { s.Fetch(1) }\n')
+    diff = Change("svc/a.go", go_old, "package svc\n").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"svc/a.go": "package svc\n"})
+    assert [(r["path"], r["line"], r["scope"]) for r in sc.linked_outside] == [("cmd/alias.go", 5, "imports_module"), ("cmd/main.go", 5, "imports_module")]
+    # TypeScript namespace import, and Rust ``http::fetch`` after ``use crate::http``.
+    ts_old = "export function fetch(u: string) { return u; }\n"
+    (tmp_path / "web" / "http.ts").write_text(ts_old)
+    (tmp_path / "web" / "use.ts").write_text('import * as h from "./http";\nexport const go = () => h.fetch("u");\n')
+    diff = Change("web/http.ts", ts_old, "export const x = 1;\n").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"web/http.ts": "export const x = 1;\n"})
+    assert [(r["path"], r["line"], r["kind"], r["scope"]) for r in sc.linked_outside] == [("web/use.ts", 2, "method_call", "imports_module")]
+    rs_old = "pub fn fetch(u: u32) -> u32 { u }\n"
+    (tmp_path / "rs" / "http.rs").write_text(rs_old)
+    (tmp_path / "rs" / "main.rs").write_text("use crate::http as h;\n\nfn main() { h::fetch(1); }\n")
+    diff = Change("rs/http.rs", rs_old, "").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"rs/http.rs": ""})
+    assert [(r["path"], r["line"], r["kind"], r["scope"]) for r in sc.linked_outside] == [("rs/main.rs", 3, "call", "imports_module")]
+
+
+@needs_parser
+def test_a_reference_on_the_line_where_the_removed_definition_stood_is_kept(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "app").mkdir()
+    gap = "".join(f"x{i} = {i}\n" for i in range(8))
+    old = "def fetch(u):\n    return u\n\n\n" + gap + "fetch(1)\n"
+    new = gap + "fetch(1)\n"  # the call now sits where the definition stood
+    (tmp_path / "app" / "a.py").write_text(old)
+    diff = Change("app/a.py", old, new).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/a.py": new})
+    assert sc.kind == "removed" and [(r["path"], r["line"], r["kind"]) for r in sc.refs] == [("app/a.py", 9, "call")]
+
+
+@needs_parser
+def test_facts_say_which_references_are_text_matches_when_only_some_files_parse(synced_store, constraints, tmp_path):
+    from orion.review import _symbol_facts, code_findings, gather
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "app").mkdir()
+    (tmp_path / "app" / "http.py").write_text(HTTP_OLD)
+    (tmp_path / "app" / "jobs.py").write_text("from app.http import fetch\n\nfetch(1)\n")
+    (tmp_path / "app" / "Jobs.java").write_text("// fetch is called here\nclass Jobs { void run() { fetch(); } }\n")  # no grammar for Java: text matches
+    diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
+    ctx = gather(synced_store, tmp_path, diff, constraints=constraints, risk_model=RiskModel.load(None), new_files={"app/http.py": HTTP_REMOVED})
+    [sc] = ctx.symbols
+    assert not sc.parsed and {r["scope"] for r in sc.refs if r["path"].endswith(".java")} == {"unknown"}
+    [line] = _symbol_facts(ctx)
+    assert "from parsed syntax except 2 in files that could not be parsed (app/Jobs.java)" in line
+    [f] = [f for f in code_findings(ctx) if f["source"] == "deterministic"]
+    assert "found by parsing those files (except app/Jobs.java:1, app/Jobs.java:2, whole-word text matches" in f["body"]

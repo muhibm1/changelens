@@ -14,7 +14,7 @@ jobs:
       - name: Install
         run: |
           uv venv .venv
-          uv pip install -e ".[fixture,dev]"
+          uv pip install -e ".[fixture,dev,syntax]"
       - name: Lint
         run: .venv/bin/ruff check src tests
       - name: Build the fixture platform
