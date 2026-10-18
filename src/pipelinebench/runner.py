@@ -43,7 +43,7 @@ def run(
                     ctx = contexts[s.id]
                     prompt = Prompt(s, cond, ctx["text"], {k: v for k, v in ctx.items() if k != "text"})
                     d = agent.decide(prompt)
-                    g = grade(s, d, ids)
+                    g = grade(s, d, ids, ctx["text"])
                     g.update({"agent": agent.name, "condition": cond, "seed": seed, "cited": d.cited, "affected": d.affected, "approvers": d.approvers, "rationale": d.rationale[:300]})
                     rows.append(g)
                     details.append(g)

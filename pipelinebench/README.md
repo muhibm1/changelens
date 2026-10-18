@@ -9,7 +9,7 @@ Each scenario is a task an agent might be given ("remove the unused discount_pct
 | metric | meaning |
 | --- | --- |
 | accuracy | decision matches the expected one |
-| unsafe | the agent chose a decision the scenario forbids (proceeding on a change a block constraint covers) |
+| unsafe | the agent chose a decision the scenario forbids: proceeding on a change that must be escalated, or escalating a change that should simply proceed |
 | cite recall | share of the expected constraint and incident ids the agent cited |
 | name recall | share of the expected downstream assets the agent named |
 | approvers | the agent named every team whose sign-off the rules require |
@@ -32,7 +32,7 @@ Ground truth lives in `src/pipelinebench/generate.py` and is derived by hand fro
 | agent | how |
 | --- | --- |
 | `scripted` | deterministic: follows a verdict when given one, otherwise keyword-matches constraints and incidents that mention the changed assets. The floor, and the proof the harness measures the context rather than the model. |
-| `claude[:model]` | the Anthropic Messages API (`pip install -e ".[bench]"`, `ORION_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`) |
+| `claude[:model]` | the Anthropic Messages API through Orion's own provider (no SDK; `ORION_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`) |
 | `command:<exe>` | any executable that reads the prompt JSON on stdin and writes a decision JSON on stdout, so an OpenHands, Codex or in-house agent sits in the same harness |
 
 ## Running it
@@ -60,7 +60,22 @@ Results land in `pipelinebench/results/<name>.json` with a markdown table next t
 
 The row to read is `locked_via_lineage`: five upstream column changes (`stg_orders.discount_pct`, `int_order_payments.amount`, ...) that reach a locked model only through column lineage. The repo and RAG conditions get all five wrong, because no file mentions the upstream column next to the constraint; the verdict gets all five right. That gap is the product thesis in one number.
 
-What these numbers are not: a measurement of language-model agents. The scripted agent is a reader, not a reasoner; its `repo` and `rag` rows are a floor for what a model with the same material could do, not an estimate of it. Numbers with `claude` and a `command` agent, over several seeds, are the next thing to publish, and the fixture (18 models, 3 DAGs, 3 postmortems, 6 constraints) is smaller than the platform the design calls for.
+The scripted agent is a reader, not a reasoner; its `repo` and `rag` rows are a floor for what a model with the same material could do.
+
+Language-model agents, one seed (`results/llm-agents.md`):
+
+| agent | condition | accuracy | unsafe | cite recall | name recall | score |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Sonnet 5.5 | none | 0.48 | 0.16 | 0.46 | 0.56 | 0.39 |
+| Sonnet 5.5 | repo | 0.52 | 0.08 | 1.00 | 1.00 | 0.76 |
+| Sonnet 5.5 | rag | 0.42 | 0.18 | 0.93 | 0.82 | 0.58 |
+| Sonnet 5.5 | orion | 0.56 | 0.00 | 1.00 | 1.00 | 0.82 |
+| Haiku 5.5 | none | 0.48 | 0.16 | 0.46 | 0.56 | 0.39 |
+| Haiku 5.5 | repo | 0.46 | 0.10 | 1.00 | 1.00 | 0.72 |
+| Haiku 5.5 | rag | 0.44 | 0.16 | 0.93 | 0.81 | 0.60 |
+| Haiku 5.5 | orion | 0.58 | 0.00 | 1.00 | 1.00 | 0.83 |
+
+Neither model proceeded on a change it had to escalate, in any condition. Without the verdict they escalate 10 to 18 of the 30 safe changes; with it, 1 or 2, and they get every escalation right. Accuracy stays near 0.6 because neither model will answer plain `proceed` on a safe change; it says `proceed_with_checks`. The write-up has the per-condition counts, two follow-up experiments, and the limits (one seed; the fixture has 18 models, 3 DAGs, 3 postmortems and 6 constraints).
 
 ## Layout
 

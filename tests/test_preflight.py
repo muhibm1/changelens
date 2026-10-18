@@ -226,3 +226,15 @@ def test_a_task_change_reaches_the_tables_it_writes_and_their_readers():
     cs = ChangeSet()
     cs.add(ChangeOp("modify", "task:load.settlements"))
     assert {k: v["hops"] for k, v in affected_assets(s, cs).items()} == {"source_table:raw.settlements": 1, "model:stg_settlements": 2}
+
+
+def test_routine_tests_are_not_worded_as_a_gate(synced_store, constraints, tmp_path):
+    path = ROOT / "fixture" / "dbt_project" / "models" / "marts" / "dim_customers.sql"
+    old = path.read_text()
+    new = old.replace("    last_order_date\n", "    last_order_date,\n    1 as tenure\n")
+    _, v = run(synced_store, constraints, tmp_path, file_changes=[(str(path.relative_to(ROOT)), old, new)])
+    assert v["severity"] == "inform" and [c["kind"] for c in v["checks"]] == ["run_tests"]
+    assert "Nothing beyond normal review and CI: run tests for dim_customers+." in v["summary"] and "Before merging" not in v["summary"]
+    assert "**Routine checks**" in to_markdown(v)
+    _, block = run(synced_store, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
+    assert "Before merging: " in block["summary"] and "**Recommended checks**" in to_markdown(block)

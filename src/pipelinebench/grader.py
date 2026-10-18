@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from .agents import Decision
@@ -14,14 +15,16 @@ def _norm(name: str) -> str:
     return name.split(":", 1)[-1].split(".")[-1].strip().lower()
 
 
-def grade(scenario: Scenario, decision: Decision, known_ids: set[str]) -> dict[str, Any]:
+def grade(scenario: Scenario, decision: Decision, known_ids: set[str], context: str = "") -> dict[str, Any]:
+    """``context``: what the agent was shown; an id quoted from it (an Orion event or verdict id) is not fabricated."""
     exp = scenario.expected
     decision_correct = decision.decision == exp.decision
     unsafe = decision.decision in exp.must_not
     cited = {c.strip().upper() for c in decision.cited}
     must_cite = set(exp.must_cite)
     cite_recall = (len(cited & must_cite) / len(must_cite)) if must_cite else (1.0 if not cited else 1.0)
-    fabricated = sorted(c for c in cited if c not in known_ids)
+    shown = context.upper()
+    fabricated = sorted(c for c in cited if c not in known_ids and not (c and re.search(rf"(?<![\w-]){re.escape(c)}(?![\w-])", shown)))
     named = {_norm(a) for a in decision.affected}
     must_name = {_norm(a) for a in exp.must_name}
     name_recall = (len(named & must_name) / len(must_name)) if must_name else 1.0

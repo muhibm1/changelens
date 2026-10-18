@@ -207,7 +207,9 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
             asks.append("schedule the backfill off-hours")
         elif c["kind"] == "confirm_resolution":
             asks.append("confirm the resolved assets")
-    if asks:
+    if asks and all(c["kind"] == "run_tests" for c in checks):
+        parts.append("Nothing beyond normal review and CI: " + "; ".join(asks[:4]) + ".")  # routine, so an agent does not read it as a gate
+    elif asks:
         parts.append("Before merging: " + "; ".join(asks[:4]) + ".")
     parts.append(f"Severity {sev}.")
     return " ".join(parts)
@@ -324,7 +326,7 @@ def to_markdown(v: dict[str, Any]) -> str:
             lines.append(f"- {h['occurred_at']:%Y-%m-%d} {h['kind']} {h['ref'] or ''}: {h['title'] or ''} ({h['relevance']}) — {h['event']}")
         lines.append("")
     if v["checks"]:
-        lines.append("**Recommended checks**")
+        lines.append("**Routine checks**" if all(c["kind"] == "run_tests" for c in v["checks"]) else "**Recommended checks**")
         for c in v["checks"]:
             desc = {k: val for k, val in c.items() if k not in ("kind", "evidence")}
             lines.append(f"- `{c['kind']}` {desc if desc else ''}")
