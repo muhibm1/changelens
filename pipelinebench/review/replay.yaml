@@ -1,0 +1,120 @@
+# Merged changes from public repositories, replayed through `orion review --git <commit>^`.
+# Labels are judged by hand against each project's later history (see pipelinebench/results/partner-*.md);
+# never derive them from Orion's output. A warning that matches no label is reported as unjudged.
+repos:
+  httpx:
+    url: https://github.com/encode/httpx
+  hono:
+    url: https://github.com/honojs/hono
+  cobra:
+    url: https://github.com/spf13/cobra
+  calitp:
+    url: https://github.com/cal-itp/data-infra
+    # A dbt and Airflow platform: the clone needs a compiled manifest and `orion sync` before replay
+    # (pipelinebench/results/partner-calitp-dbt.md). The graph used for the labels was synced at 8af13f10.
+    needs_sync: true
+    config: |
+      db: .orion/graph.duckdb
+      adapters:
+        dbt:
+          project: warehouse
+        airflow:
+          dags: airflow/dags
+        git:
+          paths: [warehouse, airflow/dags]
+          max_commits: 500
+
+cases:
+  - {repo: httpx, commit: 1d73150, title: "Cleanup response.json() method (#2911)", labels: [{path: httpx/_models.py, line: 761, verdict: plausible, note: "json() ignores the declared charset; not addressed upstream"}]}
+  - {repo: httpx, commit: 359f77d, title: "Clean up URL signature (#3245)"}
+  - {repo: httpx, commit: 41597ad, title: "Move remaining utility functions to _models.py (#3387)"}
+  - {repo: httpx, commit: 6212e8f, title: "Move utility functions to _multipart.py (#3388)"}
+  - {repo: httpx, commit: 75a13a1, title: "Remove typeshed iscoroutine workaround (#2466)"}
+  - {repo: httpx, commit: 83a8518, title: "Move normalize header functions to _models.py (#3382)"}
+  - repo: httpx
+    commit: 8752e26
+    title: "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)"
+    labels:
+      - {path: httpx/_content.py, line: 55, verdict: noise, note: "the removal is the announced change"}
+      - {path: httpx/_types.py, line: 110, verdict: noise, note: "the removal is the announced change"}
+  - {repo: httpx, commit: 9baf3a6, title: "Drop RawURL (#2241)", labels: [{path: httpx/_urls.py, line: 76, verdict: noise, note: "the removal is the announced change"}]}
+  - {repo: httpx, commit: b97c059, title: "Streaming multipart support (#2382)", labels: [{path: httpx/_multipart.py, line: 177, verdict: plausible, note: "non-seekable file handling around seek; a fair question"}]}
+  - {repo: httpx, commit: ba2e512, title: "Review urlescape percent-safe set (#3373)", labels: [{path: httpx/_urls.py, line: 622, verdict: plausible, note: "reserved characters left unescaped beyond the announced + for spaces"}]}
+
+  - {repo: hono, commit: 3a67f7f3, title: "Merge commit from fork"}
+  - {repo: hono, commit: 4b44abe1, title: "perf(router): share null object creation (#5267)"}
+  - {repo: hono, commit: 6cadf753, title: "fix(lambda-edge): descriptive error on a malformed event (#5358)", labels: [{path: src/adapter/lambda-edge/handler.ts, line: 186, verdict: plausible, note: "with no host header and no config the URL host becomes the string undefined instead of failing"}]}
+  - {repo: hono, commit: 7075369e, title: "Revert fix(etag) incremental hashing (#5199)", labels: [{path: src/middleware/etag/digest.ts, line: 33, verdict: confirmed, note: "hono fixed this in #5205, stabilize digest across stream chunks"}]}
+  - {repo: hono, commit: 8a5852d4, title: "fix(etag): incremental hashing for chunked responses (#5199)"}
+  - {repo: hono, commit: a1946287, title: "fix(pattern-router/linear-router): prefix overmatch (#5252)"}
+  - {repo: hono, commit: a1e4ac7d, title: "perf(cors): pre-join static array header options (#5210)"}
+  - repo: hono
+    commit: c409d855
+    title: "fix(request): serialize cached JSON body in cloneRawRequest (#5288)"
+    labels:
+      - {path: src/request.ts, line: 488, verdict: noise, note: "the cached value came from parsing JSON, so stringify cannot fail"}
+      - {path: src/request.ts, line: 490, verdict: noise, note: "a deleted comment"}
+
+  - repo: cobra
+    commit: 24ada7f
+    title: "Remove the default completion cmd if it is alone (#1559)"
+    labels:
+      - {path: completions.go, line: 775, verdict: noise, note: "&&/|| precedence is correct as written"}
+      - {path: command.go, line: 1115, verdict: noise, note: "speculation about call ordering"}
+      - {path: completions.go, line: 746, verdict: noise, note: "needs a second Execute in one process, an unusual caller"}
+  - {repo: cobra, commit: 5bef9d8, title: "Fix --version help and output for plugins (#2180)"}
+  - {repo: cobra, commit: 6c3c116, title: "feat: add CompletionFunc type (#2220)"}
+  - {repo: cobra, commit: 8607918, title: "feat: make InitDefaultCompletionCmd public (#1467)"}
+  - {repo: cobra, commit: a0a6ae0, title: "Improve API to get flag completion function (#2063)"}
+  - repo: cobra
+    commit: a4ab3fa
+    title: "powershell completion with custom comp (#1208)"
+    labels:
+      - {path: powershell_completions.go, line: 99, verdict: plausible, note: "$Out[-1].TrimStart throws on empty output; still in cobra"}
+      - {path: powershell_completions.go, line: 107, verdict: plausible, note: "Where-Object drops every line equal to the directive"}
+      - {path: powershell_completions.go, line: 67, verdict: plausible, note: "Split on spaces breaks quoted arguments"}
+      - {path: powershell_completions.go, line: 164, verdict: plausible, note: "filter block mutates the hashtable"}
+      - {path: powershell_completions.go, line: 146, verdict: noise, note: "PowerShell 3+ gives $null.Length as 0, so the empty check matches"}
+      - {path: powershell_completions.go, line: 201, verdict: noise, note: "a single result is a scalar whose intrinsic Length is 1"}
+  - {repo: cobra, commit: b84ef40, title: "Rename BashCompDirectives to ShellCompDirectives (#1082)"}
+  - {repo: cobra, commit: fce8d8a, title: "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)"}
+
+  - {repo: calitp, commit: 008d78a8, title: "Remove non-RBAP Payments Tables (#5651)", labels: [{path: warehouse/models/mart/payments/elavon_littlepay__daily_history_transactions_deposits_billing.sql, line: 0, verdict: setup, note: "deleted models are already gone from a graph synced after the change"}]}
+  - {repo: calitp, commit: 2eff9b46, title: "De-duplicate fct_payments_settlements rows (#5586)", labels: [{path: warehouse/models/intermediate/payments/int_payments__settlements_deduped.sql, line: 15, verdict: noise, note: "deduplicating by settlement_id is the announced fix"}]}
+  - {repo: calitp, commit: 2f53a705, title: "SUM instead of COUNT for total arrivals (#5679)"}
+  - repo: calitp
+    commit: 3127f574
+    title: "Add _feed_valid_from to daily GTFS summary tables (#5656)"
+    labels:
+      - {path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_operator_summary.sql, line: 83, verdict: plausible, note: "renamed output columns"}
+      - {path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql, line: 191, verdict: plausible, note: "inner join drops NULL direction_id rows"}
+      - {path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml, line: 11, verdict: plausible, note: "renamed documented columns"}
+      - {path: warehouse/models/mart/ntd_funding_and_expenses/fct_service_data_and_operating_expenses_time_series_by_mode.sql, line: 84, verdict: plausible, note: "renamed output column"}
+  - repo: calitp
+    commit: 34716dcc
+    title: "Fix route-direction summary trip counting (#5767)"
+    labels:
+      - {path: warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql, line: 5, end_line: 40, verdict: confirmed, note: "the next commit, b0b73b32 fix refs, puts ref() back"}
+      - {path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql, line: 20, verdict: plausible, note: "MAX per key can pair a vehicle-positions key and a trip-updates key from different records"}
+      - {path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql, line: 201, verdict: noise, note: "restricting to the valid date range is the announced fix"}
+      - {path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql, line: 214, verdict: plausible, note: "two records with the same _valid_from tie, so the kept row is arbitrary"}
+  - {repo: calitp, commit: 5b9885a0, title: "Incrementally build vehicle position trip summaries (#5642)", labels: [{path: warehouse/models/mart/gtfs/fct_vehicle_positions_trip_summaries.sql, line: 18, verdict: noise, note: "a lookback window is the standard incremental trade-off the change chose"}]}
+  - {repo: calitp, commit: 6a6df64e, title: "Add Public/Conditional Operating column to dim tables (#5674)"}
+  - repo: calitp
+    commit: 6f1cc4b7
+    title: "Enghouse transactions cleanup (#5763)"
+    labels:
+      - {path: warehouse/models/intermediate/payments/_int_payments.yml, line: 121, verdict: noise, note: "moving the not_null test is announced in the commit"}
+      - {path: warehouse/models/intermediate/payments/_int_payments.yml, line: 157, verdict: noise, note: "the moved test passed upstream CI; no contradiction"}
+      - {path: warehouse/models/mart/payments/_payments.yml, line: 1224, verdict: noise, note: "the test changes are announced in the commit"}
+  - repo: calitp
+    commit: ad497afc
+    title: "De-duplicate Littlepay customers and rides (#5761)"
+    labels:
+      - {path: warehouse/models/intermediate/payments/int_payments__customer_funding_source_vaults.sql, line: 10, verdict: plausible, note: "validity windows from the latest row only"}
+      - {path: warehouse/models/intermediate/payments/int_payments__deduped_customer_funding_sources.sql, line: 20, verdict: plausible, note: "rank ties can keep duplicates"}
+      - {path: warehouse/models/intermediate/payments/int_payments__deduped_customer_funding_sources.sql, line: 60, verdict: plausible, note: "rank filter interaction"}
+      - {path: warehouse/models/intermediate/payments/int_payments__customers.sql, line: 13, verdict: plausible, note: "the same rank-ordering question on customers"}
+  - {repo: calitp, commit: b0b73b32, title: "fix refs (#5768)"}
+  - {repo: calitp, commit: e636f6e2, title: "Type datetimes in fct_payments_aggregations (#5583)"}
+  - {repo: calitp, commit: fbe45897, title: "Remove legacy stg_rt models (#5633)", labels: [{path: warehouse/dbt_project.yml, line: 98, verdict: setup, note: "deleted models are already gone from a graph synced after the change"}]}

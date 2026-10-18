@@ -38,6 +38,7 @@ def empty_repo(tmp_path_factory):
 
 
 def _run(store, constraints, diff, provider=None, *, search_root, **kw):
+    kw.setdefault("scope", ["fixture"])  # the platform roots, as the CLI passes them; app/ is application code
     return review(store, ROOT, provider or StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, search_root=search_root, **kw)
 
 

@@ -305,11 +305,11 @@ def fork_point(repo_root: Path, base_ref: str) -> str:
 
 
 def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, str | None]], renames: dict[str, str]) -> None:
-    """A schema entry removed for a model whose SQL file this same change deletes or renames is accounted for:
-    the graph (synced after the change) has no asset by the old name because the change removed it."""
+    """A schema entry for a model whose SQL file this same change adds, deletes or renames is accounted for: the graph
+    has no asset by that name because it was synced on the other side of the change."""
     # Matched by directory and name: a schema file documents the models beside it.
-    gone = {(str(Path(old).parent), Path(old).stem) for new, old in renames.items() if old.endswith(".sql")}
-    gone |= {(str(Path(p).parent), Path(p).stem) for p, old, new in changes if p.endswith(".sql") and old is not None and new is None}
+    gone = {(str(Path(p).parent), Path(p).stem) for pair in renames.items() for p in pair if p.endswith(".sql")}
+    gone |= {(str(Path(p).parent), Path(p).stem) for p, old, new in changes if p.endswith(".sql") and (old is None) != (new is None)}
     if not gone:
         return
     kept = []
@@ -318,7 +318,7 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
         here = str(Path(u.get("path") or "").parent)
         settled = [e for e in entries or [] if (here, e) in gone]
         if entries and len(settled) == len(entries):
-            cs.ignored.append(f"{u['path']}: schema entries for {', '.join(entries)}, removed with their SQL file")
+            cs.ignored.append(f"{u['path']}: schema entries for {', '.join(entries)}, added or removed with their SQL file")
             continue
         if settled:
             left = [e for e in entries if e not in settled]
@@ -460,6 +460,10 @@ def collect_changes(
     for path, old, new in changes:
         if path.endswith(".md") and not resolver.resolve(path):
             cs.ignored.append(path)  # prose (dbt doc blocks, READMEs) changes no asset
+            continue
+        if path.endswith(".sql") and old is None and new is not None and not resolver.resolve(path) and not resolver.tested_by(path):
+            # A model this change adds is not in a graph synced from the base branch, and nothing there can read it yet.
+            cs.ignored.append(f"{path}: new file, nothing in the graph reads it yet")
             continue
         file_ops, unresolved = ops_from_file_change(store, resolver, path, old, new, tmpdir)
         for op in file_ops:

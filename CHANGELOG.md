@@ -11,6 +11,10 @@
 
 ### Real-repository noise
 
+- `pipelinebench replay-eval` replays merged commits from public repositories (httpx, hono, cobra, cal-itp) through `orion review` and counts warnings per change against hand labels: confirmed upstream, plausible, or noise.
+- The second reading of a model warning says what a confirmed case is: a defect, intended by the change, a trade-off it chose, an unusual caller, or style. Only a defect keeps `warn`. On the replay, warnings fell from 17 to 12 and noise from 8 to 3, with both confirmed bugs caught (`pipelinebench/results/replay.md`).
+- A model file the change adds is new, not unmapped: nothing in a graph synced from the base branch reads it yet. Its schema entries are accounted for too.
+- A review raised to `warn` only because no changed path maps to an asset now carries a finding that says so and lists each path's reason. Before, the review was `warn` with nothing to explain it.
 - An `orion.yaml` with no dbt or Airflow adapter (an application repository) no longer reports every changed file as unmapped. Before, every review in such a repository was `warn` with no finding to explain it.
 - A diff given as a file is filtered by the platform roots, as a git diff already was.
 - A renamed file is diffed against its old path; before, a renamed model read as a new file.

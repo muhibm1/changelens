@@ -34,7 +34,7 @@ def test_grading_counts_catches_inform_and_false_alarms(synced_store):
         return {"findings": [{"path": "app/pricing.py", "line": 6, "severity": "warn", "category": "maintainability", "title": "nit", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/pricing.py:6"]}]}
 
     cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
-    res = run_eval(picked, StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None))
+    res = run_eval(picked, StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None), scope=["fixture"])
     s = res["summary"]
     assert s["recall"] == 0.5
     assert s["inform_only"] == 1
@@ -55,7 +55,7 @@ def test_multi_file_case_grades_against_the_bug_file(synced_store):
         return {"findings": [{"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "signature changed", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/http.py:4"]}]}
 
     cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
-    s = run_eval([case], StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None))["summary"]
+    s = run_eval([case], StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None), scope=["fixture"])["summary"]
     assert s["recall"] == 0.0 and s["false_alarms"] == 1
 
 

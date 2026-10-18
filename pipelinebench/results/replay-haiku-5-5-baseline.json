@@ -1,0 +1,814 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1d73150",
+   "title": "Cleanup response.json() method (#2911)",
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 761,
+     "title": "json() ignores the declared charset and decodes raw bytes as UTF-8/16/32",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14371,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1909
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "359f77d",
+   "title": "Clean up URL signature (#3245)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 15477,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 467
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "41597ad",
+   "title": "Move remaining utility functions to _models.py (#3387)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 18498,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 444
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6212e8f",
+   "title": "Move utility functions to _multipart.py (#3388)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13455,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 292
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "75a13a1",
+   "title": "Remove typeshed iscoroutine workaround (#2466)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3510,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 187
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "83a8518",
+   "title": "Move normalize header functions to _models.py (#3382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9083,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 479
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "8752e26",
+   "title": "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9211,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 514
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "9baf3a6",
+   "title": "Drop RawURL (#2241)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 11080,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1711
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b97c059",
+   "title": "Streaming multipart support (#2382)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_multipart.py",
+     "line": 181,
+     "title": "Non-seekable file content is lost when the multipart stream is iterated a second time",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13974,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1827
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "ba2e512",
+   "title": "Review urlescape percent-safe set (#3373)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 5121,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1960
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "3a67f7f3",
+   "title": "Merge commit from fork",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13166,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 6040
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "4b44abe1",
+   "title": "perf(router): share null object creation (#5267)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14969,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 474
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6cadf753",
+   "title": "fix(lambda-edge): descriptive error on a malformed event (#5358)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/adapter/lambda-edge/handler.ts",
+     "line": 186,
+     "title": "Missing config and host header now builds a request to host 'undefined' instead of failing",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 15479,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1608
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7075369e",
+   "title": "Revert fix(etag) incremental hashing (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 1,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3515,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 866
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8a5852d4",
+   "title": "fix(etag): incremental hashing for chunked responses (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3551,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 491
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1946287",
+   "title": "fix(pattern-router/linear-router): prefix overmatch (#5252)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7241,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 2772
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1e4ac7d",
+   "title": "perf(cors): pre-join static array header options (#5210)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 5983,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 656
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "c409d855",
+   "title": "fix(request): serialize cached JSON body in cloneRawRequest (#5288)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 2288,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 445
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "24ada7f",
+   "title": "Remove the default completion cmd if it is alone (#1559)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "completions.go",
+     "line": 746,
+     "title": "Leftover default completion command counts as a real sub-command on a second run",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9514,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 5490
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "5bef9d8",
+   "title": "Fix --version help and output for plugins (#2180)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6235,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 468
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6c3c116",
+   "title": "feat: add CompletionFunc type (#2220)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 4764,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 213
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "8607918",
+   "title": "feat: make InitDefaultCompletionCmd public (#1467)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 2704,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 222
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a0a6ae0",
+   "title": "Improve API to get flag completion function (#2063)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 4529,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 451
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a4ab3fa",
+   "title": "powershell completion with custom comp (#1208)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 146,
+     "title": "Empty-result check for ShellCompDirectiveNoFileComp never matches",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 201,
+     "title": "Single-match check never true, so Complete mode inserts the description into the command line",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 32894,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 3663
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b84ef40",
+   "title": "Rename BashCompDirectives to ShellCompDirectives (#1082)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 29314,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 369
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "fce8d8a",
+   "title": "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6082,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "008d78a8",
+   "title": "Remove non-RBAP Payments Tables (#5651)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/payments/elavon_littlepay__daily_history_transactions_deposits_billing.sql",
+     "line": 0,
+     "title": "8 changed paths are not mapped to any asset",
+     "verdict": "setup"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 16018,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 753
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "2eff9b46",
+   "title": "De-duplicate fct_payments_settlements rows (#5586)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__settlements_deduped.sql",
+     "line": 15,
+     "title": "Dedup key drops rows that previously survived because they differed by amount",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8558,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 2013
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "2f53a705",
+   "title": "SUM instead of COUNT for total arrivals (#5679)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9385,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 721
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "3127f574",
+   "title": "Add _feed_valid_from to daily GTFS summary tables (#5656)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 191,
+     "title": "Inner join on common_shape drops schedule rows with a NULL direction_id",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 43793,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 3924
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "34716dcc",
+   "title": "Fix route-direction summary trip counting (#5767)",
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+     "line": 33,
+     "title": "Hardcoded production table paths replace dbt refs",
+     "verdict": "confirmed"
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 20,
+     "title": "GROUP BY collapses trip update and vehicle position keys independently",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 201,
+     "title": "Date-range join silently drops schedule rows outside every valid range",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 214,
+     "title": "Dedupe ordering has no tiebreaker",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 1,
+   "confirmed_caught": 1,
+   "usage": {
+    "input_tokens": 31682,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 6050
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "5b9885a0",
+   "title": "Incrementally build vehicle position trip summaries (#5642)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_vehicle_positions_trip_summaries.sql",
+     "line": 18,
+     "title": "Late-arriving rows older than the lookback window are never reprocessed",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 10897,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 2025
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "6a6df64e",
+   "title": "Add Public/Conditional Operating column to dim tables (#5674)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 11141,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 727
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "6f1cc4b7",
+   "title": "Enghouse transactions cleanup (#5763)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/_int_payments.yml",
+     "line": 121,
+     "title": "unique_combination test no longer excludes null payment_reference rows",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/_int_payments.yml",
+     "line": 157,
+     "title": "not_null test on payment_reference contradicts the rows the model keeps",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 31595,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 4073
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "ad497afc",
+   "title": "De-duplicate Littlepay customers and rides (#5761)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__customer_funding_source_vaults.sql",
+     "line": 10,
+     "title": "Keeping only the latest row per vault collapses the validity windows",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__deduped_customer_funding_sources.sql",
+     "line": 60,
+     "title": "Vault rank is computed before the funding-source filter, so the latest vault row can be dropped",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 45964,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 7040
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "b0b73b32",
+   "title": "fix refs (#5768)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7174,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 394
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "e636f6e2",
+   "title": "Type datetimes in fct_payments_aggregations (#5583)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6415,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 711
+   }
+  },
+  {
+   "repo": "calitp",
+   "commit": "fbe45897",
+   "title": "Remove legacy stg_rt models (#5633)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 98,
+     "title": "6 changed paths are not mapped to any asset",
+     "verdict": "setup"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9188,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 277
+   }
+  }
+ ],
+ "summary": {
+  "changes": 38,
+  "errors": 0,
+  "changes_warned": 11,
+  "warns": 17,
+  "warns_per_change": 0.45,
+  "confirmed": 1,
+  "plausible": 8,
+  "noise": 8,
+  "unjudged": 0,
+  "setup": 2,
+  "confirmed_recall": "1/2",
+  "tokens_in": 507818,
+  "tokens_out": 62736
+ },
+ "regraded": "labels as of this commit"
+}

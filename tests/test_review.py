@@ -404,10 +404,10 @@ def test_a_warning_raised_only_by_unmapped_paths_says_so(synced_store, constrain
 -select product_id, product_name, category, unit_price
 +select product_id, product_name, category, unit_price, 1 as is_active
 diff --git a/{new} b/{new}
-new file mode 100644
---- /dev/null
+--- a/{new}
 +++ b/{new}
-@@ -0,0 +1 @@
+@@ -1 +1 @@
+-{{% macro cents(x) %}}{{{{ x }}}} * 10{{% endmacro %}}
 +{{% macro cents(x) %}}{{{{ x }}}} * 100{{% endmacro %}}
 """
     r = _review(synced_store, constraints, diff, StubProvider())
@@ -520,3 +520,36 @@ def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tm
     _settle_removed_entries(cs, changes, renames)
     assert [u["entries"] for u in cs.unresolved] == [["other"], ["stg_old"]], "an entry in another folder is not the renamed file's"
     assert any("stg_old" in i for i in cs.ignored)
+
+
+def test_a_warn_raised_only_for_unmapped_paths_has_a_finding_behind_it(synced_store, constraints):
+    path = "fixture/dbt_project/macros/cents.sql"  # a changed macro: Orion maps no asset to it
+    diff = f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -1 +1 @@\n-select 1 as id\n+select 2 as id\n"
+    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"])
+    assert r["severity"] == "warn"
+    [f] = [f for f in r["findings"] if f["severity"] == "warn"]
+    assert f["title"] == "1 changed path is not mapped to any asset" and "no asset defined at this path" in f["body"]
+
+
+def test_a_confirmed_case_that_is_the_changes_own_choice_is_lowered_with_its_kind(synced_store, constraints):
+    first = {"findings": [
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "correctness", "title": "Drops duplicate rows", "body": "b", "failure": "two rows with one key keep one", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "correctness", "title": "Real defect", "body": "b", "failure": "an empty list raises", "evidence": ["hunk:app/service.py:5"]},
+    ]}
+
+    def respond(system, user):
+        if system.startswith("You check another reviewer"):
+            return {"verdicts": [{"index": 0, "holds": True, "kind": "intended", "reason": "deduplication is the point"}, {"index": 1, "holds": True, "kind": "defect", "reason": "reachable"}]}
+        return first
+
+    r = _review(synced_store, constraints, APP_DIFF, StubProvider(respond))
+    by = {f["title"]: f for f in r["findings"]}
+    assert by["Drops duplicate rows"]["severity"] == "inform" and "judged it intended" in by["Drops duplicate rows"]["notes"][-1]
+    assert by["Real defect"]["severity"] == "warn"
+
+
+def test_a_model_the_change_adds_is_new_not_unmapped(synced_store, constraints):
+    path = "fixture/dbt_project/models/marts/brand_new.sql"
+    diff = f"diff --git a/{path} b/{path}\nnew file mode 100644\n--- /dev/null\n+++ b/{path}\n@@ -0,0 +1,2 @@\n+select 1 as id\n+from x\n"
+    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], new_files={path: "select 1 as id\nfrom x\n"})
+    assert r["severity"] == "inform" and r["unresolved"] == []

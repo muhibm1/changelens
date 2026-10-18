@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import typer
@@ -130,6 +131,43 @@ def review_eval_cmd(
     stem = name or "review-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
     md = eval_md(res)
+    (out / f"{stem}.md").write_text(md)
+    console.print(md)
+    console.print(f"wrote {out / stem}.json and .md")
+
+
+@app.command("replay-eval")
+def replay_eval_cmd(
+    workdir: Path = typer.Option(..., "--workdir", help="Where the repositories are cloned (reused between runs)."),
+    provider: str = typer.Option("stub", "--provider"),
+    model: str | None = typer.Option(None, "--model"),
+    repo: list[str] = typer.Option([], "--repo", help="Only these repositories."),
+    cases_file: Path = typer.Option(REVIEW_CASES.parent / "replay.yaml", "--cases"),
+    name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
+    out: Path = typer.Option(RESULTS, "--out"),
+):
+    """Replay merged commits from public repositories through `orion review` and count what it warns about."""
+    import shutil
+    from datetime import UTC, datetime
+
+    from .replay_eval import load as load_replay
+    from .replay_eval import run as run_replay
+    from .replay_eval import to_markdown as replay_md
+
+    repos, cases = load_replay(cases_file)
+    unknown = sorted(set(repo) - set(repos))
+    if unknown:
+        console.print(f"[red]unknown repository {', '.join(unknown)}; use one of {', '.join(sorted(repos))}[/red]")
+        raise typer.Exit(2)
+    cases = [c for c in cases if not repo or c.repo in repo]
+    orion = shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
+    workdir.mkdir(parents=True, exist_ok=True)
+    with console.status("replaying") as status:
+        res = run_replay(cases, repos, workdir.resolve(), orion=orion, provider=provider, model=model, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {len(r['warns'])} warnings"))
+    out.mkdir(parents=True, exist_ok=True)
+    stem = name or "replay-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+    (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
+    md = replay_md(res)
     (out / f"{stem}.md").write_text(md)
     console.print(md)
     console.print(f"wrote {out / stem}.json and .md")
