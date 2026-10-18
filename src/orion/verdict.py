@@ -21,6 +21,7 @@ from .store import Store
 from .sync import graph_as_of
 
 HISTORY_KINDS = ["postmortem_filed", "incident_opened", "sla_missed", "run_failed", "schema_changed", "outcome_observed"]
+INCIDENT_KINDS = {"postmortem_filed", "incident_opened"}
 CAUSE_FAMILY = {
     "drop_column": {"drop_column", "rename_column"},
     "rename_column": {"drop_column", "rename_column"},
@@ -34,11 +35,13 @@ def _short(nid: str) -> str:
     return nid.split(":", 1)[1] if ":" in nid else nid
 
 
-def _destructive(op) -> bool:
+def _noop(op) -> bool:
     """A change_partition to the key the asset already has rewrites nothing."""
-    if op.kind == "change_partition" and op.details.get("from") and op.details.get("to") == op.details.get("from"):
-        return False
-    return op.kind in DESTRUCTIVE
+    return op.kind == "change_partition" and bool(op.details.get("from")) and op.details.get("to") == op.details.get("from")
+
+
+def _destructive(op) -> bool:
+    return op.kind in DESTRUCTIVE and not _noop(op)
 
 
 def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
@@ -54,8 +57,8 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
             out[nid] = {"via": via, "hops": hops, "evidence": evidence}
 
     for op in cs.ops:
-        if op.kind == "add_column":
-            continue  # a new column has no dependants yet
+        if op.kind == "add_column" or _noop(op):
+            continue  # a new column has no dependants yet; a no-op repartition rewrites nothing
         if op.kind in COLUMN_OPS and op.column:
             col_id = f"column:{_short(op.asset)}.{op.column}"
             if store.node(col_id) is not None:
@@ -112,18 +115,31 @@ def column_readers(store: Store, cs: ChangeSet) -> list[dict[str, Any]]:
     return list(rows.values())
 
 
-def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], horizon_days: int = 365) -> list[dict[str, Any]]:
+def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], horizon_days: int = 365) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Incidents, and events from the same kind of change, are history; other operational events are background.
+
+    A failed run or a missed SLA on a touched asset says nothing about a change of a different kind, and listing it
+    beside incidents reads as a reason for caution. Background is kept in the verdict and counted in the markdown.
+    """
     ids = set(cs.touched) | set(affected)
     since = datetime.now(UTC) - timedelta(days=horizon_days)
-    events = store.events_for(ids, kinds=HISTORY_KINDS, since=since, limit=20)
-    op_kinds = {o.kind for o in cs.ops}
-    rows = []
+    op_kinds = {o.kind for o in cs.ops if not _noop(o)}
+    # Incidents, events from the same kind of change, and the rest are read with separate limits, so a run of
+    # failed jobs cannot crowd out an incident or an older event from this kind of change.
+    causes = sorted({c for k in op_kinds for c in CAUSE_FAMILY.get(k, {k})})
+    seen: dict[str, dict[str, Any]] = {}
+    for kinds, cause_filter in ((sorted(INCIDENT_KINDS), None), (HISTORY_KINDS, causes), (HISTORY_KINDS, None)):
+        for e in store.events_for(ids, kinds=kinds, since=since, limit=20, causes=cause_filter):
+            seen.setdefault(e["id"], e)
+    events = sorted(seen.values(), key=lambda e: e["occurred_at"], reverse=True)
+    rows: list[dict[str, Any]] = []
+    background: list[dict[str, Any]] = []
     for e in events:
         same_asset = bool(set(e["assets"]) & set(cs.touched))
         cause = (e["payload"].get("cause") or "").lower()
-        same_op = any(cause in CAUSE_FAMILY.get(k, set()) for k in op_kinds)
+        same_op = bool(cause) and any(cause in CAUSE_FAMILY.get(k, {k}) for k in op_kinds)
         relevance = ("same asset" if same_asset else "downstream asset") + (", same kind of change" if same_op else "")
-        rows.append(
+        (rows if e["kind"] in INCIDENT_KINDS or same_op else background).append(
             {
                 "event": e["id"],
                 "kind": e["kind"],
@@ -136,7 +152,7 @@ def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], h
                 "evidence": [f"event:{e['id']}"],
             }
         )
-    return rows
+    return rows, background[:20]
 
 
 def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hits: list[ConstraintHit], readers: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -176,7 +192,7 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
     target = _short(first.asset) + (f".{first.column}" if first.column else "")
     more = f" and {len(cs.ops) - 1} more change{'s' if len(cs.ops) > 2 else ''}" if len(cs.ops) > 1 else ""
     tier1 = [a for a in affected_rows if a.get("tier") == 1]
-    parts = [f"{what.capitalize()} on {target}{more}"]
+    parts = [f"{what.capitalize()} on {target}{' to the key it already has' if _noop(first) else ''}{more}"]
     if affected_rows:
         names = ", ".join(_short(a["asset"]) for a in tier1[:3])
         parts[0] += f" reaches {len(affected_rows)} downstream asset{'s' if len(affected_rows) != 1 else ''}"
@@ -190,9 +206,10 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
     if same_kind:
         h = same_kind[0]
         parts.append(f"The same kind of change caused {h['ref']} on {h['occurred_at']:%Y-%m-%d}.")
-    elif any(h["kind"] == "postmortem_filed" for h in history):
-        h = next(h for h in history if h["kind"] == "postmortem_filed")
-        parts.append(f"This path has incident history: {h['ref']} on {h['occurred_at']:%Y-%m-%d}.")
+    else:
+        other = list(dict.fromkeys(h["ref"] for h in history if h["kind"] in INCIDENT_KINDS and h["ref"]))
+        if other:
+            parts.append(f"Earlier incidents on these assets ({', '.join(other[:3])}) are not from this kind of change.")
     asks = []
     for c in checks:
         if c["kind"] == "update_readers":
@@ -239,10 +256,10 @@ def preflight(
         affected_rows.append({"asset": nid, "kind": n["kind"], "tier": n["tier"], "owner": n["owner"], "via": info["via"], "hops": info["hops"], "evidence": info["evidence"]})
 
     hits = evaluate(store, constraints, cs.ops, set(affected))
-    history = _history(store, cs, affected)
+    history, background = _history(store, cs, affected)
     newest_incident_days = None
     for h in history:
-        if h["kind"] in ("postmortem_filed", "incident_opened"):
+        if h["kind"] in INCIDENT_KINDS and h["same_kind_of_change"]:
             occurred = h["occurred_at"] if h["occurred_at"].tzinfo else h["occurred_at"].replace(tzinfo=UTC)
             days = (now - occurred).days
             newest_incident_days = days if newest_incident_days is None else min(newest_incident_days, days)
@@ -274,6 +291,7 @@ def preflight(
         "constraints": [h.to_dict() for h in hits],
         "readers": readers,
         "history": history,
+        "background_events": background,
         "risk": risk.to_dict(),
         "checks": checks,
         "summary": "",
@@ -322,8 +340,22 @@ def to_markdown(v: dict[str, Any]) -> str:
         lines.append("")
     if v["history"]:
         lines.append("**History**")
-        for h in v["history"][:6]:
-            lines.append(f"- {h['occurred_at']:%Y-%m-%d} {h['kind']} {h['ref'] or ''}: {h['title'] or ''} ({h['relevance']}) — {h['event']}")
+        # One line per incident (its opening and its postmortem share a ref), the same kind of change first.
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for h in sorted(v["history"], key=lambda h: not h["same_kind_of_change"]):
+            grouped.setdefault(h["ref"] or h["event"], []).append(h)
+        for rows in list(grouped.values())[:6]:
+            h = rows[0]
+            kinds = ", ".join(dict.fromkeys(r["kind"] for r in rows))
+            title = f": {h['title']}" if h["title"] else ""
+            lines.append(f"- {h['occurred_at']:%Y-%m-%d} {h['ref'] or ''} ({kinds}){title} ({h['relevance']}) — {', '.join(r['event'] for r in rows)}")
+        lines.append("")
+    if v.get("background_events"):
+        counts: dict[str, int] = {}
+        for b in v["background_events"]:
+            counts[b["kind"]] = counts.get(b["kind"], 0) + 1
+        listed = ", ".join(f"{n} {k}" for k, n in sorted(counts.items()))
+        lines.append(f"Other events on these assets, not incidents and not from this kind of change: {listed} (`orion history <asset>`).")
         lines.append("")
     if v["checks"]:
         lines.append("**Routine checks**" if all(c["kind"] == "run_tests" for c in v["checks"]) else "**Recommended checks**")

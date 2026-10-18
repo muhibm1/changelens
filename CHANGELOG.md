@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Verdict quality
+
+- A verdict's `history` lists incidents and events from the same kind of change. Failed runs, missed SLAs and schema changes from other kinds of change move to a new `background_events` field, and the markdown counts them in one line. They read as reasons for caution when they were not.
+- Incident recency adds risk only for an incident from the same kind of change. Other incidents on the path are still listed and named in the summary as not from this kind of change.
+- An incident's opening and its postmortem are one line in the markdown.
+- Repartitioning to the key an asset already has reaches nothing and is not matched to repartition incidents.
+
 ### Real-repository noise
 
 - An `orion.yaml` with no dbt or Airflow adapter (an application repository) no longer reports every changed file as unmapped. Before, every review in such a repository was `warn` with no finding to explain it.

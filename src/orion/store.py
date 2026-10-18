@@ -317,8 +317,9 @@ class Store:
         return [dict(adapter=a, source=s, ref=r, observed_at=o) for a, s, r, o in rows]
 
     def events_for(
-        self, asset_ids: Iterable[str], kinds: Iterable[str] | None = None, since: datetime | None = None, limit: int = 50
+        self, asset_ids: Iterable[str], kinds: Iterable[str] | None = None, since: datetime | None = None, limit: int = 50, causes: Iterable[str] | None = None
     ) -> list[dict[str, Any]]:
+        """``causes``: only events whose payload names one of these causes."""
         ids = list(asset_ids)
         if not ids:
             return []
@@ -335,6 +336,10 @@ class Store:
         if since is not None:
             sql += " AND e.occurred_at >= ?"
             args.append(since)
+        if causes is not None:
+            cs = list(causes) or [""]
+            sql += " AND lower(json_extract_string(e.payload, '$.cause')) IN ({})".format(",".join("?" for _ in cs))
+            args.extend(c.lower() for c in cs)
         sql += " GROUP BY ALL ORDER BY e.occurred_at DESC LIMIT ?"
         args.append(limit)
         rows = self.con.execute(sql, args).fetchall()

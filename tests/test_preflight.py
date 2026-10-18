@@ -255,6 +255,61 @@ def test_routine_tests_are_not_worded_as_a_gate(synced_store, constraints, tmp_p
     assert "Before merging: " in block["summary"] and "**Recommended checks**" in to_markdown(block)
 
 
+def test_unrelated_history_is_background_not_a_reason_for_caution(synced_store, constraints, tmp_path):
+    _, v = run(synced_store, constraints, tmp_path, ops=[{"kind": "add_column", "asset": "fct_orders", "column": "currency_rate"}])
+    # incidents stay visible, but an add_column is not the change that caused them
+    assert {h["ref"] for h in v["history"]} >= {"INC-230", "INC-241"}
+    assert not any(h["same_kind_of_change"] for h in v["history"])
+    assert {h["kind"] for h in v["history"]} <= {"postmortem_filed", "incident_opened"}
+    assert v["background_events"] and {b["kind"] for b in v["background_events"]} <= {"run_failed", "sla_missed", "schema_changed", "outcome_observed"}
+    assert "not from this kind of change" in v["summary"] and "incident history" not in v["summary"]
+    recency = next(f for f in v["risk"]["factors"] if f["name"] == "incident_recency")
+    assert recency["contribution"] == 0
+    md = to_markdown(v)
+    assert md.count("INC-230") == 2  # summary, and one history line for its opening and postmortem
+    assert "Other events on these assets" in md
+
+
+def test_repartitioning_to_the_same_key_reaches_nothing(synced_store, constraints, tmp_path):
+    _, v = run(synced_store, constraints, tmp_path, ops=[{"kind": "change_partition", "asset": "raw_events", "details": {"to": "event_date", "from": "event_date"}}])
+    assert v["severity"] == "inform"
+    assert v["affected"] == []
+    assert not any(h["same_kind_of_change"] for h in v["history"])
+    assert "to the key it already has" in v["summary"]
+
+
+def test_many_failed_runs_do_not_crowd_an_incident_out_of_history(tmp_path):
+    from datetime import UTC, datetime, timedelta
+
+    from orion.changes import ChangeOp, ChangeSet
+    from orion.model import Event, EventKind
+    from orion.store import Store
+    from orion.verdict import _history
+
+    store = Store(tmp_path / "g.duckdb")
+    now = datetime.now(UTC)
+    store.append_event(Event(EventKind.POSTMORTEM_FILED, now - timedelta(days=90), ["model:m"], source="pm", source_ref="INC-1", payload={"cause": "drop_column", "title": "dropped a column"}))
+    store.append_event(Event(EventKind.SLA_MISSED, now - timedelta(days=200), ["model:m"], source="runs", source_ref="late", payload={"cause": "SLA"}))
+    for i in range(30):
+        store.append_event(Event(EventKind.SLA_MISSED, now - timedelta(hours=i), ["model:m"], source="runs", source_ref=f"s{i}", payload={}))
+    for i in range(120):
+        store.append_event(Event(EventKind.RUN_FAILED, now - timedelta(hours=i), ["model:m"], source="runs", source_ref=f"r{i}", payload={}))
+    cs = ChangeSet()
+    cs.add(ChangeOp("drop_column", "model:m", column="c"))
+    history, background = _history(store, cs, {})
+    assert [h["ref"] for h in history] == ["INC-1"] and history[0]["same_kind_of_change"]
+    assert len(background) == 20
+    cs = ChangeSet()
+    cs.add(ChangeOp("change_schedule", "model:m"))
+    history, _ = _history(store, cs, {})
+    assert "late" in [h["ref"] for h in history], "an older missed SLA is the same kind of change as a schedule change, behind 30 newer ones"
+    store.append_event(Event(EventKind.SCHEMA_CHANGED, now - timedelta(days=30), ["model:m"], source="git", source_ref="typed", payload={"cause": "change_type"}))
+    cs = ChangeSet()
+    cs.add(ChangeOp("change_type", "model:m", column="c"))
+    history, _ = _history(store, cs, {})
+    assert "typed" in [h["ref"] for h in history], "an op kind with no family still matches its own name"
+
+
 def test_an_unmapped_dbt_project_file_says_why_in_words(synced_store, constraints, tmp_path):
     cs, _ = run(synced_store, constraints, tmp_path, file_changes=[("fixture/dbt_project/dbt_project.yml", "name: x\n", "name: x\nvars:\n  a: 1\n")])
     [u] = cs.unresolved

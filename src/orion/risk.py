@@ -68,10 +68,10 @@ def score(
     add("tier1_consumers", tier1_consumers, w["tier1_consumers"] if tier1_consumers else 0, "someone outside the team notices within a day")
     add("block_constraint", block_constraints, w["block_constraint"] if block_constraints else 0, "a human already decided this is dangerous")
     if newest_incident_days is None:
-        add("incident_recency", None, 0, "no incident on this path")
+        add("incident_recency", None, 0, "no incident from this kind of change on this path")
     else:
         decay = max(0.0, 1 - newest_incident_days / model.incident_horizon_days)
-        add("incident_recency", newest_incident_days, w["incident_recency"] * decay, "recent pain predicts repeat pain")
+        add("incident_recency", newest_incident_days, w["incident_recency"] * decay, "recent pain from the same kind of change predicts repeat pain")
     add("destructive_op", destructive_ops, w["destructive_op"] if destructive_ops else 0, "not reversible by rerun")
     add("blast_radius", blast_radius, w["blast_radius"] * min(1.0, math.log10(blast_radius + 1) / 2), "breadth matters, but less than depth")
     total = int(round(min(100, sum(f["contribution"] for f in factors))))
