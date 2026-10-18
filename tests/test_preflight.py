@@ -184,6 +184,33 @@ def test_a_changed_schema_entry_the_graph_lacks_is_unresolved_not_dropped(synced
     assert cs.unresolved == [{"path": rel, "reason": "changed schema entries the graph has no asset for: fct_returns_v9"}]
 
 
+def test_an_intent_naming_the_diffs_change_adds_evidence_not_a_second_op(synced_store, constraints, tmp_path):
+    old = FCT_ORDERS.read_text()
+    new = old.replace("    discount_pct,\n", "")
+    rel = str(FCT_ORDERS.relative_to(ROOT))
+    cs, v = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new)], intent="drop discount_pct from fct_orders")
+    drops = [o for o in cs.ops if o.kind == "drop_column" and o.column == "discount_pct"]
+    assert len(drops) == 1 and not drops[0].from_intent and "intent" in drops[0].evidence
+
+
+def test_run_history_and_dbt_build_output_are_not_platform_changes():
+    from orion.cli import _ignore
+    from orion.config import load_config
+
+    out = _ignore(load_config(ROOT / "orion.yaml"))
+    assert {"fixture/dbt_project/target", "fixture/runs/airflow_runs.jsonl", "fixture/runs/dbt/*.run_results.json", "fixture/runs/iceberg"} <= set(out)
+
+
+def test_ignore_roots_and_globs():
+    from orion.changes import ignored_path
+
+    ign = ["fixture/runs/dbt/*.run_results.json", "fixture/dbt_project/target", "", "*.nothing-else"]
+    assert ignored_path("fixture/runs/dbt/2026.run_results.json", ign)
+    assert ignored_path("fixture/dbt_project/target/manifest.json", ign)
+    assert not ignored_path("fixture/runs/dbt/notes.md", ign)
+    assert not ignored_path("fixture/dbt_project/models/x.sql", ign)
+
+
 def test_a_task_change_reaches_the_tables_it_writes_and_their_readers():
     from orion.changes import ChangeOp, ChangeSet
     from orion.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance

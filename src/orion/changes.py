@@ -12,6 +12,7 @@ import re
 import subprocess
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
@@ -373,6 +374,11 @@ def ops_from_intent(store: Store, text: str) -> tuple[list[ChangeOp], list[dict[
 
 
 # -------------------------------------------------------------------- assembly
+def ignored_path(path: str, ignore: list[str]) -> bool:
+    """Whether ``path`` is under one of the ``ignore`` roots, or matches one that is a glob (``runs/dbt/*.run_results.json``)."""
+    return any(fnmatch(path, r) if any(c in r for c in "*?[") else path == r or path.startswith(r.rstrip("/") + "/") for r in ignore if r)
+
+
 def collect_changes(
     store: Store,
     repo_root: Path,
@@ -397,7 +403,7 @@ def collect_changes(
     if base_ref:
         for path, old, new in git_changes(repo_root, base_ref):
             inside = not scope or any(path == r or path.startswith(r.rstrip("/") + "/") for r in scope)
-            skipped = any(path == r or path.startswith(r.rstrip("/") + "/") for r in (ignore or []))
+            skipped = ignored_path(path, ignore or [])
             if inside and not skipped:
                 changes.append((path, old, new))
             else:
@@ -426,7 +432,11 @@ def collect_changes(
         cs.source = cs.source or "intent"
         intent_ops, unresolved = ops_from_intent(store, intent)
         for op in intent_ops:
-            cs.add(op)
+            same = next((o for o in cs.ops if (o.kind, o.asset, o.column) == (op.kind, op.asset, op.column) and all(o.details.get(k) == v for k, v in op.details.items())), None)
+            if same:  # the intent names a change the diff already shows: one op, with the intent as more evidence
+                same.evidence = list(dict.fromkeys(same.evidence + ["intent"]))
+            else:
+                cs.add(op)
         cs.unresolved.extend(unresolved)
     if ops:
         cs.source = cs.source or "ops"

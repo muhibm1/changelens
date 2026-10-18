@@ -46,6 +46,12 @@ def _ignore(cfg) -> list[str]:
         out.append(cfg.constraints)
     if cfg.adapters.incidents:
         out.append(cfg.adapters.incidents.dir)
+    if cfg.adapters.dbt:
+        out.append(cfg.adapters.dbt.project.rstrip("/") + "/target")  # dbt's build output, not a change to the platform
+    runs = cfg.adapters.runs
+    if runs:  # run history Orion reads is an observation of the platform, not a change to it
+        out += [p for p in (runs.airflow, runs.iceberg) if p]
+        out += runs.dbt  # globs, matched as globs
     return out
 
 
