@@ -30,7 +30,7 @@ from .diffparse import FileDiff
 CODE_EXT = (".py", ".pyi", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".go", ".rs", ".java", ".kt", ".rb", ".sql")
 _ID = r"([A-Za-z_$][\w$]*)"
 # Definition line patterns by file extension, matched after leading whitespace is stripped.
-# A JS/TS variable counts as a definition only at module level: an indented ``const res = ...`` is a function local, which other files cannot reference.
+# A JS/TS variable counts as a definition only at module level: an indented ``const res = ...`` is a function local, which other files cannot reference. An indented ``export const`` (inside a ``namespace`` or ``declare module``) still counts.
 _TOP_LEVEL_VAR = re.compile(r"^(?:export\s+)?(?:const|let|var)\s+" + _ID + r"\s*[:=]")
 DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
     "py": [re.compile(r"^(?:async\s+)?def\s+" + _ID + r"\s*\("), re.compile(r"^class\s+" + _ID)],
@@ -93,7 +93,7 @@ def _lang(path: str) -> str | None:
 def _definition(lang: str, text: str) -> str | None:
     s = text.strip()
     for pat in DEF_PATTERNS[lang]:
-        if pat is _TOP_LEVEL_VAR and _indent(text):
+        if pat is _TOP_LEVEL_VAR and _indent(text) and not s.startswith("export"):
             continue
         if m := pat.match(s):
             return m.group(1)
