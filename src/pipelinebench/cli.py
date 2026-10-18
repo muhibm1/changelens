@@ -26,9 +26,15 @@ RESULTS = ROOT / "pipelinebench" / "results"
 REVIEW_CASES = ROOT / "pipelinebench" / "review" / "cases.yaml"
 
 
-def _store(config: Path | None) -> tuple[Path, Store]:
+def _store(config: Path | None, need_graph: bool = True) -> tuple[Path, Store]:
+    """The platform's root and store. The rag and orion conditions and the ground-truth check read the graph, so an
+    unsynced store is refused rather than letting them run on nothing (which looks like a result)."""
     cfg = load_config(config, cwd=ROOT)
-    return cfg.root, Store(cfg.path(cfg.db))
+    store = Store(cfg.path(cfg.db))
+    if need_graph and not store.counts()["nodes"]:
+        console.print(f"[red]the graph at {cfg.path(cfg.db)} is empty; run `orion sync -c {cfg.root / 'orion.yaml'}` first[/red]")
+        raise typer.Exit(2)
+    return cfg.root, store
 
 
 @app.command()
@@ -72,8 +78,12 @@ def run_cmd(
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Run agents across conditions and write results JSON and a markdown report."""
-    root, store = _store(config)
-    conds = list(CONDITIONS) if condition == ["all"] else condition
+    unknown = sorted(set(condition) - set(CONDITIONS) - {"all"})
+    if unknown:
+        console.print(f"[red]unknown condition {', '.join(unknown)}; use one of {', '.join(CONDITIONS)} or all[/red]")
+        raise typer.Exit(2)
+    conds = list(CONDITIONS) if "all" in condition else list(dict.fromkeys(condition))
+    root, store = _store(config, need_graph=bool({"rag", "orion"} & set(conds)))
     agents = [make_agent(a) for a in agent]
     scenarios = load_scenarios(directory)
     with console.status("running") as status:

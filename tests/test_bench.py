@@ -103,3 +103,20 @@ def test_the_model_agent_goes_through_the_provider_and_counts_tokens(monkeypatch
     assert first["decided"] == "escalate" and second["decided"] == "proceed" and "provider error" in second["rationale"]
     assert res["usage"] == {"claude:m": {"input_tokens": 10, "output_tokens": 3, "errors": 1}}
     assert "claude:m: 10 tokens in, 3 out, 1 provider errors (each graded as proceed)" in report(res)
+
+
+def test_run_refuses_an_empty_graph_for_conditions_that_read_it(tmp_path):
+    from typer.testing import CliRunner
+
+    from pipelinebench.cli import app
+
+    (tmp_path / "orion.yaml").write_text("db: empty.duckdb\n")
+    cfg = str(tmp_path / "orion.yaml")
+    res = CliRunner().invoke(app, ["run", "--condition", "orion", "-c", cfg, "--out", str(tmp_path)])
+    assert res.exit_code == 2 and "empty; run" in " ".join(res.output.split())
+    res = CliRunner().invoke(app, ["run", "--condition", "none", "-c", cfg, "--out", str(tmp_path), "--name", "x"])
+    assert res.exit_code == 0, res.output
+    res = CliRunner().invoke(app, ["run", "--condition", "all", "--condition", "none", "-c", cfg, "--out", str(tmp_path)])
+    assert res.exit_code == 2 and "empty; run" in " ".join(res.output.split())
+    res = CliRunner().invoke(app, ["run", "--condition", "Orion", "-c", cfg, "--out", str(tmp_path)])
+    assert res.exit_code == 2 and "unknown condition Orion" in " ".join(res.output.split())
