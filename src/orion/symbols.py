@@ -16,6 +16,7 @@ it. Without the parser the references are a fact about text and say so
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -44,7 +45,7 @@ DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
 _LANG = {".py": "py", ".pyi": "py", ".ts": "js", ".tsx": "js", ".js": "js", ".jsx": "js", ".mjs": "js", ".cjs": "js", ".go": "go", ".rs": "rs", ".rb": "rb"}
 MAX_REFS = 50
 # How a referencing file relates to the changed definition. ``unknown`` means the file was not parsed (text search only).
-SCOPES = ("same_file", "imports_it", "imports_module", "same_package", "defines_own", "no_import", "unknown")
+SCOPES = ("same_file", "imports_it", "imports_module", "same_package", "defines_own", "imports_other", "no_import", "unknown")
 LINKED = ("same_file", "imports_it", "imports_module", "same_package")
 SELF = ("self", "this", "cls", "super", "Self", "@")
 IMPORT_RE = re.compile(r"^\s*(?:from\s+\S+\s+import\b|import\b|export\s+.*\bfrom\b|.*\brequire\s*\()")
@@ -143,6 +144,9 @@ class Ref:
     defines_name: bool = False  # the file has its own definition of the symbol
     receiver: str | None = None  # for a qualified access, the text before the name (``http`` in ``http.fetch``)
     imported_modules: set[str] = field(default_factory=set)  # module paths, names and aliases the file's imports mention, as written
+    import_sources: set[str] = field(default_factory=set)  # the modules the file's imports of the symbol name, as written
+    wildcard_sources: set[str] = field(default_factory=set)  # modules the file imports wholesale, as written
+    unsourced_import: bool = False  # an import binds the symbol but names no module that can be resolved
 
 
 @dataclass
@@ -164,7 +168,7 @@ def _file_refs(path: str, text: str, name: str, word: re.Pattern[str]) -> list[R
                 continue
             seen.add((occ.line, occ.kind, occ.receiver))
             line = lines[occ.line - 1] if occ.line <= len(lines) else ""
-            out.append(Ref(path, occ.line, line.strip()[:160], occ.kind, True, fs.imports_name, fs.defines_name, occ.receiver, fs.imported_modules))
+            out.append(Ref(path, occ.line, line.strip()[:160], occ.kind, True, fs.imports_name, fs.defines_name, occ.receiver, fs.imported_modules, fs.import_sources, fs.wildcard_sources, fs.unsourced_import))
         return out
     return [Ref(path, i, line.strip()[:160], "import" if IMPORT_RE.match(line) else "use") for i, line in enumerate(lines, 1) if word.search(line)]
 
@@ -220,6 +224,38 @@ def _imports_module(imported: str, module_path: Path) -> bool:
     return all(a == b for a, b in zip(reversed(segs), reversed(parts), strict=False))
 
 
+PACKAGE_FILES = ("__init__", "index", "mod")
+
+
+def _module_path(path: str) -> Path:
+    """The module a definition file stands for, without suffix: ``app/http.py`` is ``app/http``; a package file (``app/__init__.py``, ``lib/index.ts``, ``http/mod.rs``) is its directory."""
+    p = Path(path).with_suffix("")
+    return p.parent if p.name in PACKAGE_FILES else p
+
+
+def _resolves(source: str, ref_path: Path, module_path: Path) -> bool:
+    """Whether the module an import names, written as ``source`` in the file ``ref_path``, is ``module_path`` (a repo path without suffix). Relative imports are resolved against the importing file; absolute ones match by trailing segments, since the import root is not known."""
+    targets = {module_path, *(module_path / f for f in PACKAGE_FILES)}
+    from_dir = ref_path.parent
+    if source.startswith("."):
+        if source.startswith(("./", "../")):  # JavaScript and TypeScript
+            resolved = Path(os.path.normpath(from_dir / source))
+        else:  # Python: one dot is the current package, each further dot a parent
+            dots = len(source) - len(source.lstrip("."))
+            base = from_dir
+            for _ in range(dots - 1):
+                base = base.parent
+            resolved = base.joinpath(*source[dots:].split(".")) if source[dots:] else base
+        return resolved in targets
+    segs = [x for x in re.findall(r"[\w$]+", source) if x != "crate"]
+    if segs and segs[0] in ("super", "self"):
+        # Rust: a file ``foo/a.rs`` is module ``a`` inside ``foo``, so ``self`` is ``foo/a`` and ``super`` is ``foo``; for ``foo/mod.rs`` the module is ``foo`` itself.
+        own = _module_path(str(ref_path))
+        base = own if segs[0] == "self" else own.parent
+        return base.joinpath(*segs[1:]) in targets if len(segs) > 1 else False
+    return _imports_module(source, module_path) or any(_imports_module(source, t) for t in targets - {module_path})
+
+
 def _scope(sc: SymbolChange, ref: Ref) -> str:
     if not ref.parsed:
         return "unknown"
@@ -227,7 +263,7 @@ def _scope(sc: SymbolChange, ref: Ref) -> str:
         return "same_file"
     if ref.receiver is not None and _lang(ref.path) == _lang(sc.path):
         # ``http.fetch`` / ``http::fetch`` / ``pkg.Fetch``: linked when the qualifier is the definition's module (Go: its package directory) and the file imports something by that name.
-        module_path = Path(sc.path).parent if sc.path.endswith(".go") else Path(sc.path).with_suffix("")
+        module_path = Path(sc.path).parent if sc.path.endswith(".go") else _module_path(sc.path)
         qualifier = re.split(r"[.:]", ref.receiver)[-1]
         for imported in ref.imported_modules:
             alias, _, path = imported.partition("=")
@@ -238,8 +274,15 @@ def _scope(sc: SymbolChange, ref: Ref) -> str:
                 return "imports_module"
     if ref.defines_name:  # a local definition shadows an import of the same name
         return "defines_own"
-    if ref.imports_name:
+    module_path = _module_path(sc.path)
+    # Resolve the import to a file: ``from other.http import fetch`` is a different fetch; ``from .http import fetch`` next to app/http.py is ours.
+    # An import that names no module (Go and Ruby import packages and files, not names) cannot be resolved, so it keeps counting as an import of the symbol.
+    if ref.imports_name and (ref.unsourced_import or any(_resolves(src, Path(ref.path), module_path) for src in ref.import_sources)):
         return "imports_it"
+    if any(_resolves(src, Path(ref.path), module_path) for src in ref.wildcard_sources):  # ``from app.http import *`` (may rebind a name imported from elsewhere)
+        return "imports_it"
+    if ref.imports_name:
+        return "imports_other"
     if sc.path.endswith(".go") and ref.path.endswith(".go") and Path(ref.path).parent == Path(sc.path).parent:
         return "same_package"
     return "no_import"

@@ -197,7 +197,8 @@ def _symbol_facts(ctx: ReviewContext) -> list[str]:
         if members:
             parts.append(f"{len(members)} method or attribute access{'es' if len(members) != 1 else ''} `.{sc.name}` on some object, which may or may not be this definition (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in members[:10]) + ")")
         if unlinked:
-            parts.append(f"{len(unlinked)} mention{'s' if len(unlinked) != 1 else ''} in files that do not import the name" + (" or define their own" if any(r["scope"] == "defines_own" for r in unlinked) else "") + ", so probably a different `" + sc.name + "` (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in unlinked[:10]) + ")")
+            why = "do not import the name" + (" or define their own" if any(r["scope"] == "defines_own" for r in unlinked) else "") + (" or import it from another module" if any(r["scope"] == "imports_other" for r in unlinked) else "")
+            parts.append(f"{len(unlinked)} mention{'s' if len(unlinked) != 1 else ''} in files that {why}, so probably a different `" + sc.name + "` (" + ", ".join(f"ref:{r['path']}:{r['line']}" for r in unlinked[:10]) + ")")
         if sc.search_failed:
             parts.append("only the files of this diff were searched; the rest of the repository could not be, so other callers may exist")
         if sc.truncated:

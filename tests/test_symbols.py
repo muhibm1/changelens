@@ -476,3 +476,60 @@ def test_facts_say_which_references_are_text_matches_when_only_some_files_parse(
     assert "from parsed syntax except 2 in files that could not be parsed (app/Jobs.java)" in line
     [f] = [f for f in code_findings(ctx) if f["source"] == "deterministic"]
     assert "found by parsing those files (except app/Jobs.java:1, app/Jobs.java:2, whole-word text matches" in f["body"]
+
+
+@needs_parser
+def test_an_import_of_the_name_from_another_module_is_not_linked(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    for d in ("app", "other", "web", "web/lib", "rs"):
+        (tmp_path / d).mkdir(parents=True)
+    (tmp_path / "app" / "http.py").write_text(HTTP_OLD)
+    (tmp_path / "app" / "rel.py").write_text("from .http import fetch\n\nfetch(1)\n")
+    (tmp_path / "app" / "abs.py").write_text("from app.http import fetch\n\nfetch(2)\n")
+    (tmp_path / "other" / "use.py").write_text("from other.http import fetch\n\nfetch(3)\n")
+    (tmp_path / "other" / "rel.py").write_text("from .http import fetch\n\nfetch(4)\n")
+    (tmp_path / "app" / "star.py").write_text("from app.http import *\n\nfetch(5)\n")
+    (tmp_path / "other" / "star.py").write_text("from other.http import *\n\nfetch(6)\n")
+    (tmp_path / "app" / "both.py").write_text("from other.http import fetch\nfrom app.http import *\n\nfetch(9)\n")  # the wildcard may rebind the name
+    (tmp_path / "app" / "asmod.py").write_text("import other.client as fetch\n\nfetch.go(10)\n")  # binds a module, not our fetch
+    (tmp_path / "app" / "asours.py").write_text("import app.http as fetch\n\nfetch.fetch(11)\n")  # binds our module; the call goes through it
+    diff = Change("app/http.py", HTTP_OLD, HTTP_REMOVED).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"app/http.py": HTTP_REMOVED})
+    by = {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"] != sc.path}
+    assert by == {"app/rel.py": "imports_it", "app/abs.py": "imports_it", "app/star.py": "imports_it", "app/both.py": "imports_it", "other/use.py": "imports_other", "other/rel.py": "imports_other", "other/star.py": "no_import"}
+    assert {(r["path"], r["kind"]): r["scope"] for r in sc.refs if r["path"] in ("app/asmod.py", "app/asours.py")} == {("app/asmod.py", "import"): "no_import", ("app/asmod.py", "use"): "no_import", ("app/asours.py", "import"): "no_import", ("app/asours.py", "use"): "no_import", ("app/asours.py", "method_call"): "imports_module"}
+    assert sorted(r["path"] for r in sc.linked_outside if r["path"] != "app/http.py") == ["app/abs.py", "app/abs.py", "app/asours.py", "app/both.py", "app/both.py", "app/rel.py", "app/rel.py", "app/star.py"]
+    # A definition in a package file is imported by the package's name.
+    (tmp_path / "pkg").mkdir()
+    (tmp_path / "pkg" / "__init__.py").write_text(HTTP_OLD)
+    (tmp_path / "pkg" / "inner.py").write_text("from . import fetch\n\nfetch(7)\n")
+    (tmp_path / "other" / "pkg_user.py").write_text("from pkg import fetch\n\nfetch(8)\n")
+    diff = Change("pkg/__init__.py", HTTP_OLD, HTTP_REMOVED).diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"pkg/__init__.py": HTTP_REMOVED})
+    assert {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"] in ("pkg/inner.py", "other/pkg_user.py")} == {"pkg/inner.py": "imports_it", "other/pkg_user.py": "imports_it"}
+    # TypeScript relative sources, and Rust paths.
+    ts_old = "export function fetch(u: string) { return u; }\n"
+    (tmp_path / "web" / "http.ts").write_text(ts_old)
+    (tmp_path / "web" / "a.ts").write_text('import { fetch } from "./http";\nfetch("a");\n')
+    (tmp_path / "web" / "lib" / "b.ts").write_text('import { fetch } from "../http";\nfetch("b");\n')
+    (tmp_path / "web" / "lib" / "c.ts").write_text('import { fetch } from "./http";\nfetch("c");\n')
+    (tmp_path / "web" / "lib" / "index.ts").write_text(ts_old)
+    (tmp_path / "web" / "d.ts").write_text('import { fetch } from "./lib";\nfetch("d");\n')
+    diff = Change("web/http.ts", ts_old, "export const x = 1;\n").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"web/http.ts": "export const x = 1;\n"})
+    assert {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"].endswith(".ts")} == {"web/a.ts": "imports_it", "web/lib/b.ts": "imports_it", "web/lib/c.ts": "imports_other", "web/d.ts": "imports_other"}
+    diff = Change("web/lib/index.ts", ts_old, "export const x = 1;\n").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"web/lib/index.ts": "export const x = 1;\n"})
+    assert {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"] in ("web/d.ts", "web/lib/c.ts")} == {"web/d.ts": "imports_it", "web/lib/c.ts": "imports_other"}, "lib/index.ts is imported as ./lib"
+    rs_old = "pub fn fetch(u: u32) -> u32 { u }\n"
+    (tmp_path / "rs" / "http.rs").write_text(rs_old)
+    (tmp_path / "rs" / "a.rs").write_text("use crate::http::fetch;\n\nfn a() { fetch(1); }\n")
+    (tmp_path / "rs" / "b.rs").write_text("use crate::other::fetch;\n\nfn b() { fetch(2); }\n")
+    (tmp_path / "rs" / "c.rs").write_text("use crate::http::*;\n\nfn c() { fetch(3); }\n")
+    (tmp_path / "rs" / "d.rs").write_text("use super::http::fetch;\n\nfn d() { fetch(4); }\n")  # rs/d.rs is module d in rs, so super is rs
+    (tmp_path / "rs" / "sub").mkdir()
+    (tmp_path / "rs" / "sub" / "mod.rs").write_text("use super::http::fetch;\n\nfn m() { fetch(5); }\n")  # rs/sub/mod.rs is module sub, so super is rs
+    (tmp_path / "rs" / "sub" / "e.rs").write_text("use super::http::fetch;\n\nfn e() { fetch(6); }\n")  # super is rs/sub, which has no http
+    diff = Change("rs/http.rs", rs_old, "").diff()
+    [sc] = symbol_changes(parse(diff), tmp_path, {"rs/http.rs": ""})
+    assert {r["path"]: r["scope"] for r in sc.refs if r["kind"] == "call" and r["path"].endswith(".rs")} == {"rs/a.rs": "imports_it", "rs/b.rs": "imports_other", "rs/c.rs": "imports_it", "rs/d.rs": "imports_it", "rs/sub/mod.rs": "imports_it", "rs/sub/e.rs": "imports_other"}

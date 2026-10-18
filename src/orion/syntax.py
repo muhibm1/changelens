@@ -74,6 +74,9 @@ class FileSyntax:
     imports_name: bool  # an import statement names the symbol
     defines_name: bool  # the file defines the symbol at module level (a method or nested definition does not shadow an import)
     imported_modules: set[str] = field(default_factory=set)  # module paths, names and aliases the file's import statements mention, as written
+    import_sources: set[str] = field(default_factory=set)  # the modules the imports of the symbol name, as written (``app.http``, ``.http``, ``./http``, ``crate::http``)
+    wildcard_sources: set[str] = field(default_factory=set)  # modules imported wholesale (``from app.http import *``, ``use crate::http::*``), which may bind the symbol
+    unsourced_import: bool = False  # an import binds the symbol but names no module here (Go, Ruby, or a shape not handled), so it cannot be resolved
 
 
 @cache
@@ -150,6 +153,8 @@ def _binds(node: Any) -> bool:
     if p is None:
         return True
     if p.type in ("aliased_import", "use_as_clause", "import_specifier"):
+        if p.type == "aliased_import" and p.parent is not None and p.parent.type == "import_statement":
+            return False  # ``import x as name`` binds a module, not a name from one
         alias = p.child_by_field_name("alias")
         return _is(alias, node) if alias is not None else _is(p.child_by_field_name("name"), node)
     if p.type == "dotted_name":
@@ -164,6 +169,54 @@ def _binds(node: Any) -> bool:
         aliased_or_path = g is not None and (g.type == "use_as_clause" or _is(g.child_by_field_name("path"), p))
         return _is(p.child_by_field_name("name"), node) and not aliased_or_path
     return True
+
+
+def _import_source(grammar: str, node: Any) -> str | None:
+    """The module an import of this identifier names, as written, or None when the import carries no module (Go imports packages, not names)."""
+    text = lambda n: n.text.decode(errors="replace")  # noqa: E731
+    if grammar == "python":
+        stmt = node
+        while stmt is not None and stmt.type not in IMPORTS[grammar]:
+            stmt = stmt.parent
+        if stmt is None:
+            return None
+        module = stmt.child_by_field_name("module_name")
+        if module is not None:
+            return text(module)
+        if node.parent is not None and node.parent.type == "dotted_name":  # ``import app`` binds the module itself
+            return text(node.parent)
+        return None
+    if grammar in ("javascript", "typescript", "tsx"):
+        stmt = node
+        while stmt is not None and stmt.type != "import_statement":
+            stmt = stmt.parent
+        src = stmt.child_by_field_name("source") if stmt is not None else None
+        return text(src).strip("'\"`") if src is not None else None
+    if grammar == "rust":
+        p = node.parent
+        if p is not None and p.type == "use_as_clause":
+            p = p.child_by_field_name("path")
+            p = p.parent if p is not None and _is(p, node) else p
+        if p is not None and p.type == "use_list":
+            p = p.parent
+        path = p.child_by_field_name("path") if p is not None and p.type in ("scoped_identifier", "scoped_use_list") else None
+        return text(path) if path is not None else None
+    return None
+
+
+def _wildcard_sources(grammar: str, root: Any) -> set[str]:
+    """Modules the file imports wholesale: Python ``from m import *`` and Rust ``use m::*`` (JavaScript has no wildcard that binds bare names)."""
+    out: set[str] = set()
+    for n in _walk(root):
+        if grammar == "python" and n.type == "wildcard_import" and n.parent is not None:
+            module = n.parent.child_by_field_name("module_name")
+            if module is not None:
+                out.add(module.text.decode(errors="replace"))
+        elif grammar == "rust" and n.type == "use_wildcard":
+            path = next((c for c in n.named_children if c.type in ("scoped_identifier", "identifier", "crate", "super", "self")), None)
+            if path is not None:
+                out.add(path.text.decode(errors="replace"))
+    return out
 
 
 def _classify(grammar: str, node: Any) -> tuple[str, str | None]:
@@ -232,15 +285,24 @@ def occurrences(path: str, text: str, name: str) -> FileSyntax | None:
         return None
     target = name.encode()
     out: list[Occurrence] = []
-    imports_name = defines_name = False
+    imports_name = defines_name = unsourced = False
+    sources: set[str] = set()
     for n in _walk(tree.root_node):
         if n.type not in IDENTIFIERS or n.text != target:
             continue
         kind, receiver = _classify(grammar, n)
-        imports_name |= kind == "import" and _binds(n)
+        if kind == "import" and _binds(n):
+            imports_name = True
+            src = _import_source(grammar, n)
+            if src:
+                sources.add(src)
+            else:
+                unsourced = True
         defines_name |= kind == "definition" and _shadows(grammar, n.parent)
         out.append(Occurrence(n.start_point[0] + 1, kind, receiver))
-    return FileSyntax(grammar, out, imports_name, defines_name, _imported_modules(grammar, tree.root_node) if out else set())
+    if not out:
+        return FileSyntax(grammar, out, imports_name, defines_name)
+    return FileSyntax(grammar, out, imports_name, defines_name, _imported_modules(grammar, tree.root_node), sources, _wildcard_sources(grammar, tree.root_node), unsourced)
 
 
 __all__ = ["available", "clear_cache", "occurrences", "grammar_for", "FileSyntax", "Occurrence", "KINDS"]
