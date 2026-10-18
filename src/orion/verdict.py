@@ -80,6 +80,12 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
         walked = store.walk([op.asset], "downstream")
         for nid, info in walked.items():
             record(nid, "asset", info["hops"], [f"edge:{info['via_edge']}"])
+        if op.asset.startswith("task:"):
+            # a task's own change reaches the tables it writes, and everything that reads them
+            for e in store.edges_from(op.asset, (EdgeKind.PRODUCES,)):
+                record(e["dst"], "asset", 1, [f"edge:{e['id']}"])
+                for nid, info in store.walk([e["dst"]], "downstream").items():
+                    record(nid, "asset", info["hops"] + 1, [f"edge:{info['via_edge']}"])
     return out
 
 

@@ -263,6 +263,9 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
         if new_text is None and old_text is not None
         else "no asset defined at this path"
     )
+    if assets and all(a.startswith("task:") for a in assets):
+        # a gusty task file: one task, defined by its YAML (or front matter), not by SQL or a DAG
+        return [ChangeOp("modify", a, details={"note": "task definition changed"}, evidence=[f"diff:{path}"]) for a in assets], unresolved
     if path.endswith(".py") and ("/dags/" in f"/{path}" or path.startswith("dags/")):
         ops, _ = ops_from_dag_change(store, path, old_text, new_text, tmp)
         return ops, unresolved

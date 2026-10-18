@@ -46,7 +46,7 @@ def run_sync(cfg: OrionConfig, store: Store, only: list[str] | None = None, forc
                 store.mark_synced(name, str(project), digest)
         elif name == "airflow" and cfg.adapters.airflow:
             dags = cfg.path(cfg.adapters.airflow.dags)
-            digest = digest_paths(sorted(dags.glob("*.py")))
+            digest = digest_paths(airflow_adapter.dag_files(dags))
             if not force and store.last_digest(name, str(dags)) == digest:
                 res.skipped = True
             else:

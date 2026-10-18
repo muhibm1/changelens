@@ -33,7 +33,25 @@ Every first-pass warning came from files Orion could not map, dressed as a blast
 
 The two warnings left are model deletions (fbe45897, 008d78a8). The published manifest is newer than those commits, so the deleted models are not in it and Orion says "deleted, and the graph has no asset here; sync the graph from the base branch". That is the right answer: in CI the graph comes from the base branch, which still has the model and its readers.
 
+## Review of the same 12 commits with a model
+
+`orion review --provider anthropic`, Sonnet, whole-file context, second reading on. About 245k tokens in and 9k out across the 12 commits.
+
+| | count |
+| --- | --- |
+| model findings at warn | 9, in 4 commits |
+| model findings at inform | 9 |
+| commits with no model finding | 2 (e636f6e2, fbe45897) |
+| findings rejected or uncertain | 0 |
+
+One warning is confirmed by the project itself. On 34716dcc (#5767), Orion warned that `ref()` calls in `dim_provider_gtfs_data.sql` were replaced with hardcoded prod table names, "likely a debugging leftover". The next commit in the repository, b0b73b32 (#5768, "fix refs"), puts the `ref()` calls back.
+
+The other warnings are plausible and specific, but not confirmed here. They include renamed output columns in two GTFS summary tables and an NTD time series (3127f574), an inner join that drops NULL `direction_id` rows, and two dedup-ranking edge cases in the Littlepay funding-source models (ad497afc). Each names the reader that breaks and how. None is about style.
+
+## Airflow (gusty)
+
+cal-itp's DAGs are gusty YAML folders. Before, Orion read 30 Airflow nodes from top-level `dags/*.py`. Now it reads 382 (21 DAGs, 348 tasks); 206 of 208 external-table tasks link to the dbt source they write, so editing one external-table task file reaches 18 downstream assets.
+
 ## Open
 
-- Airflow: cal-itp's DAGs are gusty YAML in subfolders; Orion read 30 nodes from `dags/*.py` only.
 - `dbt_project.yml` changes stay unresolved; project-level config is not modelled.

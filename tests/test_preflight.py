@@ -182,3 +182,20 @@ def test_a_changed_schema_entry_the_graph_lacks_is_unresolved_not_dropped(synced
     rel = str(SCHEMA_YML.relative_to(ROOT))
     cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new)])
     assert cs.unresolved == [{"path": rel, "reason": "changed schema entries the graph has no asset for: fct_returns_v9"}]
+
+
+def test_a_task_change_reaches_the_tables_it_writes_and_their_readers():
+    from orion.changes import ChangeOp, ChangeSet
+    from orion.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
+    from orion.store import Store
+    from orion.verdict import affected_assets
+
+    p = [Provenance("test", "unit")]
+    s = Store(":memory:")
+    s.write_graph(
+        [Node(NodeKind.TASK, "load.settlements", provenance=p), Node(NodeKind.SOURCE_TABLE, "raw.settlements", provenance=p), Node(NodeKind.MODEL, "stg_settlements", provenance=p)],
+        [Edge("task:load.settlements", "source_table:raw.settlements", EdgeKind.PRODUCES, Confidence.DECLARED, provenance=p), Edge("model:stg_settlements", "source_table:raw.settlements", EdgeKind.CONSUMES, Confidence.PARSED, provenance=p)],
+    )
+    cs = ChangeSet()
+    cs.add(ChangeOp("modify", "task:load.settlements"))
+    assert {k: v["hops"] for k, v in affected_assets(s, cs).items()} == {"source_table:raw.settlements": 1, "model:stg_settlements": 2}
