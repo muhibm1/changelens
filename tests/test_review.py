@@ -79,9 +79,9 @@ def test_deterministic_findings_need_no_model(synced_store, constraints):
 
 def test_validation_rejects_out_of_diff_and_fabricated_evidence(synced_store, constraints):
     stub = StubProvider({"findings": [
-        {"path": "app/service.py", "line": 5, "severity": "block", "category": "security", "title": "shell=True with caller input", "body": "Command injection.", "evidence": ["hunk:app/service.py:5"]},
-        {"path": "app/service.py", "line": 99, "severity": "warn", "category": "correctness", "title": "Line not in diff", "body": "x", "evidence": ["hunk:app/service.py:99"]},
-        {"path": "app/other.py", "line": 1, "severity": "warn", "category": "correctness", "title": "File not in diff", "body": "x", "evidence": []},
+        {"path": "app/service.py", "line": 5, "severity": "block", "category": "security", "title": "shell=True with caller input", "body": "Command injection.", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 99, "severity": "warn", "category": "correctness", "title": "Line not in diff", "body": "x", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/service.py:99"]},
+        {"path": "app/other.py", "line": 1, "severity": "warn", "category": "correctness", "title": "File not in diff", "body": "x", "failure": "a caller passing the old value gets the wrong result", "evidence": []},
         {"path": "app/service.py", "line": 1, "severity": "inform", "category": "maintainability", "title": "Owned by team/payments", "body": "invented", "evidence": ["node:team:team/payments", "constraint:CON-999"]},
     ]})
     r = _review(synced_store, constraints, APP_DIFF, stub)
@@ -96,11 +96,53 @@ def test_validation_rejects_out_of_diff_and_fabricated_evidence(synced_store, co
     assert "Never invent" in system and "app/service.py" in user
 
 
+def test_a_warning_without_a_concrete_failing_case_is_lowered_to_inform(synced_store, constraints):
+    stub = StubProvider({"findings": [
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "correctness", "title": "Ordering may change", "body": "Verify.", "failure": " ", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "shell=True with caller input", "body": "Command injection.", "failure": "a name containing `; rm -rf /` runs a second command", "evidence": ["hunk:app/service.py:5"]},
+    ]})
+    r = _review(synced_store, constraints, APP_DIFF, stub)
+    by = {f["title"]: f for f in r["findings"]}
+    assert by["Ordering may change"]["severity"] == "inform"
+    assert "no concrete case" in by["Ordering may change"]["notes"][0]
+    assert by["shell=True with caller input"]["severity"] == "warn"
+    assert by["shell=True with caller input"]["failure"].startswith("a name containing")
+    assert "fails when: a name containing" in to_markdown(r)
+    system, _ = stub.calls[0]
+    assert "needs a `failure`" in system
+
+
+def test_a_second_reading_lowers_warnings_it_cannot_confirm(synced_store, constraints):
+    first = {"findings": [
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "correctness", "title": "Speculative", "body": "b", "failure": "an unusual caller", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "block", "category": "security", "title": "shell=True with caller input", "body": "b", "failure": "a name containing `;` runs a second command", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "inform", "category": "maintainability", "title": "Note", "body": "b", "failure": "", "evidence": ["hunk:app/service.py:5"]},
+    ]}
+
+    def respond(system, user):
+        if system.startswith("You check another reviewer"):
+            assert "[0] warn app/service.py:5 Speculative" in user and "[1] block" in user and "Note" not in user
+            return {"verdicts": [{"index": 0, "holds": False, "reason": "no caller passes that"}, {"index": 1, "holds": True, "reason": "reachable"}, {"index": 9, "holds": False, "reason": "out of range"}]}
+        return first
+
+    stub = StubProvider(respond)
+    r = _review(synced_store, constraints, APP_DIFF, stub)
+    by = {f["title"]: f for f in r["findings"]}
+    assert by["Speculative"]["severity"] == "inform" and "no caller passes that" in by["Speculative"]["notes"][-1]
+    assert by["shell=True with caller input"]["severity"] == "block"
+    assert r["second_reading"] == {"on": True, "lowered": 1}
+    assert len(stub.calls) == 2
+
+    off = StubProvider(respond)
+    r = review(synced_store, ROOT, off, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False)
+    assert len(off.calls) == 1 and r["second_reading"]["lowered"] == 0
+
+
 def test_citing_a_firing_constraint_raises_severity_and_deduplicates(synced_store, constraints):
     stub = StubProvider({"findings": [
         {"path": FCT, "line": 8, "severity": "inform", "category": "data_contract", "title": "discount_pct is part of a contract", "body": "CON-031.", "evidence": ["constraint:CON-031"]},
         {"path": FCT, "line": 8, "severity": "inform", "category": "correctness", "title": "net_amount still references discount_pct", "body": "The expression on line 8 reads the column this diff removes.", "evidence": ["hunk:" + FCT + ":8"]},
-        {"path": FCT, "line": 8, "severity": "warn", "category": "data_contract", "title": "net_amount now wrong for finance", "body": "A bug that also cites the contract it breaks.", "evidence": ["hunk:" + FCT + ":8", "constraint:CON-031"]},
+        {"path": FCT, "line": 8, "severity": "warn", "category": "data_contract", "title": "net_amount now wrong for finance", "body": "A bug that also cites the contract it breaks.", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:" + FCT + ":8", "constraint:CON-031"]},
     ]})
     r = _review(synced_store, constraints, DROP_DIFF, stub)
     titles = [f["title"] for f in r["findings"]]
@@ -230,7 +272,7 @@ new file mode 100644
 +  run: {{runs-on: ubuntu-latest}}
 """
     stub = StubProvider({"findings": [
-        {"path": wf, "line": 1, "severity": "warn", "category": "security", "title": "pull_request_target runs fork code with secrets", "body": "x", "evidence": [f"hunk:{wf}:1"]},
+        {"path": wf, "line": 1, "severity": "warn", "category": "security", "title": "pull_request_target runs fork code with secrets", "body": "x", "failure": "a caller passing the old value gets the wrong result", "evidence": [f"hunk:{wf}:1"]},
         {"path": f"./{wf}", "line": 1, "severity": "inform", "category": "security", "title": "same file via ./", "body": "x", "evidence": [f"hunk:./{wf}:1"]},
     ]})
     r = _review(synced_store, constraints, diff, stub)
@@ -336,3 +378,18 @@ def test_a_review_against_a_base_ref_takes_the_commit_messages_as_intent(synced_
     stub = StubProvider()
     r = review(synced_store, tmp_path, stub, constraints=constraints, risk_model=RiskModel.load(None), base_ref="HEAD~1", diff_text=DROP_DIFF)
     assert r["intent_source"] is None and "Stated intent" not in stub.calls[0][1]
+
+
+def test_a_second_reading_never_lowers_a_finding_below_its_constraint_floor(synced_store, constraints):
+    first = {"findings": [{"path": FCT, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount now wrong for finance", "body": "b", "failure": "finance reads a null discount", "evidence": ["hunk:" + FCT + ":8", "constraint:CON-031"]}]}
+    sent = []
+
+    def respond(system, user):
+        if system.startswith("You check another reviewer"):
+            sent.append(user)
+            return {"verdicts": [{"index": 0, "holds": False, "reason": "unsure"}]}
+        return first
+
+    r = _review(synced_store, constraints, DROP_DIFF, StubProvider(respond))
+    f = next(f for f in r["findings"] if f["title"] == "net_amount now wrong for finance")
+    assert f["severity"] == "block" and sent == [], "the firing block constraint sets the floor; there is nothing to second-guess"

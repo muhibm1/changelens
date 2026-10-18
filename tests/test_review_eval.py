@@ -28,10 +28,10 @@ def test_grading_counts_catches_inform_and_false_alarms(synced_store):
 
     def respond(system, user):
         if inj.files[0] in user:
-            return {"findings": [{"path": inj.files[0], "line": inj.expect[0].line, "severity": "block", "category": "security", "title": "injection", "body": "b", "evidence": [f"hunk:{inj.files[0]}:{inj.expect[0].line}"]}]}
+            return {"findings": [{"path": inj.files[0], "line": inj.expect[0].line, "severity": "block", "category": "security", "title": "injection", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": [f"hunk:{inj.files[0]}:{inj.expect[0].line}"]}]}
         if obo.files[0] in user:
             return {"findings": [{"path": obo.files[0], "line": obo.expect[0].line, "severity": "inform", "category": "correctness", "title": "loop start", "body": "b", "evidence": [f"hunk:{obo.files[0]}:{obo.expect[0].line}"]}]}
-        return {"findings": [{"path": "app/pricing.py", "line": 6, "severity": "warn", "category": "maintainability", "title": "nit", "body": "b", "evidence": ["hunk:app/pricing.py:6"]}]}
+        return {"findings": [{"path": "app/pricing.py", "line": 6, "severity": "warn", "category": "maintainability", "title": "nit", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/pricing.py:6"]}]}
 
     cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
     res = run_eval(picked, StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None))
@@ -52,7 +52,7 @@ def test_multi_file_case_grades_against_the_bug_file(synced_store):
     def respond(system, user):
         assert "=== app/http.py (whole file after the change)" in user and "=== app/health.py (whole file after the change)" in user
         # Same line number, wrong file: a false alarm, not a catch.
-        return {"findings": [{"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "signature changed", "body": "b", "evidence": ["hunk:app/http.py:4"]}]}
+        return {"findings": [{"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "signature changed", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:app/http.py:4"]}]}
 
     cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
     s = run_eval([case], StubProvider(respond), store=synced_store, repo_root=ROOT, constraints=cs, risk_model=RiskModel.load(None))["summary"]
@@ -84,6 +84,6 @@ def test_a_bug_may_be_raised_at_an_alternative_location(tmp_path):
     (tmp_path / "cases.yaml").write_text(yaml.safe_dump(case_yaml))
     [case] = load_cases(tmp_path / "cases.yaml", tmp_path)
     assert case.expect[0].locations == [("a.py", 2), ("b.py", 2)]
-    finding = {"source": "model", "path": "b.py", "line": 2, "end_line": None, "severity": "block", "category": "correctness", "title": "t", "body": "b", "evidence": ["hunk:b.py:2"], "status": "valid", "notes": []}
+    finding = {"source": "model", "path": "b.py", "line": 2, "end_line": None, "severity": "block", "category": "correctness", "title": "t", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:b.py:2"], "status": "valid", "notes": []}
     g = grade(case, {"findings": [finding], "uncertain": [], "rejected": [], "provider_error": None})
     assert g["caught"] == 1 and g["false_alarms"] == []

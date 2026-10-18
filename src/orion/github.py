@@ -108,9 +108,13 @@ def parse_state(body: str) -> list[dict[str, Any]]:
     return [s for s in state if isinstance(s, dict) and "id" in s]
 
 
+def _fails(f: dict[str, Any]) -> str:
+    return f"Fails when: {f['failure']}\n\n" if f.get("failure") else ""
+
+
 def inline_body(f: dict[str, Any]) -> str:
     tag = "deterministic" if f["source"] == "deterministic" else "model"
-    return f"**{f['severity']}** {f['title']} _({tag}, {f['category']})_\n\n{f['body']}\n\nEvidence: {', '.join(f'`{e}`' for e in f['evidence'])}\n<!-- orion:{f['id']} -->"
+    return f"**{f['severity']}** {f['title']} _({tag}, {f['category']})_\n\n{f['body']}\n\n{_fails(f)}Evidence: {', '.join(f'`{e}`' for e in f['evidence'])}\n<!-- orion:{f['id']} -->"
 
 
 def summary_body(review: dict[str, Any], markdown: str, new: list, carried: list, resolved: list, head_sha: str, state: list[dict[str, Any]], note: str = "") -> str:

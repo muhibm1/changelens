@@ -24,7 +24,7 @@ def test_review_tool_runs_a_diff(synced_store):
     cfg.db = str(synced_store.path)
     cfg.root = ROOT
     fct = "fixture/dbt_project/models/marts/fct_orders.sql"
-    stub = StubProvider({"findings": [{"path": fct, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount reads a dropped column", "body": "b", "evidence": [f"hunk:{fct}:8"]}]})
+    stub = StubProvider({"findings": [{"path": fct, "line": 8, "severity": "warn", "category": "correctness", "title": "net_amount reads a dropped column", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": [f"hunk:{fct}:8"]}]})
     server = build_server(cfg, review_provider=stub)
     diff = (ROOT / fct).read_text().replace("    discount_pct,\n", "")
     import difflib

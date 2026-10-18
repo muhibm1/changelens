@@ -45,6 +45,8 @@ class ReviewConfig(BaseModel):
     model: str | None = None
     base_url: str | None = None
     api_key_env: str | None = None  # name of the environment variable holding the key; never the key itself
+    second_reading: bool = True  # check the model's warn/block findings with a second call
+    verify_model: str | None = None  # model for that second call (same provider); default: ``model``
 
 
 class Adapters(BaseModel):

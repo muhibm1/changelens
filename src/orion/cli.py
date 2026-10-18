@@ -55,6 +55,15 @@ def _open(config: Path | None):
     return cfg, store
 
 
+def _verifier(rc):
+    """The provider for the second reading when ``review.verify_model`` names a different model, else None (same as the review)."""
+    from .providers import make_provider
+
+    if not rc.verify_model or rc.verify_model == rc.model:
+        return None
+    return make_provider(rc.provider, model=rc.verify_model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+
+
 @app.command()
 def sync(
     adapters: list[str] = typer.Argument(None, help="Subset of adapters to run (dbt, airflow, git, incidents, runs)."),
@@ -332,6 +341,7 @@ def review(
     post_github: str | None = typer.Option(None, "--post-github", help="Also post the review to this pull request as OWNER/REPO#NUMBER (token from GH_TOKEN or GITHUB_TOKEN)."),
     head_sha: str | None = typer.Option(None, "--head-sha", help="With --post-github: the pull request's head commit (default: the working tree's HEAD)."),
     intent: str | None = typer.Option(None, "--intent", help="What the change is meant to do (a PR title and body). Default with --git: the commit messages since the base."),
+    second_reading: bool | None = typer.Option(None, "--second-reading/--no-second-reading", help="Check the model's warn and block findings with a second model call; ones it cannot confirm become inform. Default: review.second_reading in orion.yaml (on)."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -357,7 +367,7 @@ def review(
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent)
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=_verifier(rc))
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":
@@ -373,6 +383,8 @@ def review(
             loc = f"{f['path']}:{f['line']}" if f["path"] else "(no single location)"
             console.print(f"  [bold]{f['severity']:6}[/bold] {escape(loc)}  {escape(f['title'])}  [dim]{f['source']}[/dim]")
             console.print(f"         {escape(f['body'])}")
+            if f.get("failure"):
+                console.print(f"         fails when: {escape(f['failure'])}")
             console.print(f"         [dim]{escape(', '.join(f['evidence']))}[/dim]")
         for f in r["uncertain"]:
             console.print(f"  [dim]uncertain {escape(str(f['path']))}:{f['line']} {escape(f['title'])}: {escape('; '.join(f['notes']))}[/dim]")

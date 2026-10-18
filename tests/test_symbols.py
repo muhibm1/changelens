@@ -167,8 +167,8 @@ def test_removed_symbol_still_referenced_is_a_finding_and_facts_say_who_calls_wh
     assert r["symbols"][0]["name"] == "fetch"
     # The model can cite a listed reference as evidence; one it invents is dropped.
     cite = StubProvider({"findings": [
-        {"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "jobs.py breaks", "body": "b", "evidence": ["ref:app/jobs.py:3"]},
-        {"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "made up", "body": "b", "evidence": ["ref:app/nowhere.py:1"]},
+        {"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "jobs.py breaks", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["ref:app/jobs.py:3"]},
+        {"path": "app/http.py", "line": 4, "severity": "warn", "category": "correctness", "title": "made up", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["ref:app/nowhere.py:1"]},
     ]})
     r = _run(synced_store, constraints, diff, cite, search_root=empty_repo, new_files={"app/http.py": HTTP_REMOVED}, repo_files={"app/jobs.py": "from app.http import fetch\n\nfetch('u')\n"})
     assert [f["title"] for f in r["findings"] if f["source"] == "model"] == ["jobs.py breaks"]

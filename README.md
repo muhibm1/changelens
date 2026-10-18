@@ -85,7 +85,7 @@ Three more things come from code, not the model, on any diff:
 
 On pull requests, `.github/workflows/orion-review.yml` runs `orion review --post-github OWNER/REPO#N`: one inline comment per new finding on the diff line it points at, one summary comment updated in place, and a reply on a finding a push has made go away. The summary remembers the previous findings, so a finding reworded on the same file and category within three lines is the same finding and gets no second comment. Orion only ever posts a `COMMENT` review. Add the `ORION_ANTHROPIC_API_KEY` repository secret for model findings; without it the comments carry the deterministic findings only. The workflow is advisory and never fails the pull request; `orion-gate` is the binding check.
 
-Provider settings live in `orion.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors.
+Provider settings live in `orion.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors. Every model `warn` or `block` must name the concrete case that fails (`failure`), or it is lowered to `inform`. A second reading then re-checks each remaining warning against the whole change and lowers the ones it cannot confirm; turn it off with `review.second_reading: false` or `--no-second-reading`, and set `review.verify_model` to have a stronger model check a cheaper one ([results](pipelinebench/results/second-reading.md)).
 
 ## A verdict
 

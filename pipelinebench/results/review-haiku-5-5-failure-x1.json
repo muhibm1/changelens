@@ -1,0 +1,1605 @@
+{
+ "provider": "anthropic:claude-haiku-5-5",
+ "file_context": true,
+ "repeat": 1,
+ "cases": 61,
+ "rows": [
+  {
+   "case": "py-sql-injection",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/users.py",
+     "marker": "f\"select id, name",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1677,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 225
+   },
+   "run": 0
+  },
+  {
+   "case": "py-shell-injection",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/archive.py",
+     "marker": "shell=True",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1778,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 463
+   },
+   "run": 0
+  },
+  {
+   "case": "py-off-by-one-total",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/billing.py",
+     "marker": "range(1, len(lines))",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1662,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 218
+   },
+   "run": 0
+  },
+  {
+   "case": "py-mutable-default",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/cart.py",
+     "marker": "items=[]",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1709,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 285
+   },
+   "run": 0
+  },
+  {
+   "case": "py-swallowed-exception",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/payments.py",
+     "marker": "except Exception:",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1733,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 279
+   },
+   "run": 0
+  },
+  {
+   "case": "py-missing-await",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/notify.py",
+     "marker": "asyncio.gather(*tasks)",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1677,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 621
+   },
+   "run": 0
+  },
+  {
+   "case": "py-identity-compare",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/status.py",
+     "marker": "is \"done\"",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1549,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 284
+   },
+   "run": 0
+  },
+  {
+   "case": "py-timezone-naive",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/expiry.py",
+     "marker": "datetime.now() - created_at",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1711,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 754
+   },
+   "run": 0
+  },
+  {
+   "case": "py-secret-in-code",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/settings.py",
+     "marker": "sk_live_",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1601,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 496
+   },
+   "run": 0
+  },
+  {
+   "case": "py-auth-check-removed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/api/orders.py",
+     "marker": "return serialize(order)",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1640,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 211
+   },
+   "run": 0
+  },
+  {
+   "case": "ts-xss-innerhtml",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/comments.ts",
+     "marker": "el.innerHTML",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1650,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 225
+   },
+   "run": 0
+  },
+  {
+   "case": "ts-unawaited-save",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/save.ts",
+     "marker": "form.save();",
+     "line": 2,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1594,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 512
+   },
+   "run": 0
+  },
+  {
+   "case": "sql-migration-not-null",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "migrations/0042_add_region.sql",
+     "marker": "add column region text not null",
+     "line": 1,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1560,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 708
+   },
+   "run": 0
+  },
+  {
+   "case": "go-unchecked-error",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "svc/export.go",
+     "marker": "fmt.Fprintf(w",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1720,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 227
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-percent-as-amount",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "amount - discount_pct as net_amount",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2828,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 735
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-drop-locked-column",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_orders.sql",
+     "marker": "    paid_amount,",
+     "line": 10,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 3,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2808,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 354
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-left-to-inner-join",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "join {{ ref('stg_payments') }}",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 3005,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 959
+   },
+   "run": 0
+  },
+  {
+   "case": "dbt-revenue-filter-widened",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/marts/fct_revenue.sql",
+     "marker": "where status != 'cancelled'",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2676,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 507
+   },
+   "run": 0
+  },
+  {
+   "case": "airflow-retries-zeroed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dags/orders_pipeline.py",
+     "marker": "\"retries\": 0",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2727,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 789
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-refactor",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1647,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-docstring-and-types",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1760,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-test-added",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1697,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ts-rename",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1747,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-dbt-comment",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1847,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-sql-index",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 1,
+   "false_alarms": [
+    {
+     "path": "migrations/0043_orders_created_idx.sql",
+     "line": 2,
+     "severity": "warn",
+     "title": "IF NOT EXISTS can skip over an invalid index left by a failed concurrent build",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1674,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 607
+   },
+   "run": 0
+  },
+  {
+   "case": "ctx-swapped-transfer-args",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/ledger.py",
+     "marker": "transfer(order.customer_account, order.merchant_account",
+     "line": 23,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1872,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 604
+   },
+   "run": 0
+  },
+  {
+   "case": "ctx-units-mismatch",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/shipping.py",
+     "marker": "if subtotal > FREE_SHIPPING_OVER_DOLLARS:",
+     "line": 11,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1830,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1122
+   },
+   "run": 0
+  },
+  {
+   "case": "ctx-lock-bypassed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/cache.py",
+     "marker": "self._counts[key] = 1 + self._counts.get(key, 0)",
+     "line": 20,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1848,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 276
+   },
+   "run": 0
+  },
+  {
+   "case": "ctx-timeout-milliseconds",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "fetch(base + \"/health\", 5)",
+     "line": 12,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1759,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 619
+   },
+   "run": 0
+  },
+  {
+   "case": "ctx-null-guard-removed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/profile.py",
+     "marker": "return user.manager.name.title()",
+     "line": 11,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1650,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 456
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ctx-helper-defined-above",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1783,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ctx-lock-held-by-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1748,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 250
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-ctx-validated-earlier",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1895,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 9
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-kwarg-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/health.py",
+     "marker": "fetch(url, timeout=1.0)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2148,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 454
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-py-cents-vs-dollars",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/quote.py",
+     "marker": "${total:.2f}",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2048,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 509
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-ts-status-value-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/billing.ts",
+     "marker": "status === \"inactive\"",
+     "line": 8,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1965,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 726
+   },
+   "run": 0
+  },
+  {
+   "case": "xf-dbt-renamed-column-still-read",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_customer_orders.sql",
+     "marker": "upper(c.region) as region",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2986,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1105
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-py-rename-with-caller",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2077,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 177
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-xf-dbt-rename-with-consumer",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2974,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 568
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-dropped",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_customers.sql",
+     "marker": "as signup_date",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2531,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 314
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-dbt-column-renamed",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/staging/stg_orders.sql",
+     "marker": "amount as gross_amount",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 4,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 3323,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 465
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-renamed-fn-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch_bytes(",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2018,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 564
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-kwarg-renamed-still-called",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/http.py",
+     "marker": "def fetch(url: str, *, timeout_s",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2108,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 510
+   },
+   "run": 0
+  },
+  {
+   "case": "hidden-py-removed-method-typed-caller",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/client.py",
+     "marker": "def get(self, path: str) -> str:",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "deterministic",
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1825,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 221
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-removed-method-other-object-has-its-own",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1822,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 102
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-intent-py-query-spaces-as-plus",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1849,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 221
+   },
+   "run": 0
+  },
+  {
+   "case": "intent-py-refactor-changes-default-timeout",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/sync.py",
+     "marker": "timeout: float = 3",
+     "line": 5,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1942,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 610
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-py-renamed-fn-every-caller-updated",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2172,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf3-py-timeout-units",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/worker.py",
+     "marker": "timeout=REQUEST_TIMEOUT_MS)",
+     "line": 7,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2311,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 624
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-py-cache-key-ignores-new-arg",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/pricing.py",
+     "marker": "key = cached_key(\"quote\", amount_cents)",
+     "line": 7,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 2,
+   "false_alarms": [
+    {
+     "path": "app/pricing.py",
+     "line": 11,
+     "severity": "warn",
+     "title": "Unknown currency raises KeyError with no validation",
+     "source": "model"
+    }
+   ],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2372,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 509
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-py-discount-after-tax",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/checkout.py",
+     "marker": "taxed = subtotal_cents + round(subtotal_cents * TAX_RATE)",
+     "line": 6,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1797,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1015
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-ts-has-more-never-true",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "web/src/api/list.ts",
+     "marker": "hasMore: rows.length > pageSize",
+     "line": 4,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1961,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 440
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-go-shadowed-err",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "svc/load.go",
+     "marker": "rec, err := fetchArchive(id)",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1756,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 568
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-dbt-fanout-then-sum",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "fixture/dbt_project/models/intermediate/int_order_payments.sql",
+     "marker": "p.payment_method,",
+     "line": 9,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2794,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1170
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-xf-py-retry-returns-none",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/retry.py",
+     "marker": "return None",
+     "line": 15,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2160,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 542
+   },
+   "run": 0
+  },
+  {
+   "case": "hard-py-dedupe-keeps-last-not-first",
+   "expected": 1,
+   "caught": 1,
+   "bugs": [
+    {
+     "file": "app/events.py",
+     "marker": "by_id = {e[\"id\"]: e for e in events}",
+     "line": 3,
+     "caught": true,
+     "inform_only": false,
+     "by": [
+      "model"
+     ]
+    }
+   ],
+   "acted_on": 1,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1739,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 513
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-subprocess-list-args",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1910,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 9
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-literal-eval",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1927,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 817
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-ts-innerhtml-sanitized",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1804,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 779
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-bulk-delete-guarded",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1929,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 9
+   },
+   "run": 0
+  },
+  {
+   "case": "clean-hard-py-lock-narrowed",
+   "expected": 0,
+   "caught": 0,
+   "bugs": [],
+   "acted_on": 0,
+   "false_alarms": [],
+   "uncertain": 0,
+   "rejected": 0,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 1745,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   },
+   "run": 0
+  }
+ ],
+ "summary": {
+  "recall": 1.0,
+  "inform_only": 0,
+  "precision": 0.955,
+  "duplicate_findings": 17,
+  "false_alarms": 2,
+  "clean_cases_flagged": "1/19",
+  "missed": [],
+  "provider_errors": 0,
+  "tokens_in": 122055,
+  "tokens_out": 26416
+ }
+}

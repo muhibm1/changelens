@@ -143,7 +143,7 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
 
     @server.tool(name="review", description="Review a diff: deterministic findings from the platform graph and constraints first, then findings from the configured model provider, each checked against the diff and the store (unsupported ones are marked uncertain, ones outside the diff rejected). Give a git base ref (working tree against it) or a unified diff, and optionally `intent`: what the change is meant to do, so an intended behaviour change is not reported as a bug (default with a base ref: the commit messages since it). The provider is the one configured in orion.yaml. Every finding carries a location and evidence.")
     def review_tool(base_ref: str | None = None, diff: str | None = None, format: str = "json", intent: str | None = None) -> dict[str, Any] | str:
-        from .cli import _ignore, _scope
+        from .cli import _ignore, _scope, _verifier
         from .providers import ProviderError, make_provider
         from .review import review as run_review
         from .review import to_markdown as review_md
@@ -157,7 +157,7 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
         except ProviderError as e:
             return {"ok": False, "error": str(e)}
         try:
-            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent)
+            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=cfg.review.second_reading, verifier=_verifier(cfg.review))
         except Exception as e:  # noqa: BLE001 - a bad ref or diff is the caller's to fix; say so in the tool's own shape
             return {"ok": False, "error": f"review failed: {e}"}
         return review_md(r) if format == "markdown" else _jsonable(r)
