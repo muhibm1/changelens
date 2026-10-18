@@ -295,8 +295,16 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
 
 
 # ------------------------------------------------------------------------- git
+def fork_point(repo_root: Path, base_ref: str) -> str:
+    """Where this branch left ``base_ref`` (``git merge-base``), so a base that moved on after the branch was cut does not
+    show its own new commits as this change undoing them; ``base_ref`` itself when there is no common ancestor."""
+    r = subprocess.run(["git", "-C", str(repo_root), "merge-base", base_ref, "HEAD"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else base_ref
+
+
 def git_changes(repo_root: Path, base_ref: str) -> list[tuple[str, str | None, str | None]]:
-    """(path, old_text, new_text) for every file that differs between base_ref and the working tree."""
+    """(path, old_text, new_text) for every file that differs between where this branch left base_ref and the working tree."""
+    base_ref = fork_point(repo_root, base_ref)
     out: list[tuple[str, str | None, str | None]] = []
     status = subprocess.run(["git", "-C", str(repo_root), "diff", "--name-status", base_ref], check=True, capture_output=True, text=True).stdout
     untracked = subprocess.run(["git", "-C", str(repo_root), "ls-files", "--others", "--exclude-standard"], check=True, capture_output=True, text=True).stdout.split()

@@ -27,7 +27,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .changes import collect_changes
+from .changes import collect_changes, fork_point
 from .constraints import Constraint
 from .credscan import redact, secret_findings
 from .diffparse import FileDiff, batches, both_sides, git_diff, git_messages, parse, render_file
@@ -573,6 +573,7 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     if diff_text is None:
         if not base_ref:
             raise ValueError("give a base ref or a diff")
+        base_ref = fork_point(repo_root, base_ref)
         diff_text = git_diff(repo_root, base_ref)
         # The commit messages describe this diff only when it is the one computed from the same base; a diff passed in may be any change.
         if intent_source is None:

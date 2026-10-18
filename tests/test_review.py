@@ -463,3 +463,28 @@ def test_a_model_finding_repeating_the_credential_block_is_dropped():
     out = _dedupe(det, model)
     assert [(m["title"], m["status"]) for m in out] == [("Hardcoded AWS credential", "rejected"), ("Constant is unused", "valid")]
     assert out[0]["notes"] == ["repeats the credential scan's block on this line"]
+
+
+def test_a_base_that_moved_on_is_not_shown_as_this_branch_undoing_it(tmp_path):
+    import subprocess
+
+    from orion.changes import fork_point, git_changes
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
+
+    git("init", "-q", "-b", "main")
+    (tmp_path / "a.py").write_text("A = 1\n")
+    git("add", "a.py")
+    git("commit", "-qm", "init")
+    git("checkout", "-qb", "feature")
+    (tmp_path / "b.py").write_text("B = 1\n")
+    git("add", "b.py")
+    git("commit", "-qm", "feature")
+    git("checkout", "-q", "main")
+    (tmp_path / "a.py").write_text("A = 2\n")
+    git("commit", "-qam", "main moves on")
+    git("checkout", "-q", "feature")
+    assert [p for p, _, _ in git_changes(tmp_path, "main")] == ["b.py"], "main's own later change to a.py is not part of this branch"
+    assert fork_point(tmp_path, "main") == git("rev-parse", "main~1")
+    assert fork_point(tmp_path, "no-such-ref") == "no-such-ref"
