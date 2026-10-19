@@ -1,0 +1,746 @@
+# Real bugs at the commit that introduced them, for `pipelinebench recall-eval`.
+# Candidates come from `pipelinebench mine-introducers` (blame the lines a fix commit changed); each one here
+# was read by hand: `bug` says what was wrong, in words taken from the upstream fix, and `expect` is where
+# the bug sits in the introducing commit's own line numbers; `must_mention` lists words (any one) a finding about this bug would use, so a
+# different warning that happens to land nearby does not count. Fixes for typos, types, docs and lint, and bugs
+# that need knowledge no reviewer of the diff has, were left out. Never derive a label from Orion's output.
+repos:
+  httpx:
+    url: https://github.com/encode/httpx
+  hono:
+    url: https://github.com/honojs/hono
+  cobra:
+    url: https://github.com/spf13/cobra
+cases:
+- repo: httpx
+  commit: 1805ee0d22
+  title: Graceful upgrade path for 0.28. (#3394)
+  fix: 89599a9541
+  fix_title: Fix `verify=False`, `cert=...` case. (#3442)
+  bug: verify=False returns before the client certificate is loaded, so cert= is ignored
+  expect:
+  - path: httpx/_config.py
+    line: 28
+    end_line: 31
+  must_mention:
+  - cert
+  - client certificate
+- repo: httpx
+  commit: fd3b69d2aa
+  title: Add DigestAuth middleware (#332)
+  fix: 99cba6ac64
+  fix_title: Fix RFC 2069 mode digest authentication (#3045)
+  bug: 'RFC 2069 digest (no qop) hashes HA1 twice: response = H(HA1:HA1:nonce:HA2)'
+  expect:
+  - path: httpx/_auth.py
+    line: 78
+    end_line: 86
+  must_mention:
+  - ha1
+  - '2069'
+  - digest
+- repo: httpx
+  commit: 15d09a3bbc
+  title: 'fix: NO_PROXY should support IPv4, IPv6 and localhost (#2659)'
+  fix: 3b9060ee11
+  fix_title: Fix environment proxies (#2741)
+  bug: a NO_PROXY entry with a scheme (http://host) is treated as a hostname and never matches
+  expect:
+  - path: httpx/_utils.py
+    line: 265
+  must_mention:
+  - scheme
+  - ://
+  - http://
+- repo: httpx
+  commit: 27df5e49c7
+  title: Support for `chunk_size` (#1277)
+  fix: 1e11096473
+  fix_title: Fixed `iter_text` adding an empty string (#2998)
+  bug: TextChunker.decode returns [''] for empty content, so iter_text yields an empty string
+  expect:
+  - path: httpx/_decoders.py
+    line: 209
+  - path: httpx/_models.py
+    line: 1205
+    end_line: 1300
+  must_mention:
+  - empty
+  - ''''''
+  - '""'
+- repo: httpx
+  commit: b481166481
+  title: Refactor ASGITransport.request() (#1021)
+  fix: a682f6f1c7
+  fix_title: Fix exception suppression in asgi transport (#2669)
+  bug: with raise_app_exceptions=False an exception before the response completes is still raised
+  expect:
+  - path: httpx/_transports/asgi.py
+    line: 151
+  must_mention:
+  - raise_app_exceptions
+  - raise
+- repo: httpx
+  commit: 59914c7690
+  title: Add `NetRCAuth()` class. (#2535)
+  fix: c1cc6b2462
+  fix_title: 'Fixes #2666: None is the default value of file for httpx.NetRCAuth (#2667)'
+  bug: 'NetRCAuth(file: Optional[str]) has no default, so NetRCAuth() is a TypeError'
+  expect:
+  - path: httpx/_auth.py
+    line: 150
+  must_mention:
+  - default
+  - none
+- repo: httpx
+  commit: c725387b2d
+  title: Preserve header casing (#1338)
+  fix: 321d4aa509
+  fix_title: Fix Headers.update to correctly handle repeated headers (#2038)
+  bug: Headers.update assigns each raw pair, so a repeated header in the update keeps only its last value
+  expect:
+  - path: httpx/_models.py
+    line: 662
+    end_line: 663
+  must_mention:
+  - repeated
+  - multiple
+  - duplicate
+  - last value
+  - overwrit
+  - multi
+- repo: httpx
+  commit: 6f5865f860
+  title: Read upload files using `read(CHUNK_SIZE)` rather than `iter()`. (#1948)
+  fix: b7dc0c3df6
+  fix_title: Fix for stream uploads that subclass SyncByteStream/AsyncByteStream (#2016)
+  bug: hasattr(stream, 'read') also matches SyncByteStream subclasses, whose read() takes no size argument
+  expect:
+  - path: httpx/_content.py
+    line: 53
+    end_line: 78
+  must_mention:
+  - read(
+  - subclass
+  - no size
+  - argument
+  - signature
+- repo: hono
+  commit: bfc190f725
+  title: 'feat(css): add CSP nonce to hono/css related style and script tags (#3685)'
+  fix: 5ca49b0720
+  fix_title: 'fix(css): Fix multiline CSS handling in style replacement (#5405)'
+  bug: the style replacement regex has no s flag, so multiline CSS is not matched
+  expect:
+  - path: src/helper/css/index.ts
+    line: 67
+  must_mention:
+  - multiline
+  - newline
+  - dotall
+  - s flag
+  - \n
+  - across lines
+- repo: hono
+  commit: 09a81e4f01
+  title: 'fix(jsx): cloneElement didn''t copy children (#4257)'
+  fix: 43379d93e2
+  fix_title: 'fix(jsx): preserve self-closing void elements in cloneElement (#5314)'
+  bug: undefined children become [undefined], so a void element is cloned with a child
+  expect:
+  - path: src/jsx/base.ts
+    line: 431
+  must_mention:
+  - undefined
+  - void
+  - self-closing
+  - children
+- repo: hono
+  commit: 9a6e52d734
+  title: 'feat(middleware/combine): Introduce combine middleware (#2941)'
+  fix: afb2068c1c
+  fix_title: 'fix(combine): return a Response from a short-circuiting middleware in some() (#5391)'
+  bug: some() drops a Response returned by a short-circuiting middleware, so the context is never finalized
+  expect:
+  - path: src/middleware/combine/index.ts
+    line: 35
+    end_line: 56
+  must_mention:
+  - response
+  - short-circuit
+  - finaliz
+- repo: hono
+  commit: f356702efc
+  title: 'fix(etag): support multi-value If-None-Match (#1199)'
+  fix: c3053ccf14
+  fix_title: 'fix(etag): correctly match mixed-case header name in retainedHeader option (#5475)'
+  bug: retainedHeaders are compared lower-cased against the option's values as given, so a mixed-case option never matches
+  expect:
+  - path: src/middleware/etag/index.ts
+    line: 24
+    end_line: 52
+  must_mention:
+  - case
+  - lower
+- repo: hono
+  commit: 8b0f189a3f
+  title: 'refactor(json-pretty): don''t use `c.pretty()` (#1288)'
+  fix: f950277cd3
+  fix_title: 'fix(pretty-json): don''t break responses with unparseable JSON bodies (#5377)'
+  bug: c.res.json() on an empty or invalid JSON body throws, turning the response into a 500
+  expect:
+  - path: src/middleware/pretty-json/index.ts
+    line: 12
+  must_mention:
+  - json()
+  - throw
+  - invalid
+  - empty
+  - '204'
+  - parse
+- repo: hono
+  commit: 1a1de75296
+  title: 'feat: Introduce LinearRouter. (#1043)'
+  fix: 00ee875728
+  fix_title: 'fix(linear-router): don''t match an empty path segment as a param (#5373)'
+  bug: an empty path segment in the middle of a path (/u//posts) matches a :param with an empty value
+  expect:
+  - path: src/router/linear-router/router.ts
+    line: 100
+    end_line: 102
+  must_mention:
+  - empty
+  - //
+  - segment
+- repo: hono
+  commit: 28a9c12891
+  title: 'fix(accepts): support wildcard media types and specificity ordering in defaultMatch (#5255)'
+  fix: f5a53463ad
+  fix_title: 'fix(accepts): match media types and language tags case-insensitively (#5376)'
+  bug: media types and language tags are compared case-sensitively
+  expect:
+  - path: src/helper/accepts/accepts.ts
+    line: 22
+    end_line: 30
+  must_mention:
+  - case
+- repo: hono
+  commit: 32ba5ba836
+  title: 'refactor(request): shorten `parseBody` and remove unnecessary check (#2947)'
+  fix: edd138ee30
+  fix_title: 'fix(request): keep the request media type when reusing a cached body (#5366)'
+  bug: rebuilding a cached body with new Response(body) loses the Content-Type, so formData() after text() throws
+  expect:
+  - path: src/request.ts
+    line: 222
+  must_mention:
+  - content-type
+  - content type
+  - formdata
+  - form
+  - media type
+- repo: hono
+  commit: 8b4392fa36
+  title: 'feat(adaptor): Support AWS Function URL Streaming (#1625)'
+  fix: 90e1b94846
+  fix_title: 'fix(aws-lambda): respect backpressure when streaming the response body (#5351)'
+  bug: streamToNodeStream ignores write() backpressure and resolves before the writable finishes
+  expect:
+  - path: src/adapter/aws-lambda/handler.ts
+    line: 67
+    end_line: 76
+  must_mention:
+  - backpressure
+  - write(
+  - drain
+  - finish
+  - highwatermark
+  - buffer
+- repo: hono
+  commit: 2d3bc55954
+  title: 'fix(streaming): call stream.abort() explicitly when request is aborted (#3042)'
+  fix: 5e5b83d6ed
+  fix_title: 'fix(utils/stream): do not let abort listeners crash abort() (#5274)'
+  bug: abort subscribers are called bare, so a throwing or rejecting listener stops the rest or is unhandled
+  expect:
+  - path: src/utils/stream.ts
+    line: 88
+  must_mention:
+  - throw
+  - reject
+  - unhandled
+  - subscriber
+  - listener
+- repo: hono
+  commit: d7964503c9
+  title: 'fix(request): fix multipart boundary mismatch in `cloneRawRequest` (#5133)'
+  fix: 612b59c022
+  fix_title: 'fix(request): drop stale content length for cloned FormData (#5282)'
+  bug: content-type is dropped for a re-serialized FormData but the stale content-length is kept
+  expect:
+  - path: src/request.ts
+    line: 492
+    end_line: 493
+  must_mention:
+  - content-length
+  - content length
+  - length
+- repo: hono
+  commit: 350d904ad0
+  title: 'feat: introduce Accepts Helper (#2001)'
+  fix: 28a9c12891
+  fix_title: 'fix(accepts): support wildcard media types and specificity ordering in defaultMatch (#5255)'
+  bug: defaultMatch only accepts exact type matches, so */* and type/* never match
+  expect:
+  - path: src/helper/accepts/accepts.ts
+    line: 47
+    end_line: 48
+  must_mention:
+  - '*/*'
+  - wildcard
+  - /*
+- repo: hono
+  commit: 366f760a30
+  title: 'fix(client): allow multiple files on the same key in form (#2791)'
+  fix: c4a44071ee
+  fix_title: 'fix(client): skip an undefined entry inside a form array (#5280)'
+  bug: an undefined entry in a form array is appended as the string 'undefined'
+  expect:
+  - path: src/client/client.ts
+    line: 71
+    end_line: 74
+  must_mention:
+  - undefined
+- repo: hono
+  commit: 091ecb7e86
+  title: 'fix(middleware/etag): should return 304 when weak etag is passed in  ''If-None-Match'' (#4171)'
+  fix: f8b7847d75
+  fix_title: 'fix(etag): match If-None-Match tags with optional whitespace before the comma (#5222)'
+  bug: If-None-Match is split on /,\s*/, so whitespace before a comma leaves a trailing space on the tag
+  expect:
+  - path: src/middleware/etag/index.ts
+    line: 34
+  must_mention:
+  - whitespace
+  - space
+  - trim
+  - \s
+- repo: hono
+  commit: b143c4ed8b
+  title: 'feat(middleware/csrf): Introduce CSRF middleware (#1823)'
+  fix: eea9735fe3
+  fix_title: 'fix(csrf): exempt OPTIONS request from CSRF validation (#5250)'
+  bug: OPTIONS is not a safe method, so CORS preflights are rejected by the CSRF check
+  expect:
+  - path: src/middleware/csrf/index.ts
+    line: 10
+  must_mention:
+  - options
+  - preflight
+- repo: hono
+  commit: d9b8b4b73b
+  title: Merge commit from fork
+  fix: 8bf03c377a
+  fix_title: 'fix(cors): append Origin to Vary header on OPTIONS preflight (#5235)'
+  bug: Vary is set rather than appended on OPTIONS, overwriting a Vary another middleware set
+  expect:
+  - path: src/middleware/cors/index.ts
+    line: 119
+  must_mention:
+  - vary
+  - append
+  - overwrit
+- repo: hono
+  commit: 331b3d8a96
+  title: 'fix(client): replace optional params to url correctly (#3304)'
+  fix: 4eb022de68
+  fix_title: 'fix(client): prevent URL corruption when replaceUrlParam contains $ replacement tokens (#5227)'
+  bug: String.replace with a string replacement expands $ tokens in the param value
+  expect:
+  - path: src/client/utils.ts
+    line: 13
+  must_mention:
+  - $
+  - replacement pattern
+  - special pattern
+  - dollar
+- repo: hono
+  commit: ff34b1ba9a
+  title: 'feat: support multiple optinal parameters (#1940)'
+  fix: d982f637eb
+  fix_title: 'fix(url): strip trailing question mark correctly for optional params with regex quantifiers (#5209)'
+  bug: /\?/ matches a ? inside a regex quantifier, so :p{\d+?} is read as optional
+  expect:
+  - path: src/utils/url.ts
+    line: 138
+    end_line: 144
+  must_mention:
+  - '?'
+  - quantifier
+  - question mark
+  - optional
+- repo: hono
+  commit: cdb36b80af
+  title: feat(client) add cookie type validate (#1476)
+  fix: f2a72d333a
+  fix_title: 'fix(client): serialize multiple cookies correctly (#5202)'
+  bug: request cookies are joined with ',' and serialized with path=/; a Cookie header is '; '-joined name=value pairs
+  expect:
+  - path: src/client/client.ts
+    line: 98
+    end_line: 100
+  must_mention:
+  - '; '
+  - semicolon
+  - comma
+  - path
+  - cookie header
+  - join
+- repo: hono
+  commit: 31f0605209
+  title: 'feat: Add `c.stream()` (#1437)'
+  fix: cd31bc196e
+  fix_title: 'fix(utils/stream): re-acquire writer lock when pipe() throws (#4988)'
+  bug: pipe() releases the writer lock and re-acquires it only after pipeTo succeeds, so a throw leaves no writer
+  expect:
+  - path: src/utils/stream.ts
+    line: 35
+    end_line: 36
+  must_mention:
+  - lock
+  - writer
+  - throw
+  - reject
+  - finally
+- repo: hono
+  commit: 7ce0ddd350
+  title: 'feat(router): support greedy matches with subsequent static components. (#3888)'
+  fix: 569b4191a2
+  fix_title: 'fix(trie-router): count every slash a pattern consumes (#5189)'
+  bug: m[0].match(/\//) without the g flag counts at most one slash
+  expect:
+  - path: src/router/trie-router/node.ts
+    line: 180
+  must_mention:
+  - g flag
+  - global
+  - match(
+  - first
+  - one slash
+  - count
+- repo: hono
+  commit: cd35af7655
+  title: 'feat(jsx/dom): support getServerSnapshot in useSyncExternalStore (#2646)'
+  fix: 224d2f5cbf
+  fix_title: 'fix(jsx): handle useSyncExternalStore subscription and snapshot changes (#5166)'
+  bug: the subscription effect has no deps, so a changed subscribe or store is never picked up
+  expect:
+  - path: src/jsx/hooks/index.ts
+    line: 405
+    end_line: 416
+  must_mention:
+  - subscribe
+  - dependency
+  - deps
+  - '[]'
+  - resubscrib
+  - store change
+- repo: hono
+  commit: 8130a67da1
+  title: 'feat(secureHeader): add CSP Report-Only mode support (#3413)'
+  fix: 402eb3abe5
+  fix_title: 'fix(secure-headers): keep CSP callbacks scoped to their header (#5147)'
+  bug: CSP callbacks run for both Content-Security-Policy and its Report-Only header
+  expect:
+  - path: src/middleware/secure-headers/secure-headers.ts
+    line: 191
+    end_line: 274
+  must_mention:
+  - report-only
+  - both
+  - callback
+- repo: hono
+  commit: 1ce18c26dc
+  title: 'feat(sse): Allow sending retry for SSE connection (#2188)'
+  fix: 44f884321a
+  fix_title: 'fix(sse): emit empty id field to reset Last-Event-ID (#5138)'
+  bug: 'truthiness checks drop retry: 0 and id: '''''
+  expect:
+  - path: src/helper/streaming/sse.ts
+    line: 28
+  must_mention:
+  - '0'
+  - truth
+  - falsy
+  - empty
+- repo: hono
+  commit: 12806614b9
+  title: 'feat(request): add cloneRawRequest utility for request cloning (#4382)'
+  fix: d7964503c9
+  fix_title: 'fix(request): fix multipart boundary mismatch in `cloneRawRequest` (#5133)'
+  bug: a FormData body is re-serialized with a new boundary while the old Content-Type header is kept
+  expect:
+  - path: src/request.ts
+    line: 472
+    end_line: 475
+  must_mention:
+  - boundary
+  - content-type
+  - multipart
+  - formdata
+- repo: hono
+  commit: 9822548bf7
+  title: 'feat: introduce Method Override Middleware (#2420)'
+  fix: e0cdeb0a89
+  fix_title: 'fix(method-override): set duplex when forwarding a stream body in query mode (#5110)'
+  bug: 'new Request with a stream body needs duplex: ''half'''
+  expect:
+  - path: src/middleware/method-override/index.ts
+    line: 115
+    end_line: 119
+  must_mention:
+  - duplex
+  - stream
+  - body
+- repo: hono
+  commit: 6fe828ca0f
+  title: 'fix(cache): Allow composing cache control directives (#1922)'
+  fix: a48c8bf248
+  fix_title: 'fix(cache): deduplicate Cache-Control directives case-insensitively (#5025)'
+  bug: existing Cache-Control directive names are compared case-sensitively
+  expect:
+  - path: src/middleware/cache/index.ts
+    line: 21
+  must_mention:
+  - case
+  - lower
+- repo: hono
+  commit: 0edb243a74
+  title: 'perf(serve-static): performance optimization for precompressed feature (#3414)'
+  fix: 03a9416a13
+  fix_title: 'fix(serve-static): treat empty string content as found (#5062)'
+  bug: if (content) treats an empty file as not found
+  expect:
+  - path: src/middleware/serve-static/index.ts
+    line: 101
+  must_mention:
+  - empty
+  - falsy
+  - ''''''
+  - '""'
+  - zero-length
+- repo: hono
+  commit: 71cdcf40d8
+  title: 'feat: Introduce IP Restriction Middleware (#2813)'
+  fix: d22ff9c6fe
+  fix_title: 'fix(utils/ipaddr): expand "::" to eight zero groups (#4973)'
+  bug: expandIPv6('::') removes one empty section, so a second empty slot is expanded again
+  expect:
+  - path: src/utils/ipaddr.ts
+    line: 20
+  must_mention:
+  - '::'
+  - empty
+  - groups
+  - eight
+  - '8'
+- repo: hono
+  commit: 48dc87dfd5
+  title: 'fix(utils/filepath): filepath supports Windows (#1642)'
+  fix: 82dad6297c
+  fix_title: 'fix(serve-static): normalize all backslashes in file paths, not just the first (#4962)'
+  bug: replace(/\\/, '/') converts only the first backslash
+  expect:
+  - path: src/utils/filepath.ts
+    line: 26
+  must_mention:
+  - first
+  - global
+  - g flag
+  - only one
+  - all backslash
+  - multiple
+- repo: hono
+  commit: e9830c6ba1
+  title: 'perf(utils): use `| 0` instead of `Math.floor` (#3605)'
+  fix: e4602ad11a
+  fix_title: 'fix(jwt): use `Math.floor` instead of bitwise OR for safe timestamp (#4754)'
+  bug: (Date.now() / 1000) | 0 truncates to 32 bits, so timestamps past 2038 wrap
+  expect:
+  - path: src/utils/jwt/jwt.ts
+    line: 77
+  must_mention:
+  - '32'
+  - '2038'
+  - overflow
+  - truncat
+  - bitwise
+- repo: hono
+  commit: 1854e24145
+  title: 'perf(jsx/dom): improve performance (#3288)'
+  fix: 11c7828fa7
+  fix_title: 'fix(jsx/dom): handle empty arrays in render children loop (#4729)'
+  bug: after splicing an array child in place the index still advances, skipping the next child
+  expect:
+  - path: src/jsx/dom/render.ts
+    line: 470
+    end_line: 473
+  must_mention:
+  - skip
+  - index
+  - i--
+  - empty array
+  - splice
+- repo: hono
+  commit: 778ac10e84
+  title: 'feat: decode percent-encoded path in getPath (#2714)'
+  fix: 0c1d4c76cf
+  fix_title: 'fix(url): ignore fragment identifiers in getPath() (#4627)'
+  bug: 'getPath stops at ? but not #, so a fragment ends up in the path'
+  expect:
+  - path: src/utils/url.ts
+    line: 103
+    end_line: 109
+  must_mention:
+  - '#'
+  - fragment
+  - hash
+- repo: hono
+  commit: 66fc63d134
+  title: 'feat(bearer-auth): Allow empty bearer-auth middleware prefixes (#3161)'
+  fix: 3aa2f9ae09
+  fix_title: 'fix(bearer-auth): make auth-scheme case-insensitive (#4659)'
+  bug: the Bearer prefix is matched case-sensitively
+  expect:
+  - path: src/middleware/bearer-auth/index.ts
+    line: 73
+  must_mention:
+  - case
+- repo: hono
+  commit: 7768865e7a
+  title: 'fix: move `c.stream*` to helper (#1846)'
+  fix: 2a9cd953b6
+  fix_title: 'fix(sse): handle `\r` and `\r\n` line endings in writeSSE (#4644)'
+  bug: SSE data is split on \n only, so \r and \r\n line endings are not framed
+  expect:
+  - path: src/helper/streaming/sse.ts
+    line: 18
+  must_mention:
+  - \r
+  - carriage
+  - crlf
+  - line ending
+- repo: hono
+  commit: 6d18f17e58
+  title: 'fix(service-worker): pass `FetchEvent` as second argument to `app.fetch` (#4328)'
+  fix: 0e3db674ad
+  fix_title: 'fix(service-worker): correct args for `app.fetch` in `handle` (#4374)'
+  bug: app.fetch(request, evt) passes the FetchEvent as Env instead of as the execution context
+  expect:
+  - path: src/adapter/service-worker/handler.ts
+    line: 27
+  must_mention:
+  - argument
+  - second
+  - executionctx
+  - execution context
+  - env
+  - parameter
+- repo: hono
+  commit: acb94b15fa
+  title: 'fix(context): encode the redirect location (#4297)'
+  fix: 38ac5a0d55
+  fix_title: 'fix(context): use `isByteString` in `c.redirect` (#4307)'
+  bug: safeEncodeURI decides by decodeURI(str) === str, which mis-handles a literal % and some encoded input
+  expect:
+  - path: src/context.ts
+    line: 23
+    end_line: 750
+  - path: src/utils/url.ts
+    line: 313
+    end_line: 330
+  must_mention:
+  - double
+  - decodeuri
+  - '%'
+  - already encoded
+  - encode
+- repo: hono
+  commit: a16bcda120
+  title: 'perf(utils/url): improve performance of url utility (#3593)'
+  fix: 3df5bf9f16
+  fix_title: 'fix(req): don''t throw if the query param is invalid (#4110)'
+  bug: decodeURIComponent on an invalid query value throws instead of returning the raw value
+  expect:
+  - path: src/utils/url.ts
+    line: 213
+  must_mention:
+  - throw
+  - urierror
+  - invalid
+  - malformed
+  - decodeuricomponent
+- repo: cobra
+  commit: b80aeb17fc
+  title: Add support for custom completions in Go (#1035)
+  fix: 746ef07158
+  fix_title: 'fix: prevent completions from mutating os.Args via append side effect (#2356)'
+  bug: append on a sub-slice of args writes into the caller's backing array (os.Args)
+  expect:
+  - path: completions.go
+    line: 133
+  must_mention:
+  - append
+  - backing array
+  - alias
+  - capacity
+  - os.args
+  - mutat
+- repo: cobra
+  commit: 36aee64abe
+  title: prevent removal of valid arguments
+  fix: 6b0bd3076c
+  fix_title: 'fix: don''t remove flag value that matches subcommand name (#1781)'
+  bug: argsMinusFirstX removes the first arg equal to the subcommand name even when it is a flag's value
+  expect:
+  - path: command.go
+    line: 333
+    end_line: 339
+  must_mention:
+  - flag value
+  - value of a flag
+  - flag's value
+  - subcommand name
+  - matches the name
+- repo: cobra
+  commit: 21f39ca07e
+  title: 'bash: fix shellcheck errors (#889)'
+  fix: bf26895664
+  fix_title: Fix regression when calling *_custom_func (#1001)
+  bug: the read loop reuses $c, clobbering the global $c that *_custom_func reads
+  expect:
+  - path: bash_completions.go
+    line: 75
+    end_line: 133
+  must_mention:
+  - $c
+  - variable c
+  - reuse
+  - clobber
+  - shadow
+  - overwrit
+  - global
+- repo: cobra
+  commit: 6fd8e29b07
+  title: Qualify custom bash func name (#730)
+  fix: d2d81d9a96
+  fix_title: Fix too many underscore for __custom_func (#794)
+  bug: declare -F ___custom_func has three underscores, so the fallback to __custom_func never runs
+  expect:
+  - path: bash_completions.go
+    line: 137
+  must_mention:
+  - ___custom_func
+  - three underscores
+  - underscore
+  - never

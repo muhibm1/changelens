@@ -62,6 +62,15 @@ The two PowerShell claims Haiku made on cobra do not appear. A rule in the secon
 the language's own semantics did not remove them from Haiku in two runs, so it was not kept: the claims come from
 what the smaller model believes about PowerShell, not from how it is asked.
 
+## With the review context of 2026-10-19
+
+One more run of the 26 httpx, hono and cobra changes on the build that shows enclosing-definition windows and
+called definitions (`replay-sonnet-5-5-context-callers.md`): 4 warnings on 2 changes, all plausible, none noise.
+The confirmed hono ETag revert came out `inform` on this run where it was `warn` before, so confirmed recall is
+0/1 on this run. The replay JSON keeps warnings only, so whether the case was raised at `inform` is not recorded.
+One run each way, so that is within variance, but it is a regression on the one confirmed bug until a rerun shows
+otherwise; the recall eval on real bugs (`recall.md`) is the measurement that says what the second reading costs.
+
 ## Limits
 
 - One run per condition. A difference of one or two warnings is within run-to-run variance.

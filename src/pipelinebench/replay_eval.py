@@ -71,12 +71,20 @@ def prepare(name: str, spec: dict[str, Any], workdir: Path) -> Path:
     cfg = clone / "orion.yaml"
     if not cfg.exists():
         cfg.write_text(spec.get("config") or "db: .orion/graph.duckdb\n")
+    # Keep the config and the graph out of the diff under review: `orion review --git` adds untracked files.
+    exclude = clone / ".git" / "info" / "exclude"
+    if exclude.parent.is_dir():
+        have = {ln.strip() for ln in (exclude.read_text().splitlines() if exclude.exists() else [])}
+        missing = [p for p in ("orion.yaml", ".orion/") if p not in have]
+        if missing:
+            with exclude.open("a") as fh:
+                fh.write("".join(f"\n{p}" for p in missing) + "\n")
     return clone
 
 
-def review_commit(orion: str, clone: Path, commit: str, provider: str, model: str | None) -> dict[str, Any]:
+def review_commit(orion: str, clone: Path, commit: str, provider: str, model: str | None, extra_args: list[str] | None = None) -> dict[str, Any]:
     subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", commit], check=True)
-    cmd = [orion, "review", "--git", f"{commit}^", "--provider", provider, "--format", "json"] + (["--model", model] if model else [])
+    cmd = [orion, "review", "--git", f"{commit}^", "--provider", provider, "--format", "json"] + (["--model", model] if model else []) + list(extra_args or [])
     p = subprocess.run(cmd, cwd=clone, capture_output=True, text=True, env=os.environ.copy())
     if p.returncode not in (0, 1):  # 1 is a block verdict
         return {"error": (p.stderr or p.stdout)[-2000:]}
@@ -110,8 +118,17 @@ def judge(case: Case, result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _head(clone: Path) -> str:
+    """The ref to come back to after the run: the branch name, or the commit when detached (`checkout -` would land on the previous case)."""
+    r = subprocess.run(["git", "-C", str(clone), "symbolic-ref", "-q", "--short", "HEAD"], capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        return r.stdout.strip()
+    return subprocess.run(["git", "-C", str(clone), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+
 def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, orion: str, provider: str, model: str | None, progress=None) -> dict[str, Any]:
     clones = {name: prepare(name, repos[name], workdir) for name in sorted({c.repo for c in cases})}
+    heads = {name: _head(clone) for name, clone in clones.items()}
     unsynced = {n for n, clone in clones.items() if repos[n].get("needs_sync") and not (clone / ".orion" / "graph.duckdb").exists()}
     rows = []
     for c in cases:
@@ -123,8 +140,8 @@ def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, o
         rows.append(row)
         if progress:
             progress(row)
-    for clone in clones.values():
-        subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", "-"], capture_output=True)
+    for name, clone in clones.items():
+        subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", heads[name]], capture_output=True)
     return {"provider": provider, "model": model, "cases": rows, "summary": summarise(rows)}
 
 

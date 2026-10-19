@@ -1,0 +1,493 @@
+{
+ "provider": "anthropic",
+ "model": null,
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1d73150",
+   "title": "Cleanup response.json() method (#2911)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 761,
+     "title": "Response.json() now ignores the declared charset in Content-Type",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 16537,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 455
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "359f77d",
+   "title": "Clean up URL signature (#3245)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 21450,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "41597ad",
+   "title": "Move remaining utility functions to _models.py (#3387)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 21884,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6212e8f",
+   "title": "Move utility functions to _multipart.py (#3388)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14030,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "75a13a1",
+   "title": "Remove typeshed iscoroutine workaround (#2466)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 3737,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "83a8518",
+   "title": "Move normalize header functions to _models.py (#3382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 12196,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "8752e26",
+   "title": "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 18841,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 822
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "9baf3a6",
+   "title": "Drop RawURL (#2241)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14442,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b97c059",
+   "title": "Streaming multipart support (#2382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 15734,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 662
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "ba2e512",
+   "title": "Review urlescape percent-safe set (#3373)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 14251,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 564
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "3a67f7f3",
+   "title": "Merge commit from fork",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 17712,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "4b44abe1",
+   "title": "perf(router): share null object creation (#5267)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 15196,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6cadf753",
+   "title": "fix(lambda-edge): descriptive error on a malformed event (#5358)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 10675,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7075369e",
+   "title": "Revert fix(etag) incremental hashing (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 1,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9301,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 471
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8a5852d4",
+   "title": "fix(etag): incremental hashing for chunked responses (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6812,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1946287",
+   "title": "fix(pattern-router/linear-router): prefix overmatch (#5252)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9101,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 746
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1e4ac7d",
+   "title": "perf(cors): pre-join static array header options (#5210)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7555,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "c409d855",
+   "title": "fix(request): serialize cached JSON body in cloneRawRequest (#5288)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7062,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 611
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "24ada7f",
+   "title": "Remove the default completion cmd if it is alone (#1559)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 17809,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 687
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "5bef9d8",
+   "title": "Fix --version help and output for plugins (#2180)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13065,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 263
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6c3c116",
+   "title": "feat: add CompletionFunc type (#2220)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 10751,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "8607918",
+   "title": "feat: make InitDefaultCompletionCmd public (#1467)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 5013,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a0a6ae0",
+   "title": "Improve API to get flag completion function (#2063)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8946,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a4ab3fa",
+   "title": "powershell completion with custom comp (#1208)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 71,
+     "title": "WordToComplete is taken by splitting arguments on spaces, so quoted arguments break",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 99,
+     "title": "Empty output makes $Out[-1] null and the directive parse throws",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 107,
+     "title": "Removing the directive line by value also removes valid completions equal to it",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 44837,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1908
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b84ef40",
+   "title": "Rename BashCompDirectives to ShellCompDirectives (#1082)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 27656,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "fce8d8a",
+   "title": "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8615,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  }
+ ],
+ "summary": {
+  "changes": 26,
+  "errors": 0,
+  "changes_warned": 2,
+  "warns": 4,
+  "warns_per_change": 0.15,
+  "confirmed": 0,
+  "plausible": 4,
+  "noise": 0,
+  "unjudged": 0,
+  "setup": 0,
+  "confirmed_recall": "0/1",
+  "tokens_in": 373208,
+  "tokens_out": 7349
+ }
+}

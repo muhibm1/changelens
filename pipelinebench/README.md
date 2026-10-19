@@ -137,3 +137,18 @@ Stated intent (2026-10-18, after #14 merged; `results/sonnet-5-5-intent-x1.md`, 
 Design partner run 2 (2026-10-18; `results/partner-hono-cobra-sonnet-5-5.md`): sixteen merged hono and cobra changes, with commit messages as intent. The deterministic review raised nothing, after a fix so that function-local JS/TS variables no longer count as changed definitions (31 noisy symbols down to 5 real ones on hono). Sonnet warned 9 times. One warning matches a bug hono fixed later (a revert that brought back chunk-dependent ETags), 4 are plausible latent edge cases in cobra's PowerShell script, and 4 are noise.
 
 Typed receivers (2026-10-18, after #13 merged; `results/haiku-5-5-typed-receivers-x1.md` and `results/sonnet-5-5-typed-receivers-x1.md`, the two `removed-method` cases, one pass each). A removed method now carries its class, and a `.name` call in another file is linked when that file types the receiver as the class and imports it from the definition's module, so `hidden-py-removed-method-typed-caller` is a deterministic `warn`. A receiver typed as another class is reported to the model as not this definition: before that wording Haiku flagged `clean-py-removed-method-other-object-has-its-own` (a `Cache.fetch` call) as a broken caller, after it neither model does. Both models: recall 1.0, 0 false alarms on the two cases.
+
+## Recall eval
+
+`pipelinebench recall-eval` asks the other question the review eval cannot: would `orion review` have caught a real bug on the day it was written? `pipelinebench mine-introducers <clone> --repo <name>` blames the lines each fix commit changed (the removed lines, or the context around a pure addition) at the fix's parent, and lists the fixes where one earlier commit of at most 400 changed lines wrote most of them. Those candidates are read and labelled by hand in `review/recall.yaml`: the bug in one line, where it sits in the introducing commit (`expect`, in that commit's own line numbers, since the fix's numbers are later), and `must_mention` words a finding about this bug would use, so a different warning that lands nearby does not count. A case the diff alone cannot show carries `skip` with the reason. The labels come from the upstream history and are never derived from Orion's output.
+
+Each case is reviewed with `orion review --git <commit>^` at the introducing commit with its commit message as intent. Outcomes: `caught` (a `warn` or `block` on the expected file within twelve lines of the span that mentions the bug), `in_file` (a warning on the file but elsewhere), `inform_only` (a finding in the window that stopped at `inform`), `missed`. `--orion` points the run at another build's `orion` binary so two builds compare on the same cases, and `--raw-dir` keeps every case's full review so a miss can be read without another model run.
+
+```bash
+.venv/bin/pipelinebench recall-eval --workdir <folder> --provider anthropic --raw-dir <folder>/raw
+.venv/bin/pipelinebench recall-eval --workdir <folder> --repo httpx --case c725387b
+.venv/bin/pipelinebench recall-eval --workdir <folder> --orion /home/me/orion-main/.venv/bin/orion --name before
+.venv/bin/pipelinebench mine-introducers <folder>/hono --repo hono --limit 600 --out candidates.yaml
+```
+
+Results (2026-10-19, `results/recall.md`): on 50 bugs from httpx, hono and cobra, Sonnet 5.5 catches 21 at warn or block and warns in the right file on 29. Enclosing-definition windows for long files and the called definitions did not move that number beyond one run's variance, and the second reading still lowers about six right warnings per run.

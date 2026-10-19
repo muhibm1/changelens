@@ -173,6 +173,67 @@ def replay_eval_cmd(
     console.print(f"wrote {out / stem}.json and .md")
 
 
+@app.command("recall-eval")
+def recall_eval_cmd(
+    workdir: Path = typer.Option(..., "--workdir", help="Where the repositories are cloned (reused between runs)."),
+    provider: str = typer.Option("stub", "--provider"),
+    model: str | None = typer.Option(None, "--model"),
+    orion: str | None = typer.Option(None, "--orion", help="The `orion` executable to run (default: this environment's), so an older build can be measured."),
+    repo: list[str] = typer.Option([], "--repo", help="Only these repositories."),
+    case: list[str] = typer.Option([], "--case", help="Only these introducing commits."),
+    cases_file: Path = typer.Option(REVIEW_CASES.parent / "recall.yaml", "--cases"),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
+    name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
+    out: Path = typer.Option(RESULTS, "--out"),
+    raw_dir: Path | None = typer.Option(None, "--raw-dir", help="Keep each case's full review JSON here (not committed), to read a miss without another model run."),
+):
+    """Review real bug-introducing commits from public repositories and count how many bugs the review catches."""
+    import shutil
+    from datetime import UTC, datetime
+
+    from .recall_eval import load as load_recall
+    from .recall_eval import run as run_recall
+    from .recall_eval import to_markdown as recall_md
+
+    repos, cases = load_recall(cases_file)
+    cases = [c for c in cases if (not repo or c.repo in repo) and (not case or any(c.commit.startswith(x) for x in case))]
+    exe = orion or shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
+    workdir.mkdir(parents=True, exist_ok=True)
+    with console.status("reviewing") as status:
+        res = run_recall(cases, repos, workdir.resolve(), orion=exe, provider=provider, model=model, extra_args=review_arg, raw_dir=raw_dir, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {r['outcome']}"))
+    out.mkdir(parents=True, exist_ok=True)
+    stem = name or "recall-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+    (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
+    md = recall_md(res)
+    (out / f"{stem}.md").write_text(md)
+    console.print(md)
+    console.print(f"wrote {out / stem}.json and .md")
+
+
+@app.command("mine-introducers")
+def mine_introducers_cmd(
+    clone: Path = typer.Argument(..., help="A clone of the repository (a full clone is much faster than a blob-less one)."),
+    repo: str = typer.Option(..., "--repo", help="The repository's name in recall.yaml."),
+    limit: int = typer.Option(400, "--limit", help="How many recent commits to scan for fixes."),
+    max_lines: int = typer.Option(400, "--max-lines", help="Largest introducing commit to keep, in changed source lines."),
+    out: Path | None = typer.Option(None, "--out", help="Write candidates as YAML here (default: print)."),
+):
+    """List commits that introduced the lines later fix commits changed: candidates for recall.yaml, to read and label by hand."""
+    import yaml
+
+    from .introducers import mine
+
+    with console.status("blaming") as status:
+        found = mine(clone.resolve(), repo, limit=limit, max_lines=max_lines, progress=lambda sha, subject, c: status.update(f"{sha} {subject[:60]}" + (" -> candidate" if c else "")))
+    rows = [c.to_yaml() | {"share": c.share, "size": c.changed_lines} for c in found]
+    text = yaml.safe_dump(rows, sort_keys=False, width=160, allow_unicode=True)
+    if out:
+        out.write_text(text)
+        console.print(f"wrote {len(rows)} candidates to {out}")
+    else:
+        console.print(text)
+
+
 @app.command("report")
 def report_cmd(results: Path):
     console.print(report(json.loads(results.read_text())))

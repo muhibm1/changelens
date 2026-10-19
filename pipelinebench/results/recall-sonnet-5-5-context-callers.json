@@ -1,0 +1,1420 @@
+{
+ "provider": "anthropic",
+ "model": null,
+ "args": [],
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1805ee0d22",
+   "title": "Graceful upgrade path for 0.28. (#3394)",
+   "bug": "verify=False returns before the client certificate is loaded, so cert= is ignored",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_config.py",
+     "line": 26,
+     "title": "Default context drops SSLKEYLOGFILE support and the stricter verify flags",
+     "failure": "On a Python version where create_default_context does not read SSLKEYLOGFILE, setting `SSLKEYLOGFILE=test` leaves keylog_filename unset, so `test_load_ssl_with_keylog` fails and users lose TLS key logging.",
+     "notes": []
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "httpx/_config.py",
+     "line": 20,
+     "title": "Removing `ssl_context` and `cert` params contradicts a graceful upgrade path",
+     "failure": "Existing code calling `httpx.create_ssl_context(verify, cert)` or `httpx.create_ssl_context(trust_env=..., http2=True)` raises TypeError.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading did not confirm the failing case (The changelog states the 0.28 release removes `cert` and string `verify`, and the create_ssl_context signature change follows from the SSL simplification, so TypeError for the dropped arguments is the announced behaviour.)"
+     ]
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "httpx/_config.py:21 Local `import ssl` shadows the module-level name and breaks the annotation and logic",
+    "httpx/_config.py:26 Default context drops SSLKEYLOGFILE support and the stricter verify flags"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 54917,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1368
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "fd3b69d2aa",
+   "title": "Add DigestAuth middleware (#332)",
+   "bug": "RFC 2069 digest (no qop) hashes HA1 twice: response = H(HA1:HA1:nonce:HA2)",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 10,
+   "warn_titles": [
+    "tests/client/test_auth.py:210 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:234 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:260 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:286 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:294 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:303 Possible credential assigned to a literal committed"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 44970,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1028
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "15d09a3bbc",
+   "title": "fix: NO_PROXY should support IPv4, IPv6 and localhost (#2659)",
+   "bug": "a NO_PROXY entry with a scheme (http://host) is treated as a hostname and never matches",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_utils.py",
+     "line": 265,
+     "title": "CIDR entries in NO_PROXY are mounted as literal URL patterns and never match",
+     "failure": "NO_PROXY=192.168.0.0/16 with a request to http://192.168.1.5/ still goes through the proxy, because the pattern only matches host 192.168.0.0, and the request may leak to the proxy.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_utils.py:265 CIDR entries in NO_PROXY are mounted as literal URL patterns and never match"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 17926,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 673
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "27df5e49c7",
+   "title": "Support for `chunk_size` (#1277)",
+   "bug": "TextChunker.decode returns [''] for empty content, so iter_text yields an empty string",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_models.py:1173 Empty cached content with chunk_size=None raises ValueError; also chunk_size=0 fails"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 42826,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 510
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b481166481",
+   "title": "Refactor ASGITransport.request() (#1021)",
+   "bug": "with raise_app_exceptions=False an exception before the response completes is still raised",
+   "outcome": "inform_only",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "httpx/_transports/asgi.py",
+     "line": 151,
+     "title": "Condition changed from truthiness of Event to is_set()",
+     "failure": "",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5719,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 243
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "59914c7690",
+   "title": "Add `NetRCAuth()` class. (#2535)",
+   "bug": "NetRCAuth(file: Optional[str]) has no default, so NetRCAuth() is a TypeError",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_auth.py",
+     "line": 150,
+     "title": "NetRCAuth `file` argument is required, contradicting the documented default usage",
+     "failure": "A user following the docs and calling `httpx.NetRCAuth()` gets `TypeError: __init__() missing 1 required positional argument: 'file'`.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_auth.py:150 NetRCAuth `file` argument is required, contradicting the documented default usage"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 46278,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 561
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "c725387b2d",
+   "title": "Preserve header casing (#1338)",
+   "bug": "Headers.update assigns each raw pair, so a repeated header in the update keeps only its last value",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 662,
+     "title": "update() decodes raw bytes with headers.encoding, possibly inconsistent",
+     "failure": "Headers.update({b'X-\\xe9': b'v'}) picks ascii encoding from the values and key.decode('ascii') raises UnicodeDecodeError; previously the lowercased iteration path had the same risk, but raw iteration now ignores multi-valued merging: update with duplicate keys sets each in turn, so only the last value is kept instead of the joined value.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_models.py:662 update() decodes raw bytes with headers.encoding, possibly inconsistent"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 31306,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 818
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6f5865f860",
+   "title": "Read upload files using `read(CHUNK_SIZE)` rather than `iter()`. (#1948)",
+   "bug": "hasattr(stream, 'read') also matches SyncByteStream subclasses, whose read() takes no size argument",
+   "outcome": "inform_only",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 53,
+     "title": "Objects with a `read` attribute are read via read(CHUNK_SIZE) even if text-mode or non-file iterables",
+     "failure": "A user passes `content=open('f.txt')` (text mode) or a custom iterable whose `read(self)` takes no argument. Before, iteration worked or yielded lines; now `read(65536)` raises TypeError or yields str chunks that break the transport.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading confirmed the case but judged it trade off, not a defect (The change deliberately switches objects with `read` to `read(CHUNK_SIZE)`, so a `read()` that takes no size argument now raises TypeError, and a text-mode file now yields str chunks, whereas iteration previously worked or yielded lines (str). The deliberate design makes this a known cost, though th)"
+     ]
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 21465,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 497
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "bfc190f725",
+   "title": "feat(css): add CSP nonce to hono/css related style and script tags (#3685)",
+   "bug": "the style replacement regex has no s flag, so multiline CSS is not matched",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/css/index.ts:164 Unescaped nonce interpolated into HTML attributes"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 39222,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 869
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "09a81e4f01",
+   "title": "fix(jsx): cloneElement didn't copy children (#4257)",
+   "bug": "undefined children become [undefined], so a void element is cloned with a child",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/jsx/base.ts",
+     "line": 431,
+     "title": "Element with no children gets a spurious undefined child",
+     "failure": "cloneElement(<br />, {}) or cloneElement(<img src='a' />, {}) produces a child array [undefined] and sets props.children to undefined rather than leaving it absent. Void elements or components that check `'children' in props` or `children.length` can then behave differently.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/jsx/base.ts:431 Element with no children gets a spurious undefined child"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6661,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 466
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9a6e52d734",
+   "title": "feat(middleware/combine): Introduce combine middleware (#2941)",
+   "bug": "some() drops a Response returned by a short-circuiting middleware, so the context is never finalized",
+   "outcome": "in_file",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/middleware/combine/index.ts",
+     "line": 39,
+     "title": "Condition returning true inside every() leaves downstream chain unexecuted",
+     "failure": "A middleware that returns `true` after already calling next() and not finalizing the context causes next() to be invoked a second time, triggering 'next() called multiple times'.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading did not confirm the failing case (The documented contract is that a Condition returning true halts evaluation and `some` calls next(). Real middleware returns undefined, so `true` only comes from conditions, and the finding admits there is no major bug.)"
+     ]
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/middleware/combine/index.ts:38 some() can run downstream handlers twice when a later one throws after next()",
+    "src/middleware/combine/index.ts:95 every() passes params snapshot and only works as intended in a fresh compose"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 37990,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1606
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "f356702efc",
+   "title": "fix(etag): support multi-value If-None-Match (#1199)",
+   "bug": "retainedHeaders are compared lower-cased against the option's values as given, so a mixed-case option never matches",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "deno_dist/middleware/etag/index.ts:51 Headers deleted while iterating the same Headers object (deno dist)",
+    "src/middleware/etag/index.ts:51 Headers deleted while iterating the same Headers object"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 24513,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1458
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b0f189a3f",
+   "title": "refactor(json-pretty): don't use `c.pretty()` (#1288)",
+   "bug": "c.res.json() on an empty or invalid JSON body throws, turning the response into a 500",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/pretty-json/index.ts",
+     "line": 12,
+     "title": "Middleware reads and re-serializes the response body unconditionally",
+     "failure": "A request to `?pretty` whose handler returns `c.body('', 204, {'Content-Type':'application/json'})` or a streamed or invalid JSON body makes `c.res.json()` throw a SyntaxError, so the client gets a 500 instead of the original response.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/pretty-json/index.ts:12 Middleware reads and re-serializes the response body unconditionally"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 22082,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 646
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1a1de75296",
+   "title": "feat: Introduce LinearRouter. (#1043)",
+   "bug": "an empty path segment in the middle of a path (/u//posts) matches a :param with an empty value",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/router/linear-router/router.ts",
+     "line": 90,
+     "title": "Custom regex pattern is unanchored and constructed on every match",
+     "failure": "Route '/post/:id{[0-9]+}/x' with path '/post/12ab/x': the regex matches '12', pos lands mid-segment, and the following '/x' check fails. That is acceptable here, but for '/a/:v{[a-z]+}' with path '/a/abc1' the match is 'abc' and the final check rejects it. The behaviour is inconsistent with the other routers, and an invalid pattern throws a SyntaxError during match().",
+     "notes": []
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/router/linear-router/router.ts",
+     "line": 110,
+     "title": "Duplicate param check uses truthiness and the params object is shared across routes",
+     "failure": "Routes '/:id/:action' and '/posts/:id' both match '/posts/get'. match() throws Error('Duplicate param name') on a valid request, which would surface as a 500.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading did not confirm the failing case (Throwing 'Duplicate param name' for conflicting same-named params across matched routes is deliberate and asserted by the 'Duplicate param name' tests; the empty-string truthiness quirk is negligible.)"
+     ]
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/router/linear-router/router.ts:15 Optional-param expansion mishandles paths with no remaining segment",
+    "src/router/linear-router/router.ts:90 Custom regex pattern is unanchored and constructed on every match"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 40518,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1288
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "28a9c12891",
+   "title": "fix(accepts): support wildcard media types and specificity ordering in defaultMatch (#5255)",
+   "bug": "media types and language tags are compared case-sensitively",
+   "outcome": "in_file",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/helper/accepts/accepts.ts",
+     "line": 29,
+     "title": "Subtype wildcard match is case-sensitive and ignores non-media headers",
+     "failure": "Accept: `Application/*` with supports ['application/json'] returns the default instead of application/json.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/accepts/accepts.ts:55 Iteration over supports order instead of client preference within an accept entry; q=0 not honored"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16496,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 709
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "32ba5ba836",
+   "title": "refactor(request): shorten `parseBody` and remove unnecessary check (#2947)",
+   "bug": "rebuilding a cached body with new Response(body) loses the Content-Type, so formData() after text() throws",
+   "outcome": "inform_only",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 216,
+     "title": "parsedBody key now picked as fallback source in cachedBody",
+     "failure": "If bodyCache has only parsedBody (or parsedBody ordered first) and the caller then calls c.req.text(), anyCachedKey is 'parsedBody', bodyCache.parsedBody.then is not a function, and a TypeError is thrown. Alternatively the result is garbage.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading did not confirm the failing case (parseBody() in src/utils/body.ts reads the body through request[key]() on HonoRequest, which populates bodyCache with formData (or another body key) before parsedBody is assigned, so insertion order puts a body key first and parsedBody alone or first cannot occur.)"
+     ]
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6584,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 556
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b4392fa36",
+   "title": "feat(adaptor): Support AWS Function URL Streaming (#1625)",
+   "bug": "streamToNodeStream ignores write() backpressure and resolves before the writable finishes",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/adapter/aws-lambda/handler.ts",
+     "line": 73,
+     "title": "Stream writes ignore backpressure and are not cleaned up on error",
+     "failure": "A large streamed response (e.g. a long SSE or file) to a slow client makes every chunk queue in the Lambda writable stream's buffer, raising memory use. If a write throws, the reader lock is leaked.",
+     "notes": []
+    }
+   ],
+   "warns": 4,
+   "warn_titles": [
+    "runtime_tests/lambda/index.test.ts:484 Streaming test asserts on the input stream rather than the handler's output",
+    "src/adapter/aws-lambda/handler.ts:73 Stream writes ignore backpressure and are not cleaned up on error",
+    "src/adapter/aws-lambda/handler.ts:96 Streaming handler passes `context` instead of `lambdaContext` binding",
+    "src/adapter/aws-lambda/handler.ts:110 Error path writes plain text after response may have started, and status/headers are never sent"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 40849,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1528
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "2d3bc55954",
+   "title": "fix(streaming): call stream.abort() explicitly when request is aborted (#3042)",
+   "bug": "abort subscribers are called bare, so a throwing or rejecting listener stops the rest or is unhandled",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/stream.ts",
+     "line": 88,
+     "title": "Abort subscribers' errors and rejections are unhandled",
+     "failure": "If the first onAbort callback throws, the second one (such as the internal resolve that ends the stream callback) is never called. The stream callback then hangs, and a later abort() call does nothing.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/helper/streaming/stream.ts:14 Abort listener is never removed and misses already-aborted signals",
+    "src/utils/stream.ts:88 Abort subscribers' errors and rejections are unhandled"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 43152,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 995
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "d7964503c9",
+   "title": "fix(request): fix multipart boundary mismatch in `cloneRawRequest` (#5133)",
+   "bug": "content-type is dropped for a re-serialized FormData but the stale content-length is kept",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4497,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "350d904ad0",
+   "title": "feat: introduce Accepts Helper (#2001)",
+   "bug": "defaultMatch only accepts exact type matches, so */* and type/* never match",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "src/helper/accept/accept.ts:37 parseAccept throws on parameters without '=' or with empty value",
+    "src/helper/accept/accept.ts:47 Matching ignores wildcards, q=0, and parameter whitespace; parseFloat may yield NaN"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 23127,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1007
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "366f760a30",
+   "title": "fix(client): allow multiple files on the same key in form (#2791)",
+   "bug": "an undefined entry in a form array is appended as the string 'undefined'",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 39168,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "091ecb7e86",
+   "title": "fix(middleware/etag): should return 304 when weak etag is passed in  'If-None-Match' (#4171)",
+   "bug": "If-None-Match is split on /,\\s*/, so whitespace before a comma leaves a trailing space on the tag",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9940,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "b143c4ed8b",
+   "title": "feat(middleware/csrf): Introduce CSRF middleware (#1823)",
+   "bug": "OPTIONS is not a safe method, so CORS preflights are rejected by the CSRF check",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/csrf/index.ts:12 Content-Type regex is case-sensitive, so it can be bypassed"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 26774,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 895
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "d9b8b4b73b",
+   "title": "Merge commit from fork",
+   "bug": "Vary is set rather than appended on OPTIONS, overwriting a Vary another middleware set",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11623,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 537
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "331b3d8a96",
+   "title": "fix(client): replace optional params to url correctly (#3304)",
+   "bug": "String.replace with a string replacement expands $ tokens in the param value",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/client/utils.ts",
+     "line": 13,
+     "title": "Falsy check drops empty-string params and removes required params",
+     "failure": "replaceUrlParam('http://localhost/posts/:id/comments', {id: ''}) now returns 'http://localhost/posts/comments' (previously 'posts//comments'), silently producing a URL that matches a different route.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/client/utils.ts:13 Falsy check drops empty-string params and removes required params"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 13996,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 697
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "ff34b1ba9a",
+   "title": "feat: support multiple optinal parameters (#1940)",
+   "bug": "/\\?/ matches a ? inside a regex quantifier, so :p{\\d+?} is read as optional",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 128,
+     "title": "Loose optional-parameter guard accepts paths the old regex rejected and mishandles regex-constrained params",
+     "failure": "Path `/api/:id{[0-9]?}/x:y?`, or `/post/:id{a/b}?`, is split on the `/` inside the braces. The generated paths are wrong and the route is registered under broken patterns. Previously these were not split this way.",
+     "notes": []
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 135,
+     "title": "Empty and non-param segments are dropped or mishandled",
+     "failure": "For `/a/:b?/c/:d?`, the generated paths are '/a', '/a/:b', '/a/:b/c', '/a/:b/c/:d'. Here '/a/:b/c' is not emitted as a result, and the literal 'c' is added only to basePath.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/url.ts:128 Loose optional-parameter guard accepts paths the old regex rejected and mishandles regex-constrained params"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 30495,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 837
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cdb36b80af",
+   "title": "feat(client) add cookie type validate (#1476)",
+   "bug": "request cookies are joined with ',' and serialized with path=/; a Cookie header is '; '-joined name=value pairs",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/client/client.ts",
+     "line": 100,
+     "title": "Cookie header joined with comma and each cookie serialized with Set-Cookie attributes",
+     "failure": "Calling `client.x.$get({cookie: {a: '1', b: '2'}})` sends `Cookie: a=1; Path=/,b=2; Path=/`. A server parsing it sees a='1' and a bogus `Path` cookie, and b is likely lost or mangled (it is parsed as a key ` b` after the comma, or dropped).",
+     "notes": []
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/client/client.ts",
+     "line": 100,
+     "title": "Generated Cookie header overwrites user-supplied Cookie header",
+     "failure": "A caller passing `headers: {Cookie: 'a=1'}` and `cookie: {b: '2'}` sends only the b cookie.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/client/client.ts:100 Cookie header joined with comma and each cookie serialized with Set-Cookie attributes"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 33946,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 741
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "31f0605209",
+   "title": "feat: Add `c.stream()` (#1437)",
+   "bug": "pipe() releases the writer lock and re-acquires it only after pipeTo succeeds, so a throw leaves no writer",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/stream.ts",
+     "line": 33,
+     "title": "pipe() loses the writer if pipeTo fails",
+     "failure": "The source stream errors mid-pipe. `pipe` rejects and `this.writer` stays released. `stream.close()` in `c.stream`'s `.finally` then rejects, and the response stream is never closed cleanly.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/context.ts:383 streamText mutates caller's headers object and overrides caller headers",
+    "src/context.ts:395 Callback rejection is unhandled and close() can reject",
+    "src/utils/stream.ts:33 pipe() loses the writer if pipeTo fails"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 31058,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1233
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7ce0ddd350",
+   "title": "feat(router): support greedy matches with subsequent static components. (#3888)",
+   "bug": "m[0].match(/\\//) without the g flag counts at most one slash",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/router/trie-router/node.ts",
+     "line": 180,
+     "title": "componentCount uses match() without global flag, so it is always 0 or 1",
+     "failure": "Route `/:first{.+}/middle-b/:digest` against `/a/b/c/middle-b/x`: m[0] = 'a/b/c' has 2 slashes, but componentCount is 1. The child is queued one step too early, so the following static part 'middle-b' is matched against the wrong path segment and the route fails to match. Single-slash captures happen to work.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/router/trie-router/node.ts:180 componentCount uses match() without global flag, so it is always 0 or 1",
+    "src/utils/url.ts:67 Lookahead built from unescaped next segment and only the immediate next segment"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 40214,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 927
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cd35af7655",
+   "title": "feat(jsx/dom): support getServerSnapshot in useSyncExternalStore (#2646)",
+   "bug": "the subscription effect has no deps, so a changed subscribe or store is never picked up",
+   "outcome": "inform_only",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/jsx/hooks/index.ts",
+     "line": 400,
+     "title": "useSyncExternalStore now throws during string rendering without getServerSnapshot",
+     "failure": "An existing SSR component calling useSyncExternalStore(subscribe, getSnapshot) and rendered via toString() used to produce HTML. It now throws 'getServerSnapshot is required for server side rendering'.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading confirmed the case but judged it trade off, not a defect (The throw is real: with no build context the hook now throws without getServerSnapshot, where it used to return getSnapshot(); this mirrors React and is a deliberate part of adding server snapshot support, though it is a behavior change.)"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/jsx/dom/render.ts:580 Top-level flag is only reset after build; relies on mutable context and sync build"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 17667,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 916
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8130a67da1",
+   "title": "feat(secureHeader): add CSP Report-Only mode support (#3413)",
+   "bug": "CSP callbacks run for both Content-Security-Policy and its Report-Only header",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/middleware/secure-headers/secure-headers.ts",
+     "line": 272,
+     "title": "CSP callbacks are applied to both CSP headers, which throws or corrupts values",
+     "failure": "With `secureHeaders({ contentSecurityPolicy: { scriptSrc: [\"'self'\", NONCE] }, contentSecurityPolicyReportOnly: { scriptSrc: [\"'self'\", NONCE] } })`, every request throws a TypeError in the middleware when the callbacks run. The same happens with a function value (e.g. NONCE) in only one of the two policies, because the callback also runs over the other header's string value.",
+     "notes": [
+      "removed evidence that does not resolve: hunk:src/middleware/secure-headers/secure-headers.ts:219"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/secure-headers/secure-headers.ts:272 CSP callbacks are applied to both CSP headers, which throws or corrupts values"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 41748,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1274
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1ce18c26dc",
+   "title": "feat(sse): Allow sending retry for SSE connection (#2188)",
+   "bug": "truthiness checks drop retry: 0 and id: ''",
+   "outcome": "inform_only",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/helper/streaming/sse.ts",
+     "line": 29,
+     "title": "retry: 0 is silently dropped by truthiness check",
+     "failure": "writeSSE({data:'x', retry:0}) emits no retry field, so the client keeps its previous or default reconnect delay instead of reconnecting immediately.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5711,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 274
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "12806614b9",
+   "title": "feat(request): add cloneRawRequest utility for request cloning (#4382)",
+   "bug": "a FormData body is re-serialized with a new boundary while the old Content-Type header is kept",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 463,
+     "title": "Rebuilt body uses first cached key, which may not be the original body or can be a parsed value",
+     "failure": "A POST with a JSON body is validated with validator('json'), then cloneRawRequest(c.req) is called. The cache key is 'json', so body becomes a plain object and new Request stringifies it as '[object Object]'. clonedReq.json() then throws a SyntaxError. If the first key is 'parsedBody' instead, `req[cacheKey]` is not a function and throws a TypeError.",
+     "notes": []
+    },
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 475,
+     "title": "Headers rebuilt from req.header() lose multi-value headers and the body-derived content-length",
+     "failure": "If the original request carried a Content-Length header and the body is re-stringified, for example from a cached JSON object, the new body length differs from the copied header, so a forwarded fetch may be rejected or truncated.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/request.ts:463 Rebuilt body uses first cached key, which may not be the original body or can be a parsed value",
+    "src/request.ts:475 Headers rebuilt from req.header() lose multi-value headers and the body-derived content-length"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 28843,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 886
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9822548bf7",
+   "title": "feat: introduce Method Override Middleware (#2420)",
+   "bug": "new Request with a stream body needs duplex: 'half'",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/method-override/index.ts",
+     "line": 115,
+     "title": "Query override reuses the body stream and may fail on Node",
+     "failure": "On Node with undici, a POST to `/posts?_method=delete` that carries a body throws a TypeError ('duplex option is required when sending a body'), and the client gets a 500.",
+     "notes": []
+    }
+   ],
+   "warns": 4,
+   "warn_titles": [
+    "src/middleware/method-override/index.ts:1 Node-only `url` import in a runtime-agnostic middleware",
+    "src/middleware/method-override/index.ts:59 Form mode clones the request body for every non-GET request",
+    "src/middleware/method-override/index.ts:74 Override method value is not validated",
+    "src/middleware/method-override/index.ts:115 Query override reuses the body stream and may fail on Node"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 31959,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1609
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6fe828ca0f",
+   "title": "fix(cache): Allow composing cache control directives (#1922)",
+   "bug": "existing Cache-Control directive names are compared case-sensitively",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/cache/index.ts:23 Directive with '=' in value is truncated by split limit"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12455,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 735
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "0edb243a74",
+   "title": "perf(serve-static): performance optimization for precompressed feature (#3414)",
+   "bug": "if (content) treats an empty file as not found",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 25472,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 585
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "71cdcf40d8",
+   "title": "feat: Introduce IP Restriction Middleware (#2813)",
+   "bug": "expandIPv6('::') removes one empty section, so a second empty slot is expanded again",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/ip-restriction/index.ts:60 CIDR prefix not validated; invalid prefix throws or yields wrong mask",
+    "src/middleware/ip-restriction/index.ts:155 Remote address not normalized before static-rule lookup (IPv6 deny bypass)",
+    "src/middleware/ip-restriction/index.ts:157 Unknown address type falls through and may throw on CIDR conversion"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 43008,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1377
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "48dc87dfd5",
+   "title": "fix(utils/filepath): filepath supports Windows (#1642)",
+   "bug": "replace(/\\\\/, '/') converts only the first backslash",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/filepath.ts",
+     "line": 26,
+     "title": "Backslash replacement lacks global flag, only first backslash converted",
+     "failure": "filename 'a\\b\\c.txt' returns 'a/b\\c.txt' instead of 'a/b/c.txt', so static file lookup fails on Windows-style paths with more than one backslash.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "deno_dist/utils/filepath.ts:26 Backslash replacement not global (Deno copy)",
+    "src/utils/filepath.ts:26 Backslash replacement lacks global flag, only first backslash converted"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10184,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 812
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "e9830c6ba1",
+   "title": "perf(utils): use `| 0` instead of `Math.floor` (#3605)",
+   "bug": "(Date.now() / 1000) | 0 truncates to 32 bits, so timestamps past 2038 wrap",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 7842,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1854e24145",
+   "title": "perf(jsx/dom): improve performance (#3288)",
+   "bug": "after splicing an array child in place the index still advances, skipping the next child",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 54650,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 952
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "778ac10e84",
+   "title": "feat: decode percent-encoded path in getPath (#2714)",
+   "bug": "getPath stops at ? but not #, so a fragment ends up in the path",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 33544,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 573
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "66fc63d134",
+   "title": "feat(bearer-auth): Allow empty bearer-auth middleware prefixes (#3161)",
+   "bug": "the Bearer prefix is matched case-sensitively",
+   "outcome": "in_file",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/bearer-auth/index.ts:73 Prefix is interpolated into RegExp unescaped, now compiled once at setup"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 19027,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 423
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7768865e7a",
+   "title": "fix: move `c.stream*` to helper (#1846)",
+   "bug": "SSE data is split on \\n only, so \\r and \\r\\n line endings are not framed",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/streaming/index.ts:11 `streamSSE` removed but still referenced at runtime_tests/lambda/index.test.ts:10, runtime_tests/lambda/index.test.ts:553"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 29110,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 406
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6d18f17e58",
+   "title": "fix(service-worker): pass `FetchEvent` as second argument to `app.fetch` (#4328)",
+   "bug": "app.fetch(request, evt) passes the FetchEvent as Env instead of as the execution context",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4904,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "acb94b15fa",
+   "title": "fix(context): encode the redirect location (#4297)",
+   "bug": "safeEncodeURI decides by decodeURI(str) === str, which mis-handles a literal % and some encoded input",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 323,
+     "title": "safeEncodeURI can corrupt URLs with reserved-character escapes such as %2F, %23, %3F",
+     "failure": "c.redirect('https://example.com/a%20b/%zz') makes decodeURI throw on %zz. The fallback encodeURI(str) then yields 'https://example.com/a%2520b/%25zz', so the already-encoded %20 is double-encoded and the redirect points to the wrong path.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/url.ts:323 safeEncodeURI can corrupt URLs with reserved-character escapes such as %2F, %23, %3F"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 31571,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 593
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a16bcda120",
+   "title": "perf(utils/url): improve performance of url utility (#3593)",
+   "bug": "decodeURIComponent on an invalid query value throws instead of returning the raw value",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6303,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b80aeb17fc",
+   "title": "Add support for custom completions in Go (#1035)",
+   "bug": "append on a sub-slice of args writes into the caller's backing array (os.Args)",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 4,
+   "warn_titles": [
+    "bash_completions.go:85 eval of command line built from user-typed words",
+    "bash_completions.go:90 Completions truncated at first colon",
+    "custom_completions.go:17 Global unsynchronized map keyed by flag pointer; annotations mutated during script generation",
+    "custom_completions.go:278 User message used as printf format string in CompDebug"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 64504,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1400
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "36aee64abe",
+   "title": "prevent removal of valid arguments",
+   "bug": "argsMinusFirstX removes the first arg equal to the subcommand name even when it is a flag's value",
+   "outcome": "missed",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5640,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "21f39ca07e",
+   "title": "bash: fix shellcheck errors (#889)",
+   "bug": "the read loop reuses $c, clobbering the global $c that *_custom_func reads",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 75,
+     "title": "COMPREPLY appended to rather than replaced; `c` leaks as global",
+     "failure": "If COMPREPLY already holds entries from a previous invocation or step, the new matches are appended to stale entries, producing wrong completions. The `read -r c` also clobbers the global `c` word index used by __handle_flag and the command-parsing loop, which can break later parsing.",
+     "notes": [
+      "removed evidence that does not resolve: hunk:bash_completions.go:174"
+     ]
+    },
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 127,
+     "title": "Same stale COMPREPLY and clobbered `c` in the main completion path",
+     "failure": "If COMPREPLY was non-empty before this point (for example, populated by the flag branch), the fallback to noun_aliases and the custom func is skipped, and the stale entries are returned. `c` is overwritten after reading.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "bash_completions.go:75 COMPREPLY appended to rather than replaced; `c` leaks as global",
+    "bash_completions.go:127 Same stale COMPREPLY and clobbered `c` in the main completion path"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9524,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 947
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6fd8e29b07",
+   "title": "Qualify custom bash func name (#730)",
+   "bug": "declare -F ___custom_func has three underscores, so the fallback to __custom_func never runs",
+   "outcome": "caught",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 137,
+     "title": "Fallback checks for nonexistent `___custom_func` (three underscores)",
+     "failure": "An existing app defines only the legacy `__custom_func` in BashCompletionFunction. When completion yields no replies, `declare -F ___custom_func` fails, so `__custom_func` is never called and custom completion silently stops working. This breaks the stated backward compatibility.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "bash_completions.go:137 Fallback checks for nonexistent `___custom_func` (three underscores)",
+    "bash_completions_test.go:161 Test counts miss the broken fallback"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 25005,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 817
+   }
+  }
+ ],
+ "skipped": [],
+ "summary": {
+  "cases": 50,
+  "errors": 0,
+  "caught": 21,
+  "in_file": 8,
+  "inform_only": 5,
+  "missed": 16,
+  "recall": 0.42,
+  "recall_in_file": 0.58,
+  "warns_per_case": 1.36,
+  "tokens_in": 1316983,
+  "tokens_out": 37342
+ }
+}

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Review context
+
+- A changed file over 400 lines no longer goes to the model as bare hunks: each hunk's enclosing definition goes instead (`context.windows`), merged and capped at 400 lines per file, numbered like the diff.
+- The definitions a change calls into are shown to the model (`context.callees`): for each name the added lines call that no changed file defines, `git grep` finds its definition line in the repository and the block is cut at its end. A free call is shown when the repository defines the name once, or in a module the changed file imports or sits beside; a method call only in such a module. Ambiguous names are left out. The definitions' lines are valid evidence (`ref:<path>:<line>`) and the review JSON lists them under `callees`.
+- The model is told to read the shown code and the called definitions, and that a finding about a called function must follow from its shown definition. The second reading no longer lowers a warning because no caller in the repository passes the failing input: most code under review is a library or service whose callers are elsewhere, so a value any caller could pass is an ordinary case.
+
+### Recall on real bugs
+
+- `pipelinebench mine-introducers` blames the lines a fix commit changed to find the commit that introduced the bug, and lists the small enough ones as candidates. `pipelinebench/review/recall.yaml` holds fifty of them from httpx, hono and cobra, read and labelled by hand (what the bug was, and where it sits in the introducing commit).
+- `pipelinebench recall-eval` reviews each introducing commit against its parent with its commit message as intent, as a team would have seen it, and counts the bugs caught at warn or block within twelve lines (`caught`), warned about elsewhere in the file (`in_file`), raised only as inform, or missed. `--orion` points it at another build so two builds compare. Sonnet 5.5 catches 21 of the 50 at warn or block and warns in the right file on 29 (`pipelinebench/results/recall.md`); the context changes did not move that number beyond one run's variance, and the second reading still lowers about six right warnings per run.
+- Replay and recall clones keep `orion.yaml` and the graph out of the diff under review (`.git/info/exclude`); before, both appeared as added files in every replayed change.
+
 ### Verdict quality
 
 - A verdict's `history` lists incidents and events from the same kind of change. Failed runs, missed SLAs and schema changes from other kinds of change move to a new `background_events` field, and the markdown counts them in one line. They read as reasons for caution when they were not.
