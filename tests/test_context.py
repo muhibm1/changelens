@@ -105,7 +105,7 @@ def test_review_sends_callee_definitions_and_long_file_windows(synced_store, tmp
             self.users = []
 
         def complete_json(self, system, user, schema, *, schema_name="result"):
-            self.users.append(user)
+            self.users.append(user if isinstance(user, str) else "\n\n".join(user))
             return {"findings": [{"path": "app/big.py", "line": changed_line, "severity": "warn", "category": "correctness", "title": "cents", "body": "x", "failure": "a='1' gives 100", "evidence": ["ref:lib/money.py:1"]}]}
 
     cap = Cap()

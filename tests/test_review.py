@@ -11,7 +11,7 @@ from orion import providers
 from orion.constraints import load_constraints
 from orion.diffparse import parse, render
 from orion.providers import AnthropicProvider, OpenAICompatibleProvider, ProviderError, StubProvider, make_provider
-from orion.review import FINDINGS_SCHEMA, review, to_markdown
+from orion.review import FINDINGS_SCHEMA, LENSES, merge_candidates, review, to_markdown
 from orion.risk import RiskModel
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -131,11 +131,11 @@ def test_a_second_reading_lowers_warnings_it_cannot_confirm(synced_store, constr
     assert by["Speculative"]["severity"] == "inform" and "no caller passes that" in by["Speculative"]["notes"][-1]
     assert by["shell=True with caller input"]["severity"] == "block"
     assert r["second_reading"] == {"on": True, "lowered": 1}
-    assert len(stub.calls) == 2
+    assert len(stub.calls) == len(LENSES) + 1, "one call per review pass, then one second reading"
 
     off = StubProvider(respond)
     r = review(synced_store, ROOT, off, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False)
-    assert len(off.calls) == 1 and r["second_reading"]["lowered"] == 0
+    assert len(off.calls) == len(LENSES) and r["second_reading"]["lowered"] == 0
 
 
 def test_citing_a_firing_constraint_raises_severity_and_deduplicates(synced_store, constraints):
@@ -189,6 +189,13 @@ def test_anthropic_request_shape_and_tool_output(monkeypatch):
     assert "tool_choice" not in seen["body"], "forced tool use is a 400 on current Claude models"
     assert seen["body"]["output_config"] == {"format": {"type": "json_schema", "schema": FINDINGS_SCHEMA}, "effort": "medium"}
     assert p.last_usage == {"input_tokens": 10, "output_tokens": 5}
+    with pytest.raises(ProviderError, match="unknown effort"):
+        providers.make_provider("anthropic", effort="Max")
+    p.complete_json("sys", ["only part", ""], FINDINGS_SCHEMA)
+    assert seen["body"]["messages"][0]["content"] == "only part"
+    p.complete_json("sys", ["shared change", "focus"], FINDINGS_SCHEMA)
+    assert seen["body"]["system"][0]["cache_control"] == {"type": "ephemeral"}
+    assert seen["body"]["messages"][0]["content"] == [{"type": "text", "text": "shared change", "cache_control": {"type": "ephemeral"}}, {"type": "text", "text": "focus"}], "the shared prefix is cached, the focus is not"
 
 
 def test_openai_compatible_endpoint_and_retries(monkeypatch):
@@ -553,3 +560,30 @@ def test_a_model_the_change_adds_is_new_not_unmapped(synced_store, constraints):
     diff = f"diff --git a/{path} b/{path}\nnew file mode 100644\n--- /dev/null\n+++ b/{path}\n@@ -0,0 +1,2 @@\n+select 1 as id\n+from x\n"
     r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], new_files={path: "select 1 as id\nfrom x\n"})
     assert r["severity"] == "inform" and r["unresolved"] == []
+
+
+def test_passes_that_find_the_same_problem_are_merged_and_distinct_ones_kept():
+    a = {"path": "a.py", "line": 10, "severity": "inform", "title": "Empty header value is dropped", "failure": "a request with an empty X-Id header loses it"}
+    b = {"path": "a.py", "line": 11, "severity": "warn", "title": "Empty header value dropped", "failure": "an empty X-Id header is lost from the request"}
+    c = {"path": "a.py", "line": 11, "severity": "warn", "title": "Lock never released", "failure": "a throw in write leaves the lock held"}
+    d = {"path": "b.py", "line": 10, "severity": "warn", "title": "Empty header value is dropped", "failure": "a request with an empty X-Id header loses it"}
+    out = merge_candidates([a, b, c, d])
+    assert out == [b, c, d], "the more severe copy stands, in the order found"
+
+
+def test_a_second_reading_rejects_a_repeat_of_an_earlier_finding(synced_store, constraints):
+    first = {"findings": [
+        {"path": "app/service.py", "line": 5, "severity": "block", "category": "security", "title": "shell=True with caller input", "body": "b", "failure": "a name containing `;` runs a second command", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "Command injection through the name argument", "body": "b", "failure": "name=`x; rm -rf /` is run by the shell", "evidence": ["hunk:app/service.py:5"]},
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "Shell metacharacters in name run commands", "body": "b", "failure": "a `|` in name pipes into another program", "evidence": ["hunk:app/service.py:5"]},
+    ]}
+
+    def respond(system, user):
+        if system.startswith("You check another reviewer"):
+            return {"verdicts": [{"index": 0, "holds": True, "kind": "defect", "reason": "reachable", "duplicate_of": -1}, {"index": 1, "holds": True, "kind": "defect", "reason": "same", "duplicate_of": 0}, {"index": 2, "holds": True, "kind": "defect", "reason": "same again", "duplicate_of": 1}]}
+        return first
+
+    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[])
+    assert [f["title"] for f in r["findings"] if f["source"] == "model"] == ["shell=True with caller input"]
+    assert [f["title"] for f in r["rejected"]] == ["Command injection through the name argument", "Shell metacharacters in name run commands"], "a repeat of a repeat is a repeat too"
+    assert all("shell=True with caller input" in f["notes"][-1] for f in r["rejected"])

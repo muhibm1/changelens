@@ -15,7 +15,7 @@ from orion.constraints import load_constraints
 from orion.credscan import find_secrets, redact
 from orion.diffparse import batches, parse, render_with_omitted
 from orion.providers import OpenAICompatibleProvider, ProviderError, StubProvider
-from orion.review import FINDINGS_SCHEMA, review
+from orion.review import FINDINGS_SCHEMA, LENSES, review
 from orion.risk import RiskModel
 from orion.symbols import MAX_REFS, changed_definitions, references, search, symbol_changes
 from pipelinebench.review_eval import Change
@@ -267,10 +267,10 @@ def test_a_large_diff_is_reviewed_in_several_calls_and_findings_pool(synced_stor
     stub = StubProvider(respond)
     stub.last_usage = {"input_tokens": 10, "output_tokens": 1}
     r = _run(synced_store, constraints, diff, stub, search_root=empty_repo, new_files=texts)
-    assert len(calls) == 3 and all("(part " in c and "of 3" in c for c in calls)
+    assert len(calls) == 3 * len(LENSES) and all("(part " in c and "of 3" in c for c in calls)
     assert "app/m0.py (whole file after the change)" in calls[0] and "app/m2.py (whole file" not in calls[0], "each call carries context for its own files only"
     assert [f["title"] for f in r["findings"]] == ["finding in app/m0.py", "finding in app/m2.py"]
-    assert r["provider_error"] == "HTTP 500" and r["usage"] == {"input_tokens": 20, "output_tokens": 2}
+    assert r["provider_error"] == "HTTP 500" and r["usage"] == {"input_tokens": 20 * len(LENSES), "output_tokens": 2 * len(LENSES)}
 
 
 def test_diff_parser_handles_crlf_and_quoted_paths():

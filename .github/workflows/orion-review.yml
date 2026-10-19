@@ -50,7 +50,8 @@ jobs:
         run: |
           provider=stub
           if [ -n "$ORION_ANTHROPIC_API_KEY" ]; then provider=anthropic; fi
-          .venv/bin/orion review --git "origin/$BASE_REF" --provider "$provider" --format markdown \
+          # Haiku keeps a push's review (four passes and a second reading) to a few cents; drop --model for the configured default.
+          .venv/bin/orion review --git "origin/$BASE_REF" --provider "$provider" --model claude-haiku-5-5 --format markdown \
             --intent="$PR_TITLE"$'\n\n'"$PR_BODY" \
             --post-github "$REPO#$PR" --head-sha "$HEAD_SHA" \
             || echo "::error::Orion review did not complete; see this step's log."

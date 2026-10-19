@@ -1,0 +1,539 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1d73150",
+   "title": "Cleanup response.json() method (#2911)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 761,
+     "title": "json() no longer honours a declared charset",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7762,
+    "cache_creation_input_tokens": 7600,
+    "cache_read_input_tokens": 30294,
+    "output_tokens": 5905
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "359f77d",
+   "title": "Clean up URL signature (#3245)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 19852,
+    "cache_read_input_tokens": 65940,
+    "output_tokens": 1788
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "41597ad",
+   "title": "Move remaining utility functions to _models.py (#3387)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 20285,
+    "cache_read_input_tokens": 67239,
+    "output_tokens": 2441
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6212e8f",
+   "title": "Move utility functions to _multipart.py (#3388)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 12431,
+    "cache_read_input_tokens": 43677,
+    "output_tokens": 1404
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "75a13a1",
+   "title": "Remove typeshed iscoroutine workaround (#2466)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 2138,
+    "cache_read_input_tokens": 12798,
+    "output_tokens": 725
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "83a8518",
+   "title": "Move normalize header functions to _models.py (#3382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 10597,
+    "cache_read_input_tokens": 38175,
+    "output_tokens": 1952
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "8752e26",
+   "title": "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 55,
+     "title": "Removed isinstance guard lets SyncByteStream subclasses with a read() method be read as files",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 80,
+     "title": "Removed AsyncByteStream guard sends AsyncByteStream subclasses with aread() down the file-like path",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 10298,
+    "cache_creation_input_tokens": 8008,
+    "cache_read_input_tokens": 31518,
+    "output_tokens": 7444
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "9baf3a6",
+   "title": "Drop RawURL (#2241)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 12843,
+    "cache_read_input_tokens": 44913,
+    "output_tokens": 4251
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b97c059",
+   "title": "Streaming multipart support (#2382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7923,
+    "cache_creation_input_tokens": 6669,
+    "cache_read_input_tokens": 27501,
+    "output_tokens": 8097
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "ba2e512",
+   "title": "Review urlescape percent-safe set (#3373)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 6581,
+    "cache_read_input_tokens": 26127,
+    "output_tokens": 6352
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "3a67f7f3",
+   "title": "Merge commit from fork",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 12350,
+    "cache_creation_input_tokens": 16113,
+    "cache_read_input_tokens": 55833,
+    "output_tokens": 32199
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "4b44abe1",
+   "title": "perf(router): share null object creation (#5267)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 13597,
+    "cache_read_input_tokens": 47175,
+    "output_tokens": 687
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6cadf753",
+   "title": "fix(lambda-edge): descriptive error on a malformed event (#5358)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/adapter/lambda-edge/handler.ts",
+     "line": 186,
+     "title": "Missing config and host header yields a bogus host instead of an error",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9446,
+    "cache_creation_input_tokens": 9076,
+    "cache_read_input_tokens": 34722,
+    "output_tokens": 6148
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7075369e",
+   "title": "Revert fix(etag) incremental hashing (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 1,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3459,
+    "cache_read_input_tokens": 16761,
+    "output_tokens": 6340
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8a5852d4",
+   "title": "fix(etag): incremental hashing for chunked responses (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 5406,
+    "cache_read_input_tokens": 22602,
+    "output_tokens": 2884
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1946287",
+   "title": "fix(pattern-router/linear-router): prefix overmatch (#5252)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/router/pattern-router/router.ts",
+     "line": 14,
+     "title": "Optional parameter before a trailing /* no longer expands",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7032,
+    "cache_creation_input_tokens": 7502,
+    "cache_read_input_tokens": 30000,
+    "output_tokens": 13794
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1e4ac7d",
+   "title": "perf(cors): pre-join static array header options (#5210)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/middleware/cors/index.ts",
+     "line": 73,
+     "title": "allowHeaders containing only an empty string now reflects request headers",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 6703,
+    "cache_creation_input_tokens": 5957,
+    "cache_read_input_tokens": 25365,
+    "output_tokens": 6103
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "c409d855",
+   "title": "fix(request): serialize cached JSON body in cloneRawRequest (#5288)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 2334,
+    "cache_read_input_tokens": 13386,
+    "output_tokens": 2799
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "24ada7f",
+   "title": "Remove the default completion cmd if it is alone (#1559)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 12370,
+    "cache_creation_input_tokens": 16211,
+    "cache_read_input_tokens": 56127,
+    "output_tokens": 22063
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "5bef9d8",
+   "title": "Fix --version help and output for plugins (#2180)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 11467,
+    "cache_read_input_tokens": 40785,
+    "output_tokens": 2826
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6c3c116",
+   "title": "feat: add CompletionFunc type (#2220)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 9152,
+    "cache_read_input_tokens": 33840,
+    "output_tokens": 393
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "8607918",
+   "title": "feat: make InitDefaultCompletionCmd public (#1467)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3414,
+    "cache_read_input_tokens": 16626,
+    "output_tokens": 926
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a0a6ae0",
+   "title": "Improve API to get flag completion function (#2063)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 7347,
+    "cache_read_input_tokens": 28425,
+    "output_tokens": 2711
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a4ab3fa",
+   "title": "powershell completion with custom comp (#1208)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 95,
+     "title": "Typed command-line text is passed to Invoke-Expression",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 146,
+     "title": "Empty result with NoFileComp does not suppress file completion",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 201,
+     "title": "Single match in Complete mode takes the multi-match branch",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 220,
+     "title": "Complete mode multi-match output is not escaped",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 21247,
+    "cache_creation_input_tokens": 23185,
+    "cache_read_input_tokens": 77049,
+    "output_tokens": 22148
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b84ef40",
+   "title": "Rename BashCompDirectives to ShellCompDirectives (#1082)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 20304,
+    "cache_creation_input_tokens": 26057,
+    "cache_read_input_tokens": 85665,
+    "output_tokens": 2569
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "fce8d8a",
+   "title": "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 7016,
+    "cache_read_input_tokens": 27432,
+    "output_tokens": 695
+   }
+  }
+ ],
+ "summary": {
+  "changes": 26,
+  "errors": 0,
+  "changes_warned": 6,
+  "warns": 10,
+  "warns_per_change": 0.38,
+  "confirmed": 0,
+  "plausible": 3,
+  "noise": 3,
+  "unjudged": 4,
+  "setup": 0,
+  "confirmed_recall": "0/1",
+  "tokens_in": 128683,
+  "tokens_out": 165644
+ }
+}

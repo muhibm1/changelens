@@ -1,0 +1,561 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1d73150",
+   "title": "Cleanup response.json() method (#2911)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 7972,
+    "cache_creation_input_tokens": 7600,
+    "cache_read_input_tokens": 30378,
+    "output_tokens": 8121
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "359f77d",
+   "title": "Clean up URL signature (#3245)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 19852,
+    "cache_read_input_tokens": 65940,
+    "output_tokens": 1959
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "41597ad",
+   "title": "Move remaining utility functions to _models.py (#3387)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 20285,
+    "cache_read_input_tokens": 67239,
+    "output_tokens": 2547
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6212e8f",
+   "title": "Move utility functions to _multipart.py (#3388)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 12431,
+    "cache_read_input_tokens": 43677,
+    "output_tokens": 962
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "75a13a1",
+   "title": "Remove typeshed iscoroutine workaround (#2466)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 2138,
+    "cache_read_input_tokens": 12798,
+    "output_tokens": 525
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "83a8518",
+   "title": "Move normalize header functions to _models.py (#3382)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 10597,
+    "cache_read_input_tokens": 38175,
+    "output_tokens": 1754
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "8752e26",
+   "title": "Drop .read/.aread from SyncByteStream/AsyncByteStream (#2407)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 55,
+     "title": "Removing the SyncByteStream guard makes a user stream's own read() be called",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 80,
+     "title": "Removing the AsyncByteStream guard makes a user stream's own aread() be called",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 10370,
+    "cache_creation_input_tokens": 8008,
+    "cache_read_input_tokens": 31602,
+    "output_tokens": 8685
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "9baf3a6",
+   "title": "Drop RawURL (#2241)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 12843,
+    "cache_read_input_tokens": 44913,
+    "output_tokens": 6062
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "b97c059",
+   "title": "Streaming multipart support (#2382)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "httpx/_multipart.py",
+     "line": 177,
+     "title": "Silently swallowing seek failure can send a Content-Length that does not match the body",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "httpx/_multipart.py",
+     "line": 181,
+     "title": "Non-seekable file body is empty on a second send of the same stream",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 8331,
+    "cache_creation_input_tokens": 6669,
+    "cache_read_input_tokens": 27585,
+    "output_tokens": 9281
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "ba2e512",
+   "title": "Review urlescape percent-safe set (#3373)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 6581,
+    "cache_read_input_tokens": 26127,
+    "output_tokens": 7960
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "3a67f7f3",
+   "title": "Merge commit from fork",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/helper/ssg/utils.ts",
+     "line": 91,
+     "title": "Single-letter-colon segments are treated as Windows drive roots for relative output paths",
+     "verdict": "unjudged"
+    },
+    {
+     "source": "model",
+     "path": "src/helper/ssg/utils.ts",
+     "line": 113,
+     "title": "Windows trailing-dot or trailing-space parent segments bypass the containment check",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 12697,
+    "cache_creation_input_tokens": 16113,
+    "cache_read_input_tokens": 55917,
+    "output_tokens": 25990
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "4b44abe1",
+   "title": "perf(router): share null object creation (#5267)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 13597,
+    "cache_read_input_tokens": 47175,
+    "output_tokens": 1243
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6cadf753",
+   "title": "fix(lambda-edge): descriptive error on a malformed event (#5358)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "src/adapter/lambda-edge/handler.ts",
+     "line": 186,
+     "title": "Missing config and host header yields a request to host 'undefined' instead of failing",
+     "verdict": "plausible"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 9122,
+    "cache_creation_input_tokens": 9076,
+    "cache_read_input_tokens": 34806,
+    "output_tokens": 5107
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7075369e",
+   "title": "Revert fix(etag) incremental hashing (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 1,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3459,
+    "cache_read_input_tokens": 16761,
+    "output_tokens": 3587
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8a5852d4",
+   "title": "fix(etag): incremental hashing for chunked responses (#5199)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 5406,
+    "cache_read_input_tokens": 22602,
+    "output_tokens": 2597
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1946287",
+   "title": "fix(pattern-router/linear-router): prefix overmatch (#5252)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 7502,
+    "cache_read_input_tokens": 28890,
+    "output_tokens": 16344
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a1e4ac7d",
+   "title": "perf(cors): pre-join static array header options (#5210)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 5957,
+    "cache_read_input_tokens": 24255,
+    "output_tokens": 4676
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "c409d855",
+   "title": "fix(request): serialize cached JSON body in cloneRawRequest (#5288)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 2334,
+    "cache_read_input_tokens": 13386,
+    "output_tokens": 3020
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "24ada7f",
+   "title": "Remove the default completion cmd if it is alone (#1559)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "completions.go",
+     "line": 776,
+     "title": "Completion of 'completion' is skipped when a flag precedes it in the __complete path",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 13382,
+    "cache_creation_input_tokens": 16211,
+    "cache_read_input_tokens": 56211,
+    "output_tokens": 21679
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "5bef9d8",
+   "title": "Fix --version help and output for plugins (#2180)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 11467,
+    "cache_read_input_tokens": 40785,
+    "output_tokens": 3105
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6c3c116",
+   "title": "feat: add CompletionFunc type (#2220)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 9152,
+    "cache_read_input_tokens": 33840,
+    "output_tokens": 404
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "8607918",
+   "title": "feat: make InitDefaultCompletionCmd public (#1467)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3414,
+    "cache_read_input_tokens": 16626,
+    "output_tokens": 1046
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a0a6ae0",
+   "title": "Improve API to get flag completion function (#2063)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 7347,
+    "cache_read_input_tokens": 28425,
+    "output_tokens": 1522
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "a4ab3fa",
+   "title": "powershell completion with custom comp (#1208)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 71,
+     "title": "Quoted arguments containing spaces are split and re-joined incorrectly",
+     "verdict": "plausible"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 146,
+     "title": "NoFileComp empty-result sentinel is unreachable",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 146,
+     "title": "ShellCompDirectiveNoFileComp is checked before the prefix filter, so no-match results fall back to file completion",
+     "verdict": "noise"
+    },
+    {
+     "source": "model",
+     "path": "powershell_completions.go",
+     "line": 201,
+     "title": "Single remaining candidate in Complete mode is never recognised",
+     "verdict": "noise"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 21436,
+    "cache_creation_input_tokens": 23185,
+    "cache_read_input_tokens": 77133,
+    "output_tokens": 27997
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "b84ef40",
+   "title": "Rename BashCompDirectives to ShellCompDirectives (#1082)",
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "custom_completions.go",
+     "line": 14,
+     "title": "Exported constant renamed beyond the stated intent",
+     "verdict": "unjudged"
+    }
+   ],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 20487,
+    "cache_creation_input_tokens": 26057,
+    "cache_read_input_tokens": 85749,
+    "output_tokens": 3842
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "fce8d8a",
+   "title": "Expose ValidateRequiredFlags and ValidateFlagGroups (#1760)",
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "warns": [],
+   "confirmed_expected": 0,
+   "confirmed_caught": 0,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 7016,
+    "cache_read_input_tokens": 27432,
+    "output_tokens": 532
+   }
+  }
+ ],
+ "summary": {
+  "changes": 26,
+  "errors": 0,
+  "changes_warned": 7,
+  "warns": 13,
+  "warns_per_change": 0.5,
+  "confirmed": 0,
+  "plausible": 4,
+  "noise": 5,
+  "unjudged": 4,
+  "setup": 0,
+  "confirmed_recall": "0/1",
+  "tokens_in": 118701,
+  "tokens_out": 170547
+ }
+}

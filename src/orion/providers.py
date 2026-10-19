@@ -31,7 +31,12 @@ class ProviderError(RuntimeError):
 class Provider(Protocol):
     name: str
 
-    def complete_json(self, system: str, user: str, schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]: ...
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]: ...
+
+
+def join_user(user: str | list[str]) -> str:
+    """A user message given in parts (a shared prefix, then what differs between calls) as one text."""
+    return user if isinstance(user, str) else "\n\n".join(user)
 
 
 # Orion's own name first so a key scoped to Orion wins over a general one.
@@ -93,9 +98,9 @@ class AnthropicProvider:
     model: str = "claude-sonnet-5-5"
     api_key: str | None = None
     base_url: str = "https://api.anthropic.com"
-    max_tokens: int = 16000
+    max_tokens: int = 32000
     effort: str | None = "medium"
-    timeout: float = 300.0
+    timeout: float = 600.0
     retries: int = 3
     last_usage: dict[str, Any] | None = None
 
@@ -105,15 +110,17 @@ class AnthropicProvider:
             raise ProviderError(f"no Anthropic API key; set {' or '.join(ANTHROPIC_KEY_ENVS)}")
         self.name = f"anthropic:{self.model}"
 
-    def complete_json(self, system: str, user: str, schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+        """``user`` in parts marks every part but the last for prompt caching, so calls that share the system
+        prompt and the leading parts (several review passes over one change) pay for that prefix once."""
         output_config: dict[str, Any] = {"format": {"type": "json_schema", "schema": schema}}
         if self.effort:
             output_config["effort"] = self.effort
         body = {
             "model": self.model,
             "max_tokens": self.max_tokens,
-            "system": system,
-            "messages": [{"role": "user", "content": user}],
+            "system": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+            "messages": [{"role": "user", "content": _anthropic_content(user)}],
             "output_config": output_config,
         }
         headers = {"x-api-key": self.api_key or "", "anthropic-version": "2023-06-01"}
@@ -126,6 +133,15 @@ class AnthropicProvider:
             raise ProviderError("model output hit max_tokens before the JSON was complete")
         text = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text")
         return _parse_json_text(text)
+
+
+def _anthropic_content(user: str | list[str]) -> str | list[dict[str, Any]]:
+    if isinstance(user, str):
+        return user
+    parts = [p for p in user if p]
+    if len(parts) < 2:
+        return parts[0] if parts else ""
+    return [{"type": "text", "text": p, **({"cache_control": {"type": "ephemeral"}} if i < len(parts) - 1 else {})} for i, p in enumerate(parts)]
 
 
 def strict_schema(schema: Any) -> Any:
@@ -163,7 +179,8 @@ class OpenAICompatibleProvider:
         self.api_key = self.api_key or os.environ.get(self.api_key_env)
         self.name = f"openai:{self.model}"
 
-    def complete_json(self, system: str, user: str, schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+        user = join_user(user)
         body = {
             "model": self.model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -187,7 +204,8 @@ class StubProvider:
         self._respond = respond
         self.calls: list[tuple[str, str]] = []
 
-    def complete_json(self, system: str, user: str, schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+        user = join_user(user)
         self.calls.append((system, user))
         if callable(self._respond):
             return self._respond(system, user)
@@ -196,13 +214,20 @@ class StubProvider:
         return {"findings": []}
 
 
-def make_provider(spec: str | None, *, model: str | None = None, base_url: str | None = None, api_key_env: str | None = None) -> Provider:
-    """``stub`` | ``anthropic`` | ``openai``; model and endpoint from arguments or config."""
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+
+def make_provider(spec: str | None, *, model: str | None = None, base_url: str | None = None, api_key_env: str | None = None, effort: str | None = None) -> Provider:
+    """``stub`` | ``anthropic`` | ``openai``; model and endpoint from arguments or config. ``effort``: how hard an Anthropic model thinks (low .. max); other providers ignore it."""
     spec = (spec or "stub").lower()
+    if effort is not None and effort not in EFFORTS:
+        raise ProviderError(f"unknown effort {effort}; use {', '.join(EFFORTS)}")
     if spec == "stub":
         return StubProvider()
     if spec == "anthropic":
         kw: dict[str, Any] = {"model": model} if model else {}
+        if effort:
+            kw["effort"] = effort
         if base_url:
             kw["base_url"] = base_url
         if api_key_env and os.environ.get(api_key_env):

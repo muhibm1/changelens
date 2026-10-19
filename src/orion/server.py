@@ -153,11 +153,11 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
         rc = cfg.review
         try:
             # The provider and model come from orion.yaml only, so a calling agent cannot redirect the diff or the spend.
-            prov = review_provider or make_provider(rc.provider, model=rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+            prov = review_provider or make_provider(rc.provider, model=rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=rc.effort)
         except ProviderError as e:
             return {"ok": False, "error": str(e)}
         try:
-            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=cfg.review.second_reading, verifier=_verifier(cfg.review))
+            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=cfg.review.second_reading, verifier=_verifier(cfg.review), lenses=cfg.review.lenses)
         except Exception as e:  # noqa: BLE001 - a bad ref or diff is the caller's to fix; say so in the tool's own shape
             return {"ok": False, "error": f"review failed: {e}"}
         return review_md(r) if format == "markdown" else _jsonable(r)

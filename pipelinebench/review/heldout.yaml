@@ -1,0 +1,729 @@
+# HELD-OUT recall set for `pipelinebench recall-eval`: real bugs at the commit that introduced them.
+# Mined with `pipelinebench mine-introducers` from repositories NOT in the tuning set (recall.yaml), and
+# labelled by hand from the upstream git history only (fix commit + introducing commit); no Orion review
+# output was looked at. Candidates were taken in mined order; fixes for typos, types, docs, lint, tests,
+# refactors and features, bugs that predate the blamed commit, and bugs that need knowledge no reviewer of
+# the diff has, were left out. `expect` uses the introducing commit's new-side line numbers.
+repos:
+  starlette:
+    url: https://github.com/encode/starlette
+  werkzeug:
+    url: https://github.com/pallets/werkzeug
+  gin:
+    url: https://github.com/gin-gonic/gin
+  chi:
+    url: https://github.com/go-chi/chi
+  echo:
+    url: https://github.com/labstack/echo
+  ky:
+    url: https://github.com/sindresorhus/ky
+  h3:
+    url: https://github.com/unjs/h3
+  express:
+    url: https://github.com/expressjs/express
+cases:
+- repo: starlette
+  commit: 94a22b865e
+  title: Fix url parsing of ipv6 urls on `URL.replace` (#1965)
+  fix: 1a2f972939
+  fix_title: Fix IndexError in URL.replace() on a URL with no authority (#3317)
+  bug: URL.replace() indexes hostname[-1] without checking it is non-empty, so a URL with no authority (empty netloc) raises IndexError
+  expect:
+  - path: starlette/datastructures.py
+    line: 125
+  must_mention:
+  - indexerror
+  - empty
+  - hostname[-1]
+  - no authority
+  - netloc
+- repo: starlette
+  commit: 0308681883
+  title: Add `request` argument to `TemplateResponse` (#2191)
+  fix: bcdf0ad017
+  fix_title: fix IndexError in TemplateResponse (#2909)
+  bug: old-style TemplateResponse(name, context, status_code, headers, ...) reads headers/media_type/background from args[2]/[3]/[4], off by one, so headers gets the status code and background is never
+    found
+  expect:
+  - path: starlette/templating.py
+    line: 188
+    end_line: 190
+  must_mention:
+  - args[2]
+  - index
+  - off by one
+  - off-by-one
+  - positional
+- repo: starlette
+  commit: 097152be5a
+  title: Add GZip middleware (#111)
+  fix: f13d354e18
+  fix_title: 'fix(gzip): Make sure Vary header is always added if a response can be compressed (#2865)'
+  bug: 'GZipMiddleware only adds Vary: Accept-Encoding when it actually compresses, so uncompressed responses (client without gzip, or small body) are cached and served to gzip clients wrongly'
+  expect:
+  - path: starlette/middleware/gzip.py
+    line: 13
+    end_line: 18
+  - path: starlette/middleware/gzip.py
+    line: 45
+    end_line: 48
+  must_mention:
+  - vary
+  - accept-encoding
+  - cache
+- repo: starlette
+  commit: 866a15f79c
+  title: Add `*args` to `Middleware` and improve its type hints (#2381)
+  fix: 427a8dcf35
+  fix_title: Fix issue with middleware args passing (#2752)
+  bug: 'middleware is built as cls(app=app, *args, **kwargs), so any positional middleware args collide with app (TypeError: multiple values for argument ''app'') or shift into the wrong parameter'
+  expect:
+  - path: starlette/applications.py
+    line: 105
+  - path: starlette/routing.py
+    line: 242
+  - path: starlette/routing.py
+    line: 339
+  - path: starlette/routing.py
+    line: 408
+  must_mention:
+  - app=app
+  - positional
+  - multiple values
+  - '*args'
+  - keyword
+- repo: starlette
+  commit: d771bb7a5e
+  title: Don't poll for disconnects in BaseHTTPMiddleware via StreamingResponse (#2620)
+  fix: 53f9dc02be
+  fix_title: Fix `BackgroundTasks` with `BaseHTTPMiddleware` (#2688)
+  bug: _StreamingResponse no longer subclasses StreamingResponse and overrides __call__ without running self.background, so BackgroundTasks attached to responses passing through BaseHTTPMiddleware never
+    run
+  expect:
+  - path: starlette/middleware/base.py
+    line: 213
+    end_line: 230
+  must_mention:
+  - background
+  - backgroundtask
+  - never run
+  - not executed
+- repo: starlette
+  commit: 94044e5991
+  title: Tweaks to URL datastructure (#81)
+  fix: 94a22b865e
+  fix_title: Fix url parsing of ipv6 urls on `URL.replace` (#1965)
+  bug: URL.replace rebuilds netloc from self.hostname, which strips the [ ] brackets of an IPv6 host (and drops userinfo), producing an invalid URL
+  expect:
+  - path: starlette/datastructures.py
+    line: 73
+  must_mention:
+  - ipv6
+  - bracket
+  - userinfo
+  - username
+- repo: starlette
+  commit: 14650bfd22
+  title: URL convertors (#221)
+  fix: 865efebac9
+  fix_title: Fix `FloatConvertor` regex (#1973)
+  bug: FloatConvertor regex [0-9]+(.[0-9]+)? uses an unescaped dot, which matches any character, so paths like /1x5 match the float convertor
+  expect:
+  - path: starlette/convertors.py
+    line: 51
+  must_mention:
+  - escape
+  - unescaped
+  - dot
+  - any character
+  - \.
+- repo: starlette
+  commit: 0aef1724cf
+  title: 'fix: pass usedforsecurity to hashlib.md5 to fix error on FIPS-enabled systems (#1366)'
+  fix: 7d79ad96d5
+  fix_title: Fix md5_hexdigest wrapper on FIPS enabled systems (#1410)
+  bug: the feature probe calls hashlib.md5(usedforsecurity=True), which raises ValueError (not TypeError) on FIPS systems, so the FIPS workaround breaks import there
+  expect:
+  - path: starlette/_compat.py
+    line: 14
+  must_mention:
+  - fips
+  - valueerror
+  - usedforsecurity=true
+  - probe
+- repo: werkzeug
+  commit: 4aa0024efc
+  title: deprecate `get_content_length`
+  fix: 92229dc416
+  fix_title: fix type_checking deprecation guard
+  bug: the deprecated-name __getattr__ is defined under `if t.TYPE_CHECKING:` instead of `if not t.TYPE_CHECKING:`, so at runtime get_content_length is gone and importing it raises
+  expect:
+  - path: src/werkzeug/sansio/utils.py
+    line: 232
+  must_mention:
+  - type_checking
+  - inverted
+  - runtime
+  - attributeerror
+  - importerror
+- repo: werkzeug
+  commit: 411ba540d7
+  title: deprecate `remove_entity_headers` and `is_entity_header`
+  fix: 15fc22b699
+  fix_title: fix entity header refactor
+  bug: a 304 response filters headers with `if k in {}`, which keeps no headers at all instead of removing only the representation headers
+  expect:
+  - path: src/werkzeug/wrappers/response.py
+    line: 519
+  must_mention:
+  - '304'
+  - '{}'
+  - empty
+  - all headers
+  - drops every
+- repo: werkzeug
+  commit: a6a7dd1445
+  title: improve subdomain and host matching
+  fix: 884437aef9
+  fix_title: fix boolean logic for external url
+  bug: 'the condition for returning a plain path contradicts its comment: when neither host nor subdomain matching is enabled it falls through and always builds an external URL'
+  expect:
+  - path: src/werkzeug/routing/map.py
+    line: 975
+    end_line: 981
+  must_mention:
+  - external
+  - absolute
+  - condition
+  - neither
+  - boolean
+- repo: werkzeug
+  commit: 1049dd6b2a
+  title: Correct parsing up to a potential partial boundary
+  fix: f282943ddc
+  fix_title: Correct 1049dd6b2a363e1ef302b4161c340fb8582f627a
+  bug: _last_partial_boundary_index is called on the whole buffer instead of data[data_start:] (+ data_start), so it can return a newline before data_start and corrupt multipart parsing with chunked data
+  expect:
+  - path: src/werkzeug/sansio/multipart.py
+    line: 252
+  - path: src/werkzeug/sansio/multipart.py
+    line: 264
+  must_mention:
+  - data_start
+  - offset
+  - slice
+  - before the start
+- repo: werkzeug
+  commit: 082e0e5b9c
+  title: Correctly implement multipart parsing for empty fields
+  fix: f0a1733f52
+  fix_title: Fix the parsing of large multipart bodies
+  bug: '_parse_data computes data_start but calls last_newline() over the whole buffer, whose leading CRLF makes the last newline index 0, and the find() shortcut is gone so each chunk runs a full regex:
+    large multipart bodies parse wrongly and slowly'
+  expect:
+  - path: src/werkzeug/sansio/multipart.py
+    line: 256
+    end_line: 265
+  must_mention:
+  - last_newline
+  - data_start
+  - leading newline
+  - slow
+  - shortcut
+  - regex
+- repo: werkzeug
+  commit: 9c92a5f904
+  title: inline _encode_idna, _decode_idna takes str only
+  fix: 45c1e774eb
+  fix_title: fix Map.bind raising BadHost on invalid idna
+  bug: Map.bind only catches UnicodeEncodeError around .encode('idna'), but the idna codec raises plain UnicodeError (e.g. empty or too-long label), so an invalid host crashes instead of raising BadHost
+  expect:
+  - path: src/werkzeug/routing/map.py
+    line: 231
+  must_mention:
+  - unicodeerror
+  - unicodeencodeerror
+  - idna
+  - label
+  - narrow
+- repo: werkzeug
+  commit: 2cce3252ac
+  title: 'debugger.js: Show console only when EVALEX enabled'
+  fix: f408b2527c
+  fix_title: Fixed expand frame exception
+  bug: the frame click handler uses getElementsByTagName('pre')[i] with the frame's index instead of [0], so frames after the first fail to expand (undefined.parentElement)
+  expect:
+  - path: src/werkzeug/debug/shared/debugger.js
+    line: 24
+    end_line: 26
+  must_mention:
+  - '[i]'
+  - '[0]'
+  - index
+  - undefined
+- repo: gin
+  commit: 66b47a8068
+  title: 'feat(server): Implements RunFd method (#1609)'
+  fix: c3d5a28ed6
+  fix_title: 'fix(gin): close os.File in RunFd to prevent resource leak (#4422)'
+  bug: RunFd creates an os.File for the fd but never closes it after net.FileListener dups it, leaking a file descriptor
+  expect:
+  - path: gin.go
+    line: 332
+    end_line: 334
+  must_mention:
+  - close
+  - leak
+  - os.newfile
+  - file descriptor
+  - f.close
+- repo: gin
+  commit: 32065bbd42
+  title: 'chore(response): prevention of Hijack() runtime panics (#4295)'
+  fix: 234a6d4c00
+  fix_title: 'fix(response): refine hijack behavior for response lifecycle (#4373)'
+  bug: Hijack refuses whenever Written() is true, which includes the headers-only state (size 0), so websocket libraries that write headers before hijacking now fail
+  expect:
+  - path: response_writer.go
+    line: 112
+    end_line: 114
+  must_mention:
+  - header
+  - websocket
+  - size
+  - body
+- repo: gin
+  commit: f969bfaf50
+  title: implement ".Unwrap() error" on Error type (#2525) (#2526)
+  fix: b38c59de7f
+  fix_title: 'fix(errors): change Unwrap method receiver to value type (#4232)'
+  bug: Unwrap is declared on *Error while Error() is on the value type, so a gin.Error value wrapped with %w does not unwrap and errors.Is/As miss the inner error
+  expect:
+  - path: errors.go
+    line: 94
+  must_mention:
+  - receiver
+  - pointer
+  - value
+  - non-pointer
+- repo: gin
+  commit: 2ae8a25fc9
+  title: Added HandleContext to re-enter soft-rewritten Requests. (#709)
+  fix: 8763f33c65
+  fix_title: 'fix: prevent middleware re-entry issue in HandleContext (#3987)'
+  bug: HandleContext resets the context (handlers and index) and re-enters routing without restoring them, so the original chain continues on the new route's handlers and middleware re-runs; it also returns
+    c to the pool while still in use
+  expect:
+  - path: gin.go
+    line: 279
+    end_line: 284
+  must_mention:
+  - handlers
+  - index
+  - reset
+  - restore
+  - pool
+- repo: gin
+  commit: 4bfae4c8c8
+  title: Support binding for slice/array obj [Rewrite] (#2302)
+  fix: 82bcd6d39b
+  fix_title: 'fix(binding): dereference pointer to struct (#3199)'
+  bug: ValidateStruct dereferences a pointer to a struct and validates a copy, so struct-level validators no longer receive the caller's pointer (and cannot see or modify the original)
+  expect:
+  - path: binding/default_validator.go
+    line: 45
+  must_mention:
+  - pointer
+  - dereference
+  - copy
+  - elem
+- repo: chi
+  commit: 98de1d836a
+  title: middleware.Recoverer, now with pretty stack traces (#496)
+  fix: 878fe71fc9
+  fix_title: Fix defaultLogEntry.Panic not respecting NoColor setting (#1050)
+  bug: defaultLogEntry.Panic now calls PrintPrettyStack, which hard-codes colour output and writes to stderr, ignoring the formatter's NoColor/useColor setting (and its Logger)
+  expect:
+  - path: middleware/logger.go
+    line: 154
+  - path: middleware/recoverer.go
+    line: 46
+    end_line: 60
+  must_mention:
+  - color
+  - colour
+  - nocolor
+  - usecolor
+- repo: chi
+  commit: 2f332444aa
+  title: Fix WrapWriter.ReadFrom() with Tee (#235)
+  fix: 4ef87eaf2c
+  fix_title: 'middleware: fix httpFancyWriter.ReadFrom double-counting bytes with Tee (#1085)'
+  bug: ReadFrom with a tee copies through basicWriter.Write, which already counts bytes, then adds n again, so BytesWritten() reports twice the real size
+  expect:
+  - path: middleware/wrap_writer.go
+    line: 115
+  must_mention:
+  - double
+  - twice
+  - bytes
+  - count
+- repo: chi
+  commit: 23b8ec2ca3
+  title: 'middleware.RouteHeaders: new middleware to allow header based routing flows (#503)'
+  fix: 05f1ef7bb5
+  fix_title: 'fix(middleware): add missing return in RouteHeaders empty check (#1045)'
+  bug: RouteHeaders calls next.ServeHTTP when no routes are set but does not return, so it falls through and the next handler runs twice
+  expect:
+  - path: middleware/route_headers.go
+    line: 84
+    end_line: 88
+  must_mention:
+  - return
+  - twice
+  - fall through
+  - falls through
+- repo: chi
+  commit: 1089a7c695
+  title: Add `Find` to `Routes` interface (#872)
+  fix: 6ceb498b22
+  fix_title: Fix `Mux.Find` not correctly handling nested routes (#954)
+  bug: Mux.Find returns only the subrouter's pattern for mounted routes, dropping the parent mount prefix, so nested routes report the wrong pattern
+  expect:
+  - path: mux.go
+    line: 384
+    end_line: 392
+  must_mention:
+  - prefix
+  - nested
+  - subrouter
+  - mount
+  - parent
+- repo: chi
+  commit: 3e5747d1f8
+  title: 'context: clean RoutePattern suffixes'
+  fix: f4ab9b1f05
+  fix_title: 'fix: #846 (#847)'
+  bug: RoutePattern trims a trailing slash unconditionally, so the root pattern "/" becomes the empty string
+  expect:
+  - path: context.go
+    line: 125
+    end_line: 126
+  must_mention:
+  - root
+  - empty
+  - '"/"'
+  - trailing slash
+- repo: echo
+  commit: 39f61ef3ba
+  title: 'feat: add RFC 9457 Problem Details HTTP error handler (#3062)'
+  fix: df5edd9146
+  fix_title: 'fix(rfc9457): do not mutate a shared ProblemError (#3094)'
+  bug: the RFC 9457 handler writes default Status/Type/Title into the ProblemError it received, mutating shared (sentinel) errors across requests and racing
+  expect:
+  - path: rfc9457.go
+    line: 107
+    end_line: 123
+  must_mention:
+  - mutate
+  - shared
+  - sentinel
+  - copy
+  - race
+- repo: echo
+  commit: c3887ebb13
+  title: Added Context#IsWebSocket(), proxy fix header
+  fix: 6a390cb5a7
+  fix_title: 'fix(middleware/proxy): append RealIP to X-Forwarded-For for WebSocket requests (#2994)'
+  bug: for WebSocket proxying X-Forwarded-For is only set when empty, so the client IP is not appended to an existing chain from upstream proxies
+  expect:
+  - path: middleware/proxy.go
+    line: 144
+    end_line: 145
+  must_mention:
+  - append
+  - chain
+  - existing
+  - x-forwarded-for
+- repo: echo
+  commit: 7c8592a7e0
+  title: adds middleware for rate limiting (#1724)
+  fix: 9fe43f78b8
+  fix_title: fix Rate limiter disallows fractional rates
+  bug: default burst is int(config.Rate), which truncates to 0 for fractional rates below 1, so the limiter denies every request
+  expect:
+  - path: middleware/rate_limiter.go
+    line: 214
+  must_mention:
+  - burst
+  - fractional
+  - zero
+  - truncat
+  - < 1
+- repo: echo
+  commit: 124825ee62
+  title: Bugfix/1834 Fix X-Real-IP bug (#2007)
+  fix: a3b0ba24d3
+  fix_title: Fix Real IP logic (#2550)
+  bug: ExtractIPFromRealIPHeader now checks whether the X-Real-IP value itself is trusted rather than whether the direct peer is a trusted proxy, so any client can spoof its IP with a private address
+  expect:
+  - path: ip.go
+    line: 228
+    end_line: 234
+  must_mention:
+  - spoof
+  - direct
+  - peer
+  - trusted proxy
+  - remote
+- repo: echo
+  commit: 626f13e338
+  title: 'CSRF/RequestID mw: switch math/random usage to crypto/random'
+  fix: b3ec8e0fdd
+  fix_title: 'fix(sec): `randomString` bias (#2492)'
+  bug: randomString maps random bytes with b % 52, which is not uniform over 256 values, biasing CSRF tokens and request IDs
+  expect:
+  - path: middleware/util.go
+    line: 59
+    end_line: 68
+  must_mention:
+  - bias
+  - modulo
+  - uniform
+  - skew
+- repo: ky
+  commit: 1341f5ca56
+  title: Add `data` property to `HTTPError` with pre-parsed response body (#823)
+  fix: '8546080785'
+  fix_title: Fix UTF-8 decoding of JSON error responses
+  bug: error-body decoding honours the Content-Type charset even for JSON, which is always UTF-8, so a JSON error with a non-UTF-8 charset parameter is decoded wrongly
+  expect:
+  - path: source/core/Ky.ts
+    line: 454
+  must_mention:
+  - utf-8
+  - utf8
+  - charset
+  - '8259'
+- repo: ky
+  commit: 2b0a10071d
+  title: Fix `signal` merging when using both instance and request options (#751)
+  fix: 0bda554d44
+  fix_title: Fix `signal` replacement when extending instances (#880)
+  bug: 'signals from every source are always combined, so a later signal: undefined (or a replacement) can no longer remove or replace an inherited signal when extending'
+  expect:
+  - path: source/utils/merge.ts
+    line: 63
+    end_line: 67
+  - path: source/utils/merge.ts
+    line: 88
+    end_line: 99
+  must_mention:
+  - undefined
+  - remove
+  - replace
+  - unset
+  - override
+- repo: ky
+  commit: 29e78fe8e6
+  title: Merge `searchParams` with input URL (#840)
+  fix: add0703b7e
+  fix_title: Fix init hook URLSearchParams deletions
+  bug: deletion markers are applied after searchParams are appended (and the marker symbol is lost when init hooks get a cloned URLSearchParams), so params an init hook re-adds are deleted, or deletions
+    are lost
+  expect:
+  - path: source/core/Ky.ts
+    line: 411
+    end_line: 416
+  must_mention:
+  - deleted
+  - symbol
+  - clone
+  - init hook
+  - re-add
+- repo: ky
+  commit: 1e749ba065
+  title: Add `context` option (#772)
+  fix: d7f7e73cee
+  fix_title: Fix empty `context` object being added to merged `json` body
+  bug: deepMerge is recursive and used for nested values, so setting context = {} at its end adds an empty context key to every merged nested object such as a json body
+  expect:
+  - path: source/utils/merge.ts
+    line: 174
+    end_line: 177
+  must_mention:
+  - nested
+  - recursive
+  - json
+  - body
+  - every
+- repo: ky
+  commit: bf9eca6aff
+  title: Fix the empty check for `.json()` (#466)
+  fix: 8cd79d3602
+  fix_title: Fix race condition issue with `.json()` (#731)
+  bug: .json() empty check clones the response and buffers the whole body, then reads the original again, double-reading the stream through a tee and causing races/hangs
+  expect:
+  - path: source/core/Ky.ts
+    line: 94
+    end_line: 96
+  must_mention:
+  - clone
+  - twice
+  - double
+  - buffer
+  - tee
+- repo: h3
+  commit: 080bf53d69
+  title: 'feat: add cors utils (#322)'
+  fix: badc762899
+  fix_title: 'fix(cors): make stateful origin regex checks repeatable (#1589)'
+  bug: origin regexes are checked with RegExp.test, which is stateful for /g and /y patterns (lastIndex), so the same origin alternates between allowed and rejected
+  expect:
+  - path: src/utils/cors/utils.ts
+    line: 63
+  must_mention:
+  - lastindex
+  - global
+  - /g
+  - stateful
+  - sticky
+- repo: h3
+  commit: cda0bb29b2
+  title: 'perf: `event.query` and `getQuery` with faster impl (#848)'
+  fix: f2ec1cd062
+  fix_title: 'fix(query): decode valid escapes next to a malformed one (#1582)'
+  bug: the new query parser skips decoding the whole key or value when decodeURIComponent throws on one malformed escape, so valid escapes next to it stay encoded (URLSearchParams decodes leniently)
+  expect:
+  - path: src/utils/internal/query.ts
+    line: 56
+    end_line: 77
+  must_mention:
+  - malformed
+  - lenient
+  - partial
+  - invalid escape
+  - urlsearchparams
+- repo: h3
+  commit: 50aeec071e
+  title: 'feat(serveStatic): support default and custom mimes (#1137)'
+  fix: 0835b7da13
+  fix_title: 'fix(static): match file extensions case-insensitively (#1580)'
+  bug: getType looks the extension up case-sensitively, so files like INDEX.HTML or photo.JPG get no MIME type
+  expect:
+  - path: src/utils/internal/mime.ts
+    line: 42
+  must_mention:
+  - case
+  - lowercase
+  - insensitive
+  - uppercase
+- repo: h3
+  commit: 61b395e31b
+  title: 'feat: support chunked cookies and use for session (#1102)'
+  fix: 3c2a205ce2
+  fix_title: 'fix(cookie): size cookie chunks by their encoded length (#1565)'
+  bug: setChunkedCookie splits by raw string length, but cookies are percent-encoded when serialized, so chunks with special or non-ASCII characters exceed the cookie size limit
+  expect:
+  - path: src/utils/cookie.ts
+    line: 156
+  - path: src/utils/cookie.ts
+    line: 179
+    end_line: 183
+  must_mention:
+  - encoded
+  - encoding
+  - percent
+  - byte
+  - exceed
+- repo: h3
+  commit: 631249d0f4
+  title: 'feat: support universal `{ fetch }` handlers (#1210)'
+  fix: cf7e585ca0
+  fix_title: 'fix(handler): run middleware for object syntax with fetch'
+  bug: defineHandler does Object.assign(composedHandler, input), which copies the raw input.fetch over the composed one, so calling .fetch bypasses the middleware
+  expect:
+  - path: src/handler.ts
+    line: 43
+    end_line: 49
+  must_mention:
+  - fetch
+  - bypass
+  - overwrite
+  - object.assign
+  - middleware
+- repo: express
+  commit: 18e5985b8a
+  title: 'fix(res.send): add Content-Length header only if Transfer-Encoding is not present (#4893)'
+  fix: 9a34acf03c
+  fix_title: 'fix(res.send): preserve ETag generation with Transfer-Encoding (#7459)'
+  bug: with Transfer-Encoding set, the whole length block is skipped, so len stays undefined and the string is not converted, and ETag generation silently stops
+  expect:
+  - path: lib/response.js
+    line: 165
+    end_line: 168
+  must_mention:
+  - etag
+  - len
+  - undefined
+  - skip
+- repo: express
+  commit: 0867302ddb
+  title: Prevent open redirect allow list bypass due to encodeurl
+  fix: a003cfab03
+  fix_title: 'Allow passing non-strings to res.location with new encoding handling checks fixes #5554 #5555'
+  bug: res.location now calls loc.toLowerCase() and encodeUrl on the raw argument, so passing a non-string (e.g. a URL object or number) throws a TypeError
+  expect:
+  - path: lib/response.js
+    line: 915
+    end_line: 916
+  must_mention:
+  - string
+  - tolowercase
+  - typeerror
+  - non-string
+  - url object
+- repo: express
+  commit: 48940e6120
+  title: Skip Buffer encoding when not generating ETag for small response
+  fix: b7817ab1b0
+  fix_title: Fix TypeError in res.send when given Buffer and ETag header set
+  bug: a Buffer body when no ETag is generated and length < 1000 goes to Buffer.byteLength(chunk, encoding), the string-only path, which throws a TypeError on Node versions of the time
+  expect:
+  - path: lib/response.js
+    line: 180
+    end_line: 190
+  must_mention:
+  - buffer
+  - bytelength
+  - isbuffer
+  - typeerror
+- repo: express
+  commit: fd35351594
+  title: Add mergeParams option to Router
+  fix: 11a77a3fff
+  fix_title: Fix inner numeric indices incorrectly altering parent req.params
+  bug: mergeParams copies the parent into obj but then does mixin(parent, params), mutating the parent's req.params with the child's numeric indices
+  expect:
+  - path: lib/router/index.js
+    line: 482
+  must_mention:
+  - parent
+  - mutat
+  - copy
+  - obj
+- repo: express
+  commit: 566720be15
+  title: improve proxy trust with ip address list
+  fix: 2e0f5e7817
+  fix_title: Fix req.host when using "trust proxy" hops count
+  bug: req.host calls trust(remoteAddress) without the hop index, so with a numeric trust proxy hop count (i < n with i undefined) X-Forwarded-Host is never trusted
+  expect:
+  - path: lib/request.js
+    line: 490
+  must_mention:
+  - hop
+  - index
+  - count
+  - second argument
+  - undefined

@@ -102,6 +102,8 @@ def review_eval_cmd(
     file_context: bool = typer.Option(True, "--file-context/--no-file-context", help="Send whole changed files to the model, not just the hunks."),
     second_reading: bool = typer.Option(True, "--second-reading/--no-second-reading", help="Check model warn/block findings with a second call."),
     verify_model: str | None = typer.Option(None, "--verify-model", help="Model for the second reading (same provider); default: the review model."),
+    effort: str | None = typer.Option(None, "--effort", help="Model effort for the review passes (Anthropic)."),
+    verify_effort: str | None = typer.Option(None, "--verify-effort", help="Model effort for the second reading (Anthropic)."),
     case: list[str] = typer.Option([], "--case", help="Only these case ids."),
     cases_file: Path = typer.Option(REVIEW_CASES, "--cases"),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
@@ -122,11 +124,12 @@ def review_eval_cmd(
     cfg = load_config(config, cwd=ROOT)
     store = Store(cfg.path(cfg.db))
     rc = cfg.review
-    prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+    prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort)
+    verifier = make_provider(provider or rc.provider, model=verify_model or model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=verify_effort or effort) if verify_model or verify_effort else None
     cases = [c for c in load_cases(cases_file, cfg.root) if not case or c.id in case]
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     with console.status("reviewing") as status:
-        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, file_context=file_context, second_reading=second_reading, verifier=make_provider(provider or rc.provider, model=verify_model, base_url=rc.base_url, api_key_env=rc.api_key_env) if verify_model else None, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
+        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, file_context=file_context, second_reading=second_reading, verifier=verifier, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "review-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
@@ -186,6 +189,9 @@ def recall_eval_cmd(
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     out: Path = typer.Option(RESULTS, "--out"),
     raw_dir: Path | None = typer.Option(None, "--raw-dir", help="Keep each case's full review JSON here (not committed), to read a miss without another model run."),
+    jobs: int = typer.Option(1, "--jobs", help="Cases reviewed at once, each in its own worktree of the clone."),
+    judge_model: str | None = typer.Option(None, "--judge-model", help="Judge 'about the bug' with this model (same provider) reading each case's hand-written label, instead of the must_mention words."),
+    rejudge_dir: Path | None = typer.Option(None, "--rejudge", help="Judge the raw reviews kept in this folder again instead of reviewing (no review calls)."),
 ):
     """Review real bug-introducing commits from public repositories and count how many bugs the review catches."""
     import shutil
@@ -198,9 +204,19 @@ def recall_eval_cmd(
     repos, cases = load_recall(cases_file)
     cases = [c for c in cases if (not repo or c.repo in repo) and (not case or any(c.commit.startswith(x) for x in case))]
     exe = orion or shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
-    workdir.mkdir(parents=True, exist_ok=True)
-    with console.status("reviewing") as status:
-        res = run_recall(cases, repos, workdir.resolve(), orion=exe, provider=provider, model=model, extra_args=review_arg, raw_dir=raw_dir, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {r['outcome']}"))
+    from orion.providers import make_provider
+
+    judge_provider = make_provider(provider, model=judge_model, effort="medium") if judge_model else None
+    if rejudge_dir:
+        from .recall_eval import rejudge, summarise
+
+        rows = rejudge(cases, rejudge_dir, judge_provider)
+        res = {"provider": provider, "model": model, "args": review_arg, "rejudged": rejudge_dir.name, "judge_model": judge_model, "cases": rows, "skipped": [], "summary": summarise(rows)}
+    else:
+        workdir.mkdir(parents=True, exist_ok=True)
+        with console.status("reviewing") as status:
+            res = run_recall(cases, repos, workdir.resolve(), orion=exe, provider=provider, model=model, extra_args=review_arg, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {r['outcome']}"))
+        res["judge_model"] = judge_model
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "recall-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))

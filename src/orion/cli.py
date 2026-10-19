@@ -63,13 +63,16 @@ def _open(config: Path | None):
     return cfg, store
 
 
-def _verifier(rc):
-    """The provider for the second reading when ``review.verify_model`` names a different model, else None (same as the review)."""
+def _verifier(rc, provider: str | None = None, model: str | None = None, verify_model: str | None = None, effort: str | None = None, verify_effort: str | None = None):
+    """The provider for the second reading when a different model (``review.verify_model``, ``--verify-model``) or
+    effort (``review.verify_effort``, ``--verify-effort``) is set for it, else None (the review's own provider)."""
     from .providers import make_provider
 
-    if not rc.verify_model or rc.verify_model == rc.model:
+    vm = verify_model or rc.verify_model or model or rc.model
+    ve = verify_effort or rc.verify_effort
+    if vm == (model or rc.model) and not ve:
         return None
-    return make_provider(rc.provider, model=rc.verify_model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+    return make_provider(provider or rc.provider, model=vm, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=ve or effort or rc.effort)
 
 
 @app.command()
@@ -350,6 +353,10 @@ def review(
     head_sha: str | None = typer.Option(None, "--head-sha", help="With --post-github: the pull request's head commit (default: the working tree's HEAD)."),
     intent: str | None = typer.Option(None, "--intent", help="What the change is meant to do (a PR title and body). Default with --git: the commit messages since the base."),
     second_reading: bool | None = typer.Option(None, "--second-reading/--no-second-reading", help="Check the model's warn and block findings with a second model call; ones it cannot confirm become inform. Default: review.second_reading in orion.yaml (on)."),
+    verify_model: str | None = typer.Option(None, "--verify-model", help="Model for the second reading (same provider). Default: review.verify_model in orion.yaml, else the review model."),
+    verify_effort: str | None = typer.Option(None, "--verify-effort", help="Effort for the second reading. Default: review.verify_effort in orion.yaml (high)."),
+    effort: str | None = typer.Option(None, "--effort", help="How hard an Anthropic model thinks: low | medium | high | xhigh | max. Default: review.effort in orion.yaml, else medium."),
+    lens: list[str] = typer.Option([], "--lens", help="A focused review pass (inputs, semantics, flow, contracts; repeatable). `general` alone means one unfocused pass. Default: review.lenses in orion.yaml, else all four."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -374,15 +381,22 @@ def review(
         cfg, store = _open(config)
     rc = cfg.review
     try:
-        prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env)
+        prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort or rc.effort)
+        verifier = _verifier(rc, provider, model, verify_model, effort, verify_effort)
     except ProviderError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(2) from e
+    from .review import LENSES
+
+    chosen = lens or rc.lenses
+    lenses = None if chosen is None else [x for x in chosen if x != "general"]  # `general` alone means one unfocused pass, from the flag or the config
+    if unknown := [x for x in (lenses or []) if x not in LENSES]:
+        raise typer.BadParameter(f"unknown lens {', '.join(unknown)}; use {', '.join(LENSES)} or general")
     diff_text = None
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=_verifier(rc))
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses)
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":

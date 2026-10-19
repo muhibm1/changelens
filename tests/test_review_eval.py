@@ -87,3 +87,26 @@ def test_a_bug_may_be_raised_at_an_alternative_location(tmp_path):
     finding = {"source": "model", "path": "b.py", "line": 2, "end_line": None, "severity": "block", "category": "correctness", "title": "t", "body": "b", "failure": "a caller passing the old value gets the wrong result", "evidence": ["hunk:b.py:2"], "status": "valid", "notes": []}
     g = grade(case, {"findings": [finding], "uncertain": [], "rejected": [], "provider_error": None})
     assert g["caught"] == 1 and g["false_alarms"] == []
+
+
+def test_recall_model_judge_counts_only_findings_it_says_are_about_the_bug():
+    from orion.providers import StubProvider
+    from pipelinebench.recall_eval import Case, Span, judge_one
+
+    case = Case("r", "abc", bug="Bearer prefix matched case-sensitively", expect=[Span("auth.ts", 10)], must_mention=["case"])
+    result = {"findings": [
+        {"path": "auth.ts", "line": 11, "severity": "warn", "source": "model", "title": "Empty token case", "body": "b", "failure": "f"},
+        {"path": "auth.ts", "line": 12, "severity": "warn", "source": "model", "title": "Scheme compared case-sensitively", "body": "b", "failure": "f"},
+    ]}
+    seen = []
+
+    def respond(system, user):
+        seen.append(user)
+        return {"matches": [1], "reason": "only [1] names the case rule"}
+
+    row = judge_one(case, result, StubProvider(respond))
+    assert row["outcome"] == "caught" and row["judge"] == "model" and [m["title"] for m in row["matched"]] == ["Scheme compared case-sensitively"]
+    assert "Bearer prefix matched case-sensitively" in seen[0], "the judge reads the hand-written label"
+    none = judge_one(case, result, StubProvider({"matches": [], "reason": "neither"}))
+    assert none["outcome"] == "in_file", "a warning in the file about something else is not a catch"
+    assert judge_one(case, result)["judge"] == "words"

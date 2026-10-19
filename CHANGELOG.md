@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Focused review passes
+
+- `orion review` reads each change in four focused passes: unusual inputs, the real semantics of the calls the code makes, control flow and state, and contracts with callers and callees. The system prompt and the change form a shared, prompt-cached prefix. Findings from the passes are merged, and the second reading rejects a finding that repeats an earlier one (kept under `rejected` with a note). `--lens` and `review.lenses` choose the passes; `--lens general` is the old single pass.
+- `--effort` and `review.effort` set how hard an Anthropic model thinks (default `medium`). The second reading runs at `high` (`--verify-effort`, `review.verify_effort`). It now lowers a case that failed the same way before the change (`pre_existing`) and one that an earlier check on the same path rules out.
+- `pipelinebench/review/heldout.yaml`: 45 real bugs from eight repositories outside the tuning set, labelled by hand from upstream history and never used for tuning. `recall-eval --judge-model` judges whether a finding is about the labelled bug with a model, instead of the `must_mention` words, which gave false credit. `--rejudge` judges kept raw reviews again without reviewing, and `--jobs` reviews cases in parallel worktrees.
+- On Claude Haiku 5.5, the passes raise recall on the 50 tuning bugs from 0.18 to 0.42 and reach 0.60 on the held-out bugs (0.80 warned in the right file). That is short of the 0.95 target and the 0.80 floor, and it costs precision: 6 false alarms on the planted-bug cases where a single pass had 1 (`pipelinebench/results/accuracy.md`).
+- The pull-request review workflow uses Claude Haiku 5.5 to keep each push's review to a few cents.
+
 ### Review context
 
 - A changed file over 400 lines no longer goes to the model as bare hunks: each hunk's enclosing definition goes instead (`context.windows`), merged and capped at 400 lines per file, numbered like the diff.

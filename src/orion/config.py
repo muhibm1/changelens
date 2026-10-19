@@ -47,6 +47,9 @@ class ReviewConfig(BaseModel):
     api_key_env: str | None = None  # name of the environment variable holding the key; never the key itself
     second_reading: bool = True  # check the model's warn/block findings with a second call
     verify_model: str | None = None  # model for that second call (same provider); default: ``model``
+    verify_effort: str | None = "high"  # effort for the second reading (Anthropic); None means ``effort``
+    effort: str | None = None  # how hard an Anthropic model thinks: low | medium | high | xhigh | max (default medium)
+    lenses: list[str] | None = None  # focused review passes (orion.review.LENSES); default all, [] for one general pass
 
 
 class Adapters(BaseModel):

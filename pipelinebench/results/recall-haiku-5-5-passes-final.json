@@ -1,0 +1,2062 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "args": [],
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1805ee0d22",
+   "title": "Graceful upgrade path for 0.28. (#3394)",
+   "bug": "verify=False returns before the client certificate is loaded, so cert= is ignored",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "httpx/_config.py:26 SSLKEYLOGFILE support and OpenSSL verify flags are dropped from the default context without a changelog entry",
+    "httpx/_config.py:33 Non-bool, non-SSLContext verify values are returned unchanged",
+    "httpx/_transports/default.py:151 verify=None no longer falls back to the default CA bundle"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 21533,
+    "cache_creation_input_tokens": 35426,
+    "cache_read_input_tokens": 113856,
+    "output_tokens": 13011
+   },
+   "judge_usage": {
+    "input_tokens": 1117,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 153,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "fd3b69d2aa",
+   "title": "Add DigestAuth middleware (#332)",
+   "bug": "RFC 2069 digest (no qop) hashes HA1 twice: response = H(HA1:HA1:nonce:HA2)",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 12,
+   "warn_titles": [
+    "tests/client/test_auth.py:210 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:234 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:260 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:286 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:294 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:303 Possible credential assigned to a literal committed"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 22017,
+    "cache_creation_input_tokens": 23618,
+    "cache_read_input_tokens": 78432,
+    "output_tokens": 13683
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "httpx",
+   "commit": "15d09a3bbc",
+   "title": "fix: NO_PROXY should support IPv4, IPv6 and localhost (#2659)",
+   "bug": "a NO_PROXY entry with a scheme (http://host) is treated as a hostname and never matches",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "httpx/_utils.py:268 IPv6 CIDR entries in NO_PROXY produce a bracketed pattern that includes the prefix length",
+    "httpx/_utils.py:272 Bracketed IPv6 entries in NO_PROXY fall through to the domain branch"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9678,
+    "cache_creation_input_tokens": 7733,
+    "cache_read_input_tokens": 30777,
+    "output_tokens": 12259
+   },
+   "judge_usage": {
+    "input_tokens": 1438,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 261,
+    "output_tokens_details": {
+     "thinking_tokens": 145
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "27df5e49c7",
+   "title": "Support for `chunk_size` (#1277)",
+   "bug": "TextChunker.decode returns [''] for empty content, so iter_text yields an empty string",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "httpx/_models.py:1173 iter_bytes/aiter_bytes raise ValueError for empty cached content",
+    "httpx/_decoders.py:173 ByteChunker and TextChunker do not validate chunk_size of 0 or below"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 21624,
+    "cache_creation_input_tokens": 22520,
+    "cache_read_input_tokens": 75138,
+    "output_tokens": 11241
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "httpx",
+   "commit": "b481166481",
+   "title": "Refactor ASGITransport.request() (#1021)",
+   "bug": "with raise_app_exceptions=False an exception before the response completes is still raised",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_transports/asgi.py",
+     "line": 151,
+     "title": "Exception handling behaviour changed when raise_app_exceptions is False",
+     "failure": "An app with raise_app_exceptions=False raises before calling send(). Before this change, the exception was swallowed and the code reached the asserts, which raised AssertionError on status_code is None. After this change, the app's own exception is raised from request(). Callers that catch a specific exception type, or that relied on the exception being swallowed, will see different behaviour.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_transports/asgi.py:151 Exception handling behaviour changed when raise_app_exceptions is False"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5741,
+    "cache_creation_input_tokens": 4120,
+    "cache_read_input_tokens": 19938,
+    "output_tokens": 4910
+   },
+   "judge_usage": {
+    "input_tokens": 761,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 568,
+    "output_tokens_details": {
+     "thinking_tokens": 439
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "59914c7690",
+   "title": "Add `NetRCAuth()` class. (#2535)",
+   "bug": "NetRCAuth(file: Optional[str]) has no default, so NetRCAuth() is a TypeError",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "docs/advanced.md:467 Documented NETRC example fails when NETRC is set but empty"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 21175,
+    "cache_creation_input_tokens": 25034,
+    "cache_read_input_tokens": 82680,
+    "output_tokens": 11967
+   },
+   "judge_usage": {
+    "input_tokens": 763,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 104,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "c725387b2d",
+   "title": "Preserve header casing (#1338)",
+   "bug": "Headers.update assigns each raw pair, so a repeated header in the update keeps only its last value",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 663,
+     "title": "Headers.update drops repeated values from its source",
+     "failure": "Headers().update([(\"Set-Cookie\", \"a=1\"), (\"Set-Cookie\", \"b=2\")]) now leaves only \"b=2\"; before this change the result was \"a=1, b=2\". Any caller that merges a header list with repeated names, such as a Headers built from a response's raw headers, loses all but the last value.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_models.py:663 Headers.update drops repeated values from its source"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 15506,
+    "cache_creation_input_tokens": 14575,
+    "cache_read_input_tokens": 51303,
+    "output_tokens": 11652
+   },
+   "judge_usage": {
+    "input_tokens": 757,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 81,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6f5865f860",
+   "title": "Read upload files using `read(CHUNK_SIZE)` rather than `iter()`. (#1948)",
+   "bug": "hasattr(stream, 'read') also matches SyncByteStream subclasses, whose read() takes no size argument",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 9733,
+    "cache_read_input_tokens": 35583,
+    "output_tokens": 7048
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "bfc190f725",
+   "title": "feat(css): add CSP nonce to hono/css related style and script tags (#3685)",
+   "bug": "the style replacement regex has no s flag, so multiline CSS is not matched",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "src/helper/css/index.ts:92 Inline style script takes its nonce from Style only if Style's callback ran first",
+    "src/helper/css/index.ts:164 CSP nonce is written into HTML attributes without escaping"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 18236,
+    "cache_creation_input_tokens": 19649,
+    "cache_read_input_tokens": 66525,
+    "output_tokens": 10142
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "09a81e4f01",
+   "title": "fix(jsx): cloneElement didn't copy children (#4257)",
+   "bug": "undefined children become [undefined], so a void element is cloned with a child",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/jsx/base.ts:436 Caller-supplied props.children is silently overridden by the original children"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 2597,
+    "cache_creation_input_tokens": 2253,
+    "cache_read_input_tokens": 14337,
+    "output_tokens": 5475
+   },
+   "judge_usage": {
+    "input_tokens": 698,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 82,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9a6e52d734",
+   "title": "feat(middleware/combine): Introduce combine middleware (#2941)",
+   "bug": "some() drops a Response returned by a short-circuiting middleware, so the context is never finalized",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/combine/index.ts:34 some() with no middleware never calls next() and silently ends the request",
+    "src/middleware/combine/index.ts:52 Falsy thrown values are dropped by the lastError truthiness check",
+    "src/middleware/combine/index.ts:87 every() drops the chain when a Condition returns true"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16784,
+    "cache_creation_input_tokens": 20103,
+    "cache_read_input_tokens": 67887,
+    "output_tokens": 24188
+   },
+   "judge_usage": {
+    "input_tokens": 1167,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 405,
+    "output_tokens_details": {
+     "thinking_tokens": 260
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "f356702efc",
+   "title": "fix(etag): support multi-value If-None-Match (#1199)",
+   "bug": "retainedHeaders are compared lower-cased against the option's values as given, so a mixed-case option never matches",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/etag/index.ts",
+     "line": 52,
+     "title": "retainedHeaders option is compared case-sensitively against lowercased header names",
+     "failure": "A caller configures etag({ retainedHeaders: ['Cache-Control', 'ETag'] }). Upstream sends Cache-Control: max-age=60. On a matching request the 304 is built with headers.forEach, and 'cache-control' is not in the array, so the header is deleted. The 304 loses the Cache-Control header the option was meant to keep.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/middleware/etag/index.ts:24"
+     ]
+    }
+   ],
+   "warns": 5,
+   "warn_titles": [
+    "src/middleware/etag/index.ts:20 Whitespace before a comma breaks multi-value If-None-Match matching",
+    "src/middleware/etag/index.ts:34 Upstream ETag containing a comma never matches the split list",
+    "src/middleware/etag/index.ts:52 retainedHeaders option is compared case-sensitively against lowercased header names",
+    "src/middleware/etag/index.ts:52 Custom retainedHeaders without 'etag' removes the ETag from 304 responses",
+    "src/middleware/etag/index.ts:53 Deleting Headers entries inside forEach can skip non-retained headers"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12252,
+    "cache_creation_input_tokens": 12404,
+    "cache_read_input_tokens": 44790,
+    "output_tokens": 14528
+   },
+   "judge_usage": {
+    "input_tokens": 2164,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 243,
+    "output_tokens_details": {
+     "thinking_tokens": 95
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b0f189a3f",
+   "title": "refactor(json-pretty): don't use `c.pretty()` (#1288)",
+   "bug": "c.res.json() on an empty or invalid JSON body throws, turning the response into a 500",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/pretty-json/index.ts",
+     "line": 12,
+     "title": "Pretty middleware parses every JSON response body and throws on bodies that are not valid JSON",
+     "failure": "A handler returns c.body(null, { status: 204, headers: { 'content-type': 'application/json' } }) or new Response('', { headers: { 'content-type': 'application/json' } }). A request to that route with ?pretty=1 makes c.res.json() throw SyntaxError, so the client gets a 500 instead of the original response. The same happens for a body such as 'not json' sent with that content type.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/pretty-json/index.ts:12 Pretty middleware parses every JSON response body and throws on bodies that are not valid JSON",
+    "src/middleware/pretty-json/index.ts:12 Re-parsing and re-serializing the body changes numeric values",
+    "src/middleware/pretty-json/index.ts:13 Re-serialized body is wrapped with the original response's headers, including any stale Content-Length"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12683,
+    "cache_creation_input_tokens": 10508,
+    "cache_read_input_tokens": 39102,
+    "output_tokens": 12666
+   },
+   "judge_usage": {
+    "input_tokens": 1605,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 263,
+    "output_tokens_details": {
+     "thinking_tokens": 123
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1a1de75296",
+   "title": "feat: Introduce LinearRouter. (#1043)",
+   "bug": "an empty path segment in the middle of a path (/u//posts) matches a :param with an empty value",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 4,
+   "warn_titles": [
+    "src/router/linear-router/router.ts:6 Route patterns containing nested braces are mis-parsed",
+    "src/router/linear-router/router.ts:42 Suffix-star route strips two characters regardless of the preceding slash",
+    "src/router/linear-router/router.ts:54 Wildcard route matches across a segment boundary",
+    "src/router/linear-router/router.ts:110 Duplicate param check is skipped when a captured value is an empty string"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 15620,
+    "cache_creation_input_tokens": 23473,
+    "cache_read_input_tokens": 77997,
+    "output_tokens": 18937
+   },
+   "judge_usage": {
+    "input_tokens": 745,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 115,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "28a9c12891",
+   "title": "fix(accepts): support wildcard media types and specificity ordering in defaultMatch (#5255)",
+   "bug": "media types and language tags are compared case-sensitively",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/accepts/accepts.ts:56 Wildcard entries with q=0 now select a supported type the client rejected"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 7771,
+    "cache_creation_input_tokens": 7485,
+    "cache_read_input_tokens": 30033,
+    "output_tokens": 8254
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "32ba5ba836",
+   "title": "refactor(request): shorten `parseBody` and remove unnecessary check (#2947)",
+   "bug": "rebuilding a cached body with new Response(body) loses the Content-Type, so formData() after text() throws",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/request.ts:218 json()/text() after parseBody() throws a TypeError"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 3965,
+    "cache_creation_input_tokens": 1846,
+    "cache_read_input_tokens": 13116,
+    "output_tokens": 7827
+   },
+   "judge_usage": {
+    "input_tokens": 779,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 128,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b4392fa36",
+   "title": "feat(adaptor): Support AWS Function URL Streaming (#1625)",
+   "bug": "streamToNodeStream ignores write() backpressure and resolves before the writable finishes",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/adapter/aws-lambda/handler.ts",
+     "line": 73,
+     "title": "Chunks are written without honouring write() backpressure",
+     "failure": "A handler streams a multi-hundred-megabyte body to a client that reads slowly. Every chunk is queued in the NodeJS.WritableStream buffer while the reader keeps pulling from the app response, so memory grows with the body size until the Lambda runs out of memory.",
+     "notes": []
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/adapter/aws-lambda/handler.ts",
+     "line": 73,
+     "title": "Chunk write ignores backpressure from the response stream",
+     "failure": "A 1 GB response body is streamed through streamToNodeStream while the Lambda response stream drains slowly. Every chunk is queued in the writable's buffer, so memory use grows with the body size.",
+     "notes": []
+    }
+   ],
+   "warns": 4,
+   "warn_titles": [
+    "runtime_tests/lambda/index.test.ts:491 streamHandle test asserts on its own input and never checks the app's response",
+    "src/adapter/aws-lambda/handler.ts:73 Chunks are written without honouring write() backpressure",
+    "src/adapter/aws-lambda/handler.ts:98 streamHandle passes the Lambda context under `context`, while handle uses `lambdaContext`",
+    "src/adapter/aws-lambda/handler.ts:112 Error path writes an error string into a body that may already be streaming"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 20151,
+    "cache_creation_input_tokens": 19645,
+    "cache_read_input_tokens": 66513,
+    "output_tokens": 11866
+   },
+   "judge_usage": {
+    "input_tokens": 912,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 461,
+    "output_tokens_details": {
+     "thinking_tokens": 325
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "2d3bc55954",
+   "title": "fix(streaming): call stream.abort() explicitly when request is aborted (#3042)",
+   "bug": "abort subscribers are called bare, so a throwing or rejecting listener stops the rest or is unhandled",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "src/helper/streaming/stream.ts:14 Abort listener is registered after the signal may already be aborted, so onAbort never fires",
+    "src/helper/streaming/stream.ts:14 Request abort fires onAbort subscribers even after the stream finished normally"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 18053,
+    "cache_creation_input_tokens": 23365,
+    "cache_read_input_tokens": 77673,
+    "output_tokens": 10334
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "d7964503c9",
+   "title": "fix(request): fix multipart boundary mismatch in `cloneRawRequest` (#5133)",
+   "bug": "content-type is dropped for a re-serialized FormData but the stale content-length is kept",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 490,
+     "title": "Stale Content-Length is kept when the multipart body is re-serialized",
+     "failure": "A client POSTs a multipart form with Content-Length: N. The handler calls req.formData() and then cloneRawRequest(req). The clone carries Content-Length: N, but the regenerated body has a different length, so sending the clone with fetch can fail or send a truncated or hanging body.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/request.ts:490 Stale Content-Length is kept when the multipart body is re-serialized"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 3343,
+    "cache_creation_input_tokens": 2898,
+    "cache_read_input_tokens": 16272,
+    "output_tokens": 4081
+   },
+   "judge_usage": {
+    "input_tokens": 698,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 114,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "350d904ad0",
+   "title": "feat: introduce Accepts Helper (#2001)",
+   "bug": "defaultMatch only accepts exact type matches, so */* and type/* never match",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 4,
+   "warn_titles": [
+    "src/helper/accept/accept.ts:37 Parameter without '=' throws and fails the request",
+    "src/helper/accept/accept.ts:33 Whitespace after ';' hides the q parameter",
+    "src/helper/accept/accept.ts:40 q=0 is treated as acceptable",
+    "src/helper/accept/accept.ts:40 Non-numeric q produces NaN and an inconsistent sort"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9815,
+    "cache_creation_input_tokens": 12483,
+    "cache_read_input_tokens": 45027,
+    "output_tokens": 10214
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "366f760a30",
+   "title": "fix(client): allow multiple files on the same key in form (#2791)",
+   "bug": "an undefined entry in a form array is appended as the string 'undefined'",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10813,
+    "cache_creation_input_tokens": 37569,
+    "cache_read_input_tokens": 120285,
+    "output_tokens": 3695
+   },
+   "judge_usage": {
+    "input_tokens": 723,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 87,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "091ecb7e86",
+   "title": "fix(middleware/etag): should return 304 when weak etag is passed in  'If-None-Match' (#4171)",
+   "bug": "If-None-Match is split on /,\\s*/, so whitespace before a comma leaves a trailing space on the tag",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/middleware/etag/index.ts",
+     "line": 34,
+     "title": "If-None-Match list split ignores whitespace before commas",
+     "failure": "A request with If-None-Match: \"mismatch\" , W/\"d104fafdb380655dab607c9bddc4d4982037afa1\" splits into '\"mismatch\" ' and 'W/\"d104...\"'. The second entry matches after stripWeak, so that case works. But If-None-Match: \"d104fafdb380655dab607c9bddc4d4982037afa1\" , \"other\" splits into '\"d104...\" ' (trailing space) and '\"other\"'. Neither matches, so the response is 200 with the full body instead of 304.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/middleware/etag/index.ts:36",
+      "severity lowered from warn to inform: a second reading confirmed the case but judged it pre existing, not a defect (The split on /,\\s*/ leaves trailing whitespace before a comma, so an entry such as '\"d104...\" ' fails the comparison, and the original indexOf-based code had the same failure, so the diff neither introduces nor newly exposes it.)"
+     ]
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9003,
+    "cache_creation_input_tokens": 8341,
+    "cache_read_input_tokens": 32601,
+    "output_tokens": 3790
+   },
+   "judge_usage": {
+    "input_tokens": 1114,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 113,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "b143c4ed8b",
+   "title": "feat(middleware/csrf): Introduce CSRF middleware (#1823)",
+   "bug": "OPTIONS is not a safe method, so CORS preflights are rejected by the CSRF check",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "src/middleware/csrf/index.ts:37 Form-content-type check is case-sensitive, so a cross-site request with an uppercase content type skips the CSRF check",
+    "src/middleware/csrf/index.ts:37 Requests with no Content-Type bypass the origin check"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11185,
+    "cache_creation_input_tokens": 14975,
+    "cache_read_input_tokens": 52503,
+    "output_tokens": 8753
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "d9b8b4b73b",
+   "title": "Merge commit from fork",
+   "bug": "Vary is set rather than appended on OPTIONS, overwriting a Vary another middleware set",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/middleware/cors/index.ts",
+     "line": 119,
+     "title": "Preflight Vary set overwrites existing Vary values",
+     "failure": "A middleware earlier in the chain sets `Vary: Accept-Encoding`, then a preflight OPTIONS request reaches this cors handler. The 204 response carries only `Vary: Origin` (and the later Access-Control-Request-Headers append), so a cache keyed on Accept-Encoding can serve the wrong variant. Whether the earlier value is visible on c.res at this point depends on Hono's header handling, which is not shown here.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/cors/index.ts:157 Vary: Origin is appended on every pass, so stacked or pre-set Origin tokens are duplicated"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10284,
+    "cache_creation_input_tokens": 10024,
+    "cache_read_input_tokens": 37650,
+    "output_tokens": 8186
+   },
+   "judge_usage": {
+    "input_tokens": 788,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 108,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "331b3d8a96",
+   "title": "fix(client): replace optional params to url correctly (#3304)",
+   "bug": "String.replace with a string replacement expands $ tokens in the param value",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/client/utils.ts:13 Empty-string param values are now dropped along with undefined ones"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6665,
+    "cache_creation_input_tokens": 6020,
+    "cache_read_input_tokens": 25638,
+    "output_tokens": 8153
+   },
+   "judge_usage": {
+    "input_tokens": 1151,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 220,
+    "output_tokens_details": {
+     "thinking_tokens": 114
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "ff34b1ba9a",
+   "title": "feat: support multiple optinal parameters (#1940)",
+   "bug": "/\\?/ matches a ? inside a regex quantifier, so :p{\\d+?} is read as optional",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 144,
+     "title": "Optional-marker removal also strips a `?` inside a regex pattern",
+     "failure": "Route `/api/:id{[0-9]?}?` (a digit group with an optional digit, the whole parameter optional). The new code pushes base `/api` and `/api/:id{[0-9]}?`. The optional branch now requires exactly one digit and keeps a literal `?` in the segment, so `/api/12` does not match the optional route as intended. The old code produced `/api/:id{[0-9]?}`, which is correct.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/utils/url.ts:55"
+     ]
+    },
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 138,
+     "title": "Any segment containing `?` is treated as an optional parameter",
+     "failure": "Path `/files/report:v1?` contains a colon but is not a parameter. The old code returned null for it. The new code returns `/files/report:v1` as an optional route, so a request to `/files/report:v1` can be handled by an unintended route.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/utils/url.ts:128 Optional-parameter check now returns an empty array instead of null for some paths",
+    "src/utils/url.ts:144 Optional-marker removal also strips a `?` inside a regex pattern"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 15724,
+    "cache_creation_input_tokens": 14321,
+    "cache_read_input_tokens": 50541,
+    "output_tokens": 14196
+   },
+   "judge_usage": {
+    "input_tokens": 1387,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 229,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cdb36b80af",
+   "title": "feat(client) add cookie type validate (#1476)",
+   "bug": "request cookies are joined with ',' and serialized with path=/; a Cookie header is '; '-joined name=value pairs",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/client/client.ts",
+     "line": 100,
+     "title": "Multiple cookies are joined with a comma and each carries cookie attributes",
+     "failure": "A caller passes cookie: { a: '1', b: '2' }. The header becomes `a=1; Path=/,b=2; Path=/`. A server parsing on ';' sees `a=1`, `Path=/,b=2` and `Path=/`, so cookie `b` is lost and a spurious `Path` cookie appears. The existing test sends only one cookie, so it does not catch this.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/client/client.test.ts:299"
+     ]
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/client/client.ts:100 Multiple cookies are joined with a comma and each carries cookie attributes",
+    "src/client/client.ts:100 Cookie argument silently overwrites a Cookie header passed in opt.headers"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16798,
+    "cache_creation_input_tokens": 17496,
+    "cache_read_input_tokens": 60066,
+    "output_tokens": 7518
+   },
+   "judge_usage": {
+    "input_tokens": 1024,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 134,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "31f0605209",
+   "title": "feat: Add `c.stream()` (#1437)",
+   "bug": "pipe() releases the writer lock and re-acquires it only after pipeTo succeeds, so a throw leaves no writer",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/stream.ts",
+     "line": 34,
+     "title": "pipe() leaves the writer released if pipeTo fails",
+     "failure": "A handler calls `stream.pipe(upstreamBody)` and the upstream body errors midway. `pipeTo` rejects, `this.writer` stays released, and the handler's next `stream.write()` or the context's `stream.close()` fails with a lock error instead of the stream being closed cleanly.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/context.ts:395 Rejection of the stream callback is not handled",
+    "src/context.ts:399 streamText drops its Content-Type and chunked headers when a ResponseInit is passed",
+    "src/utils/stream.ts:34 pipe() leaves the writer released if pipeTo fails"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 15173,
+    "cache_creation_input_tokens": 15537,
+    "cache_read_input_tokens": 54189,
+    "output_tokens": 10562
+   },
+   "judge_usage": {
+    "input_tokens": 799,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 138,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7ce0ddd350",
+   "title": "feat(router): support greedy matches with subsequent static components. (#3888)",
+   "bug": "m[0].match(/\\//) without the g flag counts at most one slash",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/router/trie-router/node.ts",
+     "line": 180,
+     "title": "Greedy match depth counts at most one segment boundary",
+     "failure": "Routes '/:first{.+}/middle-b/:digest' and a request for '/a/b/c/middle-b/latest'. The capture is 'a/b/c' (two slashes), componentCount becomes 1 instead of 2, the child is re-queued one segment early, it is compared against 'c' rather than 'middle-b', and the handler is not found. The existing tests only cover captures with zero or one slash, so they pass.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/router/trie-router/node.ts:180 Greedy match depth counts at most one segment boundary",
+    "src/utils/url.ts:62 Pattern cache key collides when a static segment is named 'undefined'",
+    "src/utils/url.ts:67 Following static segment is interpolated into a regex unescaped"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 20291,
+    "cache_creation_input_tokens": 20577,
+    "cache_read_input_tokens": 69309,
+    "output_tokens": 33477
+   },
+   "judge_usage": {
+    "input_tokens": 793,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 102,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cd35af7655",
+   "title": "feat(jsx/dom): support getServerSnapshot in useSyncExternalStore (#2646)",
+   "bug": "the subscription effect has no deps, so a changed subscribe or store is never picked up",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6580,
+    "cache_creation_input_tokens": 8630,
+    "cache_read_input_tokens": 33468,
+    "output_tokens": 7480
+   },
+   "judge_usage": {
+    "input_tokens": 776,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 90,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8130a67da1",
+   "title": "feat(secureHeader): add CSP Report-Only mode support (#3413)",
+   "bug": "CSP callbacks run for both Content-Security-Policy and its Report-Only header",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/middleware/secure-headers/secure-headers.ts",
+     "line": 271,
+     "title": "Each CSP callback now rewrites both CSP headers, using the wrong directive layout",
+     "failure": "Settings: contentSecurityPolicy {defaultSrc: [\"'self'\"]} and contentSecurityPolicyReportOnly {scriptSrc: [\"'self'\", NONCE]}. The CSP header has no callbacks, so its value is the plain string \"default-src 'self'\". The Report-Only callback runs over headersToSet, reaches the CSP entry, and assigns clone[8] on a string primitive. In strict-mode ES modules this throws a TypeError, so the request fails. Reversed (CSP with a NONCE, Report-Only a plain string) the same throw happens. With both policies",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/middleware/secure-headers/secure-headers.ts:275"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/secure-headers/secure-headers.ts:271 Each CSP callback now rewrites both CSP headers, using the wrong directive layout"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 17317,
+    "cache_creation_input_tokens": 23965,
+    "cache_read_input_tokens": 79473,
+    "output_tokens": 14875
+   },
+   "judge_usage": {
+    "input_tokens": 949,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 343,
+    "output_tokens_details": {
+     "thinking_tokens": 227
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1ce18c26dc",
+   "title": "feat(sse): Allow sending retry for SSE connection (#2188)",
+   "bug": "truthiness checks drop retry: 0 and id: ''",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/helper/streaming/sse.ts",
+     "line": 29,
+     "title": "retry: 0 is silently dropped",
+     "failure": "writeSSE({ data: 'x', retry: 0 }) produces 'data: x\\n\\n' with no 'retry:' line, so the client keeps its previous or default reconnect delay instead of reconnecting immediately as the caller asked.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/helper/streaming/sse.ts:29, ref:src/helper/streaming/sse.test.ts:72"
+     ]
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/helper/streaming/sse.ts:29 retry: 0 is silently dropped",
+    "src/helper/streaming/sse.ts:29 Non-integer, negative or NaN retry values are written as-is"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4755,
+    "cache_creation_input_tokens": 4113,
+    "cache_read_input_tokens": 19917,
+    "output_tokens": 4896
+   },
+   "judge_usage": {
+    "input_tokens": 921,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 138,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "12806614b9",
+   "title": "feat(request): add cloneRawRequest utility for request cloning (#4382)",
+   "bug": "a FormData body is re-serialized with a new boundary while the old Content-Type header is kept",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 475,
+     "title": "Original multipart Content-Type is kept while the body is rebuilt",
+     "failure": "A multipart form request is read with req.formData() and then cloned. The clone's Content-Type header carries the original boundary, but the body uses a new one, so a later formData() or parseBody() on the clone fails to parse the parts.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/request.ts:472 Cloned request body for a JSON-cached request is the string \"[object Object]\"",
+    "src/request.ts:463 Cache key taken from Object.keys may name a key that is not a body method",
+    "src/request.ts:475 Original multipart Content-Type is kept while the body is rebuilt"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 14209,
+    "cache_creation_input_tokens": 14860,
+    "cache_read_input_tokens": 52158,
+    "output_tokens": 13058
+   },
+   "judge_usage": {
+    "input_tokens": 1123,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 146,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9822548bf7",
+   "title": "feat: introduce Method Override Middleware (#2420)",
+   "bug": "new Request with a stream body needs duplex: 'half'",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/method-override/index.ts",
+     "line": 115,
+     "title": "Query override passes a live request body stream without duplex",
+     "failure": "A POST to /posts?_method=DELETE with a non-empty body (for example JSON) reaches the query branch. new Request(url, { body: stream, method: 'DELETE' }) throws a TypeError, and the request fails instead of being overridden.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/method-override/index.ts:74 A non-string _method form field becomes an invalid method and throws",
+    "src/middleware/method-override/index.ts:101 Header override to GET or HEAD on a request with a body throws",
+    "src/middleware/method-override/index.ts:115 Query override passes a live request body stream without duplex"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 14436,
+    "cache_creation_input_tokens": 17145,
+    "cache_read_input_tokens": 59013,
+    "output_tokens": 15930
+   },
+   "judge_usage": {
+    "input_tokens": 736,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 111,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6fe828ca0f",
+   "title": "fix(cache): Allow composing cache control directives (#1922)",
+   "bug": "existing Cache-Control directive names are compared case-sensitively",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/cache/index.ts",
+     "line": 25,
+     "title": "Existing Cache-Control directive names are compared case-sensitively",
+     "failure": "A handler sets Cache-Control to 'Max-Age=5', and the route is wrapped with cache({ cacheControl: 'max-age=10' }). existingDirectives is ['Max-Age'], so 'max-age' is not found and the header becomes 'Max-Age=5, max-age=10' instead of keeping only the handler's directive.",
+     "notes": []
+    }
+   ],
+   "warns": 4,
+   "warn_titles": [
+    "src/middleware/cache/index.ts:13 Empty cacheControl now emits an empty Cache-Control header",
+    "src/middleware/cache/index.ts:13 Comma split breaks quoted-string directive arguments such as private=\"A, B\"",
+    "src/middleware/cache/index.ts:23 Whitespace around '=' defeats the duplicate check",
+    "src/middleware/cache/index.ts:25 Existing Cache-Control directive names are compared case-sensitively"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5917,
+    "cache_creation_input_tokens": 5583,
+    "cache_read_input_tokens": 24327,
+    "output_tokens": 9542
+   },
+   "judge_usage": {
+    "input_tokens": 1846,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 253,
+    "output_tokens_details": {
+     "thinking_tokens": 115
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "0edb243a74",
+   "title": "perf(serve-static): performance optimization for precompressed feature (#3414)",
+   "bug": "if (content) treats an empty file as not found",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 12411,
+    "cache_read_input_tokens": 43617,
+    "output_tokens": 4566
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "71cdcf40d8",
+   "title": "feat: Introduce IP Restriction Middleware (#2813)",
+   "bug": "expandIPv6('::') removes one empty section, so a second empty slot is expanded again",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 4,
+   "warn_titles": [
+    "src/middleware/ip-restriction/index.ts:67 Out-of-range CIDR prefixes are accepted and build a wrong mask",
+    "src/middleware/ip-restriction/index.ts:92 IPv6 static rules are compared against the raw remote string",
+    "src/middleware/ip-restriction/index.ts:101 A non-IP client address with IPv6 CIDR rules throws RangeError instead of returning 403",
+    "src/middleware/ip-restriction/index.ts:102 IPv4-mapped IPv6 remotes bypass IPv4 deny rules"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 19741,
+    "cache_creation_input_tokens": 23074,
+    "cache_read_input_tokens": 76800,
+    "output_tokens": 19057
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "48dc87dfd5",
+   "title": "fix(utils/filepath): filepath supports Windows (#1642)",
+   "bug": "replace(/\\\\/, '/') converts only the first backslash",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/filepath.ts",
+     "line": 26,
+     "title": "Only the first backslash is converted to a slash",
+     "failure": "getFilePath({ filename: 'foo\\\\bar\\\\baz.txt' }) returns 'foo/bar\\\\baz.txt' instead of 'foo/bar/baz.txt', so the file lookup for a nested Windows-style path fails or targets a file with a literal backslash in its name.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/utils/filepath.ts:26"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/filepath.ts:26 Only the first backslash is converted to a slash"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4777,
+    "cache_creation_input_tokens": 3969,
+    "cache_read_input_tokens": 19485,
+    "output_tokens": 5396
+   },
+   "judge_usage": {
+    "input_tokens": 713,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 83,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "e9830c6ba1",
+   "title": "perf(utils): use `| 0` instead of `Math.floor` (#3605)",
+   "bug": "(Date.now() / 1000) | 0 truncates to 32 bits, so timestamps past 2038 wrap",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/jwt/jwt.ts",
+     "line": 77,
+     "title": "`| 0` overflows 32-bit signed int for current epoch seconds after 2038-01-19",
+     "failure": "After 2038-01-19T03:14:08Z, `verify` is called on a token whose exp was in 2037. `now` is negative, so `payload.exp <= now` is false and the expired token is returned as valid. Valid tokens with nbf or iat set are rejected with JwtTokenNotBefore or JwtTokenIssuedAt.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/utils/jwt/jwt.ts:78, ref:src/utils/jwt/jwt.ts:81, ref:src/utils/jwt/jwt.ts:84"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/jwt/jwt.ts:77 `| 0` overflows 32-bit signed int for current epoch seconds after 2038-01-19"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 8067,
+    "cache_creation_input_tokens": 6243,
+    "cache_read_input_tokens": 26307,
+    "output_tokens": 5162
+   },
+   "judge_usage": {
+    "input_tokens": 875,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 109,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1854e24145",
+   "title": "perf(jsx/dom): improve performance (#3288)",
+   "bug": "after splicing an array child in place the index still advances, skipping the next child",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/jsx/dom/render.ts:243 Component props object is no longer a fresh copy, so the style component's mutation persists on the element",
+    "src/jsx/dom/render.ts:299 findInsertBefore no longer falls back to the next sibling when a reused node has an empty child list",
+    "src/jsx/dom/render.ts:545 Sibling link nN is not updated when the current child is skipped, leaving a stale next-sibling pointer"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 27411,
+    "cache_creation_input_tokens": 27512,
+    "cache_read_input_tokens": 90114,
+    "output_tokens": 57784
+   },
+   "judge_usage": {
+    "input_tokens": 653,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 104,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "778ac10e84",
+   "title": "feat: decode percent-encoded path in getPath (#2714)",
+   "bug": "getPath stops at ? but not #, so a fragment ends up in the path",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/utils/url.ts:85 Fallback decodes each run of %XX all-or-nothing, not as much as possible",
+    "src/utils/url.ts:107 Paths containing %25 plus an invalid sequence keep the %2525 protection escape in the output",
+    "src/utils/url.ts:107 Path is decoded here and again in param(), so single-encoded input is decoded twice"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 17023,
+    "cache_creation_input_tokens": 17229,
+    "cache_read_input_tokens": 59265,
+    "output_tokens": 20909
+   },
+   "judge_usage": {
+    "input_tokens": 1294,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 169,
+    "output_tokens_details": {
+     "thinking_tokens": 73
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "66fc63d134",
+   "title": "feat(bearer-auth): Allow empty bearer-auth middleware prefixes (#3161)",
+   "bug": "the Bearer prefix is matched case-sensitively",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 8823,
+    "cache_creation_input_tokens": 8518,
+    "cache_read_input_tokens": 33132,
+    "output_tokens": 6429
+   },
+   "judge_usage": {
+    "input_tokens": 1362,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 132,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7768865e7a",
+   "title": "fix: move `c.stream*` to helper (#1846)",
+   "bug": "SSE data is split on \\n only, so \\r and \\r\\n line endings are not framed",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/helper/streaming/sse.ts",
+     "line": 25,
+     "title": "SSE event and id values are not sanitized for CR/LF",
+     "failure": "A handler sets `id` from a request value, e.g. `id: req.query('last') ` containing \"1\\nevent: admin\\ndata: forged\". The emitted frame contains an injected `event:` and `data:` line that the browser EventSource delivers as a separate event. Likewise `data` = \"x\\revent: admin\" yields a bare CR that the client reads as a line break and an injected `event` field.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading confirmed the case but judged it pre existing, not a defect (writeSSE interpolates `message.event` and `message.id` without stripping CR or LF, and splits only `data` on '\\n', so a newline or bare CR in either field injects SSE lines; this code was moved verbatim from the old c.stream/streamSSE path, so the flaw predates this change.)"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/streaming/index.ts:11 `streamSSE` removed but still referenced at runtime_tests/lambda/index.test.ts:10, runtime_tests/lambda/index.test.ts:553"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12089,
+    "cache_creation_input_tokens": 16589,
+    "cache_read_input_tokens": 57345,
+    "output_tokens": 7747
+   },
+   "judge_usage": {
+    "input_tokens": 811,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 642,
+    "output_tokens_details": {
+     "thinking_tokens": 533
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6d18f17e58",
+   "title": "fix(service-worker): pass `FetchEvent` as second argument to `app.fetch` (#4328)",
+   "bug": "app.fetch(request, evt) passes the FetchEvent as Env instead of as the execution context",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3305,
+    "cache_read_input_tokens": 16299,
+    "output_tokens": 801
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "acb94b15fa",
+   "title": "fix(context): encode the redirect location (#4297)",
+   "bug": "safeEncodeURI decides by decodeURI(str) === str, which mis-handles a literal % and some encoded input",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 323,
+     "title": "safeEncodeURI double-encodes percent escapes of reserved characters",
+     "failure": "c.redirect('/search?q=a%26b') : decodeURI keeps '%26' because '&' is reserved, and encodeURI produces '/search?q=a%2526b'. The Location header now points to a different query value than the one the caller encoded, where the previous code sent '/search?q=a%26b'.",
+     "notes": [
+      "removed evidence that does not resolve: ref:src/utils/url.ts:319"
+     ]
+    },
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 326,
+     "title": "Fallback re-encodes already-encoded UTF-8 when the string also has a bare percent",
+     "failure": "c.redirect('/100%/%E3%81%82') : decodeURI throws on '%/', so encodeURI runs on the raw string and yields '/100%25/%25E3%2581%2582', where the caller's '%E3%81%82' was already correct. The fallback does not leave valid escapes unchanged.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/utils/url.ts:323 safeEncodeURI double-encodes percent escapes of reserved characters",
+    "src/context.ts:750 Redirect locations with IPv6 literal hosts get brackets percent-encoded",
+    "src/utils/url.ts:326 Fallback re-encodes already-encoded UTF-8 when the string also has a bare percent"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16092,
+    "cache_creation_input_tokens": 14858,
+    "cache_read_input_tokens": 52152,
+    "output_tokens": 8333
+   },
+   "judge_usage": {
+    "input_tokens": 1256,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 568,
+    "output_tokens_details": {
+     "thinking_tokens": 429
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a16bcda120",
+   "title": "perf(utils/url): improve performance of url utility (#3593)",
+   "bug": "decodeURIComponent on an invalid query value throws instead of returning the raw value",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 4704,
+    "cache_read_input_tokens": 20496,
+    "output_tokens": 161
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "cobra",
+   "commit": "b80aeb17fc",
+   "title": "Add support for custom completions in Go (#1035)",
+   "bug": "append on a sub-slice of args writes into the caller's backing array (os.Args)",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 4,
+   "warn_titles": [
+    "bash_completions.go:70 Command line is rebuilt as a string and re-parsed by eval",
+    "bash_completions.go:90 Completion values containing a colon are truncated",
+    "bash_completions.go:118 Completion values with whitespace are split by compgen -W",
+    "custom_completions.go:278 Debug message used as a printf format string"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 25860,
+    "cache_creation_input_tokens": 37642,
+    "cache_read_input_tokens": 120504,
+    "output_tokens": 25504
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "cobra",
+   "commit": "36aee64abe",
+   "title": "prevent removal of valid arguments",
+   "bug": "argsMinusFirstX removes the first arg equal to the subcommand name even when it is a flag's value",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "command.go",
+     "line": 335,
+     "title": "argsMinusFirstX can remove a flag value instead of the subcommand token",
+     "failure": "Root has a persistent non-boolean short flag -s and a boolean short flag -b, and a subcommand named first. Running `root -s first -b first` makes stripFlags return argsWOflags[0]==\"first\" for the real subcommand token at index 3. argsMinusFirstX removes index 1 (the flag value), giving [-s -b first]. The -s flag then sees -b as its value, and the real subcommand token stays in the args passed on, instead of the intended [-s first -b].",
+     "notes": [
+      "removed evidence that does not resolve: ref:command.go:317"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "command.go:335 argsMinusFirstX can remove a flag value instead of the subcommand token"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5334,
+    "cache_creation_input_tokens": 4041,
+    "cache_read_input_tokens": 19701,
+    "output_tokens": 12988
+   },
+   "judge_usage": {
+    "input_tokens": 835,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 246,
+    "output_tokens_details": {
+     "thinking_tokens": 121
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "21f39ca07e",
+   "title": "bash: fix shellcheck errors (#889)",
+   "bug": "the read loop reuses $c, clobbering the global $c that *_custom_func reads",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 75,
+     "title": "Unscoped loop variable c in handle_reply reuses the shared parser index",
+     "failure": "",
+     "notes": [
+      "removed evidence that does not resolve: ref:bash_completions.go:174"
+     ]
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 828,
+    "cache_creation_input_tokens": 3266,
+    "cache_read_input_tokens": 16182,
+    "output_tokens": 5729
+   },
+   "judge_usage": {
+    "input_tokens": 924,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 157,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6fd8e29b07",
+   "title": "Qualify custom bash func name (#730)",
+   "bug": "declare -F ___custom_func has three underscores, so the fallback to __custom_func never runs",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 137,
+     "title": "Unqualified fallback checks a misspelled function name and never runs plain __custom_func",
+     "failure": "A user's root command has a `BashCompletionFunction` that defines only `__custom_func` (the pattern the old docs show) and no `__<root>_custom_func`. Pressing tab on a noun position reaches the else branch, `declare -F ___custom_func` fails, and `__custom_func` is never called. COMPREPLY stays empty and completion silently stops working for that user, which is the regression the fallback was meant to prevent.",
+     "notes": [
+      "removed evidence that does not resolve: ref:bash_completions_test.go:161"
+     ]
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "bash_completions.go:137 Unqualified fallback checks a misspelled function name and never runs plain __custom_func",
+    "bash_completions.md:112 Documentation names the wrong function, with three underscores",
+    "bash_completions_test.go:161 Occurrence check cannot detect the misspelled fallback"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 13951,
+    "cache_creation_input_tokens": 11473,
+    "cache_read_input_tokens": 41997,
+    "output_tokens": 7626
+   },
+   "judge_usage": {
+    "input_tokens": 977,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 352,
+    "output_tokens_details": {
+     "thinking_tokens": 223
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+   }
+  }
+ ],
+ "skipped": [],
+ "summary": {
+  "cases": 50,
+  "errors": 0,
+  "caught": 20,
+  "in_file": 14,
+  "inform_only": 3,
+  "missed": 13,
+  "recall": 0.4,
+  "recall_in_file": 0.68,
+  "warns_per_case": 2.08,
+  "tokens_in": 601002,
+  "tokens_cache_write": 712861,
+  "tokens_cache_read": 2511513,
+  "tokens_out": 576586
+ },
+ "judge_model": "claude-haiku-5-5"
+}
