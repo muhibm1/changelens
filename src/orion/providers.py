@@ -10,12 +10,19 @@ timeout and retries on rate limits and server errors. HTTP is plain
   (forced tool use is rejected by the current Claude models).
 * ``openai``: any OpenAI-compatible ``/chat/completions`` endpoint (OpenAI,
   Azure, vLLM, Ollama, LM Studio), structured output via ``response_format``.
+* ``command``: any local command that reads a prompt on stdin and prints the
+  JSON answer, so a coding agent's own CLI can answer on the plan it is
+  already signed in to. ``claude-code`` is that provider preset for
+  ``claude -p`` with no tools.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
+import subprocess
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -214,11 +221,96 @@ class StubProvider:
         return {"findings": []}
 
 
+# `claude -p` with no tools, no settings, hooks or MCP servers, and no saved session: one structured answer on the
+# plan the CLI is signed in to. `{name}` arguments are filled per call; an empty `{model}` or `{effort}` drops the flag.
+CLAUDE_CODE_COMMAND = (
+    "claude", "-p", "--output-format", "json", "--json-schema", "{schema}", "--system-prompt", "{system}",
+    "--tools", "", "--no-session-persistence", "--strict-mcp-config", "--setting-sources", "",
+    "--model", "{model}", "--effort", "{effort}",
+)
+
+
+PLACEHOLDER = re.compile(r"\{(schema|system|model|effort)\}")
+
+
+@dataclass
+class CommandProvider:
+    """A local command answers: the prompt goes to its stdin, the JSON answer comes back on stdout.
+
+    Arguments may hold ``{schema}``, ``{system}``, ``{model}`` and ``{effort}``; a command without ``{system}`` gets the
+    system prompt at the top of stdin. Stdout may be the answer itself, text holding it, or a harness ``--output-format
+    json`` envelope (``structured_output`` or ``result``). The command runs without a shell, in the current folder, or
+    with ``isolate`` in an empty one, so a repository's own agent instructions never reach it."""
+
+    command: tuple[str, ...] | list[str]
+    model: str | None = None
+    effort: str | None = None
+    timeout: float = 600.0
+    retries: int = 1  # a failed run is tried again; one that timed out is not
+    label: str = "command"
+    isolate: bool = False  # run in an empty folder, so the agent never picks up a repository's own instructions
+    last_usage: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
+        if not self.command:
+            raise ProviderError("the command provider needs a command (review.command in orion.yaml)")
+        self.name = f"{self.label}:{self.model}" if self.model else self.label
+
+    def args(self, system: str, schema: dict[str, Any]) -> list[str]:
+        values = {"schema": json.dumps(schema), "system": system, "model": self.model or "", "effort": self.effort or ""}
+        out: list[str] = []
+        for arg in self.command:
+            if arg in ("{model}", "{effort}") and not values[arg[1:-1]]:
+                if out and out[-1].startswith("-"):
+                    out.pop()  # the flag that takes it goes too
+                continue
+            # One pass, so a placeholder written inside a filled-in value (the system prompt, say) stays as written.
+            out.append(PLACEHOLDER.sub(lambda m: values[m[1]], arg))
+        return out
+
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+        prompt = join_user(user) + "\n\nReply with only one JSON object that matches this JSON Schema:\n" + json.dumps(schema)
+        if not any("{system}" in a for a in self.command):
+            prompt = f"{system}\n\n{prompt}"
+        args = self.args(system, schema)
+        last: ProviderError | None = None
+        for _ in range(self.retries + 1):
+            with tempfile.TemporaryDirectory(prefix="orion-provider-") as empty:
+                try:
+                    done = subprocess.run(args, input=prompt, capture_output=True, text=True, timeout=self.timeout, cwd=empty if self.isolate else None)
+                except FileNotFoundError as e:
+                    raise ProviderError(f"{args[0]} not found; install it or set review.command") from e
+                except subprocess.TimeoutExpired as e:
+                    raise ProviderError(f"{args[0]} gave no answer within {self.timeout:.0f}s") from e
+            if done.returncode != 0:
+                last = ProviderError(f"{args[0]} exited {done.returncode}: {(done.stderr or done.stdout).strip()[:300]}")
+                continue
+            return self._answer(done.stdout)
+        raise last or ProviderError(f"{args[0]} failed")
+
+    def _answer(self, stdout: str) -> dict[str, Any]:
+        try:
+            data = json.loads(stdout)
+        except json.JSONDecodeError:
+            return _parse_json_text(stdout)
+        if not isinstance(data, dict):
+            raise ProviderError("the command printed JSON that is not an object")
+        if data.get("type") != "result":
+            return data  # the answer itself
+        self.last_usage = data.get("usage")
+        if data.get("is_error"):
+            raise ProviderError(f"the command reported an error: {str(data.get('result') or data.get('subtype'))[:300]}")
+        if isinstance(data.get("structured_output"), dict):
+            return data["structured_output"]
+        return _parse_json_text(str(data.get("result") or ""))
+
+
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
 
-def make_provider(spec: str | None, *, model: str | None = None, base_url: str | None = None, api_key_env: str | None = None, effort: str | None = None) -> Provider:
-    """``stub`` | ``anthropic`` | ``openai``; model and endpoint from arguments or config. ``effort``: how hard an Anthropic model thinks (low .. max); other providers ignore it."""
+def make_provider(spec: str | None, *, model: str | None = None, base_url: str | None = None, api_key_env: str | None = None, effort: str | None = None, command: list[str] | None = None) -> Provider:
+    """``stub`` | ``anthropic`` | ``openai`` | ``command`` | ``claude-code``; model and endpoint from arguments or config. ``effort``: how hard
+    the model thinks (low .. max), for Anthropic and for commands that take ``{effort}``. ``command``: the argument list for ``command``."""
     spec = (spec or "stub").lower()
     if effort is not None and effort not in EFFORTS:
         raise ProviderError(f"unknown effort {effort}; use {', '.join(EFFORTS)}")
@@ -240,4 +332,11 @@ def make_provider(spec: str | None, *, model: str | None = None, base_url: str |
         if api_key_env:
             kw["api_key_env"] = api_key_env
         return OpenAICompatibleProvider(**kw)
-    raise ProviderError(f"unknown provider {spec}; use stub, anthropic or openai")
+    if spec == "command":
+        # review.command comes from orion.yaml, which a branch under review can edit; run it only where that file is trusted.
+        if os.environ.get("ORION_ALLOW_COMMAND") != "1":
+            raise ProviderError("the command provider runs review.command from orion.yaml; set ORION_ALLOW_COMMAND=1 where that file is trusted")
+        return CommandProvider(tuple(command or ()), model=model, effort=effort)
+    if spec == "claude-code":
+        return CommandProvider(CLAUDE_CODE_COMMAND, model=model, effort=effort, label="claude-code", isolate=True)  # review.command is the `command` provider's, never this one's
+    raise ProviderError(f"unknown provider {spec}; use stub, anthropic, openai, command or claude-code")

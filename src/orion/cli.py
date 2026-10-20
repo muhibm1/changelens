@@ -72,7 +72,7 @@ def _verifier(rc, provider: str | None = None, model: str | None = None, verify_
     ve = verify_effort or rc.verify_effort
     if vm == (model or rc.model) and not ve:
         return None
-    return make_provider(provider or rc.provider, model=vm, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=ve or effort or rc.effort)
+    return make_provider(provider or rc.provider, model=vm, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=ve or effort or rc.effort, command=rc.command)
 
 
 @app.command()
@@ -346,7 +346,7 @@ def ask(
 def review(
     git: str | None = typer.Option(None, "--git", help="Review the working tree against this base ref."),
     diff_file: Path | None = typer.Option(None, "--diff-file", help="Review a unified diff from a file ('-' for stdin)."),
-    provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai (default from orion.yaml)."),
+    provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai | command | claude-code (default from orion.yaml). claude-code answers through `claude -p` on the plan it is signed in to."),
     model: str | None = typer.Option(None, "--model"),
     fmt: str = typer.Option("text", "--format", help="text | json | markdown"),
     post_github: str | None = typer.Option(None, "--post-github", help="Also post the review to this pull request as OWNER/REPO#NUMBER (token from GH_TOKEN or GITHUB_TOKEN)."),
@@ -357,6 +357,8 @@ def review(
     verify_effort: str | None = typer.Option(None, "--verify-effort", help="Effort for the second reading. Default: review.verify_effort in orion.yaml (high)."),
     effort: str | None = typer.Option(None, "--effort", help="How hard an Anthropic model thinks: low | medium | high | xhigh | max. Default: review.effort in orion.yaml, else medium."),
     lens: list[str] = typer.Option([], "--lens", help="A focused review pass (inputs, semantics, flow, contracts; repeatable). `general` alone means one unfocused pass. Default: review.lenses in orion.yaml, else all four."),
+    areas: str | None = typer.Option(None, "--areas", help="Sensitive areas of the code: a YAML or JSON file, `file#project` for one project's list. Default: review.areas in orion.yaml."),
+    history: bool = typer.Option(True, "--history/--no-history", help="Show the model earlier fixes and reverts of the changed files, from git."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -381,13 +383,18 @@ def review(
         cfg, store = _open(config)
     rc = cfg.review
     try:
-        prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort or rc.effort)
+        prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort or rc.effort, command=rc.command)
         verifier = _verifier(rc, provider, model, verify_model, effort, verify_effort)
     except ProviderError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(2) from e
+    from .codectx import AreasError, load_areas
     from .review import LENSES
 
+    try:  # a flag is relative to where it is typed, the config to the config's folder
+        area_list = load_areas(areas, Path.cwd()) if areas else load_areas(rc.areas, cfg.root) if rc.areas else []
+    except AreasError as e:
+        raise typer.BadParameter(str(e)) from e
     chosen = lens or rc.lenses
     lenses = None if chosen is None else [x for x in chosen if x != "general"]  # `general` alone means one unfocused pass, from the flag or the config
     if unknown := [x for x in (lenses or []) if x not in LENSES]:
@@ -396,7 +403,7 @@ def review(
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses)
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses, areas=area_list, history=history)
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":
@@ -409,7 +416,7 @@ def review(
         if r["provider_error"]:
             console.print(f"[yellow]model review unavailable: {escape(r['provider_error'])}[/yellow]")
         for f in r["findings"]:
-            loc = f"{f['path']}:{f['line']}" if f["path"] else "(no single location)"
+            loc = (f"{f['path']}:{f['line']}" if f["line"] else f["path"]) if f["path"] else "(no single location)"
             console.print(f"  [bold]{f['severity']:6}[/bold] {escape(loc)}  {escape(f['title'])}  [dim]{f['source']}[/dim]")
             console.print(f"         {escape(f['body'])}")
             if f.get("failure"):

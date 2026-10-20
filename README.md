@@ -12,7 +12,7 @@ Code-context tools index what the repository says. Orion indexes what production
 
 | Piece | What it does |
 | --- | --- |
-| `orion review` | Reviews any diff in four stages: gather (parse hunks, run the deterministic pre-flight), generate (one provider call returns candidate findings), validate (code rejects findings outside the diff, strips evidence that does not resolve, marks unsupported findings uncertain, and keeps a finding that cites a firing constraint at least as severe as that constraint), format. Deterministic findings always come first and never depend on a model. Providers: `stub` (offline), `anthropic`, `openai` (any OpenAI-compatible endpoint, including local models). For `openai`, set `review.base_url` and `review.api_key_env` (the name of the variable holding the key) in `orion.yaml`; schemas are sent in strict form, which strict endpoints require (live check: `pipelinebench/results/openai-compatible.md`). |
+| `orion review` | Reviews any diff in four stages: gather (parse hunks, run the deterministic pre-flight), generate (one provider call returns candidate findings), validate (code rejects findings outside the diff, strips evidence that does not resolve, marks unsupported findings uncertain, and keeps a finding that cites a firing constraint at least as severe as that constraint), format. Deterministic findings always come first and never depend on a model. Providers: `stub` (offline), `anthropic`, `openai` (any OpenAI-compatible endpoint, including local models), `command` (any local command that reads the prompt on stdin and prints the answer) and `claude-code` (`claude -p` with no tools, on the plan the CLI is signed in to; no API key). For `openai`, set `review.base_url` and `review.api_key_env` (the name of the variable holding the key) in `orion.yaml`; schemas are sent in strict form, which strict endpoints require (live check: `pipelinebench/results/openai-compatible.md`). |
 | `orion sync` | Pulls a typed asset graph and an append-only ledger from dbt, Airflow, Git and postmortems-as-code into one DuckDB file. Every node, edge and event carries provenance; the store refuses facts without it. |
 | `orion explain <asset>` | Owner, tier, upstream and downstream, tier-1 consumers within the full blast radius, which DAG task builds it, column-level lineage, constraints in scope, and recent incidents, all with ids. |
 | `orion history <asset>` | Ledger events for an asset, newest first. |
@@ -100,6 +100,18 @@ Four more things come from code, not the model, on any diff:
 On pull requests, `.github/workflows/orion-review.yml` runs `orion review --post-github OWNER/REPO#N`: one inline comment per new finding on the diff line it points at, one summary comment updated in place, and a reply on a finding a push has made go away. The summary remembers the previous findings, so a finding reworded on the same file and category within three lines is the same finding and gets no second comment. Orion only ever posts a `COMMENT` review. Add the `ORION_ANTHROPIC_API_KEY` repository secret for model findings; without it the comments carry the deterministic findings only. The workflow is advisory and never fails the pull request; `orion-gate` is the binding check.
 
 Provider settings live in `orion.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors. Every model `warn` or `block` must name the concrete case that fails (`failure`), or it is lowered to `inform`. A second reading then re-checks each remaining warning against the whole change and lowers the ones it cannot confirm; turn it off with `review.second_reading: false` or `--no-second-reading`, and set `review.verify_model` to have a stronger model check a cheaper one ([results](pipelinebench/results/second-reading.md)).
+
+`review.provider: command` runs `review.command`, an argument list (no shell). Because a branch under review can edit `orion.yaml`, it runs only when `ORION_ALLOW_COMMAND=1` is set where that file is trusted. In the list, `{schema}`, `{system}`, `{model}` and `{effort}` are filled per call; an empty `{model}` or `{effort}` drops the flag before it. The command runs in the current folder and may print the JSON answer, text holding it, or a harness `--output-format json` result. `--provider claude-code` is that provider with `claude -p --tools "" --setting-sources "" --strict-mcp-config --no-session-persistence`, run in an empty folder, so a coding agent's own subscription answers the review and no repository's instructions, hooks or tools reach it. Each pass is one CLI call, so a review takes minutes rather than seconds.
+
+### Context for code that is not a data platform
+
+Without a dbt project or DAGs, a review still knows three things about the files it changes, all read and none guessed:
+
+- **Owners** from `CODEOWNERS` (at the root, `.github/` or `docs/`; the last matching rule wins, as on GitHub). A file no rule covers is "not recorded".
+- **Sensitive areas** from a file the team writes: `--areas <file>` or `review.areas`. YAML or JSON; a list of areas, `{areas: [...]}`, or a mapping from project name to a list, read as `file#project` (so my build pipeline's `notes/risky-areas.json#payments` works as it is). Each area has `pattern` (a regular expression over the path) or `paths` (globs from the repository root, where `*` stays inside one folder and `**` crosses folders), `why` or `reason`, and optionally `id`, `severity` (default `inform`) and `approvers`. A change in an area gets a deterministic finding at that severity, and the model is told why the area is sensitive.
+- **History**: the fixes, reverts and incident commits that touched the changed files before the base (`--no-history` turns it off).
+
+The model may cite them as `area:<id>`, `commit:<sha>` and `ref:CODEOWNERS:<line>`; anything else is removed as evidence that does not resolve. The review JSON carries them under `context`.
 
 ## A verdict
 
@@ -222,7 +234,8 @@ src/orion/
   proposals.py        ledger patterns -> draft constraints with evidence, written under proposed/
   server.py           the MCP server (nine tools)
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
-  providers.py        Provider interface; stub, Anthropic, OpenAI-compatible; retries and timeouts
+  providers.py        Provider interface; stub, Anthropic, OpenAI-compatible, local command (claude-code preset); retries and timeouts
+  codectx.py          context for any codebase: CODEOWNERS owners, sensitive areas, fix and revert history from git
   review.py           gather, generate, validate, format; deterministic findings first
   symbols.py, syntax.py  definitions a diff removes or re-signs and their references, classified by parsing (tree-sitter, optional)
   sync.py, cli.py     orchestration and the command

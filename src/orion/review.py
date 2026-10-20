@@ -28,6 +28,8 @@ from pathlib import Path
 from typing import Any
 
 from .changes import collect_changes, fork_point
+from .codectx import Area, CodeContext, area_findings, code_context
+from .codectx import facts as code_facts
 from .constraints import Constraint
 from .context import Callee, callees, render_callees, render_windows, windows
 from .credscan import redact, secret_findings
@@ -46,7 +48,7 @@ FILE_CONTEXT_LINES = 400  # changed files up to this long go to the model whole
 FILE_CONTEXT_BYTES = 200_000
 # Never send a whole file that may hold credentials; its hunks still go, as before.
 SECRET_PATH_RE = re.compile(r"(^|/)(\.env(\..*)?|.*\.(pem|key|p12|pfx|jks)|id_(rsa|dsa|ecdsa|ed25519)|credentials(\.\w+)?|\.netrc|\.npmrc|\.pypirc)$", re.I)
-EVIDENCE_RE = re.compile(r"^(hunk|ref|constraint|incident|event|node|edge):(.+)$")
+EVIDENCE_RE = re.compile(r"^(hunk|ref|constraint|incident|event|node|edge|area|commit):(.+)$")
 
 FINDINGS_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -80,7 +82,7 @@ Report only real problems a reviewer would raise: bugs, security issues, broken 
 
 Every finding must:
 - point at a path and a line that appear in the diff (the numbers in the left column are new-file line numbers);
-- cite evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference listed under "System facts" or a definition shown under "Definitions this change calls", or an id listed there written exactly as given (`constraint:CON-031`, `incident:INC-230`, `event:ev_...`, `node:model:fct_orders`, `edge:e_...`);
+- cite evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference listed under "System facts" or a definition shown under "Definitions this change calls", or an id listed there written exactly as given (`constraint:CON-031`, `incident:INC-230`, `event:ev_...`, `node:model:fct_orders`, `edge:e_...`, `area:PAY-1`, `commit:1a2b3c4d5e6f`);
 - use severity `block` only for a change that should not merge as is, `warn` for one that needs a check or a sign-off, `inform` otherwise;
 - fill `failure` with the concrete case that goes wrong: the input, caller, data or sequence of events, taken from the diff or the facts, and what happens then (for example "a stream of two chunks gets a different ETag than the same body sent as one chunk"). Leave it empty when you cannot name one.
 
@@ -113,6 +115,7 @@ class ReviewContext:
     intent_source: str | None = None  # given | commits
     callees: list[Callee] = field(default_factory=list)  # definitions elsewhere in the repository of what the added lines call
     callee_search: bool = True  # False when the repository could not be searched for them
+    code: CodeContext = field(default_factory=CodeContext)  # owners, sensitive areas and fix history of the changed files
 
 
 def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[Constraint]) -> dict[str, set[str]]:
@@ -133,8 +136,9 @@ def _known_ids(store: Store, verdict: dict[str, Any] | None, constraints: list[C
     return known
 
 
-def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None) -> ReviewContext:
-    """``new_files``: the new text of changed files when the tree does not hold it. ``repo_files``: other files to search for references as if they were in the tree. ``search_root``: where that search runs (default: the repository)."""
+def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, areas: list[Area] | None = None, history: bool = True) -> ReviewContext:
+    """``areas``: the sensitive areas of the code (``orion.codectx``). ``history``: look up earlier fixes and reverts of the changed files in git.
+    ``new_files``: the new text of changed files when the tree does not hold it. ``repo_files``: other files to search for references as if they were in the tree. ``search_root``: where that search runs (default: the repository)."""
     files = parse(diff_text)
     verdict = None
     new_text: dict[str, str] = {}
@@ -175,6 +179,9 @@ def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[C
     ctx.callees, ctx.callee_search = callees(files, search_root or repo_root, {**(repo_files or {}), **new_text})
     ctx.known["ref"].update(f"{c.path}:{c.line}" for c in ctx.callees)
     ctx.secrets = secret_findings(files)
+    ctx.code = code_context(repo_root, files, areas or [], base_ref, history=history)
+    for kind, ids in ctx.code.known().items():
+        ctx.known.setdefault(kind, set()).update(ids)
     return ctx
 
 
@@ -234,7 +241,7 @@ def _symbol_facts(ctx: ReviewContext) -> list[str]:
 def _facts(ctx: ReviewContext) -> str:
     v = ctx.verdict
     if not v or not v["change"]["ops"]:
-        return "\n".join(["No platform assets resolved for this diff; review it as ordinary code.", *_symbol_facts(ctx), *_callee_facts(ctx)])
+        return "\n".join(["No platform assets resolved for this diff; review it as ordinary code.", *code_facts(ctx.code), *_symbol_facts(ctx), *_callee_facts(ctx)])
     lines = [f"Deterministic pre-flight: severity {v['severity']}, risk {v['risk']['score']}. {v.get('summary', '')}"]
     for o in v["change"]["ops"]:
         d = o.get("details") or {}
@@ -259,7 +266,7 @@ def _facts(ctx: ReviewContext) -> str:
     for h in v["history"][:10]:
         ref = f"incident:{h['ref']}" if h["kind"] in ("postmortem_filed", "incident_opened") else f"event:{h['event']}"
         lines.append(f"- history {ref} {h['kind']} {str(h['occurred_at'])[:10]}: {h.get('title') or ''} ({h['relevance']})")
-    return "\n".join(lines + _symbol_facts(ctx) + _callee_facts(ctx))
+    return "\n".join(lines + code_facts(ctx.code) + _symbol_facts(ctx) + _callee_facts(ctx))
 
 
 def _callee_facts(ctx: ReviewContext) -> list[str]:
@@ -587,8 +594,8 @@ def validate(candidates: list[dict[str, Any]], ctx: ReviewContext) -> list[dict[
 
 
 def code_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
-    """Findings that need no platform graph: committed credentials, and removed symbols the diff leaves referenced."""
-    out = list(ctx.secrets)
+    """Findings that need no platform graph: committed credentials, sensitive areas the change falls in, and removed symbols the diff leaves referenced."""
+    out = list(ctx.secrets) + area_findings(ctx.code)
     for sc in ctx.symbols:
         if sc.kind != "removed" or not sc.linked_outside:
             continue
@@ -687,8 +694,10 @@ def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict
     return kept
 
 
-def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, file_context: bool = True, intent: str | None = None, second_reading: bool = True, verifier: Provider | None = None, lenses: tuple[str, ...] | list[str] | None = None) -> dict[str, Any]:
-    """``lenses``: the focused passes the model makes over the change (``LENSES``; None means all of them, an empty list one general pass).
+def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, file_context: bool = True, intent: str | None = None, second_reading: bool = True, verifier: Provider | None = None, lenses: tuple[str, ...] | list[str] | None = None, areas: list[Area] | None = None, history: bool = True) -> dict[str, Any]:
+    """``areas``: sensitive areas of the code; a change in one gets a deterministic finding and the model sees why it is sensitive.
+    ``history``: show the model earlier fixes and reverts of the changed files, from git.
+    ``lenses``: the focused passes the model makes over the change (``LENSES``; None means all of them, an empty list one general pass).
     ``second_reading``: check the model's warn and block findings with a second call (``verify``), made with
     ``verifier`` when given (a stronger model checking a cheaper one) and with ``provider`` otherwise.
     ``intent``: what the author says the change does (a PR title and body). Without it, a review against ``base_ref`` uses the commit messages since that ref. It only informs the model; deterministic findings never depend on it."""
@@ -702,7 +711,7 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
         if intent_source is None:
             intent = git_messages(repo_root, base_ref)
             intent_source = "commits" if intent else None
-    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore, new_files=new_files, repo_files=repo_files, search_root=search_root)
+    ctx = gather(store, repo_root, diff_text, constraints=constraints, risk_model=risk_model, base_ref=base_ref, scope=scope, ignore=ignore, new_files=new_files, repo_files=repo_files, search_root=search_root, areas=areas, history=history)
     ctx.intent = intent.strip()[:MAX_INTENT] if intent and intent_source else None
     ctx.intent_source = intent_source
     groups, omitted = batches(ctx.files)
@@ -730,6 +739,7 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
         "unresolved": v.get("change", {}).get("unresolved", []),
         "omitted": omitted,
         "symbols": [sc.to_dict() for sc in ctx.symbols],
+        "context": ctx.code.to_dict(),
         "callees": [{"name": c.name, "path": c.path, "line": c.line} for c in ctx.callees],
         "intent_source": intent_source,  # given | commits | None: where the stated intent shown to the model came from
         "verdict_id": v.get("verdict_id"),
@@ -746,7 +756,7 @@ def to_markdown(r: dict[str, Any]) -> str:
     if r["provider_error"]:
         lines += [f"> Model review unavailable: {r['provider_error']}. Deterministic findings only.", ""]
     for f in r["findings"]:
-        loc = f"`{f['path']}:{f['line']}`" if f["path"] else "(no single location)"
+        loc = (f"`{f['path']}:{f['line']}`" if f["line"] else f"`{f['path']}`") if f["path"] else "(no single location)"
         lines.append(f"- **{f['severity']}** {loc} {f['title']} _({f['source']}, {f['category']})_")
         lines.append(f"  {f['body']}")
         if f.get("failure"):

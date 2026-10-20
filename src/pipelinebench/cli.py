@@ -124,8 +124,8 @@ def review_eval_cmd(
     cfg = load_config(config, cwd=ROOT)
     store = Store(cfg.path(cfg.db))
     rc = cfg.review
-    prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort)
-    verifier = make_provider(provider or rc.provider, model=verify_model or model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=verify_effort or effort) if verify_model or verify_effort else None
+    prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort, command=rc.command)
+    verifier = make_provider(provider or rc.provider, model=verify_model or model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=verify_effort or effort, command=rc.command) if verify_model or verify_effort else None
     cases = [c for c in load_cases(cases_file, cfg.root) if not case or c.id in case]
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     with console.status("reviewing") as status:

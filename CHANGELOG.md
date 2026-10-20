@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Reviews for app projects, on a subscription
+
+- Context for code that is not a data platform: owners from `CODEOWNERS`, sensitive areas from a YAML or JSON file (`--areas file#project`, `review.areas`), and earlier fixes and reverts of the changed files from git. The model sees them as facts it can cite (`area:`, `commit:`, `ref:CODEOWNERS:N`); a change in an area gets a deterministic finding at the area's severity. The review JSON carries them under `context`.
+- `command` provider: any local command that reads the prompt on stdin and prints the JSON answer. The `claude-code` preset runs `claude -p` with no tools, settings or MCP servers, so a review runs on the plan the CLI is signed in to, with no API key. The evals take `--provider claude-code` too.
+
 ### Focused review passes
 
 - `orion review` reads each change in four focused passes: unusual inputs, the real semantics of the calls the code makes, control flow and state, and contracts with callers and callees. The system prompt and the change form a shared, prompt-cached prefix. Findings from the passes are merged, and the second reading rejects a finding that repeats an earlier one (kept under `rejected` with a note). `--lens` and `review.lenses` choose the passes; `--lens general` is the old single pass.

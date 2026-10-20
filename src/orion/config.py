@@ -41,8 +41,10 @@ class RetrievalConfig(BaseModel):
 
 
 class ReviewConfig(BaseModel):
-    provider: Literal["stub", "anthropic", "openai"] = "stub"
+    provider: Literal["stub", "anthropic", "openai", "command", "claude-code"] = "stub"
     model: str | None = None
+    command: list[str] | None = None  # the `command` provider's argument list (`{schema}`, `{system}`, `{model}`, `{effort}` filled per call)
+    areas: str | None = None  # sensitive areas of the code (orion.codectx), a YAML or JSON file; `file#key` picks one list from a file keyed by project
     base_url: str | None = None
     api_key_env: str | None = None  # name of the environment variable holding the key; never the key itself
     second_reading: bool = True  # check the model's warn/block findings with a second call
