@@ -8,6 +8,8 @@ Orion cannot place lands in ``unresolved`` rather than disappearing.
 
 from __future__ import annotations
 
+import hashlib
+import locale
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -330,8 +332,13 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
 
 
 def _as_text(data: bytes) -> str:
-    """A file's bytes as text with newlines normalised, as text mode reads it; a binary file (an image, a font) gets replacement characters rather than stopping the pre-flight."""
-    return data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    """A changed file's bytes as text, read as text mode would read it (UTF-8, else the locale's encoding, newlines normalised); a file neither can decode is binary and reads as a line naming its hash, so two different binaries never look alike and one never stops the pre-flight."""
+    for encoding in ("utf-8", locale.getpreferredencoding(False)):
+        try:
+            return data.decode(encoding).replace("\r\n", "\n").replace("\r", "\n")
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
 
 
 def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:

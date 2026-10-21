@@ -515,7 +515,16 @@ def test_a_binary_file_in_the_diff_does_not_stop_the_preflight(tmp_path):
     changes = dict((p, (old, new)) for p, old, new in git_changes(tmp_path, "main"))
     assert set(changes) == {"icon.png", "a.py"}
     assert changes["a.py"] == (None, "A = 1\n")
-    assert isinstance(changes["icon.png"][0], str) and isinstance(changes["icon.png"][1], str)
+    old, new = changes["icon.png"]
+    assert old.startswith("binary file, sha256 ") and new.startswith("binary file, sha256 ") and old != new
+
+
+def test_two_different_binaries_never_read_as_the_same_text():
+    """Bytes that differ only where UTF-8 cannot decode them stay different."""
+    from orion.changes import _as_text
+
+    assert _as_text(b"\x00\x94\xff") != _as_text(b"\x00\xff\x94")
+    assert _as_text(b"\x00\x94\xff") == _as_text(b"\x00\x94\xff")
 
 
 def test_a_line_ending_only_change_reads_as_no_change(tmp_path):
