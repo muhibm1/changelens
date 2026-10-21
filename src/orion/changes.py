@@ -350,10 +350,11 @@ def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None =
         if old_path != path and renames is not None:
             renames[path] = old_path
         if code != "A":
-            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True, text=True)
-            old = r.stdout if r.returncode == 0 else None
+            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True)
+            old = r.stdout.decode("utf-8", errors="replace") if r.returncode == 0 else None
         new_path = repo_root / path
-        new = new_path.read_text() if new_path.exists() and code != "D" else None
+        # errors="replace": a binary file (an image, a font) in the diff must not stop the whole pre-flight.
+        new = new_path.read_bytes().decode("utf-8", errors="replace") if new_path.exists() and code != "D" else None
         out.append((path, old, new))
     return out
 

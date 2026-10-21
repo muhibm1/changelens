@@ -497,6 +497,27 @@ def test_a_base_that_moved_on_is_not_shown_as_this_branch_undoing_it(tmp_path):
     assert fork_point(tmp_path, "no-such-ref") == "no-such-ref"
 
 
+def test_a_binary_file_in_the_diff_does_not_stop_the_preflight(tmp_path):
+    """A changed image beside a code change reads as replaced text, never a decode error (a real change)."""
+    import subprocess
+
+    from orion.changes import git_changes
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
+
+    git("init", "-q", "-b", "main")
+    (tmp_path / "icon.png").write_bytes(b"\x89PNG\x94\x00\xff")
+    git("add", ".")
+    git("commit", "-qm", "init")
+    (tmp_path / "icon.png").write_bytes(b"\x94\xff\x00new")
+    (tmp_path / "a.py").write_text("A = 1\n")
+    changes = dict((p, (old, new)) for p, old, new in git_changes(tmp_path, "main"))
+    assert set(changes) == {"icon.png", "a.py"}
+    assert changes["a.py"] == (None, "A = 1\n")
+    assert isinstance(changes["icon.png"][0], str) and isinstance(changes["icon.png"][1], str)
+
+
 def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tmp_path):
     import subprocess
 
