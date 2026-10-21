@@ -329,6 +329,11 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
     cs.unresolved = kept
 
 
+def _as_text(data: bytes) -> str:
+    """A file's bytes as text with newlines normalised, as text mode reads it; a binary file (an image, a font) gets replacement characters rather than stopping the pre-flight."""
+    return data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+
+
 def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:
     """(path, old_text, new_text) for every file that differs between where this branch left base_ref and the working tree.
 
@@ -351,10 +356,9 @@ def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None =
             renames[path] = old_path
         if code != "A":
             r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True)
-            old = r.stdout.decode("utf-8", errors="replace") if r.returncode == 0 else None
+            old = _as_text(r.stdout) if r.returncode == 0 else None
         new_path = repo_root / path
-        # errors="replace": a binary file (an image, a font) in the diff must not stop the whole pre-flight.
-        new = new_path.read_bytes().decode("utf-8", errors="replace") if new_path.exists() and code != "D" else None
+        new = _as_text(new_path.read_bytes()) if new_path.exists() and code != "D" else None
         out.append((path, old, new))
     return out
 

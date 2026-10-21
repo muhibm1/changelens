@@ -518,6 +518,24 @@ def test_a_binary_file_in_the_diff_does_not_stop_the_preflight(tmp_path):
     assert isinstance(changes["icon.png"][0], str) and isinstance(changes["icon.png"][1], str)
 
 
+def test_a_line_ending_only_change_reads_as_no_change(tmp_path):
+    """CRLF on the base and LF in the working tree is the same text, as text mode read it before."""
+    import subprocess
+
+    from orion.changes import git_changes
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", "-c", "core.autocrlf=false", *a], check=True, capture_output=True, text=True).stdout.strip()
+
+    git("init", "-q", "-b", "main")
+    (tmp_path / "a.py").write_bytes(b"A = 1\r\nB = 2\r\n")
+    git("add", ".")
+    git("commit", "-qm", "init")
+    (tmp_path / "a.py").write_bytes(b"A = 1\nB = 2\n")
+    [(path, old, new)] = git_changes(tmp_path, "main")
+    assert path == "a.py" and old == new == "A = 1\nB = 2\n"
+
+
 def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tmp_path):
     import subprocess
 
