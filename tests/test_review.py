@@ -532,7 +532,8 @@ def test_a_text_file_the_locale_cannot_decode_still_reads_as_text(tmp_path):
     from orion.changes import _as_text
 
     text = _as_text(b"select a,\n    b \xff\nfrom t\n")
-    assert text.startswith("select a,\n") and text.endswith("from t\n")
+    assert text.startswith("select a,\n") and "from t\n" in text
+    assert _as_text(b"\x94\xff") != _as_text(b"\xff\x94"), "no NUL, still never alike"
 
 
 def test_a_line_ending_only_change_reads_as_no_change(tmp_path):

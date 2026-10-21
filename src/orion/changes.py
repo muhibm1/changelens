@@ -332,10 +332,16 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
 
 
 def _as_text(data: bytes) -> str:
-    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalised), except that a byte it cannot decode becomes a replacement character instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
+    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalised), except that a byte it cannot decode becomes a replacement character (plus a closing line naming the file's SHA-256) instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
     if b"\0" in data[:8000]:
         return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
-    return data.decode(locale.getpreferredencoding(False), errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    encoding = locale.getpreferredencoding(False)
+    try:
+        text = data.decode(encoding)
+    except UnicodeDecodeError:
+        # The replacement characters alone could make two different files read alike, so the hash goes with them.
+        text = data.decode(encoding, errors="replace") + f"\nundecodable bytes, sha256 {hashlib.sha256(data).hexdigest()}\n"
+    return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:
