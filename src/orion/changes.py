@@ -8,6 +8,8 @@ Orion cannot place lands in ``unresolved`` rather than disappearing.
 
 from __future__ import annotations
 
+import hashlib
+import locale
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -329,6 +331,20 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
     cs.unresolved = kept
 
 
+def _as_text(data: bytes) -> str:
+    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalised), except that a byte it cannot decode becomes a replacement character (plus a closing line naming the file's SHA-256) instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
+    if b"\0" in data[:8000]:
+        return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
+    encoding = locale.getpreferredencoding(False)
+    try:
+        text = data.decode(encoding)
+    except UnicodeDecodeError:
+        # The replacement characters alone could make two different files read alike, so the hash goes with them.
+        normalised = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")  # so a line-ending swap alone still reads as no change
+        text = data.decode(encoding, errors="replace") + f"\nundecodable bytes, sha256 {hashlib.sha256(normalised).hexdigest()}\n"
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:
     """(path, old_text, new_text) for every file that differs between where this branch left base_ref and the working tree.
 
@@ -350,10 +366,10 @@ def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None =
         if old_path != path and renames is not None:
             renames[path] = old_path
         if code != "A":
-            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True, text=True)
-            old = r.stdout if r.returncode == 0 else None
+            r = subprocess.run(["git", "-C", str(repo_root), "show", f"{base_ref}:{old_path}"], capture_output=True)
+            old = _as_text(r.stdout) if r.returncode == 0 else None
         new_path = repo_root / path
-        new = new_path.read_text() if new_path.exists() and code != "D" else None
+        new = _as_text(new_path.read_bytes()) if new_path.exists() and code != "D" else None
         out.append((path, old, new))
     return out
 
