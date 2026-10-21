@@ -332,13 +332,10 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
 
 
 def _as_text(data: bytes) -> str:
-    """A changed file's bytes as text, read as text mode would read it (UTF-8, else the locale's encoding, newlines normalised); a file neither can decode is binary and reads as a line naming its hash, so two different binaries never look alike and one never stops the pre-flight."""
-    for encoding in ("utf-8", locale.getpreferredencoding(False)):
-        try:
-            return data.decode(encoding).replace("\r\n", "\n").replace("\r", "\n")
-        except (UnicodeDecodeError, LookupError):
-            continue
-    return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
+    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalised), except that a byte it cannot decode becomes a replacement character instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
+    if b"\0" in data[:8000]:
+        return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
+    return data.decode(locale.getpreferredencoding(False), errors="replace").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None = None) -> list[tuple[str, str | None, str | None]]:

@@ -527,6 +527,14 @@ def test_two_different_binaries_never_read_as_the_same_text():
     assert _as_text(b"\x00\x94\xff") == _as_text(b"\x00\x94\xff")
 
 
+def test_a_text_file_the_locale_cannot_decode_still_reads_as_text(tmp_path):
+    """A stray undecodable byte in a text file costs one character, not the file's content or the run."""
+    from orion.changes import _as_text
+
+    text = _as_text(b"select a,\n    b \xff\nfrom t\n")
+    assert text.startswith("select a,\n") and text.endswith("from t\n")
+
+
 def test_a_line_ending_only_change_reads_as_no_change(tmp_path):
     """CRLF on the base and LF in the working tree is the same text, as text mode read it before."""
     import subprocess
