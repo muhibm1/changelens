@@ -340,7 +340,8 @@ def _as_text(data: bytes) -> str:
         text = data.decode(encoding)
     except UnicodeDecodeError:
         # The replacement characters alone could make two different files read alike, so the hash goes with them.
-        text = data.decode(encoding, errors="replace") + f"\nundecodable bytes, sha256 {hashlib.sha256(data).hexdigest()}\n"
+        normalised = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")  # so a line-ending swap alone still reads as no change
+        text = data.decode(encoding, errors="replace") + f"\nundecodable bytes, sha256 {hashlib.sha256(normalised).hexdigest()}\n"
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
