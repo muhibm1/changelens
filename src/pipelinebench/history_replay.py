@@ -28,7 +28,7 @@ from typing import Any
 import yaml
 
 from .recall_eval import Case as BugCase
-from .recall_eval import Span, commit_id, judge_one
+from .recall_eval import Span, commit_id, judge, judge_one
 from .replay_eval import ACTED_ON, Label, _head, review_commit
 
 
@@ -56,6 +56,30 @@ def _verdict(labels: list[Label], f: dict[str, Any]) -> str:
     line = f.get("line") or 0
     near = sorted((lb.distance(line), lb.verdict) for lb in labels if lb.matches(f["path"] or "", line))
     return near[0][1] if near else "unjudged"
+
+
+POLICIES = ("model", "evidence", "platform")
+GAP_TITLE = "not mapped to any asset"
+
+
+def _lowered(f: dict[str, Any], mapped: set[str], policy: str) -> bool:
+    """Whether ``policy`` would have lowered this warning of a ``--escalation model`` review to inform: a model warning
+    nothing recorded backs (on a file mapped to an asset, for ``platform``), or the deterministic unmapped-path gap."""
+    if policy == "model":
+        return False
+    if f["source"] == "deterministic":
+        return GAP_TITLE in f.get("title", "")
+    return "backing" in f and not f["backing"] and (policy == "evidence" or f.get("path") in mapped)
+
+
+def policy_view(result: dict[str, Any], policy: str) -> dict[str, Any]:
+    """A ``--escalation model`` review as ``policy`` would have returned it, from the ``backing`` each warning records."""
+    out = json.loads(json.dumps(result))
+    mapped = {x["path"] for x in out.get("files", []) if x.get("mapped")}
+    for f in out.get("findings", []):
+        if f["severity"] in ACTED_ON and _lowered(f, mapped, policy):
+            f["severity"] = "inform"
+    return out
 
 
 def _slots(clone: Path, jobs: int) -> list[Path]:
@@ -95,7 +119,8 @@ def run(clone: Path, picked: list[dict[str, str]], *, orion: str, provider: str,
             raw_dir.mkdir(parents=True, exist_ok=True)
             (raw_dir / f"{c['commit'][:12]}.json").write_text(json.dumps(result, indent=1, default=str))
         mine = _labels_for(warn_labels, c["commit"])
-        warns = [{"source": f["source"], "path": f["path"], "line": f.get("line"), "title": f["title"], "verdict": _verdict(mine, f), "escalation": f.get("escalation", [])} for f in result.get("findings", []) if f["severity"] in ACTED_ON]
+        mapped = {x["path"] for x in result.get("files", []) if x.get("mapped")}
+        warns = [{"source": f["source"], "path": f["path"], "line": f.get("line"), "title": f["title"], "verdict": _verdict(mine, f), "escalation": f.get("escalation", []), **({"backing": f["backing"]} if "backing" in f else {}), "lowered_by": [p for p in POLICIES if _lowered(f, mapped, p)]} for f in result.get("findings", []) if f["severity"] in ACTED_ON]
         bug = next((b for k, b in by_commit.items() if c["commit"].startswith(k)), None)
         row = {**c, "week": date.fromisoformat(c["date"]).isocalendar()[:2], "severity": result.get("severity"), "error": result.get("error") or result.get("provider_error"), "warns": warns, "timing": result.get("timing"), "usage": result.get("usage") or {}}
         if bug is not None and not bug.skip:
@@ -104,6 +129,12 @@ def run(clone: Path, picked: list[dict[str, str]], *, orion: str, provider: str,
                 row["bug"], row["bug_detected"] = judged["outcome"], judged.get("detected", judged["outcome"] in ("caught", "inform_only"))
             except Exception as e:  # noqa: BLE001 - a judge failure on one bug is recorded, not the end of a long replay
                 row["bug"], row["bug_detected"], row["judge_error"] = "error", False, f"{type(e).__name__}: {e}"[:500]
+            else:
+                about = {tuple(a) for a in judged.get("about", [])}
+                for p in POLICIES[1:]:  # the same judged matches, at the severity each policy leaves them (``judge`` makes no call)
+                    view = policy_view(result, p)
+                    ids = {id(f) for f in view.get("findings", []) if (f.get("path"), f.get("line"), f.get("title")) in about}
+                    row.setdefault("bug_by_policy", {})[p] = judge(bug, view, ids if judged.get("judge") == "model" else None)["outcome"]
         if progress:
             progress(row)
         return row
@@ -165,16 +196,29 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "bugs_surfaced_any_severity": f"{detected}/{len(bug_rows)}",
         "median_review_s": times[len(times) // 2] if times else None,
         "p90_review_s": times[int(len(times) * 0.9)] if times else None,
+        "policies": {p: _policy_summary(ok, bug_rows, weeks, p) for p in POLICIES} if any("backing" in w for r in ok for w in r["warns"]) else None,
         "tokens_in": sum(r["usage"].get("input_tokens", 0) + r["usage"].get("cache_creation_input_tokens", 0) + r["usage"].get("cache_read_input_tokens", 0) for r in ok),
         "tokens_out": sum(r["usage"].get("output_tokens", 0) for r in ok),
     }
+
+
+def _policy_summary(ok: list[dict[str, Any]], bug_rows: list[dict[str, Any]], weeks: int, policy: str) -> dict[str, Any]:
+    """Warnings, false alarms and bugs flagged had the replayed reviews been run under ``policy``."""
+    v = Counter(w["verdict"] for r in ok for w in r["warns"] if policy not in w.get("lowered_by", []))
+    flagged = sum(1 for r in bug_rows if (r["bug"] if policy == "model" else r.get("bug_by_policy", {}).get(policy, r["bug"])) == "caught")
+    warns = sum(v.values()) - v["setup"]
+    return {"warns": warns, "warns_per_week": round(warns / weeks, 2), "noise": v["noise"], "unjudged": v["unjudged"], "false_alarms_per_week": round(v["noise"] / weeks, 2), "bugs_flagged": f"{flagged}/{len(bug_rows)}"}
 
 
 def to_markdown(res: dict[str, Any]) -> str:
     s = res["summary"]
     label = f"`{res['provider']}{':' + res['model'] if res['model'] else ''}`" + (f" with `{' '.join(res['args'])}`" if res.get("args") else "")
     lines = [f"# History replay: {res['clone']}, {s['commits']} merged changes over {s['weeks']} weeks, {label}", "", "| metric | value |", "| --- | --- |"]
-    lines += [f"| {k.replace('_', ' ')} | {val} |" for k, val in s.items()]
+    lines += [f"| {k.replace('_', ' ')} | {val} |" for k, val in s.items() if k != "policies"]
+    if s.get("policies"):
+        cols = list(next(iter(s["policies"].values())))
+        lines += ["", "Had the same reviews been run under each escalation policy:", "", "| policy | " + " | ".join(c.replace("_", " ") for c in cols) + " |", "| --- |" + " ---: |" * len(cols)]
+        lines += [f"| {p} | " + " | ".join(str(row[c]) for c in cols) + " |" for p, row in s["policies"].items()]
     lines += ["", "| date | commit | change | bug | warnings |", "| --- | --- | --- | --- | --- |"]
     for r in res["commits"]:
         ws = "; ".join(f"**{w['verdict']}** {w['source']} `{w['path']}:{w['line']}` {w['title']}".replace("|", "\\|") for w in r["warns"]) or ("error: " + str(r["error"])[:80] if r["error"] else "none")

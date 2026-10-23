@@ -764,6 +764,8 @@ def test_platform_gate_judges_only_files_mapped_to_an_asset(synced_store, constr
     r = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="platform")
     assert [f["severity"] for f in r["findings"] if f["source"] == "model"] == ["warn"]
     assert r["escalation"] == {"policy": "platform", "lowered": 0} and r["files"][0]["mapped"] is False
+    model = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="model")
+    assert [f.get("backing") for f in model["findings"] if f["source"] == "model"] == [[]], "the model policy records what the gate would rest on"
     kept = _review(synced_store, constraints, DROP_DIFF, _one_warning(FCT, 7), escalation="platform")
     assert [f["severity"] for f in kept["findings"] if f["source"] == "model"] == ["warn"] and any(f["mapped"] for f in kept["files"])
 

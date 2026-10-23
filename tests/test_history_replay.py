@@ -32,3 +32,24 @@ def test_an_unquoted_numeric_commit_label_is_refused(tmp_path):
     labels.write_text("bugs:\n  - commit: 0123456\n")
     with pytest.raises(ValueError, match="quoted"):
         load_labels(labels)
+
+
+def test_one_model_run_compares_the_escalation_policies():
+    from pipelinebench.history_replay import policy_view
+
+    result = {"files": [{"path": "models/a.sql", "mapped": True}, {"path": "app.py", "mapped": False}], "findings": [
+        {"source": "model", "severity": "warn", "path": "models/a.sql", "line": 1, "title": "a", "backing": []},
+        {"source": "model", "severity": "warn", "path": "models/a.sql", "line": 2, "title": "b", "backing": ["node:x"]},
+        {"source": "model", "severity": "warn", "path": "app.py", "line": 1, "title": "c", "backing": []},
+        {"source": "deterministic", "severity": "warn", "path": "x.py", "line": 1, "title": "1 changed path is not mapped to any asset"},
+    ]}
+    sev = {p: [f["severity"] for f in policy_view(result, p)["findings"]] for p in ("model", "evidence", "platform")}
+    assert sev["model"] == ["warn"] * 4
+    assert sev["evidence"] == ["inform", "warn", "inform", "inform"]
+    assert sev["platform"] == ["inform", "warn", "warn", "inform"], "platform keeps the model's severity off mapped files"
+    noise = {"source": "model", "path": "app.py", "line": 1, "title": "c", "verdict": "noise", "backing": [], "lowered_by": ["evidence"]}
+    rows = [_row(1, [noise], bug="caught", bug_by_policy={"evidence": "inform_only", "platform": "caught"})]
+    s = summarise(rows)["policies"]
+    assert s["model"]["noise"] == 1 and s["evidence"]["noise"] == 0 and s["platform"]["noise"] == 1
+    assert s["evidence"]["bugs_flagged"] == "0/1" and s["platform"]["bugs_flagged"] == "1/1"
+    assert "| evidence |" in to_markdown({"provider": "stub", "model": None, "clone": "c", "commits": rows, "summary": summarise(rows)})

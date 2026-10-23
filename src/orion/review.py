@@ -1010,7 +1010,11 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     usage = _add_usage(usage, c_usage)
     if escalation != "model":  # before the second reading, so it only spends a call on warnings the system context can back
         gate_severity(ctx, checked, only=mapped_paths(ctx) if escalation == "platform" else None)
-    if escalation != "evidence":  # a failing case the warehouse disproved is lowered under either policy, unless a firing constraint backs the warning
+    if escalation == "model":  # what the gate would rest on, recorded so a replay can compare the policies without another model run
+        for f in checked:
+            if f["source"] == "model" and f["status"] == "valid" and RANK[f["severity"]] > RANK["inform"]:
+                f["backing"] = system_evidence(ctx, f)
+    if escalation != "evidence":  # a failing case the warehouse disproved is lowered under every policy (``gate_severity`` does it for evidence), unless a firing constraint backs the warning
         for f in checked:
             if f["status"] == "valid" and RANK[f["severity"]] > RANK["inform"] and (f.get("confirmation") or {}).get("status") == "not_confirmed" and not any(e.startswith("constraint:") for e in f["evidence"]):
                 f["notes"].append(f"severity lowered from {f['severity']} to inform: {NO_ROWS_NOTE}")
