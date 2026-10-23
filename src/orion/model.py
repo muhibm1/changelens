@@ -28,6 +28,14 @@ class NodeKind(StrEnum):
     TEAM = "team"
     PERSON = "person"
     COLUMN = "column"
+    # the code graph (orion.codegraph)
+    REPO = "repo"
+    FILE = "file"
+    SYMBOL = "symbol"
+    PACKAGE = "package"
+    ROUTE = "route"
+    ENV_VAR = "env"
+    SERVICE = "service"
 
 
 class EdgeKind(StrEnum):
@@ -39,6 +47,18 @@ class EdgeKind(StrEnum):
     HAS_SLA = "has_sla"
     COLUMN_OF = "column_of"
     DERIVES_FROM = "derives_from"
+    # the code graph: every edge points from the dependant to what it depends on
+    IMPORTS = "imports"
+    CALLS = "calls"
+    REQUIRES = "requires"  # manifest -> package
+    BUILT_FROM = "built_from"  # package or service -> repo
+    ROUTES_TO = "routes_to"  # route -> handler
+    CALLS_ROUTE = "calls_route"  # HTTP client -> route
+    READS_ENV = "reads_env"
+    SET_BY = "set_by"  # env var -> config file that sets it
+    USES_SERVICE = "uses_service"
+    DEFINED_IN = "defined_in"  # containment, not a dependency
+    PART_OF = "part_of"  # containment, not a dependency
 
 
 class Confidence(StrEnum):

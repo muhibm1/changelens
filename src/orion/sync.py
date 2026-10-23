@@ -16,7 +16,7 @@ from .resolver import PathResolver
 from .store import Store
 from .tiers import infer_tiers
 
-ORDER = ("dbt", "airflow", "git", "incidents", "runs")
+ORDER = ("dbt", "airflow", "git", "incidents", "runs", "code")
 
 
 def _write(store: Store, emitted: Emitted, result: SyncResult) -> None:
@@ -62,6 +62,13 @@ def run_sync(cfg: OrionConfig, store: Store, only: list[str] | None = None, forc
             _write(store, incidents_adapter.load(inc_dir, root, store), res)
         elif name == "runs" and cfg.adapters.runs:
             _write(store, runs_adapter.load(cfg.adapters.runs, root, store), res)
+        elif name == "code" and cfg.adapters.code:
+            from . import codegraph
+
+            out = codegraph.sync(store, codegraph.specs_from_config(cfg), cache_dir=codegraph.cache_dir_for(store), force=force)
+            res.skipped = out["skipped"]
+            res.nodes, res.edges = out["nodes"], out["edges"]
+            res.notes.extend(out["notes"])
         else:
             continue
         results.append(res)

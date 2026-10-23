@@ -159,12 +159,13 @@ class Store:
         )
         self._add_provenance(edge.id, edge.provenance)
 
-    def write_graph(self, nodes: list[Node], edges: list[Edge]) -> None:
+    def write_graph(self, nodes: list[Node], edges: list[Edge], transaction: bool = True) -> None:
         """Bulk upsert with the same meaning as ``upsert_node`` / ``upsert_edge`` one by one, in one transaction.
 
         Rows are staged through newline-delimited JSON files and merged with set-based SQL: a dbt project with tens
         of thousands of columns would otherwise take one statement per row plus one provenance scan per row.
         Duplicate ids in the batch merge as successive upserts would: last properties, last non-null tier and owner.
+        ``transaction=False`` runs inside a transaction the caller holds.
         """
         import tempfile
 
@@ -191,7 +192,8 @@ class Store:
                 cols = "{" + ", ".join(f"'{k}': '{v}'" for k, v in columns.items()) + "}"
                 self.con.execute(f"CREATE OR REPLACE TEMP TABLE {name} AS SELECT * FROM read_json(?, format = 'newline_delimited', columns = {cols}, maximum_object_size = 1073741824)", [str(f)])
 
-            self.con.execute("BEGIN TRANSACTION")
+            if transaction:
+                self.con.execute("BEGIN TRANSACTION")
             try:
                 if merged:
                     stage("stage_nodes", list(merged.values()), {"id": "VARCHAR", "kind": "VARCHAR", "name": "VARCHAR", "properties": "VARCHAR", "tier": "INTEGER", "owner": "VARCHAR"})
@@ -228,12 +230,32 @@ class Store:
                         """
                     )
                     self.con.execute("INSERT INTO provenance (subject_id, adapter, source, ref, observed_at) SELECT subject_id, adapter, source, ref, observed_at FROM stage_prov")
-                self.con.execute("COMMIT")
+                if transaction:
+                    self.con.execute("COMMIT")
             except Exception:
-                self.con.execute("ROLLBACK")
+                if transaction:
+                    self.con.execute("ROLLBACK")
                 raise
             for t in ("stage_nodes", "stage_edges", "stage_prov"):
                 self.con.execute(f"DROP TABLE IF EXISTS {t}")
+
+    def replace_adapter_graph(self, adapter: str, node_kinds: Iterable[str], edge_kinds: Iterable[str], nodes: list[Node], edges: list[Edge]) -> None:
+        """Drop every node and edge of these kinds that ``adapter`` wrote, with their provenance, and write the new set, in one transaction: a re-sync that removes a file removes its facts, and a failed write leaves the old graph."""
+        nk, ek = [str(k) for k in node_kinds], [str(k) for k in edge_kinds]
+        if not nk or not ek:
+            raise ValueError("replace_adapter_graph needs the node and edge kinds the adapter owns")
+        mine = "id IN (SELECT subject_id FROM provenance WHERE adapter = ?)"
+        self.con.execute("BEGIN TRANSACTION")
+        try:
+            self.con.execute("DELETE FROM edges WHERE kind IN ({}) AND {}".format(",".join("?" for _ in ek), mine), [*ek, adapter])
+            self.con.execute("DELETE FROM nodes WHERE kind IN ({}) AND {}".format(",".join("?" for _ in nk), mine), [*nk, adapter])
+            # only the provenance of what was just deleted: a subject of a kind not listed keeps its record
+            self.con.execute("DELETE FROM provenance p WHERE adapter = ? AND NOT EXISTS (SELECT 1 FROM nodes n WHERE n.id = p.subject_id) AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.id = p.subject_id)", [adapter])
+            self.write_graph(nodes, edges, transaction=False)
+            self.con.execute("COMMIT")
+        except Exception:
+            self.con.execute("ROLLBACK")
+            raise
 
     def set_tier(self, node_id: str, tier: int) -> None:
         self.con.execute("UPDATE nodes SET tier = ? WHERE id = ?", [tier, node_id])

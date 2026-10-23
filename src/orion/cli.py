@@ -664,6 +664,103 @@ def rag_read(chunk_id: str, index: Path | None = typer.Option(None, "--index")):
     raise typer.Exit(1 if "error" in got else 0)
 
 
+codegraph_app = typer.Typer(help="The code graph: symbols, imports, calls, packages, HTTP routes and env across repositories, and what a change affects.", no_args_is_help=True)
+app.add_typer(codegraph_app, name="codegraph")
+
+
+@codegraph_app.command("sync")
+def codegraph_sync(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    force: bool = typer.Option(False, "--force", help="Rewrite the graph even when no indexed file changed."),
+    repo: Path | None = typer.Option(None, "--repo", help="Index this checkout: alone when there is no orion.yaml, otherwise with the configured repositories."),
+):
+    """Index the repositories adapters.code names (or --repo) into the store. Only changed files are parsed."""
+    from . import codegraph
+
+    if repo is not None:
+        import contextlib
+
+        cfg = None
+        with contextlib.suppress(FileNotFoundError):
+            cfg = load_config(config)
+        if cfg is None and config is not None:
+            raise typer.BadParameter(f"{config} not found", param_hint="--config")
+        if cfg is None:
+            out = codegraph.index_repo(Store(Path(repo) / ".orion" / "graph.duckdb"), repo, force=force)
+        else:  # add the checkout to the configured repositories rather than replacing them
+            store = Store(cfg.path(cfg.db))
+            specs = [*codegraph.specs_from_config(cfg), codegraph.RepoSpec(codegraph.repo_name(repo.resolve()), repo.resolve())]
+            specs = [s for i, s in enumerate(specs) if s.root.resolve() not in {x.root.resolve() for x in specs[:i]}]
+            out = codegraph.sync(store, specs, cache_dir=codegraph.cache_dir_for(store), force=force)
+    else:
+        cfg, store = _open(config)
+        specs = codegraph.specs_from_config(cfg)
+        if not specs:
+            console.print("[yellow]adapters.code is not configured in orion.yaml; pass --repo PATH to index one checkout[/]")
+            raise typer.Exit(1)
+        out = codegraph.sync(store, specs, cache_dir=codegraph.cache_dir_for(store), force=force)
+    console.print(_json(out))
+
+
+@codegraph_app.command("impact")
+def codegraph_impact(
+    targets: list[str] = typer.Argument(None, help="Symbols (path::Qual or a name), files, routes ('GET /api/x'), env:NAME, package:eco/name or node ids."),
+    base: str | None = typer.Option(None, "--base", help="Also take what the working tree's diff against this ref changes."),
+    repo: str | None = typer.Option(None, "--repo", help="Repo name or checkout path the paths are relative to."),
+    hops: int = typer.Option(3, "--hops"),
+    min_confidence: str = typer.Option("inferred", "--min-confidence", help="inferred | parsed | declared"),
+    as_json: bool = typer.Option(False, "--json"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+):
+    """What depends on the targets, across repositories, with the file and line of every dependency."""
+    from . import codegraph
+    from .diffparse import git_diff
+
+    if base and base.startswith("-"):
+        raise typer.BadParameter("a git ref, not an option", param_hint="--base")
+    if min_confidence not in ("inferred", "parsed", "declared"):
+        raise typer.BadParameter("inferred, parsed or declared", param_hint="--min-confidence")
+    cfg, store = _open(config)
+    diff = git_diff(cfg.root, base) if base else None
+    if diff and repo is None:
+        repo = codegraph.repo_at(store, str(cfg.root))  # the diff's paths are relative to this checkout
+    r = codegraph.impact(store, targets or [], diff=diff, repo=repo, max_hops=hops, min_confidence=min_confidence)
+    if as_json:
+        print(_json(r))
+        return
+    t = Table("hops", "impacted", "via", "confidence", "where")
+    for i in r["impacted"]:
+        ev = i["evidence"][0] if i["evidence"] else {}
+        where = f"{ev.get('file')}:{ev.get('line')}" if ev.get("file") else ""
+        t.add_row(str(i["hops"]), escape(i["id"]) + (" [cyan](other repo)[/]" if i.get("cross_repo") else ""), i["edge_kind"] or "", i["confidence"] or "", escape(where))
+    console.print(f"targets: {', '.join(x['id'] for x in r['targets']) or 'none'}")
+    console.print(t)
+    for u in r["unresolved"]:
+        console.print(f"[yellow]unresolved[/]: {escape(json.dumps(u))}")
+
+
+@codegraph_app.command("describe")
+def codegraph_describe(
+    ref: str = typer.Argument(..., help="A symbol, file, route, env:NAME, package or node id."),
+    repo: str | None = typer.Option(None, "--repo"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+):
+    """One code-graph node: what it depends on and what depends on it."""
+    from . import codegraph
+
+    _cfg, store = _open(config)
+    print(_json(codegraph.describe(store, ref, repo=repo)))
+
+
+@codegraph_app.command("stats")
+def codegraph_stats(config: Path | None = typer.Option(None, "--config", "-c")):
+    """Node and edge counts of the code graph and what it was built from."""
+    from . import codegraph
+
+    _cfg, store = _open(config)
+    print(_json(codegraph.stats(store)))
+
+
 @app.command()
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="stdio | streamable-http"),

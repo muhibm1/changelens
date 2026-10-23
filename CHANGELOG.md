@@ -45,6 +45,12 @@
 - `orion serve` without an `orion.yaml` now serves these tools beside the record tools; `--project-dir` names the checkout.
 - `orion setup claude-code [--scope user|project]` registers the server and a SessionStart hook (`orion hook session-start`); `scripts/cloud-setup.sh` does it in a cloud environment; the repository is also a harness plugin marketplace (`.claude-plugin/`, `hooks/`, `skills/orion`).
 
+### Code graph across repositories
+
+- `orion.codegraph` indexes Python, JavaScript/TypeScript and Go repositories with tree-sitter into the store: definitions, imports, calls (including through annotated or constructed receivers), package manifests, HTTP routes and the clients that call them, environment variables (names only) and compose services. Imports resolve across repositories, so a function another repository imports by package name has that repository's callers as dependants.
+- `orion codegraph impact` gives the blast radius of symbols, files, routes, env vars or a diff, with hops, confidence (`parsed`, `declared`, `inferred`) and the file and line of each dependency; `describe`, `stats` and `sync` alongside. `adapters.code` in `orion.yaml` adds it to `orion sync`, and can index every repository a `record.toml` lists.
+- Incremental: facts cached per file by content hash, unchanged syncs write nothing, queries are batched lookups over precomputed edges (tens of milliseconds). See `docs/codegraph.md`.
+
 ### Reviews for app projects, on a subscription
 
 - Context for code that is not a data platform: owners from `CODEOWNERS`, sensitive areas from a YAML or JSON file (`--areas file#project`, `review.areas`), and earlier fixes and reverts of the changed files from git. The model sees them as facts it can cite (`area:`, `commit:`, `ref:CODEOWNERS:N`); a change in an area gets a deterministic finding at the area's severity. The review JSON carries them under `context`.

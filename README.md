@@ -288,6 +288,7 @@ src/orion/
   codectx.py          context for any codebase: CODEOWNERS owners, sensitive areas, fix and revert history from git
   review.py           gather, generate, validate, format; deterministic findings first
   symbols.py, syntax.py  definitions a diff removes or re-signs and their references, classified by parsing (tree-sitter, optional)
+  codegraph/           the code graph across repositories: symbols, imports, calls, packages, HTTP routes and clients, env, services (tree-sitter, cached per file); impact and describe queries (docs/codegraph.md)
   sync.py, cli.py     orchestration and the command
 src/pipelinebench/    the benchmark (see pipelinebench/README.md)
 ```

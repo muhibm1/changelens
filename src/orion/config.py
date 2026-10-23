@@ -60,12 +60,27 @@ class ReviewConfig(BaseModel):
     agent_steps: int | None = Field(None, ge=1, le=30)  # turns per agent run (default orion.review_agent.MAX_STEPS); bounded like --agent-steps
 
 
+class CodeRepo(BaseModel):
+    path: str
+    name: str | None = None  # default: the origin remote's repository name, else the folder name
+    optional: bool = False  # skipped, not an error, when the folder is missing
+
+
+class CodeConfig(BaseModel):
+    """The code graph (orion.codegraph): this repository plus ``repos``, plus every repository a record inventory (``record.toml``) lists."""
+
+    include_self: bool = True
+    repos: list[CodeRepo] = Field(default_factory=list)
+    record: str | None = None
+
+
 class Adapters(BaseModel):
     dbt: DbtConfig | None = None
     airflow: AirflowConfig | None = None
     git: GitConfig | None = None
     incidents: IncidentsConfig | None = None
     runs: RunsConfig | None = None
+    code: CodeConfig | None = None
 
 
 class OrionConfig(BaseModel):
