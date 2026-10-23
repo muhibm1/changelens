@@ -750,6 +750,24 @@ def test_evidence_gate_lowers_a_warning_nothing_recorded_backs(synced_store, con
         _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="loud")
 
 
+def test_platform_gate_judges_only_files_mapped_to_an_asset(synced_store, constraints):
+    from orion.review import ReviewContext, gate_severity, mapped_paths
+
+    verdict = {"change": {"ops": [{"asset": "model.x", "kind": "modify", "evidence": ["diff:models/x.sql"]}]}}
+    ctx = ReviewContext([], verdict)
+    assert mapped_paths(ctx) == {"models/x.sql"}
+    data = {"source": "model", "status": "valid", "severity": "warn", "path": "models/x.sql", "line": 3, "evidence": [], "notes": []}
+    code = dict(data, path="app/service.py", notes=[])
+    assert gate_severity(ctx, [data, code], only=mapped_paths(ctx)) == 1
+    assert data["severity"] == "inform", "on a mapped asset, no reader, constraint or incident is a recorded fact"
+    assert code["severity"] == "warn", "on a file Orion has no system context for, the absence of evidence says nothing"
+    r = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="platform")
+    assert [f["severity"] for f in r["findings"] if f["source"] == "model"] == ["warn"]
+    assert r["escalation"] == {"policy": "platform", "lowered": 0} and r["files"][0]["mapped"] is False
+    kept = _review(synced_store, constraints, DROP_DIFF, _one_warning(FCT, 7), escalation="platform")
+    assert [f["severity"] for f in kept["findings"] if f["source"] == "model"] == ["warn"] and any(f["mapped"] for f in kept["files"])
+
+
 def test_system_evidence_for_code_areas_reverts_callers_and_column_readers():
     from orion.codectx import Area, CodeContext
     from orion.review import ReviewContext, system_evidence

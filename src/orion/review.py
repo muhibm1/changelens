@@ -649,7 +649,7 @@ class CachedProvider:
         return out
 
 
-ESCALATION_POLICIES = ("evidence", "model")
+ESCALATION_POLICIES = ("evidence", "platform", "model")
 GATE_NOTE = "nothing recorded about the system backs it here (no constraint, downstream reader, incident, sensitive area, revert history or outside caller)"
 NO_ROWS_NOTE = "its failing case was run against the warehouse and returned no rows"
 GAP_NOTE = "an unmapped path is a gap in what Orion can see, not evidence the change is wrong; map it to have it checked"
@@ -715,14 +715,23 @@ def _exec_id(f: dict[str, Any]) -> str:
     return "exec:" + hashlib.sha1(f["confirmation"]["sql"].encode()).hexdigest()[:12]
 
 
-def gate_severity(ctx: ReviewContext, findings: list[dict[str, Any]]) -> int:
+def mapped_paths(ctx: ReviewContext) -> set[str]:
+    """Changed files that resolve to a data-platform asset: the files where Orion records the whole system context
+    (readers, constraints, incidents), so finding none of it is a fact rather than a gap."""
+    return {e[len("diff:"):] for o in (ctx.verdict or {}).get("change", {}).get("ops", []) for e in o.get("evidence", []) if e.startswith("diff:")}
+
+
+def gate_severity(ctx: ReviewContext, findings: list[dict[str, Any]], only: set[str] | None = None) -> int:
     """Evidence-gated escalation: a model finding stays at warn or block only when ``system_evidence`` backs its
     location, and the ids it rests on are added to its evidence and kept under ``escalation``; every other one is
     lowered to inform with a note saying so. Deterministic findings are already decided by code and are not
-    touched. Returns how many were lowered (before duplicates across passes are merged)."""
+    touched. ``only``: gate findings on these paths and leave the rest at the model's severity (the ``platform``
+    policy passes ``mapped_paths``). Returns how many were lowered (before duplicates across passes are merged)."""
     lowered = 0
     for f in findings:
         if f["source"] != "model" or f["status"] != "valid" or RANK[f["severity"]] <= RANK["inform"]:
+            continue
+        if only is not None and f["path"] not in only:
             continue
         backing = system_evidence(ctx, f)
         if (f.get("confirmation") or {}).get("status") == "not_confirmed" and not any(b.startswith("constraint:") for b in backing):
@@ -949,7 +958,8 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     (``orion.confirm``) before the evidence gate.
     ``cache``: a store whose review cache answers a model call it has seen exactly before (``CachedProvider``).
     ``escalation``: ``evidence`` keeps a model finding at warn or block only when recorded system context backs it
-    (``gate_severity``); ``model`` keeps the severity the model and the second reading chose.
+    (``gate_severity``); ``platform`` gates only findings on files that map to a data-platform asset and keeps the
+    model's severity on the rest; ``model`` keeps the severity the model and the second reading chose.
     ``agent``: the model investigates the change with read-only tools (files, search, definitions, references,
     git history, blast radius, the record) before it reports, instead of one call per lens (``generate_agent``);
     ``agent_steps`` caps its turns. Its findings are validated, gated and read a second time like any other.
@@ -998,9 +1008,9 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     checked = validate(candidates, ctx)
     c_usage = _confirm(verifier or provider, ctx, checked, warehouse) if warehouse else None
     usage = _add_usage(usage, c_usage)
-    if escalation == "evidence":  # before the second reading, so it only spends a call on warnings the system context can back
-        gate_severity(ctx, checked)
-    else:  # a failing case the warehouse disproved is lowered under either policy, unless a firing constraint backs the warning
+    if escalation != "model":  # before the second reading, so it only spends a call on warnings the system context can back
+        gate_severity(ctx, checked, only=mapped_paths(ctx) if escalation == "platform" else None)
+    if escalation != "evidence":  # a failing case the warehouse disproved is lowered under either policy, unless a firing constraint backs the warning
         for f in checked:
             if f["status"] == "valid" and RANK[f["severity"]] > RANK["inform"] and (f.get("confirmation") or {}).get("status") == "not_confirmed" and not any(e.startswith("constraint:") for e in f["evidence"]):
                 f["notes"].append(f"severity lowered from {f['severity']} to inform: {NO_ROWS_NOTE}")
@@ -1011,7 +1021,7 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     usage = _add_usage(usage, v_usage)
     det = deterministic_findings(ctx)
     verdict_severity = (ctx.verdict or {}).get("severity", "inform")
-    if escalation == "evidence" and (ctx.verdict or {}).get("raised_for_unresolved"):
+    if escalation != "model" and (ctx.verdict or {}).get("raised_for_unresolved"):
         # A path Orion cannot map is a gap in what it can see, not evidence the change is wrong: listed, at inform.
         verdict_severity = "inform"
         for f in det:
@@ -1025,13 +1035,14 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     severity = max([f["severity"] for f in valid] + [verdict_severity], key=lambda s: RANK[s])
     rid = "rv_" + hashlib.sha1((diff_text + provider.name).encode()).hexdigest()[:16]
     v = ctx.verdict or {}
+    mapped = mapped_paths(ctx)
     return {
         "review_id": rid,
         "issued_at": datetime.now(UTC).isoformat(),
         "provider": provider.name,
         "provider_error": provider_error,
         "severity": severity,
-        "files": [{"path": f.path, "status": f.status, "hunks": len(f.hunks)} for f in ctx.files],
+        "files": [{"path": f.path, "status": f.status, "hunks": len(f.hunks), "mapped": f.path in mapped} for f in ctx.files],
         "findings": valid,
         "uncertain": [m for m in model if m["status"] == "uncertain"],
         "rejected": [m for m in model if m["status"] == "rejected"],
