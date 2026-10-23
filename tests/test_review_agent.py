@@ -298,3 +298,11 @@ def test_a_reply_that_is_not_an_object_is_an_error_not_a_finish(repo: Path):
     p = Scripted([{"notes": "", "calls": [{"tool": "grep", "args": {"pattern": "int"}}]}, ["not", "an", "object"]])
     r = _review(repo, p)
     assert r["agent"]["runs"][0]["stopped"] == "error" and "not a JSON object" in r["provider_error"]
+
+
+def test_one_turn_is_not_told_about_tools(repo: Path):
+    p = Scripted([{"notes": "", "done": True, "findings": []}])
+    _review(repo, p, agent_steps=1)
+    system, user, _ = p.seen[0]
+    assert "blast_radius {target}" not in system and "one turn and no tools" in user[-1]
+    assert "calls" not in p.schemas[0]["properties"]

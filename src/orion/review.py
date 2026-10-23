@@ -368,6 +368,15 @@ LENSES: dict[str, str] = {
 }
 DEFAULT_LENSES = tuple(LENSES)
 
+# One agent asked to find everything stops at the first plausible problems, as one pass does. Told to work through the
+# lenses as a checklist in its one context, it keeps the breadth of four passes for the price of one.
+AGENT_CHECKLIST = (
+    "Work through the four passes below over the change, in order, as a checklist. Finish each pass before the next and be "
+    "exhaustive within it: a problem one pass finds does not end the search, and a later pass may find a second problem on "
+    "the same line. Then report the findings of all four passes together.\n\n"
+    + "\n\n".join(f"Pass {i}, {name}: " + text.removeprefix("Focus for this pass: ") for i, (name, text) in enumerate(LENSES.items(), 1))
+)
+
 
 def _shared_prompt(ctx: ReviewContext, group: list[FileDiff], facts: str, i: int, n: int, file_context: bool) -> str | None:
     """The part of the message every pass over ``group`` shares: stated intent, system facts, code context and the diff; None for a group with nothing to show."""
@@ -434,16 +443,16 @@ def generate_agent(provider: Provider, ctx: ReviewContext, store: Store, repo_ro
     before it answers, the first provider error, summed usage, and a trace of what it looked at.
 
     It starts from the same message the pipeline sends, so it never knows less than one pass does. One agent
-    per group of files and per lens (none: one agent told to look for every kind of failure). What its tools
+    per group of files and per lens (none: one agent that works through every lens as a checklist). What its tools
     showed becomes citable: those ids join ``ctx.known`` and the lines they cite join ``ctx.observed``."""
-    from .review_agent import FOCUS_ALL, MAX_STEPS, Toolbox, investigate
+    from .review_agent import MAX_STEPS, Toolbox, investigate
 
     if groups is None or omitted is None:
         groups, omitted = batches(ctx.files)
     facts = _facts(ctx)
     if omitted:
         facts += "\n- files in this change whose hunks are too large to show, so they are not under review here: " + ", ".join(omitted)
-    focuses = [LENSES[name] for name in lenses if name in LENSES] or [FOCUS_ALL]
+    focuses = [LENSES[name] for name in lenses if name in LENSES] or [AGENT_CHECKLIST]
     tools = Toolbox(search_root or repo_root, store, base_ref, {**(repo_files or {}), **ctx.new_text}, ctx.files, ctx.verdict, SECRET_PATH_RE)
     item = FINDINGS_SCHEMA["properties"]["findings"]["items"]
     candidates: list[dict[str, Any]] = []
@@ -464,7 +473,7 @@ def generate_agent(provider: Provider, ctx: ReviewContext, store: Store, repo_ro
         ctx.known.setdefault(kind, set()).update(ids)
     ctx.observed.update(tools.lines)
     trace = {"runs": runs, "turns": sum(len(r["turns"]) for r in runs), "tool_calls": sum(len(t.get("calls", [])) for r in runs for t in r["turns"]), "seconds": round(sum(r["seconds"] for r in runs), 2)}
-    return merge_candidates(candidates) if len(runs) > 1 else candidates, error, usage, trace
+    return merge_candidates(candidates), error, usage, trace  # the checklist's passes can report one problem twice
 
 
 _WORD = re.compile(r"[a-z0-9_]{3,}")

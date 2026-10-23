@@ -8,7 +8,19 @@ These runs were made on 2026-10-23 with Sonnet 5.5 through the `claude-code` pro
 | `--agent`, answers whenever it likes | held-out 45 | 0.333 | 0.444 | 0.89 | 2.29M | 71k | 6 min |
 | `--agent`, opening turn must call tools | tuning 50 | 0.24 | 0.46 | 0.92 | 4.71M | 92k | 8 min |
 
-The detail is in [heldout-sonnet-5-5-agent.md](heldout-sonnet-5-5-agent.md) and [recall-sonnet-5-5-agent-open.md](recall-sonnet-5-5-agent-open.md).
+## Tuning set, like for like (2026-10-23 afternoon)
+
+Same set (tuning 50), same model and judge, under the model's own severity (these runs predate the evidence gate, #41).
+
+| run | recall | in file | warns/case | input tokens (cache write + read) | out | wall |
+| --- | --- | --- | --- | --- | --- | --- |
+| four lenses (default review) | 0.36 | 0.58 | 1.48 | 6.42M | 280k | 17 min |
+| `--agent`, free text focus, opening turn | 0.24 | 0.46 | 0.92 | 4.71M | 92k | 8 min |
+| `--agent`, lenses as a checklist, opening turn | 0.34 | 0.52 | 1.12 | 5.13M | 111k | 9.5 min |
+
+Telling the one agent to work through the four lenses in order, as a checklist, brings it to within one case of the four separate passes (17 against 18 caught). The four lenses caught two bugs the checklist missed, and the checklist caught one they missed. It uses 80% of the input tokens, 40% of the output and a little over half the wall time. Most of the input is the provider's per-call overhead, so the next saving is fewer calls. Details: [recall-sonnet-5-5-lenses.md](recall-sonnet-5-5-lenses.md), [recall-sonnet-5-5-agent-checklist.md](recall-sonnet-5-5-agent-checklist.md).
+
+The held-out detail is in [heldout-sonnet-5-5-agent.md](heldout-sonnet-5-5-agent.md) and [recall-sonnet-5-5-agent-open.md](recall-sonnet-5-5-agent-open.md).
 
 ## What it shows
 
