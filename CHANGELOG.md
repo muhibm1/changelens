@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+### Precision at warn
+
+- **Escalation policies** (`--escalation`, `review.escalation`).
+  - `platform` is the default. A model warning on a file that maps to a dbt or Airflow asset stays at warn or block only when recorded system context backs it: a firing constraint, a downstream reader of a column the hunk names, a row-changing op with consumers, an incident, or a warehouse-confirmed failing case. Otherwise it is lowered to inform with a note.
+  - On files Orion records no system context for, the model's severity stands.
+  - `evidence` gates every file, adding sensitive areas, revert history and outside callers as backing for code.
+  - `model` keeps the model's severity everywhere.
+  - Under `evidence` and `platform`, an unmapped path is reported at inform. `orion gate` still raises it.
+- **Measured on 45 held-out bugs** (Sonnet 5.5, 3 runs).
+  - Detection recall (surfaced at any severity) is 0.741.
+  - Escalation recall (at warn or block) is 0.615 under `model` and `platform`, and 0.148 under `evidence`, with other warnings per case falling from 0.99 to 0.17.
+  - The held-out set is all application code, which is why `platform` is the default.
+- **Warehouse confirmation** (`review.warehouse`). A model warning on a data model gets its failing case run as one read-only SELECT, checked in code. Rows found make it eligible for warn; no rows lower it under every policy.
+- **Findings cache.** Model answers are cached in DuckDB, keyed exactly by the prompt, provider, model, effort and endpoint. There is no semantic matching. Turn it off with `--no-cache` or `ORION_REVIEW_CACHE=0`; evals always run without it. Lens passes run in parallel after the first warms the prompt cache.
+- **Model routing.** `--complex-model` is used for large diffs.
+- **dbt precision.**
+  - A changed macro maps to the models that call it.
+  - Moved definitions are not reported as removed.
+  - A reader that gets a column through `select *` is not reported as broken.
+  - A column documented in YAML that the SQL does not select is a new check.
+- **Benchmarks.**
+  - `pipelinebench history-replay` reviews every merged change in a window and reports warnings per week, false alarms per week and bugs flagged against hand labels. A `--escalation model` run scores all three policies at once.
+  - `recall-eval` splits detection from escalation recall.
+  - `recall-spread` reports the spread over repeated runs.
+- **cal-itp, deterministic checks, 116 commits over 26 weeks.** Warnings fell from 33 to 4, all of them artifacts of replaying against a newer graph, so there were 0 false alarms a week.
+
 ### Retrieval core
 
 - `orion rag index | search | read`: hybrid (BM25 + local embeddings, reciprocal rank fusion), graph-scoped retrieval over code and the engineering record, in one DuckDB file. Code is chunked by syntax with line spans; import edges, record refs and the data graph's blast radius make a change's neighbourhood rank first. Optional local cross-encoder reranking (`ORION_RAG_RERANKER=ce:<model>`). Incremental by git blob and chunk text hash; unchanged checkouts and repeated searches are cached.

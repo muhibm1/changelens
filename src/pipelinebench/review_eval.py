@@ -159,7 +159,7 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, second_reading: bool = True, verifier: Provider | None = None, escalation: str = "evidence", progress=None) -> dict[str, Any]:
+def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, second_reading: bool = True, verifier: Provider | None = None, escalation: str = "platform", progress=None) -> dict[str, Any]:
     rows = []
     # Reference searches run against an empty repository plus each case's own files, so the eval
     # never finds the symbol it planted mentioned in this repository's tests or results.

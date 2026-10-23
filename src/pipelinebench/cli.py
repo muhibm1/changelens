@@ -101,7 +101,7 @@ def review_eval_cmd(
     repeat: int = typer.Option(1, "--repeat", help="Run every case this many times."),
     file_context: bool = typer.Option(True, "--file-context/--no-file-context", help="Send whole changed files to the model, not just the hunks."),
     second_reading: bool = typer.Option(True, "--second-reading/--no-second-reading", help="Check model warn/block findings with a second call."),
-    escalation: str = typer.Option("evidence", "--escalation", help="evidence: model warn/block needs recorded system context behind it; model: keep the model's severity."),
+    escalation: str = typer.Option("platform", "--escalation", help="evidence: model warn/block needs recorded system context behind it; platform: the same, only on files mapped to a data-platform asset; model: keep the model's severity."),
     verify_model: str | None = typer.Option(None, "--verify-model", help="Model for the second reading (same provider); default: the review model."),
     effort: str | None = typer.Option(None, "--effort", help="Model effort for the review passes (Anthropic)."),
     verify_effort: str | None = typer.Option(None, "--verify-effort", help="Model effort for the second reading (Anthropic)."),
