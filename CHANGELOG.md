@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Engineering record ingestion
+
+- `orion record ingest` stores git commits, GitHub pull requests, reviews, comments and issues, the harness session transcripts and Markdown notes as documents with stable ids, file and link refs and provenance, in a SQLite store (`orion.record.documents.DocStore`) that retrieval and the context tools read. Credentials are scrubbed first (`orion.record.scrub`). Runs are incremental (stored commits skipped, files re-read only when changed, GitHub since the last cursor, unchanged documents not rewritten), identical files and commits are kept once, and removed Markdown files become tombstones. `orion record docs` shows counts or one document. `orion record export-sessions` copies a machine's transcripts, scrubbed, to a shared folder so cloud sessions outlive their containers. A changed scrubbing rule re-reads every source on the next full run.
+
 ### Precision at warn
 
 - **Escalation policies** (`--escalation`, `review.escalation`).
