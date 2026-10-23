@@ -8,6 +8,13 @@
 - `orion.rag.cite.check`: citation validity and support for any answer that cites chunk ids.
 - `pipelinebench retrieval-eval`: 42 hand-labelled queries (dev and held-out), recall@k, MRR, citation faithfulness with a tamper control, latency, three runs per configuration.
 
+### Agent context API
+
+- Five MCP tools for coding agents in any repository: `context` (start of a task), `impact` (before committing), `search`, `read` and `file_history`. Deterministic, every item cited by an id that `read` resolves, packed to `budget_tokens` with what did not fit listed under `omitted`, and unknowns under `unresolved`. `impact` in a code repository lists callers of changed definitions, importers of changed files, CODEOWNERS owners, sensitive areas and past fixes; on a data platform it adds the pre-flight verdict. They use the retrieval index (`orion.rag`), the ingested documents (`orion.record.documents`) and the code graph (`orion.codegraph`) when those are installed, and fall back to the record and the graph's chunks.
+- Speed: responses report `elapsed_ms`; repeated calls on an unchanged checkout come from an in-process cache keyed by HEAD, the working tree and the graph (120 s ceiling for the record). Latency budgets are tested.
+- `orion serve` without an `orion.yaml` now serves these tools beside the record tools; `--project-dir` names the checkout.
+- `orion setup claude-code [--scope user|project]` registers the server and a SessionStart hook (`orion hook session-start`); `scripts/cloud-setup.sh` does it in a cloud environment; the repository is also a harness plugin marketplace (`.claude-plugin/`, `hooks/`, `skills/orion`).
+
 ### Reviews for app projects, on a subscription
 
 - Context for code that is not a data platform: owners from `CODEOWNERS`, sensitive areas from a YAML or JSON file (`--areas file#project`, `review.areas`), and earlier fixes and reverts of the changed files from git. The model sees them as facts it can cite (`area:`, `commit:`, `ref:CODEOWNERS:N`); a change in an area gets a deterministic finding at the area's severity. The review JSON carries them under `context`.

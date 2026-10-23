@@ -1,4 +1,4 @@
-"""``orion serve``: the MCP server. Nine tools, each returning a judgement or a record.
+"""``orion serve``: the MCP server. Fourteen tools, each returning a judgement or a record.
 
 The server has no write path into the platform. It writes the ledger and
 drafts constraint files; nothing else.
@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
@@ -36,6 +37,47 @@ a `block` severity means a human or CI gate should decide. Use `explain`, `histo
 `record_decision` after a human approves or waives a check, and `propose_constraint` to lock in something learned.
 Call `review` on a finished diff for a full code review: deterministic findings from the platform first, then model
 findings that were checked against the diff and the store."""
+
+
+AGENT_INSTRUCTIONS = """Orion is the context layer for the code you are changing. Every answer is deterministic, cited and packed to a
+token budget (`budget_tokens`); items that did not fit are listed by id under `omitted`.
+- `context` with the task (and the paths you expect to touch) when you START a task: rules in scope, owners, assets,
+  related decisions from the record, recent fixes.
+- `impact` with your base ref, diff or planned paths BEFORE you commit: callers and importers of what changed,
+  sensitive areas, owners, fix history and, on a data platform, the pre-flight verdict and its blast radius.
+- `search` for anything in the engineering record; `read` an id to see its full text; `file_history` for one file.
+Cite ids (`[id]`) for any claim you take from Orion. What Orion does not list is not recorded: say so, do not guess."""
+
+
+def register_agent_tools(server: MCPServer, ws: Any) -> None:
+    """The agent-facing context API (orion.agent). Works in any git checkout; richer where an orion.yaml is."""
+    from . import agent
+
+    def out(r: dict[str, Any], format: str) -> dict[str, Any] | str:
+        fmt = (format or "").strip().lower() or "markdown"
+        if fmt not in ("markdown", "md", "json"):
+            return {"error": f"format must be markdown or json, not {format!r}"}
+        return agent.to_markdown(r) if fmt in ("markdown", "md") and "error" not in r else _jsonable(r)
+
+    @server.tool(name="context", description="Call at the START of a task. Give the task in a sentence or two and the paths you expect to touch. Returns what to know first: constraints and sensitive areas in scope, owners, platform assets involved, related passages from the engineering record, recent fixes on those files. Every item has an id; packed to budget_tokens.")
+    def context_tool(task: str, paths: list[str] | None = None, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
+        return out(agent.context(ws, task, paths=paths, budget_tokens=budget_tokens), format)
+
+    @server.tool(name="impact", description="Call BEFORE committing, or while planning. Give a git base_ref (working tree against it), a unified diff, or the paths you plan to change, and optionally intent. Returns what the change reaches: callers of changed definitions and importers of changed files, sensitive areas, owners, past fix/revert commits on those files, related record passages and, on a data platform, the pre-flight verdict (severity, fired constraints, affected assets). Deterministic; no model call.")
+    def impact_tool(base_ref: str | None = None, diff: str | None = None, paths: list[str] | None = None, intent: str | None = None, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
+        return out(agent.impact(ws, base_ref=base_ref, diff=diff, paths=paths, intent=intent, budget_tokens=budget_tokens), format)
+
+    @server.tool(name="search", description="Search everything Orion holds (engineering record, retrieval index, platform prose) and get one ranked, cited list. Optionally limited to one repository. Lexical first: if nothing matches, try other words.")
+    def search_tool(query: str, repo: str | None = None, k: int = 8, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
+        return out(agent.search(ws, query, k=k, repo=repo, budget_tokens=budget_tokens), format)
+
+    @server.tool(name="read", description="The full text behind any id an Orion tool returned: a record section, chunk, commit (git:<repo>@<sha>), PR or issue (gh:...), session, asset, event, constraint or verdict. An id Orion does not hold returns an error: a citation that does not read back is not recorded.")
+    def read_tool(id: str, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
+        return out(agent.read(ws, id, budget_tokens=budget_tokens), format)
+
+    @server.tool(name="file_history", description="History of one file: owners, fix/revert/incident commits first, then other recent commits, ledger events for the assets it defines, and record passages that mention it.")
+    def file_history_tool(path: str, limit: int = 10, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
+        return out(agent.file_history(ws, path, limit=limit, budget_tokens=budget_tokens), format)
 
 
 def register_record_tools(server: MCPServer) -> None:
@@ -66,8 +108,11 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
     store = Store(cfg.path(cfg.db))
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     risk_model = load_risk(cfg.path(cfg.risk) if cfg.risk else None)
-    server = MCPServer("orion", instructions=INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
+    server = MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
     register_record_tools(server)
+    from .agent import Workspace
+
+    register_agent_tools(server, Workspace.at(cfg=cfg, store=store))
 
     @server.tool(name="preflight", description="Check a proposed change before making it. Give a git base ref (diff of the working tree against it), file paths, a sentence of intent, or explicit ops. Returns a verdict whose every claim carries evidence ids.")
     def preflight_tool(base_ref: str | None = None, paths: list[str] | None = None, intent: str | None = None, ops: list[dict[str, Any]] | None = None, format: str = "json") -> dict[str, Any] | str:
@@ -169,15 +214,18 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
     return server
 
 
-def build_record_server() -> MCPServer:
-    """A server with only the record tools, for a checkout with no orion.yaml."""
-    server = MCPServer("orion", instructions=RECORD_INSTRUCTIONS, version="0.1.0")
+def build_record_server(project_dir: Path | None = None) -> MCPServer:
+    """The record tools and the agent context API, for a checkout with no orion.yaml."""
+    from .agent import Workspace
+
+    server = MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
     register_record_tools(server)
+    register_agent_tools(server, Workspace.at(project_dir))
     return server
 
 
-def serve_record(transport: str = "stdio", **kwargs: Any) -> None:
-    build_record_server().run(transport=transport, **kwargs)
+def serve_record(transport: str = "stdio", project_dir: Path | None = None, **kwargs: Any) -> None:
+    build_record_server(project_dir).run(transport=transport, **kwargs)
 
 
 def serve(cfg: OrionConfig | None = None, transport: str = "stdio", **kwargs: Any) -> None:

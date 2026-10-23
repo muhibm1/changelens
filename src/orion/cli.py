@@ -668,21 +668,71 @@ def rag_read(chunk_id: str, index: Path | None = typer.Option(None, "--index")):
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="stdio | streamable-http"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    project_dir: Path | None = typer.Option(None, "--project-dir", help="The checkout the agent works in (default: the current directory)."),
 ):
-    """Run the MCP server (tools: preflight, explain, history, record_decision, propose_constraint, ask, review, search_record, read_record).
-
-    Without an orion.yaml, only the record tools are served."""
+    """Run the MCP server. Always: context, impact, search, read, file_history, search_record, read_record.
+    With an orion.yaml (a data platform) also: preflight, explain, history, record_decision, propose_constraint,
+    ask, review."""
+    import os
     import sys
 
     from .config import repo_root
     from .server import serve as run_server
     from .server import serve_record
 
+    if config is not None:
+        config = config.resolve()  # relative to where the command ran, not to --project-dir
+    if project_dir is not None:
+        if not project_dir.is_dir():
+            # Serving some other folder would answer for the wrong repository; refuse instead.
+            print(f"orion serve: --project-dir {project_dir} is not a directory", file=sys.stderr)
+            raise typer.Exit(2)
+        os.chdir(project_dir)
     if config is None and not any(p.exists() for p in (Path.cwd() / "orion.yaml", repo_root(Path.cwd()) / "orion.yaml")):
-        print("orion serve: no orion.yaml here, serving the record tools only", file=sys.stderr)
-        serve_record(transport=transport)
+        print("orion serve: no orion.yaml here, serving the agent context and record tools", file=sys.stderr)
+        serve_record(transport=transport, project_dir=Path.cwd())
         return
     run_server(load_config(config), transport=transport)
+
+
+@app.command()
+def setup(
+    target: str = typer.Argument("claude-code", help="What to set up: claude-code."),
+    scope: str = typer.Option("user", "--scope", help="user: every the harness session on this machine. project: this repository's .mcp.json and .claude/settings.json, committed so cloud sessions get it too."),
+    project: Path | None = typer.Option(None, "--project", help="The repository for --scope project (default: the current directory)."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Say what would change without writing."),
+):
+    """Register Orion's MCP server and a SessionStart hook with the harness."""
+    from .install import setup_claude_code
+
+    if target != "claude-code":
+        raise typer.BadParameter("only claude-code is supported")
+    try:
+        done = setup_claude_code(scope, project, dry_run=dry_run)
+    except (ValueError, RuntimeError, OSError) as e:
+        console.print(f"[red]setup failed:[/red] {e}")
+        raise typer.Exit(1) from e
+    for line in done:
+        console.print(("would add " if dry_run else "added ") + line)
+
+
+@app.command()
+def hook(event: str = typer.Argument(..., help="session-start")):
+    """A the harness hook: prints the hook's JSON output. Always exits 0."""
+    import sys
+
+    from .install import run_hook
+
+    try:  # bytes, decoded here: a cwd the locale codec cannot decode must not fail the hook
+        raw = sys.stdin.buffer.read().decode("utf-8", errors="replace") if not sys.stdin.isatty() else ""
+    except (OSError, ValueError, AttributeError):
+        raw = ""
+    try:
+        out = run_hook(event, raw)
+    except Exception:  # noqa: BLE001 - a hook must never break the session it runs in
+        out = ""
+    if out:
+        print(out)
 
 
 if __name__ == "__main__":

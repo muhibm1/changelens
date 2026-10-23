@@ -203,11 +203,42 @@ CON-P31abc2 freshness_sla (warn) on model:fct_refunds, model:fct_revenue
 
 ## Using it from an agent
 
+Orion is the context layer agents call while they change code, in any repository. Five tools work in any git
+checkout; where an `orion.yaml` is, they add the platform graph, verdicts and the ledger:
+
+| Tool | When | What comes back |
+| --- | --- | --- |
+| `context(task, paths)` | starting a task | constraints and sensitive areas in scope, owners, platform assets, related record passages, recent fixes |
+| `impact(base_ref \| diff \| paths, intent)` | before committing | callers of changed definitions, importers, owners, sensitive areas, past fixes and reverts, related record passages; on a platform, the pre-flight verdict and its blast radius |
+| `search(query)` | any time | one ranked list over the engineering record, the retrieval index and the platform's prose |
+| `read(id)` | to follow a citation | the full text behind any id Orion returned, or `not recorded` |
+| `file_history(path)` | before rewriting a file | owners, fix/revert commits first, ledger events, record passages |
+
+All five are deterministic (no model call), cite an id for every item, and pack their answer to `budget_tokens`
+(defaults 1,500 to 3,000); items that did not fit are listed by id under `omitted`. Each response reports
+`elapsed_ms`; a repeated call on an unchanged checkout is served from an in-process cache keyed by HEAD, the working
+tree and the graph (`cached: true`). On the fixture, uncached calls take 5 to 400 ms. `preflight`, `explain`,
+`history`, `ask`, `review`, `record_decision`, `propose_constraint`, `search_record` and `read_record` are unchanged.
+
+**Every the harness session on a machine:** `orion setup claude-code` registers the server at user scope (`claude mcp
+add`) and a SessionStart hook that tells each session Orion is there and when to call it. `--scope project` writes
+the repository's `.mcp.json` and `.claude/settings.json` instead, which cloud sessions of that repository pick up.
+Those files are committed, so they call `orion` by name rather than this machine's Python; `orion` must be on `PATH`.
+
+**Cloud environments:** add `scripts/cloud-setup.sh` to the environment's setup script; it clones and installs Orion,
+links `orion` onto `PATH` and runs `orion setup claude-code`. **As a plugin (local):** `/plugin marketplace add muhibm1/orion`, then
+`/plugin install orion@orion`; it needs `uv`. Plugins are not installed in cloud sessions, so use the setup script
+there. Use the plugin or `orion setup`, not both, or each session gets Orion's start-up note twice.
+
+By hand:
+
 ```json
-{ "mcpServers": { "orion": { "command": "orion", "args": ["serve"], "cwd": "/path/to/repo" } } }
+{ "mcpServers": { "orion": { "command": "orion", "args": ["serve", "--project-dir", "/path/to/repo"] } } }
 ```
 
-The server's instructions tell the agent to call `preflight` before writing and again before opening a PR, to cite evidence ids rather than paraphrase, and that `block` means a human decides.
+The server's instructions tell the agent to call `context` at the start of a task, `impact` before committing,
+`preflight` before writing a platform change, to cite ids rather than paraphrase, and that `block` means a human
+decides.
 
 ## How it is put together
 
