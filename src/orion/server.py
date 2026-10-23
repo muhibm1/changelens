@@ -40,7 +40,7 @@ findings that were checked against the diff and the store."""
 
 
 AGENT_INSTRUCTIONS = """Orion is the context layer for the code you are changing. Every answer is deterministic, cited and packed to a
-token budget (`budget_tokens`); items that did not fit are listed by id under `omitted`.
+token budget (`budget_tokens`, at least 200; the answer reports the budget it used); items that did not fit are listed by id under `omitted`.
 - `context` with the task (and the paths you expect to touch) when you START a task: rules in scope, owners, assets,
   related decisions from the record, recent fixes.
 - `impact` with your base ref, diff or planned paths BEFORE you commit: callers and importers of what changed,

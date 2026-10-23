@@ -228,7 +228,8 @@ Those files are committed, so they call `orion` by name rather than this machine
 **Cloud environments:** add `scripts/cloud-setup.sh` to the environment's setup script; it clones and installs Orion,
 links `orion` onto `PATH` and runs `orion setup claude-code`. **As a plugin (local):** `/plugin marketplace add muhibm1/orion`, then
 `/plugin install orion@orion`; it needs `uv`. Plugins are not installed in cloud sessions, so use the setup script
-there. Use the plugin or `orion setup`, not both, or each session gets Orion's start-up note twice.
+there. Use the plugin or `orion setup`, not both: each registers the `orion` server and the start-up hook, so with
+both a session gets the start-up note twice and two `orion` servers (the harness keeps one per scope).
 
 By hand:
 
