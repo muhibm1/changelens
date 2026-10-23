@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Retrieval core
+
+- `orion rag index | search | read`: hybrid (BM25 + local embeddings, reciprocal rank fusion), graph-scoped retrieval over code and the engineering record, in one DuckDB file. Code is chunked by syntax with line spans; import edges, record refs and the data graph's blast radius make a change's neighbourhood rank first. Optional local cross-encoder reranking (`ORION_RAG_RERANKER=ce:<model>`). Incremental by git blob and chunk text hash; unchanged checkouts and repeated searches are cached.
+- `orion.rag.cite.check`: citation validity and support for any answer that cites chunk ids.
+- `pipelinebench retrieval-eval`: 42 hand-labelled queries (dev and held-out), recall@k, MRR, citation faithfulness with a tamper control, latency, three runs per configuration.
+
 ### Reviews for app projects, on a subscription
 
 - Context for code that is not a data platform: owners from `CODEOWNERS`, sensitive areas from a YAML or JSON file (`--areas file#project`, `review.areas`), and earlier fixes and reverts of the changed files from git. The model sees them as facts it can cite (`area:`, `commit:`, `ref:CODEOWNERS:N`); a change in an area gets a deterministic finding at the area's severity. The review JSON carries them under `context`.

@@ -150,13 +150,44 @@ class SentenceTransformerEmbedder:
         self._m = SentenceTransformer(model)
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        return [list(map(float, v)) for v in self._m.encode(texts, normalize_embeddings=True)]
+        return [list(map(float, v)) for v in self._m.encode(texts, normalize_embeddings=True, batch_size=64)]
+
+
+class OllamaEmbedder:
+    """Embeddings from a local Ollama server (``ollama:<model>``), over HTTP with the standard library."""
+
+    def __init__(self, model: str, url: str | None = None):
+        import os
+
+        self.name = f"ollama:{model}"
+        self.model = model
+        host = url or os.environ.get("OLLAMA_HOST") or "http://localhost:11434"
+        self.url = (host if "://" in host else f"http://{host}").rstrip("/")  # Ollama's own OLLAMA_HOST is host:port
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        import json
+        import urllib.request
+
+        out: list[list[float]] = []
+        for i in range(0, len(texts), 32):
+            body = json.dumps({"model": self.model, "input": texts[i : i + 32]}).encode()
+            req = urllib.request.Request(f"{self.url}/api/embed", data=body, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                for v in json.loads(resp.read())["embeddings"]:
+                    norm = math.sqrt(sum(x * x for x in v)) or 1.0
+                    out.append([x / norm for x in v])
+        return out
 
 
 def make_embedder(model: str | None) -> Embedder:
-    if model:
-        return SentenceTransformerEmbedder(model)
-    return HashEmbedder()
+    """``None`` or ``hash`` for the built-in hashed vectors, ``ollama:<model>`` for a local Ollama, ``st:<model>`` or a bare name for sentence-transformers."""
+    if not model or model == "hash":
+        return HashEmbedder()
+    if model.startswith("hash-") and model[5:].isdigit() and int(model[5:]) > 0:
+        return HashEmbedder(int(model[5:]))
+    if model.startswith("ollama:"):
+        return OllamaEmbedder(model.split(":", 1)[1])
+    return SentenceTransformerEmbedder(model.removeprefix("st:"))
 
 
 def vectors_for(store: Store, embedder: Embedder, rows: list[tuple]) -> dict[str, list[float]]:

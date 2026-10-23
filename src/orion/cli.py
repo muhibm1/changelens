@@ -575,6 +575,95 @@ def record(ctx: typer.Context):
     raise typer.Exit(record_main(ctx.args))
 
 
+rag_app = typer.Typer(help="Hybrid, graph-scoped retrieval over code and the record: rag index | search | read | stats.", no_args_is_help=True)
+app.add_typer(rag_app, name="rag")
+
+
+@rag_app.command("index")
+def rag_index(
+    paths: list[Path] = typer.Argument(None, help="Checkouts to index (default: the current repository)."),
+    docs: Path | None = typer.Option(None, "--docs", help="Also sync the ingested record from this DocStore (default: ORION_DOCS when set)."),
+    graph: bool = typer.Option(False, "--graph", help="Also index the prose in this platform's graph store (needs orion.yaml)."),
+    force: bool = typer.Option(False, "--force", help="Re-read every checkout even when nothing changed."),
+    index: Path | None = typer.Option(None, "--index", help="Index file (default: ORION_RAG or ~/.cache/orion/rag.duckdb)."),
+    embedder: str | None = typer.Option(None, "--embedder", help="hash | st:<model> | ollama:<model> (default: the index's, else ORION_RAG_EMBEDDER)."),
+):
+    """Bring the index up to date. Unchanged checkouts cost two quick git calls; changed files are re-chunked alone."""
+    import os
+    import time
+
+    from .config import repo_root
+    from .rag import RagIndex
+
+    idx = RagIndex.open(index, embedder=embedder)
+    for root in paths or [repo_root(Path.cwd())]:
+        t0 = time.perf_counter()
+        res = idx.index_checkout(root, force=force)
+        console.print(f"{root}: {res} in {time.perf_counter() - t0:.1f}s")
+    store_docs = docs or (Path(os.environ["ORION_DOCS"]) if os.environ.get("ORION_DOCS") else None)
+    if store_docs:
+        from .record.documents import DocStore  # type: ignore[import-not-found]
+
+        console.print(f"record: {idx.sync_record(DocStore(store_docs))}")
+    if graph:
+        cfg = load_config(None)
+        from .store import Store
+
+        console.print(f"graph: {idx.sync_store(Store(cfg.path(cfg.db)), root=cfg.root)}")
+    console.print(idx.stats())
+
+
+@rag_app.command("search")
+def rag_search(
+    query: str = typer.Argument(...),
+    k: int = typer.Option(8, "-k", min=1),
+    changed: list[str] = typer.Option([], "--changed", help="A changed file (repeatable): graph-scope the search to its blast radius."),
+    repo: list[str] = typer.Option([], "--repo"),
+    kind: list[str] = typer.Option([], "--kind", help="code | doc | commit | pr | issue | review | comment | session | graph"),
+    mode: str = typer.Option("hybrid", "--mode", help="hybrid | bm25 | dense"),
+    as_json: bool = typer.Option(False, "--json"),
+    index: Path | None = typer.Option(None, "--index"),
+):
+    """Search the index; every hit has a chunk id to cite and a line span."""
+    import time
+
+    from .rag import RagIndex, Scope
+
+    idx = RagIndex.open(index)
+    store = None
+    if changed:
+        from .config import repo_root
+        from .store import Store
+
+        # With a platform here, the data graph's blast radius joins the code import edges.
+        if (repo_root(Path.cwd()) / "orion.yaml").exists():
+            cfg = load_config(None)
+            if cfg.path(cfg.db).exists():
+                store = Store(cfg.path(cfg.db))
+    scope = Scope.from_change(store, list(changed), repos=list(repo), kinds=list(kind)) if changed else Scope(repos=list(repo), kinds=list(kind))
+    t0 = time.perf_counter()
+    hits = idx.search(query, k=k, scope=scope, mode=mode)
+    ms = (time.perf_counter() - t0) * 1000
+    if as_json:
+        print(json.dumps({"ms": round(ms, 1), "hits": [h.as_dict() for h in hits]}, indent=2, default=str))
+        return
+    if not hits:
+        console.print("not recorded: nothing in the index matches")
+    for h in hits:
+        console.print(f"[bold]{h.chunk_id}[/bold]  {h.symbol}\n    {h.why}")
+    console.print(f"[dim]{ms:.0f} ms[/dim]")
+
+
+@rag_app.command("read")
+def rag_read(chunk_id: str, index: Path | None = typer.Option(None, "--index")):
+    """One chunk in full, or an error for an id the index does not hold."""
+    from .rag import RagIndex
+
+    got = RagIndex.open(index, read_only=True).read(chunk_id)
+    print(json.dumps(got, indent=2, default=str))
+    raise typer.Exit(1 if "error" in got else 0)
+
+
 @app.command()
 def serve(
     transport: str = typer.Option("stdio", "--transport", help="stdio | streamable-http"),

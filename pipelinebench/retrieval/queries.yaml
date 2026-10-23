@@ -1,0 +1,59 @@
+# Hand-labelled retrieval eval for `pipelinebench retrieval-eval`. Written by reading the code at the pinned
+# commit, never by running Orion: each label names the file (and, where one place answers, the definition or
+# heading) a developer would want back. A hit is relevant when its path matches and, if a symbol is given,
+# the hit names that symbol or its lines cover the symbol's definition (or the heading's line).
+#
+# split: dev queries may be used to tune weights; heldout queries must not be looked at while tuning.
+# changed: the change the question is asked about (graph-scoped retrieval seeds); graph: the fixture's
+# data graph is loaded so changed dbt models reach their incidents and constraints.
+corpus:
+  repo: orion
+  commit: fee9ce8  # main after PR #40; the eval reads files from this commit, not the working tree
+queries:
+  # ---- exact names (lexical)
+  - {id: L1, split: dev, query: "ProvenanceRequired", relevant: [{path: src/orion/store.py, symbol: ProvenanceRequired}]}
+  - {id: L2, split: heldout, query: "_retry_after Retry-After header", relevant: [{path: src/orion/providers.py, symbol: _retry_after}]}
+  - {id: L3, split: dev, query: "parse_bash_command dbt selectors", relevant: [{path: src/orion/adapters/airflow.py, symbol: parse_bash_command}]}
+  - {id: L4, split: heldout, query: "strict_schema for OpenAI structured output", relevant: [{path: src/orion/providers.py, symbol: strict_schema}]}
+  - {id: L5, split: dev, query: "match_previous carried and resolved findings", relevant: [{path: src/orion/github.py, symbol: match_previous}]}
+  - {id: L6, split: heldout, query: "digest_paths", relevant: [{path: src/orion/adapters/__init__.py, symbol: digest_paths}]}
+  - {id: L7, split: dev, query: "column_lineage with sqlglot", relevant: [{path: src/orion/lineage.py, symbol: column_lineage}]}
+  - {id: L8, split: heldout, query: "fork_point merge-base", relevant: [{path: src/orion/changes.py, symbol: fork_point}]}
+  # ---- paraphrase (the question shares few words with the code)
+  - {id: S1, split: dev, query: "how does Orion tell a binary file from a text file in a diff", relevant: [{path: src/orion/changes.py, symbol: _as_text}]}
+  - {id: S2, split: heldout, query: "hide API keys and tokens before the diff is sent to the model", relevant: [{path: src/orion/credscan.py, symbol: redact}, {path: src/orion/credscan.py, symbol: find_secrets}]}
+  - {id: S3, split: dev, query: "how long to wait when the provider says we are rate limited", relevant: [{path: src/orion/providers.py, symbol: _retry_after}]}
+  - {id: S4, split: heldout, query: "group changed files so each model call stays under a size limit", relevant: [{path: src/orion/diffparse.py, symbol: batches}]}
+  - {id: S5, split: dev, query: "is the current time inside an allowed maintenance window", relevant: [{path: src/orion/predicates.py, symbol: _in_window}]}
+  - {id: S6, split: heldout, query: "which team owns a file according to the code owners rules", relevant: [{path: src/orion/codectx.py, symbol: owners_of}, {path: src/orion/codectx.py, symbol: _codeowners_regex}, {path: src/orion/codectx.py, symbol: load_codeowners}]}
+  - {id: S7, split: dev, query: "work out which class an object is when a method is called on it", relevant: [{path: src/orion/symbols.py, symbol: _receiver_type}]}
+  - {id: S8, split: heldout, query: "second adversarial reading that downgrades findings it cannot confirm", relevant: [{path: src/orion/review.py, symbol: verify}]}
+  - {id: S9, split: dev, query: "decide whether two review findings describe the same problem", relevant: [{path: src/orion/review.py, symbol: _same_problem}, {path: src/orion/review.py, symbol: merge_candidates}]}
+  - {id: S10, split: heldout, query: "replace jinja ref and source calls so the model SQL parses", relevant: [{path: src/orion/lineage.py, symbol: dejinja}]}
+  - {id: S11, split: dev, query: "infer the importance tier of assets that feed critical consumers", relevant: [{path: src/orion/tiers.py, symbol: infer_tiers}]}
+  - {id: S12, split: heldout, query: "compare predicted severity with what actually happened after the change landed", relevant: [{path: src/orion/postflight.py, symbol: calibration}]}
+  - {id: S13, split: dev, query: "find which model a generic test checks from the test's name", relevant: [{path: src/orion/adapters/runs.py, symbol: _guess_tested}]}
+  - {id: S14, split: heldout, query: "show the definitions of functions that the added lines call", relevant: [{path: src/orion/context.py, symbol: callees}]}
+  - {id: S15, split: dev, query: "pick the part of a long file around each hunk for the reviewer", relevant: [{path: src/orion/context.py, symbol: windows}]}
+  - {id: S16, split: heldout, query: "turn the airflow duration text into a python duration", relevant: [{path: src/orion/adapters/runs.py, symbol: parse_timedelta}]}
+  - {id: S17, split: dev, query: "when does the record search index have to be rebuilt", relevant: [{path: src/orion/record/__init__.py, symbol: signature}, {path: src/orion/record/__init__.py, symbol: load_index}]}
+  - {id: S18, split: heldout, query: "breadth first traversal over the consumers of an asset", relevant: [{path: src/orion/store.py, symbol: walk}]}
+  # ---- decisions and incidents (prose)
+  - {id: D1, split: dev, query: "why is raw_events partitioned by event_date", relevant: [{path: fixture/orion/incidents/INC-214.md}, {path: fixture/orion/constraints/CON-014.yaml}]}
+  - {id: D2, split: heldout, query: "what broke the weekly revenue dashboard", relevant: [{path: fixture/orion/incidents/INC-230.md}]}
+  - {id: D3, split: dev, query: "why are daytime backfills not allowed", relevant: [{path: fixture/orion/incidents/INC-241.md}, {path: fixture/orion/constraints/CON-022.yaml}]}
+  - {id: D4, split: heldout, query: "can new models build on the old sessions table", relevant: [{path: fixture/orion/constraints/CON-050.yaml}]}
+  - {id: D5, split: dev, query: "how do I run the test suite", relevant: [{path: README.md, symbol: Running the tests}]}
+  - {id: D6, split: heldout, query: "who has to sign off on churn model feature changes", relevant: [{path: fixture/orion/constraints/CON-061.yaml}]}
+  # ---- about a change (graph-scoped: code import edges)
+  - {id: C1, split: dev, query: "tests for this", changed: [src/orion/codectx.py], relevant: [{path: tests/test_codectx.py}]}
+  - {id: C2, split: heldout, query: "who calls this", changed: [src/orion/credscan.py], relevant: [{path: src/orion/review.py}, {path: src/orion/symbols.py}, {path: tests/test_symbols.py}]}
+  - {id: C3, split: dev, query: "tests for this", changed: [src/orion/symbols.py], relevant: [{path: tests/test_symbols.py}]}
+  - {id: C4, split: heldout, query: "which tests cover this", changed: [src/orion/resolver.py], relevant: [{path: tests/test_fixture_sync.py}, {path: tests/test_preflight.py}]}
+  - {id: C5, split: dev, query: "where is the severity from this used", changed: [src/orion/risk.py], relevant: [{path: src/orion/verdict.py}, {path: src/orion/review.py}]}
+  - {id: C6, split: heldout, query: "what depends on this", changed: [src/orion/lineage.py], relevant: [{path: src/orion/adapters/dbt.py}, {path: src/orion/changes.py}, {path: tests/test_lineage.py}]}
+  # ---- about a change to the data platform (graph-scoped: the fixture's asset graph)
+  - {id: G1, split: dev, graph: true, query: "past incidents", changed: [fixture/dbt_project/models/marts/fct_orders.sql], relevant: [{path: fixture/orion/incidents/INC-230.md}, {path: fixture/orion/incidents/INC-241.md}]}
+  - {id: G2, split: heldout, graph: true, query: "what went wrong here before", changed: [fixture/dbt_project/models/staging/stg_events.sql], relevant: [{path: fixture/orion/incidents/INC-214.md}]}
+  - {id: G3, split: dev, graph: true, query: "rules I must respect", changed: [fixture/dbt_project/models/marts/fct_revenue.sql], relevant: [{path: fixture/orion/constraints/CON-031.yaml}]}
+  - {id: G4, split: heldout, graph: true, query: "is anything planned for this model", changed: [fixture/dbt_project/models/marts/fct_sessions.sql], relevant: [{path: fixture/orion/constraints/CON-050.yaml}]}

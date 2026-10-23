@@ -294,6 +294,37 @@ def history_replay_cmd(
     console.print(f"wrote {out / stem}.json and .md")
 
 
+@app.command("retrieval-eval")
+def retrieval_eval_cmd(
+    models: bool = typer.Option(False, "--models", help="Also run the local-model configurations (sentence-transformers embeddings and cross-encoder; the `embed` extra)."),
+    only: list[str] = typer.Option([], "--only", help="Only these configurations, by name."),
+    runs: int = typer.Option(3, "--runs", help="Runs per configuration, each on a fresh index with a different ingestion order."),
+    split: str | None = typer.Option(None, "--split", help="dev or heldout (default: both)."),
+    config: Path | None = typer.Option(None, "--config", "-c", help="orion.yaml whose fixture graph the data-change queries use."),
+    name: str = typer.Option("retrieval", "--name"),
+    out: Path = typer.Option(RESULTS, "--out"),
+):
+    """Measure retrieval: recall@k, MRR, citation faithfulness and latency per configuration, with the spread over runs. No hosted model is called."""
+    from .retrieval_eval import DEFAULT_CONFIGS, MODEL_CONFIGS, evaluate
+    from .retrieval_eval import report as retrieval_report
+
+    configs = DEFAULT_CONFIGS + (MODEL_CONFIGS if models else [])
+    if only:
+        known = {c.name for c in DEFAULT_CONFIGS + MODEL_CONFIGS}
+        unknown = sorted(set(only) - known)
+        if unknown:
+            console.print(f"[red]unknown configuration {', '.join(unknown)}; known: {', '.join(sorted(known))}[/red]")
+            raise typer.Exit(2)
+        configs = [c for c in DEFAULT_CONFIGS + MODEL_CONFIGS if c.name in only]
+    res = evaluate(configs, runs=runs, config_path=config, split=split)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f"{name}.json").write_text(json.dumps(res, indent=1, default=str))
+    md = retrieval_report(res)
+    (out / f"{name}.md").write_text(md)
+    console.print(md)
+    console.print(f"wrote {out / name}.json and .md")
+
+
 @app.command("mine-introducers")
 def mine_introducers_cmd(
     clone: Path = typer.Argument(..., help="A clone of the repository (a full clone is much faster than a blob-less one)."),
