@@ -24,10 +24,10 @@ The held-out detail is in [heldout-sonnet-5-5-agent.md](heldout-sonnet-5-5-agent
 
 ## What it shows
 
-- **One agent is about four times cheaper than four lenses, and catches fewer bugs.** It files fewer findings (under one warn a case), so recall falls. The four focused passes find different bugs, and one investigator does not make up for that.
+- **One agent is about four times cheaper than four lenses, and catches fewer bugs.** Left to choose its own focus it files fewer findings (under one warn a case), so recall falls. The four focused passes find different bugs, and one investigator does not make up for that.
 - **Left free, the model does not investigate.** On held-out it answered on turn 1 in 44 of 45 cases, with no tool calls. Because of this, the opening turn's schema now has only `calls`.
 - **When forced, it investigates briefly.** Each case had two turns and one to three calls, mostly grep and read. That doubled the tokens. In-file recall was about the same (0.46 against 0.444) and full recall was lower. The two sets differ, though, so this is not a like-for-like comparison.
 
 ## Status and next step
 
-`--agent` stays opt-in (`review.agent: false` by default). The four-lens pipeline remains the default review. The tools, the evidence they make citable and the budgets are in place. The next experiment is investigation inside each lens (`--agent --lens inputs --lens semantics ...`), measured on the tuning set first. Tools could also be given to the second reading, to confirm or reject candidates. Both cost more than one agent, so either has to beat the lenses on recall to be worth it.
+`--agent` stays opt-in (`review.agent: false` by default). The four-lens pipeline remains the default review. The tools, the evidence they make citable and the budgets are in place. The agent also has `code_search`, which searches the change-scoped hybrid code index (`orion.rag`) by words, so it can find related code it cannot name. It is not yet measured. The earlier candidates (investigation inside each lens, and tools for the second reading to confirm or reject candidates) still stand. Like any recall experiment, they continue in the agentic review recall work, are measured on the tuning set first, and have to beat the lenses on recall to be worth their cost.

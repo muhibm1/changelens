@@ -306,3 +306,76 @@ def test_one_turn_is_not_told_about_tools(repo: Path):
     system, user, _ = p.seen[0]
     assert "blast_radius {target}" not in system and "one turn and no tools" in user[-1]
     assert "calls" not in p.schemas[0]["properties"]
+
+
+def test_code_search_finds_code_by_words_and_makes_its_lines_citable(repo: Path, tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    t = Toolbox(repo)
+    out = t.run("code_search", {"query": "sum the amounts of items"})
+    assert "lib.py:" in out and "def total" in out and any(r.startswith("lib.py:") for r in t.observed["ref"])
+    assert ".env" not in out
+
+
+def test_code_search_uses_its_own_index_when_the_shared_one_is_held(repo: Path, tmp_path: Path, monkeypatch):
+    from orion.rag.index import RagIndex
+
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "held.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    real = RagIndex.open
+
+    def held(path=None, **kw):
+        if path is None:
+            raise RuntimeError("the retrieval index is in use by another process")
+        return real(path, **kw)
+
+    monkeypatch.setattr(RagIndex, "open", staticmethod(held))
+    out = Toolbox(repo).run("code_search", {"query": "parse an amount"})
+    assert "lib.py:" in out and list(tmp_path.glob("held-*.duckdb"))
+
+
+def test_code_search_skips_a_hit_past_the_end_of_the_file(repo: Path, tmp_path: Path, monkeypatch):
+    from orion.rag.index import Hit, RagIndex
+
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    stale = Hit("c", "d", "code", "r", "lib.py", 500, 520, "", "", "", "", None, 1.0)
+    monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [stale])
+    out = Toolbox(repo).run("code_search", {"query": "parse an amount"})
+    assert "lib.py:500" not in out and "no code matches" in out
+
+
+def test_code_search_says_when_it_cuts_a_long_block(repo: Path, tmp_path: Path, monkeypatch):
+    from orion.rag.index import Hit, RagIndex
+
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    (repo / "long.py").write_text("".join(f"x{i} = {i}\n" for i in range(100)))
+    long = Hit("c", "d", "code", "r", "long.py", 1, 100, "", "", "", "", None, 1.0)
+    monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [long])
+    out = Toolbox(repo).run("code_search", {"query": "x"})
+    assert "long.py:1-40" in out and "runs to line 100" in out
+
+
+def test_code_search_numbers_lines_as_the_indexer_does(repo: Path, tmp_path: Path, monkeypatch):
+    from orion.rag.index import Hit, RagIndex
+
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    (repo / "ff.py").write_text("a = 1  # \x0c form feed\nb = 2\nc = 3\n")
+    hit = Hit("c", "d", "code", "r", "ff.py", 3, 3, "", "", "", "", None, 1.0)
+    monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [hit])
+    out = Toolbox(repo).run("code_search", {"query": "c"})
+    assert "c = 3" in out
+
+
+def test_code_search_says_how_many_hits_the_output_limit_left_out(repo: Path, tmp_path: Path, monkeypatch):
+    from orion.rag.index import Hit, RagIndex
+
+    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    (repo / "wide.py").write_text("".join(f"x{i} = '{'y' * 150}'\n" for i in range(40)))
+    hits = [Hit("c", "d", "code", "r", "wide.py", 1, 40, "", "", "", "", None, 1.0) for _ in range(3)]
+    monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: hits)
+    out = Toolbox(repo).run("code_search", {"query": "x"})
+    assert "more hits not shown" in out and len(out) < 7000

@@ -20,6 +20,7 @@ decides what to look at and what it thinks, never what counts as evidence or how
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import json
 import re
@@ -51,7 +52,7 @@ HISTORY_MAX = 15
 SHOW_MAX_LINES = 160
 GIT_TIMEOUT = 20
 
-TOOLS = ("read", "grep", "definition", "references", "history", "blast_radius", "search")
+TOOLS = ("read", "grep", "definition", "references", "history", "blast_radius", "search", "code_search")
 COMMIT_RE = re.compile(r"^[0-9a-f]{6,40}$")
 IMPORT_LINE_RE = re.compile(r"^\s*(from\s+\S+\s+import|import\s|.*\brequire\s*\(|use\s|#include)")
 
@@ -62,7 +63,8 @@ TOOL_DOCS = """Tools (each call is {"tool": <name>, "args": {...}}; unused argum
 - references {name}: every use of a name in the repository, by parsed syntax where the language is known (calls, imports, attribute access), with the line.
 - history {path, commit}: without commit, the recent commits that changed path (hash, date, subject); with commit, what that commit changed in path. Use it to see why code is the way it is (an earlier fix the change undoes, a revert).
 - blast_radius {target}: what depends on target. For an asset id (for example "model:fct_orders") the downstream assets from the system graph, with tier and owner. For a file path the assets the change maps it to and the files that import it.
-- search {query}: the record: design notes, decisions, postmortems, incidents and documentation Orion indexed, ranked for the query and the change. Use it to check a constraint or a past incident behind code you are judging."""
+- search {query}: the record: design notes, decisions, postmortems, incidents and documentation Orion indexed, ranked for the query and the change. Use it to check a constraint or a past incident behind code you are judging.
+- code_search {query}: the repository's code ranked for a question in words (for example "where request bodies are parsed" or "retry on timeout"), by keywords, meaning and closeness to the changed files; each hit is a function or block with its lines. Use it when you do not know a name to grep for."""
 
 AGENT_SYSTEM_EXTRA = """You are reviewing as an investigator, not from a fixed bundle. Before you report, look up what you need to be sure: how a changed function is called (references), what a called function really does (definition), what a removed or changed line used to do (read side "old", history), what depends on the changed code or data (blast_radius), and what the record says about it (search). Investigate the places where a bug is most likely: changed conditions and boundaries, changed signatures and defaults, error paths, state shared between calls, and calls into code whose contract you have not seen.
 Do not ask for what is already shown above. Ask for several things at once when they are independent. Stop investigating when more reading would not change a finding.
@@ -468,6 +470,45 @@ class Toolbox:
         except Exception:  # noqa: BLE001 - no record on this machine is ordinary; say nothing was found
             pass
         return "\n\n".join(parts) if parts else "not recorded: nothing in the index or the record matches"
+
+
+    def t_code_search(self, query: str = "") -> str:
+        if not query.strip():
+            return "code_search needs a query"
+        from .rag import index as rag_index
+        from .rag.chunking import _lines
+        from .rag.scope import Scope
+
+        try:
+            idx = rag_index.RagIndex.open()
+        except RuntimeError:  # another review holds the shared index: this checkout gets one of its own
+            shared = rag_index.default_path()  # beside the shared index, in the user's own cache, never a shared temp directory
+            idx = rag_index.RagIndex.open(shared.with_name(f"{shared.stem}-{hashlib.sha1(str(self.root.resolve()).encode()).hexdigest()[:12]}.duckdb"))
+        try:
+            idx.index_checkout(self.root)  # incremental: an unchanged checkout costs one git call
+            repo = rag_index.repo_name(self.root)
+            scope = Scope.from_change(self.store, [f.path for f in self.files], repo=repo, kinds=["code"], repos=[repo])
+            hits = idx.search(query, k=5, scope=scope)
+        finally:
+            idx.close()  # never hold the index's lock between calls
+        out = []
+        for n, h in enumerate(hits):
+            path = self._safe(h.path)
+            text = self._text(path) if path else None
+            if text is None:
+                continue
+            lines = _lines(text)  # numbered as the indexer numbered the hit, on newlines only
+            start, end = max(1, h.start_line), min(len(lines), h.end_line, h.start_line + 39)
+            if start > end:  # a chunk past the file's current end: nothing to show or cite
+                continue
+            head = f"{path}:{start}-{end}" + (f" {h.symbol}" if h.symbol else "") + (f" ({h.why})" if h.why else "")
+            if end < min(len(lines), h.end_line):
+                head += f" (cut; the block runs to line {min(len(lines), h.end_line)}, read it for the rest)"
+            if len(head) + len(f"{start:>5}   {lines[start - 1]}") + 2 > self.room or not self._fits(head):  # a hit shows at least one line or none of it
+                out.append(f"... ({len(hits) - n} more hits not shown: output limit; search more narrowly)")
+                break
+            out.append(head + "\n" + self._numbered(path, lines, start, end))
+        return "\n\n".join(out) if out else f"no code matches {query!r}"
 
 
 @dataclass
