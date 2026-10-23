@@ -5,7 +5,10 @@
 ### Reviews for app projects, on a subscription
 
 - Context for code that is not a data platform: owners from `CODEOWNERS`, sensitive areas from a YAML or JSON file (`--areas file#project`, `review.areas`), and earlier fixes and reverts of the changed files from git. The model sees them as facts it can cite (`area:`, `commit:`, `ref:CODEOWNERS:N`); a change in an area gets a deterministic finding at the area's severity. The review JSON carries them under `context`.
+- A `ref:` to a line of a changed file that the model was shown in full (or in a window around a hunk) is now valid evidence; it used to be removed as not resolving.
+- `orion review --format agent`: a pass or fail with `blocking` and `minor` findings, each with the failing case as `proof` and a `plain` sentence the model writes for a reader who does not read code. A review whose model call failed fails. Uncertain findings and unresolved paths stay apart from the findings.
 - `command` provider: any local command that reads the prompt on stdin and prints the JSON answer. The `claude-code` preset runs `claude -p` with no tools, settings or MCP servers, so a review runs on the plan the CLI is signed in to, with no API key. The evals take `--provider claude-code` too.
+- `recall-eval` scores a case whose review call failed (a usage limit, say) as `error`, not `missed`, and a failed `claude -p` reports its own reason instead of its usage block.
 
 ### Focused review passes
 

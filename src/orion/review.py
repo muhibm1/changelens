@@ -67,8 +67,9 @@ FINDINGS_SCHEMA: dict[str, Any] = {
                     "body": {"type": "string"},
                     "failure": {"type": "string"},
                     "evidence": {"type": "array", "items": {"type": "string"}},
+                    "plain": {"type": "string"},
                 },
-                "required": ["path", "line", "severity", "category", "title", "body", "failure", "evidence"],
+                "required": ["path", "line", "severity", "category", "title", "body", "failure", "evidence", "plain"],
                 "additionalProperties": False,
             },
         }
@@ -84,7 +85,8 @@ Every finding must:
 - point at a path and a line that appear in the diff (the numbers in the left column are new-file line numbers);
 - cite evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference listed under "System facts" or a definition shown under "Definitions this change calls", or an id listed there written exactly as given (`constraint:CON-031`, `incident:INC-230`, `event:ev_...`, `node:model:fct_orders`, `edge:e_...`, `area:PAY-1`, `commit:1a2b3c4d5e6f`);
 - use severity `block` only for a change that should not merge as is, `warn` for one that needs a check or a sign-off, `inform` otherwise;
-- fill `failure` with the concrete case that goes wrong: the input, caller, data or sequence of events, taken from the diff or the facts, and what happens then (for example "a stream of two chunks gets a different ETag than the same body sent as one chunk"). Leave it empty when you cannot name one.
+- fill `failure` with the concrete case that goes wrong: the input, caller, data or sequence of events, taken from the diff or the facts, and what happens then (for example "a stream of two chunks gets a different ETag than the same body sent as one chunk"). Leave it empty when you cannot name one;
+- fill `plain` with one short sentence for a reader who does not read code: what a user of the software would see go wrong, with no code names (for example "A download can be sent again in full when only part of it changed").
 
 A `warn` or `block` needs a `failure`. A worry you cannot tie to a concrete case ("verify this", "may behave differently", "consider", a sequence of events nothing could produce) is at most `inform`. Most code under review is a library, a framework or a service whose callers are not in the repository: a value any caller could pass through a public interface (an argument, a subclass that overrides a method, a header, a path, a form field, a configuration option) is an ordinary case, not an unusual one, and a public function or class that a caller could use as its signature allows is called that way somewhere. Code that is correct as written is not a finding, even when it could be clearer: operator precedence that evaluates as intended, a removed comment, naming, ordering that changes nothing observable.
 
@@ -300,6 +302,7 @@ def _file_context(ctx: ReviewContext, files: list[FileDiff], max_lines: int = FI
     is named as omitted so the model does not take silence for an empty file.
     """
     parts, used = [], 0
+    shown = ctx.known.setdefault("ref", set())  # a line the model was shown is one it may cite as `ref:`
     for f in files:
         text = ctx.new_text.get(f.path)
         if text is None:
@@ -316,6 +319,7 @@ def _file_context(ctx: ReviewContext, files: list[FileDiff], max_lines: int = FI
                 continue
             parts.append(block)
             used += len(block)
+            shown.update(f"{f.path}:{i}" for w in wins for i in range(w.start, w.end + 1))
             continue
         block = f"=== {f.path} (whole file after the change)\n" + "\n".join(f"{i:>5}   {t}" for i, t in enumerate(lines, 1)) + "\n"
         if used + len(block) > max_chars:
@@ -323,6 +327,7 @@ def _file_context(ctx: ReviewContext, files: list[FileDiff], max_lines: int = FI
             continue
         parts.append(block)
         used += len(block)
+        shown.update(f"{f.path}:{i}" for i in range(1, len(lines) + 1))
     return "\n".join(parts)
 
 
@@ -555,6 +560,7 @@ def validate(candidates: list[dict[str, Any]], ctx: ReviewContext) -> list[dict[
             "title": str(raw.get("title") or "").strip()[:200],
             "body": str(raw.get("body") or "").strip()[:2000],
             "failure": str(raw.get("failure") or "").strip()[:500],
+            "plain": str(raw.get("plain") or "").strip()[:300],
             "evidence": [],
             "status": "valid",
             "notes": [],
@@ -777,4 +783,35 @@ def to_markdown(r: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-__all__ = ["FINDINGS_SCHEMA", "SYSTEM", "review", "to_markdown", "validate", "gather", "generate", "deterministic_findings", "json"]
+def to_agent(r: dict[str, Any], head: str | None = None) -> dict[str, Any]:
+    """The review as a pass or fail for a build pipeline or a coding agent: `blocking` is a valid warn or block
+    finding, `minor` a valid inform one. Fails when any finding blocks or when the model review did not run, so a
+    review that could not look is never a pass. Uncertain findings, unresolved paths and files the model did not
+    read are listed apart and are never findings."""
+    out = []
+    if r.get("provider_error"):
+        out.append({"severity": "blocking", "where": "", "detail": f"The model review did not run: {r['provider_error']}. Only deterministic checks ran.", "proof": "", "plain": "The automatic review could not read this change.", "evidence": []})
+    for f in r["findings"]:
+        where = (f"{f['path']}:{f['line']}" if f.get("line") else f["path"]) if f.get("path") else ""
+        out.append({
+            "severity": "blocking" if RANK[f["severity"]] > RANK["inform"] else "minor",
+            "where": where,
+            "detail": f"{f['title']}. {f['body']}".strip() if f.get("body") else f["title"],
+            "proof": f.get("failure") or "",
+            "plain": f.get("plain") or f["title"],
+            "evidence": f["evidence"],
+            "source": f["source"],
+        })
+    if r.get("omitted"):
+        out.append({"severity": "minor", "where": ", ".join(r["omitted"]), "detail": "Too large for one model call, so only deterministic checks read these files.", "proof": "", "plain": "Some files were too large for the automatic review to read.", "evidence": [], "source": "orion"})
+    return {
+        "head": head,
+        "verdict": "fail" if any(f["severity"] == "blocking" for f in out) else "pass",
+        "findings": out,
+        "uncertain": [{"where": f"{f['path']}:{f['line']}" if f.get("line") else f.get("path") or "", "detail": f["title"], "notes": f["notes"]} for f in r["uncertain"]],
+        "unresolved": r["unresolved"],
+        "review_id": r["review_id"],
+    }
+
+
+__all__ = ["FINDINGS_SCHEMA", "to_agent", "SYSTEM", "review", "to_markdown", "validate", "gather", "generate", "deterministic_findings", "json"]

@@ -4,8 +4,9 @@
 where the review stands against that, measured on bugs it was never tuned on, and what the numbers rest on.
 
 **The short answer: 60% on held-out bugs, short of the 80% floor.** Focused review passes more than doubled
-recall on the same model (18% to 42% on the tuning set). Every number here comes from Claude Haiku 5.5,
-because the credit available for this round was $2.77. Sonnet and Opus were not run.
+recall on the same model (18% to 42% on the tuning set). Most numbers here come from Claude Haiku 5.5,
+because the credit available for this round was $2.77. A later single run on Sonnet 5.5 through the harness,
+on a subscription, also reached 60% on the held-out set, with more context in its prompt than the Haiku runs had (section below). Opus was not run.
 
 ## What changed in the review
 
@@ -59,6 +60,28 @@ Claude Haiku 5.5, review passes at `medium` effort, one run per row.
 | four passes (`heldout-haiku-5-5-passes`) | held-out 45 | 26 | 9 | 2 | 8 | 0.58 | 0.78 | $0.42 |
 | four passes, stricter second reading (`heldout-haiku-5-5-passes-final`) | held-out 45 | 27 | 9 | 3 | 6 | **0.60** | **0.80** | $0.44 |
 
+## Sonnet 5.5 through the harness (2026-10-20)
+
+The same four passes on Claude Sonnet 5.5, run with `--provider claude-code`: through `claude -p` on a subscription, with no API key and no API spend. Unlike the Haiku rows, the files' CODEOWNERS owners (where a repository has the file) and their fix history were in the prompt (#38); no areas file was set. The history is read from the review's base, the parent of the commit that introduced the bug, so the later upstream fix is never in it. Judged by Sonnet 5.5. One run.
+
+Read it with three caveats. The reviewer and the judge are the same model, as in the Haiku rows; the judge
+only decides whether a finding near the labelled line describes the bug, and the outcome (warn or inform) comes
+from the review, not the judge. The prompt carried more context than the Haiku runs, so the two rows differ in
+more than the model. And it is one run, where two runs of one build differ by a few cases. The severity
+reading below is where to look next, not a measured cause.
+
+| build | set | caught | in file | inform only | missed | recall | recall in file | warns per case |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| four passes (`heldout-sonnet-claude-code`) | held-out 45 | 27 | 7 | 7 | 4 | **0.60** | 0.76 | 1.73 |
+
+Recall is the same as Haiku's. What changed is where the misses sit. In 7 cases (`inform only`) Sonnet named the bug at its line but only at `inform`: gin's Hijack after headers only, `Unwrap` on the pointer type, echo's WebSocket X-Forwarded-For and h3's case-sensitive extension lookup among them, all four of which Haiku missed outright. One `in file` case (h3 080bf53d69) also named the bug at `inform`; scoring takes caught first, then in file, then inform only, and an unrelated warning sat in the same file. Only 4 bugs are missed outright (ky twice, h3's query decoding, express's `Buffer.byteLength`). On Sonnet, then, the likely lever is severity: the model or the second reading calling a real, concrete failure `inform`. That is a hypothesis from one run, to be tested over three. The run took about 17 minutes with `--jobs 4`.
+
+Five cases record an empty `judge_usage`: no finding sat near the labelled lines, so there was nothing to judge
+and the case is `missed` or `in_file` without a model call. Several matched findings carry a note that a `ref:`
+evidence line was removed because it did not resolve; each still has a location and its diff evidence. The
+removed refs point at lines in the full-file context the review shows, which the evidence check of the build that
+made this run did not accept. This change fixes that: a `ref:` to a shown line of a changed file is now valid evidence.
+
 For comparison, Sonnet 5.5 with one pass caught 21 of 50 on the tuning set under the word judge
 (`recall.md`). The word judge credits several cases this judge does not.
 
@@ -107,4 +130,5 @@ pipelinebench recall-eval --workdir <dir> --provider anthropic --model claude-ha
 pipelinebench recall-eval --workdir <dir> --cases pipelinebench/review/heldout.yaml --provider anthropic --model claude-haiku-5-5 --judge-model claude-haiku-5-5 --jobs 4
 pipelinebench recall-eval --workdir <dir> --rejudge <dir>/raw --provider anthropic --judge-model claude-haiku-5-5   # judge again, no reviews
 pipelinebench recall-eval ... --review-arg=--lens --review-arg=general   # the single-pass baseline
+pipelinebench recall-eval --workdir <dir> --cases pipelinebench/review/heldout.yaml --provider claude-code --model claude-sonnet-5-5 --judge-model claude-sonnet-5-5 --jobs 4 --raw-dir <dir>/raw-sonnet --name heldout-sonnet-claude-code   # Sonnet on a subscription; CODEOWNERS and fix history are on by default
 ```

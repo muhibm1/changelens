@@ -11,7 +11,7 @@ from orion import providers
 from orion.constraints import load_constraints
 from orion.diffparse import parse, render
 from orion.providers import AnthropicProvider, OpenAICompatibleProvider, ProviderError, StubProvider, make_provider
-from orion.review import FINDINGS_SCHEMA, LENSES, merge_candidates, review, to_markdown
+from orion.review import FINDINGS_SCHEMA, LENSES, merge_candidates, review, to_agent, to_markdown
 from orion.risk import RiskModel
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -645,3 +645,75 @@ def test_a_second_reading_rejects_a_repeat_of_an_earlier_finding(synced_store, c
     assert [f["title"] for f in r["findings"] if f["source"] == "model"] == ["shell=True with caller input"]
     assert [f["title"] for f in r["rejected"]] == ["Command injection through the name argument", "Shell metacharacters in name run commands"], "a repeat of a repeat is a repeat too"
     assert all("shell=True with caller input" in f["notes"][-1] for f in r["rejected"])
+
+
+def test_the_agent_format_is_a_pass_or_fail_with_plain_sentences(synced_store, constraints):
+    stub = StubProvider({"findings": [
+        {"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "shell=True with caller input", "body": "Command injection.", "failure": "run('x; rm -rf ~') runs the second command", "evidence": ["hunk:app/service.py:5"], "plain": "Someone can run their own commands on the server."},
+        {"path": "app/service.py", "line": 1, "severity": "inform", "category": "maintainability", "title": "Unused import", "body": "x", "failure": "", "evidence": ["hunk:app/service.py:1"], "plain": ""},
+        {"path": "app/service.py", "line": 1, "severity": "inform", "category": "maintainability", "title": "Owned by team/payments", "body": "invented", "failure": "", "evidence": ["constraint:CON-999"], "plain": ""},
+    ]})
+    r = _review(synced_store, constraints, APP_DIFF, stub)
+    a = to_agent(r, "abc123")
+    assert a["head"] == "abc123" and a["verdict"] == "fail"
+    blocking, minor = a["findings"]
+    assert blocking == {"severity": "blocking", "where": "app/service.py:5", "detail": "shell=True with caller input. Command injection.", "proof": "run('x; rm -rf ~') runs the second command", "plain": "Someone can run their own commands on the server.", "evidence": ["hunk:app/service.py:5"], "source": "model"}
+    assert minor["severity"] == "minor" and minor["plain"] == "Unused import", "no plain sentence falls back to the title"
+    assert [u["detail"] for u in a["uncertain"]] == ["Owned by team/payments"], "a finding without valid evidence is never one of the findings"
+    assert "plain" in FINDINGS_SCHEMA["properties"]["findings"]["items"]["required"]
+
+
+def test_the_agent_format_never_passes_a_review_the_model_could_not_run(synced_store, constraints):
+    class Broken:
+        name = "broken"
+
+        def complete_json(self, *a, **k):
+            raise ProviderError("HTTP 500")
+
+    a = to_agent(_review(synced_store, constraints, APP_DIFF, Broken()))
+    assert a["verdict"] == "fail" and "did not run" in a["findings"][0]["detail"]
+    clean = to_agent(_review(synced_store, constraints, APP_DIFF, StubProvider({"findings": []})))
+    assert clean["verdict"] == "pass" and clean["findings"] == []
+
+
+def test_cli_agent_format_and_unknown_formats(tmp_path, monkeypatch):
+    import subprocess
+
+    from typer.testing import CliRunner
+
+    from orion.cli import app
+
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "a.py").write_text("x = 1\n")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "a"], check=True)
+    (tmp_path / "a.py").write_text("x = 2\n")
+    head = subprocess.run(["git", "-C", str(tmp_path), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    monkeypatch.chdir(tmp_path)
+    res = CliRunner().invoke(app, ["review", "--git", "HEAD", "--provider", "stub", "--format", "agent"])
+    assert res.exit_code == 0, res.output
+    out, _ = json.JSONDecoder().raw_decode(res.output[res.output.index("{"):])  # the "no orion.yaml" note goes to stderr
+    assert out["head"] == head and out["verdict"] == "pass"
+    bad = CliRunner().invoke(app, ["review", "--git", "HEAD", "--provider", "stub", "--format", "agnet"])
+    assert bad.exit_code != 0
+
+
+def test_a_line_of_the_shown_file_is_valid_ref_evidence(synced_store, constraints):
+    new = "def a():\n    return 1\n\n\ndef b(x):\n    return x * 2\n\n\nLIMIT = 10\n"
+    diff = """diff --git a/app/m.py b/app/m.py
+--- a/app/m.py
++++ b/app/m.py
+@@ -5,2 +5,2 @@
+ def b(x):
+-    return x
++    return x * 2
+"""
+    finding = {"path": "app/m.py", "line": 6, "severity": "warn", "category": "correctness", "title": "b now doubles past LIMIT", "body": "x", "failure": "b(6) gives 12, over LIMIT", "evidence": ["ref:app/m.py:9", "ref:app/m.py:99"], "plain": "p"}
+
+    def run(**kw):
+        return review(synced_store, ROOT, StubProvider({"findings": [dict(finding)]}), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, new_files={"app/m.py": new}, second_reading=False, **kw)
+
+    shown = [f for f in run()["findings"] if f["source"] == "model"][0]
+    assert shown["evidence"] == ["ref:app/m.py:9"], "line 9 was shown to the model; line 99 does not exist"
+    hidden = run(file_context=False)
+    assert not [f for f in hidden["findings"] if f["source"] == "model"], "without the file shown, the ref does not resolve"

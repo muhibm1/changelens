@@ -348,7 +348,7 @@ def review(
     diff_file: Path | None = typer.Option(None, "--diff-file", help="Review a unified diff from a file ('-' for stdin)."),
     provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai | command | claude-code (default from orion.yaml). claude-code answers through `claude -p` on the plan it is signed in to."),
     model: str | None = typer.Option(None, "--model"),
-    fmt: str = typer.Option("text", "--format", help="text | json | markdown"),
+    fmt: str = typer.Option("text", "--format", help="text | json | markdown | agent (pass or fail with blocking and minor findings, for a build pipeline)"),
     post_github: str | None = typer.Option(None, "--post-github", help="Also post the review to this pull request as OWNER/REPO#NUMBER (token from GH_TOKEN or GITHUB_TOKEN)."),
     head_sha: str | None = typer.Option(None, "--head-sha", help="With --post-github: the pull request's head commit (default: the working tree's HEAD)."),
     intent: str | None = typer.Option(None, "--intent", help="What the change is meant to do (a PR title and body). Default with --git: the commit messages since the base."),
@@ -371,6 +371,8 @@ def review(
 
     if not git and not diff_file:
         raise typer.BadParameter("give --git <base> or --diff-file <path>")
+    if fmt not in ("text", "json", "markdown", "agent"):
+        raise typer.BadParameter("--format takes text, json, markdown or agent")
     if post_github and not re.fullmatch(r"[\w.-]+/[\w.-]+#\d+", post_github.strip()):
         raise typer.BadParameter("--post-github takes OWNER/REPO#NUMBER")  # checked before any paid model call
     from .config import OrionConfig, repo_root
@@ -410,6 +412,13 @@ def review(
         typer.echo(_json(r))
     elif fmt == "markdown":
         typer.echo(review_md(r))
+    elif fmt == "agent":
+        import subprocess
+
+        from .review import to_agent
+
+        head = subprocess.run(["git", "-C", str(cfg.root), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() if git else ""
+        typer.echo(_json(to_agent(r, head or None)))
     else:
         colour = {"block": "red", "warn": "yellow", "inform": "green"}[r["severity"]]
         console.print(f"[bold {colour}]{r['severity'].upper()}[/bold {colour}]  {len(r['findings'])} findings  provider {escape(r['provider'])}  {r['review_id']}")

@@ -283,7 +283,7 @@ class CommandProvider:
                 except subprocess.TimeoutExpired as e:
                     raise ProviderError(f"{args[0]} gave no answer within {self.timeout:.0f}s") from e
             if done.returncode != 0:
-                last = ProviderError(f"{args[0]} exited {done.returncode}: {(done.stderr or done.stdout).strip()[:300]}")
+                last = ProviderError(f"{args[0]} exited {done.returncode}: {_exit_reason(done.stdout, done.stderr)[:300]}")
                 continue
             return self._answer(done.stdout)
         raise last or ProviderError(f"{args[0]} failed")
@@ -340,3 +340,15 @@ def make_provider(spec: str | None, *, model: str | None = None, base_url: str |
     if spec == "claude-code":
         return CommandProvider(CLAUDE_CODE_COMMAND, model=model, effort=effort, label="claude-code", isolate=True)  # review.command is the `command` provider's, never this one's
     raise ProviderError(f"unknown provider {spec}; use stub, anthropic, openai, command or claude-code")
+
+
+def _exit_reason(stdout: str, stderr: str) -> str:
+    """Why a command failed. ``claude -p --output-format json`` prints its reason (a usage limit, say) in ``result``,
+    after a long usage block that would otherwise fill the whole message."""
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError:
+        data = None
+    if isinstance(data, dict) and (data.get("result") or data.get("subtype")):
+        return str(data.get("result") or data.get("subtype")).strip()
+    return (stderr or stdout).strip()

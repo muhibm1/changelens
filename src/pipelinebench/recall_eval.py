@@ -107,8 +107,8 @@ def judge(case: Case, result: dict[str, Any], judged: set[int] | None = None) ->
     near_inform = [f for f in findings if f["severity"] == "inform" and about(f) and any(s.near(f["path"], f.get("line") or 0) for s in case.expect)]
     in_file = [f for f in warns if any(f["path"] == s.path for s in case.expect)]
     outcome = "caught" if near_warn else "in_file" if in_file else "inform_only" if near_inform else "missed"
-    if result.get("error"):
-        outcome = "error"
+    if result.get("error") or result.get("provider_error"):
+        outcome = "error"  # a review that did not run in full measures nothing; it is not a miss
     return {
         "repo": case.repo,
         "commit": case.commit,
@@ -223,6 +223,16 @@ def _cell(text: str) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ")
 
 
+LEGEND = (
+    "Outcomes, scored in this order: **caught**, a warn or block finding near the labelled lines that names the bug; "
+    "**in_file**, a warn or block finding in the bug's file about something else; **inform_only**, the bug named near its "
+    "lines only at `inform`; **missed**, none of these. The finding column shows the first finding that names the bug, at "
+    "its own severity, or the warnings of an in_file row that has none. A case with no finding near the labelled lines is "
+    "not sent to the judge, so its `judge_usage` is empty. Finding text is capped (`failure` at 500 characters, a note's "
+    "reason at 300), so a long one ends mid-word."
+)
+
+
 def to_markdown(res: dict[str, Any]) -> str:
     s = res["summary"]
     label = f"`{res['provider']}{':' + res['model'] if res['model'] else ''}`" + (f" with `{' '.join(res['args'])}`" if res.get("args") else "")
@@ -231,7 +241,7 @@ def to_markdown(res: dict[str, Any]) -> str:
     for k in ("cases", "errors", "caught", "in_file", "inform_only", "missed", "recall", "recall_in_file", "warns_per_case", "tokens_in", "tokens_cache_write", "tokens_cache_read", "tokens_out"):
         if k in s:
             lines.append(f"| {k.replace('_', ' ')} | {s[k]} |")
-    lines += ["", "| repo | commit | bug | outcome | finding |", "| --- | --- | --- | --- | --- |"]
+    lines += ["", LEGEND, "", "| repo | commit | bug | outcome | finding |", "| --- | --- | --- | --- | --- |"]
     for r in res["cases"]:
         m = r["matched"][0] if r["matched"] else None
         found = f"{m['severity']} `{m['path']}:{m['line']}` {_cell(m['title'])}" if m else ("; ".join(_cell(t) for t in r["warn_titles"]) if r["outcome"] == "in_file" else "")

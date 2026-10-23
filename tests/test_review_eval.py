@@ -110,3 +110,7 @@ def test_recall_model_judge_counts_only_findings_it_says_are_about_the_bug():
     none = judge_one(case, result, StubProvider({"matches": [], "reason": "neither"}))
     assert none["outcome"] == "in_file", "a warning in the file about something else is not a catch"
     assert judge_one(case, result)["judge"] == "words"
+    assert judge_one(case, {**result, "provider_error": "claude exited 1"})["outcome"] == "error", "a review that did not run in full is not a miss"
+    from pipelinebench.recall_eval import summarise, to_markdown
+    md = to_markdown({"provider": "stub", "model": None, "cases": [row], "summary": summarise([row])})
+    assert "scored in this order" in md and "| r | `abc` |" in md, "the page says what each outcome means"

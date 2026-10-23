@@ -199,6 +199,8 @@ args = sys.argv[1:]
 prompt = sys.stdin.read()
 if "--fail" in args:
     print("signed out", file=sys.stderr); sys.exit(3)
+if "--limit" in args:
+    print(json.dumps({"type": "result", "usage": {"output_tokens": 0, "server_tool_use": {"web_search_requests": 0}} | {f"pad{i}": 0 for i in range(40)}, "result": "You've hit your limit"})); sys.exit(1)
 answer = {"findings": [], "args": args, "prompt": prompt}
 if "--plain" in args:
     print("Here you go:\n" + json.dumps(answer)); sys.exit(0)
@@ -241,6 +243,8 @@ def test_a_command_runs_where_orion_runs_unless_isolated(agent, tmp_path, monkey
 def test_command_provider_errors_are_provider_errors(agent, monkeypatch):
     with pytest.raises(ProviderError, match="exited 3: signed out"):
         CommandProvider([*agent, "--fail"], retries=0).complete_json("s", "u", {})
+    with pytest.raises(ProviderError, match="exited 1: You've hit your limit"):
+        CommandProvider([*agent, "--limit"], retries=0).complete_json("s", "u", {})
     with pytest.raises(ProviderError, match="reported an error: credit too low"):
         CommandProvider([*agent, "--error"]).complete_json("s", "u", {})
     with pytest.raises(ProviderError, match="not found"):
