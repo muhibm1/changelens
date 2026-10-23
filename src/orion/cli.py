@@ -359,6 +359,8 @@ def review(
     lens: list[str] = typer.Option([], "--lens", help="A focused review pass (inputs, semantics, flow, contracts; repeatable). `general` alone means one unfocused pass. Default: review.lenses in orion.yaml, else all four."),
     areas: str | None = typer.Option(None, "--areas", help="Sensitive areas of the code: a YAML or JSON file, `file#project` for one project's list. Default: review.areas in orion.yaml."),
     history: bool = typer.Option(True, "--history/--no-history", help="Show the model earlier fixes and reverts of the changed files, from git."),
+    agent: bool | None = typer.Option(None, "--agent/--no-agent", help="Agentic review: the model reads files, searches, follows definitions and references, git history, blast radius and the record before it reports. One agent looks for every kind of failure unless --lens names passes. Default: review.agent in orion.yaml (off)."),
+    agent_steps: int | None = typer.Option(None, "--agent-steps", min=1, max=30, help="Turns per agent run, the last of which must answer. Default: review.agent_steps in orion.yaml, else 6."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -397,7 +399,9 @@ def review(
         area_list = load_areas(areas, Path.cwd()) if areas else load_areas(rc.areas, cfg.root) if rc.areas else []
     except AreasError as e:
         raise typer.BadParameter(str(e)) from e
-    chosen = lens or rc.lenses
+    agentic = rc.agent if agent is None else agent
+    # review.lenses is for the pipeline; an agent looks for every kind of failure unless the flag names passes
+    chosen = lens or ([] if agentic else rc.lenses)
     lenses = None if chosen is None else [x for x in chosen if x != "general"]  # `general` alone means one unfocused pass, from the flag or the config
     if unknown := [x for x in (lenses or []) if x not in LENSES]:
         raise typer.BadParameter(f"unknown lens {', '.join(unknown)}; use {', '.join(LENSES)} or general")
@@ -405,7 +409,7 @@ def review(
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses, areas=area_list, history=history)
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses, areas=area_list, history=history, agent=agentic, agent_steps=agent_steps or rc.agent_steps)
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":

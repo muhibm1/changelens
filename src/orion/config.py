@@ -52,6 +52,8 @@ class ReviewConfig(BaseModel):
     verify_effort: str | None = "high"  # effort for the second reading (Anthropic); None means ``effort``
     effort: str | None = None  # how hard an Anthropic model thinks: low | medium | high | xhigh | max (default medium)
     lenses: list[str] | None = None  # focused review passes (orion.review.LENSES); default all, [] for one general pass
+    agent: bool = False  # the model investigates with read-only tools before it reports (orion.review_agent)
+    agent_steps: int | None = Field(None, ge=1, le=30)  # turns per agent run (default orion.review_agent.MAX_STEPS); bounded like --agent-steps
 
 
 class Adapters(BaseModel):
