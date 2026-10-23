@@ -159,7 +159,7 @@ def grade(case: Case, r: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, second_reading: bool = True, verifier: Provider | None = None, progress=None) -> dict[str, Any]:
+def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: Path, constraints: list[Constraint], risk_model: RiskModel, scope: list[str] | None = None, ignore: list[str] | None = None, repeat: int = 1, file_context: bool = True, second_reading: bool = True, verifier: Provider | None = None, escalation: str = "evidence", progress=None) -> dict[str, Any]:
     rows = []
     # Reference searches run against an empty repository plus each case's own files, so the eval
     # never finds the symbol it planted mentioned in this repository's tests or results.
@@ -171,7 +171,7 @@ def run_eval(cases: list[Case], provider: Provider, *, store: Store, repo_root: 
         search_root = Path(tmp)
         for n in range(repeat):
             for c in cases:
-                r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, repo_files=c.repo_files, search_root=search_root, file_context=file_context, intent=c.intent, second_reading=second_reading, verifier=verifier)
+                r = review(store, repo_root, provider, constraints=constraints, risk_model=risk_model, diff_text=c.diff(), scope=scope, ignore=ignore, new_files={ch.file: ch.after for ch in c.changes}, repo_files=c.repo_files, search_root=search_root, file_context=file_context, intent=c.intent, second_reading=second_reading, verifier=verifier, escalation=escalation)
                 g = grade(c, r) | {"run": n}
                 rows.append(g)
                 if progress:

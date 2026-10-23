@@ -361,6 +361,9 @@ def review(
     history: bool = typer.Option(True, "--history/--no-history", help="Show the model earlier fixes and reverts of the changed files, from git."),
     agent: bool | None = typer.Option(None, "--agent/--no-agent", help="Agentic review: the model reads files, searches, follows definitions and references, git history, blast radius and the record before it reports. One agent looks for every kind of failure unless --lens names passes. Default: review.agent in orion.yaml (off)."),
     agent_steps: int | None = typer.Option(None, "--agent-steps", min=1, max=30, help="Turns per agent run, the last of which must answer. Default: review.agent_steps in orion.yaml, else 6."),
+    escalation: str | None = typer.Option(None, "--escalation", help="evidence: a model finding stays at warn or block only when recorded system context backs it (constraint, downstream reader, incident, sensitive area, revert history, outside caller); model: keep the model's severity. Default: review.escalation in orion.yaml (evidence)."),
+    complex_model: str | None = typer.Option(None, "--complex-model", help="Model for the lens passes when the diff changes review.complex_lines lines or more (same provider). Default: review.complex_model in orion.yaml (none: always --model)."),
+    cache: bool = typer.Option(True, "--cache/--no-cache", envvar="ORION_REVIEW_CACHE", help="Reuse a model answer for a call seen exactly before (same prompt, context, diff, model). Kept in the store, or in the user cache folder for a general review. Evals measuring spread turn it off."),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
     """Review a diff: deterministic findings from the graph, model findings checked against evidence."""
@@ -389,6 +392,8 @@ def review(
     try:
         prov = make_provider(provider or rc.provider, model=model or rc.model, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort or rc.effort, command=rc.command)
         verifier = _verifier(rc, provider, model, verify_model, effort, verify_effort)
+        cm = complex_model or rc.complex_model
+        complex_prov = make_provider(provider or rc.provider, model=cm, base_url=rc.base_url, api_key_env=rc.api_key_env, effort=effort or rc.effort, command=rc.command) if cm else None
     except ProviderError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(2) from e
@@ -405,11 +410,16 @@ def review(
     lenses = None if chosen is None else [x for x in chosen if x != "general"]  # `general` alone means one unfocused pass, from the flag or the config
     if unknown := [x for x in (lenses or []) if x not in LENSES]:
         raise typer.BadParameter(f"unknown lens {', '.join(unknown)}; use {', '.join(LENSES)} or general")
+    from .review import ESCALATION_POLICIES
+
+    policy = escalation or rc.escalation
+    if policy not in ESCALATION_POLICIES:
+        raise typer.BadParameter(f"--escalation takes {' or '.join(ESCALATION_POLICIES)}")
     diff_text = None
     if diff_file:
         diff_text = sys.stdin.read() if str(diff_file) == "-" else diff_file.read_text()
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses, areas=area_list, history=history, agent=agentic, agent_steps=agent_steps or rc.agent_steps)
+    r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), base_ref=git, diff_text=diff_text, scope=_scope(cfg), ignore=["*"] if general else _ignore(cfg), intent=intent, second_reading=rc.second_reading if second_reading is None else second_reading, verifier=verifier, lenses=lenses, areas=area_list, history=history, escalation=policy, cache=_review_cache(store, general) if cache else None, warehouse=cfg.path(rc.warehouse) if rc.warehouse and not general else None, complex_provider=complex_prov, complex_lines=rc.complex_lines, agent=agentic, agent_steps=agent_steps or rc.agent_steps)
     if post_github:
         _post_github(post_github, head_sha, cfg.root, r, review_md(r), prov.name == "stub")
     if fmt == "json":
@@ -444,6 +454,24 @@ def review(
         if r.get("usage"):
             u = r["usage"]
             console.print(f"  [dim]tokens in {u.get('input_tokens', u.get('prompt_tokens'))} out {u.get('output_tokens', u.get('completion_tokens'))}[/dim]")
+
+
+def _review_cache(store: Store, general: bool) -> Store | None:
+    """The store that keeps cached model answers: the platform's own, or for a general review one in the user's
+    cache folder. A cache another review holds open is skipped, never waited on."""
+    if not general:
+        return store
+    import os
+    import sys
+
+    import duckdb
+
+    base = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "orion"
+    try:
+        return Store(base / "review-cache.duckdb")
+    except (duckdb.Error, OSError) as e:
+        print(f"orion review: model answers not cached ({e})", file=sys.stderr)
+        return None
 
 
 def _event_head_sha() -> str | None:

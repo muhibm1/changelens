@@ -214,6 +214,84 @@ def _schema_entries(doc: Any) -> dict[str, dict[str, Any]]:
     return out
 
 
+NOT_SELECTED = "column documented but not selected"
+
+
+def _produced(sql: str, name: str, schema: dict[str, dict[str, str]]) -> set[str] | None:
+    """The columns a model's SQL produces, or None when that is not known for certain (Jinja standing for columns, a
+    star over a table the graph has no columns for, SQL that does not parse)."""
+    try:
+        cols = output_columns(dejinja(sql, name), schema)
+    except Exception:  # noqa: BLE001 - unknown, so nothing is raised
+        return None
+    # a star left unexpanded, or a column Jinja stood in for (`select null`), means the list is not the whole truth
+    if not cols or any(c == "*" or c.lower() == "null" or c.startswith("_col_") for c in cols):
+        return None
+    return {c.lower() for c in cols}
+
+
+def _column_line(lines: list[str], entry: str, col: str) -> int | None:
+    """The 1-based line documenting ``col`` under schema entry ``entry``: ``- name: col``, or an alias (``- *x``) to an
+    anchored column whose name is ``col``."""
+    named = re.compile(r"^(\s*)-\s*name:\s*['\"]?([^'\"#\s]+)")
+    anchors = {}
+    for i, ln in enumerate(lines):
+        for a in re.findall(r"&([\w-]+)", ln):
+            m = next((re.search(r"name:\s*['\"]?([^'\"#\s]+)", x) for x in lines[i : i + 4] if re.search(r"name:", x)), None)
+            if m:
+                anchors[a] = m.group(1)
+    start = next((i for i, ln in enumerate(lines) if (m := named.match(ln)) and m.group(2) == entry), None)
+    if start is None:
+        return None
+    indent = len(named.match(lines[start]).group(1))
+    for i in range(start + 1, len(lines)):
+        ln = lines[i]
+        if (m := named.match(ln)) and len(m.group(1)) <= indent:
+            break  # the next entry
+        if (m and m.group(2) == col) or ((a := re.match(r"^\s*-\s*\*([\w-]+)\s*$", ln)) and anchors.get(a.group(1)) == col):
+            return i + 1
+    return None
+
+
+def ops_for_unselected_columns(store: Store, resolver: PathResolver, repo_root: Path, path: str, old_text: str | None, new_text: str | None, changed: dict[str, str | None]) -> list[ChangeOp]:
+    """A column a schema .yml change adds to a model's documentation that the model's SQL (as of this change) does
+    not produce: its tests and docs describe a column the built table will not have. Only raised when the SQL's
+    output columns are known for certain."""
+    try:
+        old, new = (yaml.safe_load(old_text) if old_text else {}), (yaml.safe_load(new_text) if new_text else {})
+    except yaml.YAMLError:
+        return []
+    old_entries, new_entries = _schema_entries(old), _schema_entries(new)
+    lines = (new_text or "").splitlines()
+    ops: list[ChangeOp] = []
+    schema: dict[str, dict[str, str]] | None = None
+    for name, m in new_entries.items():
+        o_cols = {str(c["name"]).lower() for c in (old_entries.get(name) or {}).get("columns", []) or [] if isinstance(c, dict) and "name" in c}
+        added = {str(c["name"]): bool(c.get("tests") or c.get("data_tests") or c.get("constraints")) for c in m.get("columns", []) or [] if isinstance(c, dict) and "name" in c and str(c["name"]).lower() not in o_cols}
+        if not added:
+            continue
+        r = resolve_ref(store, name)
+        node = store.node(r.node_id) if r.ok and r.method != "fuzzy" else None
+        if not node or node["kind"] != "model" or not (sql_path := node["properties"].get("path", "")).endswith(".sql"):
+            continue
+        schema = _graph_schema(store) if schema is None else schema
+        if sql_path in changed:
+            sql = changed[sql_path]
+        else:
+            f = repo_root / sql_path
+            sql = f.read_text(errors="replace") if f.is_file() else None
+        produced = _produced(sql, node["name"], schema) if sql else None
+        if produced is None:
+            continue
+        enforced = bool(node["properties"].get("contract")) or bool(((m.get("config") or {}).get("contract") or {}).get("enforced"))
+        for col, tested in added.items():
+            if col.lower() in produced:
+                continue
+            line = _column_line(lines, name, col)
+            ops.append(ChangeOp("change_metadata", r.node_id, col, {"field": NOT_SELECTED, "path": path, "line": line, "sql_path": sql_path, "breaks": "tests" if tested else "contract" if enforced else None}, [f"diff:{path}"]))
+    return ops
+
+
 def ops_from_yaml_change(resolver: PathResolver, store: Store, path: str, old_text: str | None, new_text: str | None, missing: list[str] | None = None) -> list[ChangeOp]:
     """One op per schema entry the diff changed, so editing one model's tests in a shared .yml does not
     touch every model the file documents. Falls back to every asset at the path when no entry is named."""
@@ -274,6 +352,9 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
         return ops, unresolved
     if path.endswith(".sql") and (tested := resolver.tested_by(path)):
         return [ChangeOp("change_metadata", a, details={"field": "singular test"}, evidence=[f"diff:{path}"]) for a in tested], unresolved
+    if path.endswith(".sql") and not assets and (users := resolver.macro_users(path)):
+        # A project macro: every model that calls it compiles to different SQL, so each is modified.
+        return [ChangeOp("modify", a, details={"note": f"calls the changed macro file {Path(path).name}"}, evidence=[f"diff:{path}"]) for a in users], unresolved
     if path.endswith(".sql"):
         if not assets:
             unresolved.append({"path": path, "reason": missing})
@@ -487,6 +568,11 @@ def collect_changes(
         for op in file_ops:
             cs.add(op)
         cs.unresolved.extend(unresolved)
+    changed = {p: new for p, _, new in changes}
+    for path, old, new in changes:
+        if path.endswith((".yml", ".yaml")) and new is not None:
+            for op in ops_for_unselected_columns(store, resolver, repo_root, path, old, new, changed):
+                cs.add(op)
     _settle_removed_entries(cs, changes, renames)
     if paths:
         cs.source = cs.source or "paths"

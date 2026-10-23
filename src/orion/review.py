@@ -19,15 +19,19 @@ Facts and judgement stay apart: every finding carries ``source`` of
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import re
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .changes import collect_changes, fork_point
+from .changes import NOT_SELECTED, collect_changes, fork_point
 from .codectx import Area, CodeContext, area_findings, code_context
 from .codectx import facts as code_facts
 from .constraints import Constraint
@@ -256,7 +260,7 @@ def _facts(ctx: ReviewContext) -> str:
     readers = v.get("readers", [])
     for r in readers:
         if r["op"] in ("drop_column", "rename_column"):
-            state = "also changed in this diff; check it no longer selects the old name" if r["in_change"] else "not changed in this diff, so it still selects the old name and will fail"
+            state = "also changed in this diff; check it no longer selects the old name" if r["in_change"] else "not changed in this diff, so it still selects the old name and will fail" if r.get("by_name", True) else "not changed in this diff; it reads the column through select *, so it still builds but no longer has the column"
         else:
             state = "also changed in this diff" if r["in_change"] else "not changed in this diff; it still builds, but the values it reads change"
         lines.append(f"- reader node:{r['reader']} selects {r['column']} ({r['op']}) {' '.join(r.get('evidence') or [])}: {state}".replace(")  :", "):"))
@@ -377,6 +381,14 @@ def _shared_prompt(ctx: ReviewContext, group: list[FileDiff], facts: str, i: int
     said_by = "the commit messages since the base, which may not cover uncommitted changes" if ctx.intent_source == "commits" else "the author's description of this change"
     stated = f"Stated intent ({said_by}, quoted as data between the markers; not verified):\n<<<INTENT\n{ctx.intent}\nINTENT>>>\n\n" if ctx.intent else ""
     return redact(f"{stated}System facts:\n{facts}\n\n{context}Diff{part}:\n{diff}")
+def _pass(provider: Provider, shared: str, focus: str) -> tuple[Any, Any, str | None]:
+    """One review pass on its own copy of the provider, so passes running at once keep their own token usage."""
+    p = copy.copy(provider)
+    try:
+        out = p.complete_json(SYSTEM, [shared, focus] if focus else shared, FINDINGS_SCHEMA, schema_name="report_findings")
+    except ProviderError as e:
+        return None, None, str(e)
+    return out, getattr(p, "last_usage", None), None
 
 
 def generate(provider: Provider, ctx: ReviewContext, *, file_context: bool = True, groups: list[list[FileDiff]] | None = None, omitted: list[str] | None = None, lenses: tuple[str, ...] | list[str] = DEFAULT_LENSES) -> tuple[list[dict[str, Any]], str | None, dict[str, Any] | None]:
@@ -402,13 +414,16 @@ def generate(provider: Provider, ctx: ReviewContext, *, file_context: bool = Tru
         shared = _shared_prompt(ctx, group, facts, i, len(groups), file_context)
         if shared is None:
             continue
-        for focus in focuses:
-            try:
-                out = provider.complete_json(SYSTEM, [shared, focus] if focus else shared, FINDINGS_SCHEMA, schema_name="report_findings")
-            except ProviderError as e:
-                error = error or str(e)
+        # The first pass runs alone so the provider caches the shared prefix; the rest then read it at once.
+        answers = [_pass(provider, shared, focuses[0])]
+        if len(focuses) > 1:
+            with ThreadPoolExecutor(max_workers=len(focuses) - 1) as pool:
+                answers += list(pool.map(_pass, [provider] * (len(focuses) - 1), [shared] * (len(focuses) - 1), focuses[1:]))
+        for out, used, err in answers:
+            if err:
+                error = error or err
                 continue
-            usage = _add_usage(usage, getattr(provider, "last_usage", None))
+            usage = _add_usage(usage, used)
             items = out.get("findings") if isinstance(out, dict) else None
             candidates.extend(f for f in (items or []) if isinstance(f, dict))
     return merge_candidates(candidates) if len(focuses) > 1 else candidates, error, usage
@@ -581,6 +596,172 @@ def verify(provider: Provider, ctx: ReviewContext, findings: list[dict[str, Any]
     return lowered, usage if isinstance(usage, dict) else None
 
 
+CACHE_VERSION = 1  # bump to drop every cached answer at once
+
+
+class CachedProvider:
+    """A provider whose answers are kept in the store under a hash of everything the model was shown: the system
+    prompt (rules, lens), the user message (system facts, which carry the lineage, readers, constraints, incidents
+    and history the change was judged against, the code context and the diff), the schema, and the provider, model
+    and effort. Any change to the context changes the key, so a hunk judged safe is judged again once someone adds
+    a downstream reader. Only exact matches are reused; nothing similar-but-different is. Validation, the evidence
+    gate and the rest run again on a cached answer, so a code change to them needs no invalidation."""
+
+    def __init__(self, inner: Provider, store: Store):
+        self.inner, self.store = inner, store
+        self.name = inner.name
+        self.last_usage: Any = None
+        self.counts = {"hits": 0, "misses": 0}  # shared by copies, so passes running at once add to one count
+        self.lock = threading.Lock()  # one DuckDB connection serves every copy
+
+    def __copy__(self) -> CachedProvider:
+        c = CachedProvider.__new__(CachedProvider)
+        c.__dict__.update(self.__dict__)
+        c.inner, c.last_usage = copy.copy(self.inner), None
+        return c
+
+    @property
+    def hits(self) -> int:
+        return self.counts["hits"]
+
+    @property
+    def misses(self) -> int:
+        return self.counts["misses"]
+
+    def key(self, system: str, user: str | list[str], schema: dict[str, Any], schema_name: str) -> str:
+        who = [CACHE_VERSION, self.inner.name, getattr(self.inner, "model", None), getattr(self.inner, "effort", None), getattr(self.inner, "base_url", None), list(getattr(self.inner, "command", None) or [])]
+        return hashlib.sha256(json.dumps([who, system, user, schema, schema_name], sort_keys=True).encode()).hexdigest()
+
+    def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
+        k = self.key(system, user, schema, schema_name)
+        with self.lock:
+            kept = self.store.cache_get(k)
+            if kept is not None:
+                self.counts["hits"] += 1
+        if kept is not None:
+            self.last_usage = None
+            return kept
+        out = self.inner.complete_json(system, user, schema, schema_name=schema_name)
+        self.last_usage = getattr(self.inner, "last_usage", None)
+        with self.lock:
+            self.counts["misses"] += 1
+            self.store.cache_put(k, out)
+        return out
+
+
+ESCALATION_POLICIES = ("evidence", "model")
+GATE_NOTE = "nothing recorded about the system backs it here (no constraint, downstream reader, incident, sensitive area, revert history or outside caller)"
+NO_ROWS_NOTE = "its failing case was run against the warehouse and returned no rows"
+GAP_NOTE = "an unmapped path is a gap in what Orion can see, not evidence the change is wrong; map it to have it checked"
+INCIDENT_COMMIT_RE = re.compile(r"\brevert(s|ed)?\b|\bhotfix\b|\bregression\b|\bincident\b|\brollback\b|\brolled back\b", re.I)
+ROW_OPS = ("change_filter", "change_partition", "delete_asset", "change_selection")  # ops that change which rows every consumer reads
+
+
+def _hunk_text(fd: FileDiff, line: int) -> str:
+    """Added and removed text of the hunk holding ``line``."""
+    for h in fd.hunks:
+        if h.new_start <= line <= h.new_end:
+            return "\n".join(t for op, _, t in h.lines if op in "+-")
+    return ""
+
+
+def system_evidence(ctx: ReviewContext, f: dict[str, Any]) -> list[str]:
+    """The recorded facts that let a model finding at ``f``'s location stand at warn or block: each one an id the
+    output can cite. Empty means nothing Orion knows about the system makes this place consequential.
+
+    A failing case confirmed by running it against the warehouse (``orion.confirm``) counts too, as ``exec:<id>``;
+    one that ran and found nothing lowers the finding unless a firing constraint backs it.
+
+    Data platform: a firing constraint on an asset of the file; a column the hunk names that other models read; a
+    row-changing op (filter, partition, selection, delete) on an asset with downstream consumers; an incident on an
+    asset of the file. Code: a sensitive area covering the file; a revert, hotfix, regression or incident commit
+    that touched it; a changed definition in the file that code outside the diff calls."""
+    path, line = f["path"], f.get("line")
+    fd = _file(ctx, path)
+    v = ctx.verdict or {}
+    ops = [o for o in v.get("change", {}).get("ops", []) if f"diff:{path}" in o.get("evidence", [])]
+    assets = {o["asset"] for o in ops}
+    out: list[str] = []
+    for c in v.get("constraints", []):
+        if c["status"] == "fires" and (assets & {o["asset"] for o in c.get("ops", [])} or f"constraint:{c['id']}" in f["evidence"]):
+            out.append(f"constraint:{c['id']}")
+    hunk = _hunk_text(fd, line).lower() if fd and isinstance(line, int) else ""
+    for r in v.get("readers", []):
+        col = r["column"].rsplit(".", 1)[-1].lower()
+        if r["asset"] in assets and hunk and re.search(rf"\b{re.escape(col)}\b", hunk):
+            out.append(f"node:{r['reader']}")
+    # The blast radius is the whole change's, so it backs this file's row-changing op only when every touched asset is this file's.
+    downstream = [a["asset"] for a in v.get("affected", [])] if set(v.get("change", {}).get("touched", [])) <= assets else []
+    if downstream and any(o["kind"] in ROW_OPS for o in ops):
+        out += [f"node:{a}" for a in downstream[:3]]
+    for h in v.get("history", []):
+        if h["kind"] in ("postmortem_filed", "incident_opened") and assets & set(h["assets"]):
+            out.append(f"incident:{h['ref']}" if h["ref"] else f"event:{h['event']}")
+    for a in ctx.code.areas:
+        if path in a["paths"]:
+            out.append(f"area:{a['area'].id}")
+    for h in ctx.code.history:
+        if path in h["paths"] and INCIDENT_COMMIT_RE.search(h["subject"]):
+            out.append(f"commit:{h['commit'][:12]}")
+    for sc in ctx.symbols:
+        if sc.path == path and sc.linked_outside:
+            out += [f"ref:{r['path']}:{r['line']}" for r in sc.linked_outside[:2]]
+    if (f.get("confirmation") or {}).get("status") == "confirmed":
+        out.append(_exec_id(f))
+    return list(dict.fromkeys(out))
+
+
+def _exec_id(f: dict[str, Any]) -> str:
+    return "exec:" + hashlib.sha1(f["confirmation"]["sql"].encode()).hexdigest()[:12]
+
+
+def gate_severity(ctx: ReviewContext, findings: list[dict[str, Any]]) -> int:
+    """Evidence-gated escalation: a model finding stays at warn or block only when ``system_evidence`` backs its
+    location, and the ids it rests on are added to its evidence and kept under ``escalation``; every other one is
+    lowered to inform with a note saying so. Deterministic findings are already decided by code and are not
+    touched. Returns how many were lowered (before duplicates across passes are merged)."""
+    lowered = 0
+    for f in findings:
+        if f["source"] != "model" or f["status"] != "valid" or RANK[f["severity"]] <= RANK["inform"]:
+            continue
+        backing = system_evidence(ctx, f)
+        if (f.get("confirmation") or {}).get("status") == "not_confirmed" and not any(b.startswith("constraint:") for b in backing):
+            f["notes"].append(f"severity lowered from {f['severity']} to inform: {NO_ROWS_NOTE}")
+            f["severity"] = "inform"
+            lowered += 1
+            continue
+        if backing:
+            f["escalation"] = backing
+            f["evidence"] = list(dict.fromkeys(f["evidence"] + backing))
+            continue
+        f["notes"].append(f"severity lowered from {f['severity']} to inform: {GATE_NOTE}")
+        f["severity"] = "inform"
+        lowered += 1
+    return lowered
+
+
+def _confirm(provider: Provider, ctx: ReviewContext, findings: list[dict[str, Any]], warehouse: str | Path) -> dict[str, Any] | None:
+    """Run the failing case of each model warning on a data model against the warehouse (``orion.confirm``)."""
+    from .confirm import Warehouse, confirm
+
+    v = ctx.verdict or {}
+    data_paths = {e[5:] for o in v.get("change", {}).get("ops", []) for e in o.get("evidence", []) if e.startswith("diff:")}
+    targets = [f for f in findings if f["source"] == "model" and f["status"] == "valid" and RANK[f["severity"]] > RANK["inform"] and f["path"] in data_paths]
+    if not targets:
+        return None
+    try:
+        wh = Warehouse(warehouse)
+    except Exception as e:  # noqa: BLE001 - a missing or locked warehouse leaves the findings unchecked, and says so
+        for f in targets:
+            f["confirmation"] = {"status": "unchecked", "note": f"warehouse not opened: {str(e)[:200]}"}
+        return None
+    names = {a.split(":", 1)[-1].split(".")[-1] for a in v.get("change", {}).get("touched", []) + [a["asset"] for a in v.get("affected", [])]}
+    try:
+        return confirm(provider, wh, targets, tables=names, facts=_facts(ctx))
+    finally:
+        wh.close()
+
+
 def _file(ctx: ReviewContext, path: str) -> FileDiff | None:
     path = _norm_path(path)
     return next((f for f in ctx.files if f.path == path), None)
@@ -675,7 +856,7 @@ def _unmapped(ctx: ReviewContext, v: dict[str, Any], path: str | None, line: int
     fd = _file(ctx, unmapped[0])
     mapped = f" The mapped part of the change: {v['summary']}" if v["change"]["ops"] else ""
     reasons = "; ".join(f"`{u['path']}`: {u['reason']}" for u in v["change"]["unresolved"][:8] if u.get("path"))
-    return [{"source": "deterministic", "path": fd.path if fd else path, "line": fd.first_changed_line() if fd else line, "end_line": None, "severity": v["severity"], "category": "operational", "title": f"{len(unmapped)} changed path{'s are' if len(unmapped) != 1 else ' is'} not mapped to any asset", "body": "Orion cannot say what these affect, so it warns rather than pass them silently. " + reasons + ("…" if len(unmapped) > 8 else "") + "." + mapped, "evidence": [f"node:{t}" for t in v["change"]["touched"][:3]] or [f"unresolved:{unmapped[0]}"], "status": "valid", "notes": []}]
+    return [{"source": "deterministic", "path": fd.path if fd else path, "line": fd.first_changed_line() if fd else line, "end_line": None, "severity": v["severity"], "category": "operational", "title": f"{len(unmapped)} changed path{'s are' if len(unmapped) != 1 else ' is'} not mapped to any asset", "body": "Orion cannot say what these affect, so it warns rather than pass them silently. " + reasons + ("…" if len(unmapped) > 8 else "") + "." + mapped, "evidence": [f"node:{t}" for t in v["change"]["touched"][:3]] or [f"unresolved:{unmapped[0]}"], "status": "valid", "notes": [], "gap": True}]
 
 
 def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
@@ -715,11 +896,20 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
             body += f" Sign-off needed from {', '.join(c['approvers'])}."
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": c["severity"], "category": "data_contract", "title": f"{c['id']} {c['kind']} fires", "body": body, "evidence": list(dict.fromkeys(ev)), "status": "valid", "notes": []})
     for r in v.get("readers", []):
-        if r["in_change"] or r["op"] not in ("drop_column", "rename_column"):
+        if r["in_change"] or not r.get("by_name", True) or r["op"] not in ("drop_column", "rename_column"):
             continue
         path, line = locate([r["asset"]])
         verb = "drops" if r["op"] == "drop_column" else "renames"
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": "warn", "category": "data_contract", "title": f"{r['reader'].split(':', 1)[1]} still selects {r['column']}", "body": f"This change {verb} {r['column']}, and {r['reader']} selects it directly but is not changed in this diff, so it will fail to build. Update it in the same change.", "evidence": [f"node:{r['reader']}"] + r["evidence"], "status": "valid", "notes": []})
+    for o in v["change"]["ops"]:
+        d = o.get("details") or {}
+        if d.get("field") != NOT_SELECTED:
+            continue
+        name = o["asset"].split(":", 1)[-1]
+        # Tests or an enforced contract on the column fail the build; otherwise only the documentation is wrong.
+        breaks = {"tests": "its tests fail on a column the table does not have", "contract": "the model's enforced contract fails the build"}.get(d.get("breaks") or "")
+        body = f"This change documents {o['column']} on {name}, but {d['sql_path']} as of this change produces no such column, so " + (breaks or "the documentation describes a column the table does not have") + ". Select it in the model, or document it where it exists."
+        out.append({"source": "deterministic", "path": d["path"], "line": d.get("line"), "end_line": None, "severity": "warn" if breaks else "inform", "category": "data_contract", "title": f"{o['column']} is documented on {name} but its SQL does not select it", "body": body, "evidence": [f"node:{o['asset']}"] + ([f"hunk:{d['path']}:{d['line']}"] if d.get("line") else []), "status": "valid", "notes": []})
     if not out and v["severity"] in ("warn", "block"):
         tier1 = [a for a in v["affected"] if a["tier"] == 1]
         path, line = locate(v["change"]["touched"])
@@ -752,8 +942,15 @@ def _dedupe(det: list[dict[str, Any]], model: list[dict[str, Any]]) -> list[dict
     return kept
 
 
-def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, file_context: bool = True, intent: str | None = None, second_reading: bool = True, verifier: Provider | None = None, lenses: tuple[str, ...] | list[str] | None = None, areas: list[Area] | None = None, history: bool = True, agent: bool = False, agent_steps: int | None = None) -> dict[str, Any]:
-    """``agent``: the model investigates the change with read-only tools (files, search, definitions, references,
+def review(store: Store, repo_root: Path, provider: Provider, *, constraints: list[Constraint], risk_model: RiskModel, base_ref: str | None = None, diff_text: str | None = None, scope: list[str] | None = None, ignore: list[str] | None = None, new_files: dict[str, str] | None = None, repo_files: dict[str, str] | None = None, search_root: Path | None = None, file_context: bool = True, intent: str | None = None, second_reading: bool = True, verifier: Provider | None = None, lenses: tuple[str, ...] | list[str] | None = None, areas: list[Area] | None = None, history: bool = True, escalation: str = "evidence", cache: Store | None = None, warehouse: str | Path | None = None, complex_provider: Provider | None = None, complex_lines: int = 400, agent: bool = False, agent_steps: int | None = None) -> dict[str, Any]:
+    """``complex_provider``: the lens passes use it instead of ``provider`` when the diff changes ``complex_lines``
+    lines or more (model routing: a cheap model for ordinary diffs, a strong one for large ones).
+    ``warehouse``: a DuckDB warehouse file; model warnings on data models get their failing case run against it
+    (``orion.confirm``) before the evidence gate.
+    ``cache``: a store whose review cache answers a model call it has seen exactly before (``CachedProvider``).
+    ``escalation``: ``evidence`` keeps a model finding at warn or block only when recorded system context backs it
+    (``gate_severity``); ``model`` keeps the severity the model and the second reading chose.
+    ``agent``: the model investigates the change with read-only tools (files, search, definitions, references,
     git history, blast radius, the record) before it reports, instead of one call per lens (``generate_agent``);
     ``agent_steps`` caps its turns. Its findings are validated, gated and read a second time like any other.
     ``areas``: sensitive areas of the code; a change in one gets a deterministic finding and the model sees why it is sensitive.
@@ -762,6 +959,18 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     ``second_reading``: check the model's warn and block findings with a second call (``verify``), made with
     ``verifier`` when given (a stronger model checking a cheaper one) and with ``provider`` otherwise.
     ``intent``: what the author says the change does (a PR title and body). Without it, a review against ``base_ref`` uses the commit messages since that ref. It only informs the model; deterministic findings never depend on it."""
+    if escalation not in ESCALATION_POLICIES:
+        raise ValueError(f"escalation must be one of {', '.join(ESCALATION_POLICIES)}")
+    started = time.monotonic()
+    if verifier is None:
+        verifier = provider  # the second reading keeps the base model when the passes are routed to another
+    cached: list[CachedProvider] = []
+    if cache is not None:
+        provider, verifier = CachedProvider(provider, cache), CachedProvider(verifier, cache)
+        cached = [provider, verifier]
+        if complex_provider is not None:
+            complex_provider = CachedProvider(complex_provider, cache)
+            cached.append(complex_provider)
     intent_source = "given" if intent and intent.strip() else None
     if diff_text is None:
         if not base_ref:
@@ -778,17 +987,42 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
     groups, omitted = batches(ctx.files)
     lenses = (() if agent else DEFAULT_LENSES) if lenses is None else tuple(lenses)  # an agent looks for every kind of failure unless given passes
     trace = None
+    gathered = time.monotonic()
+    changed = sum(1 for f in ctx.files for h in f.hunks for op, _, _ in h.lines if op in "+-")
+    routed = complex_provider is not None and changed >= complex_lines
     if agent:
-        candidates, provider_error, usage, trace = generate_agent(provider, ctx, store, repo_root, base_ref=base_ref, search_root=search_root, repo_files=repo_files, file_context=file_context, groups=groups, omitted=omitted, lenses=lenses, max_steps=agent_steps)
+        candidates, provider_error, usage, trace = generate_agent(complex_provider if routed else provider, ctx, store, repo_root, base_ref=base_ref, search_root=search_root, repo_files=repo_files, file_context=file_context, groups=groups, omitted=omitted, lenses=lenses, max_steps=agent_steps)
     else:
-        candidates, provider_error, usage = generate(provider, ctx, file_context=file_context, groups=groups, omitted=omitted, lenses=lenses)
+        candidates, provider_error, usage = generate(complex_provider if routed else provider, ctx, file_context=file_context, groups=groups, omitted=omitted, lenses=lenses)
+    generated = time.monotonic()
     checked = validate(candidates, ctx)
+    c_usage = _confirm(verifier or provider, ctx, checked, warehouse) if warehouse else None
+    usage = _add_usage(usage, c_usage)
+    if escalation == "evidence":  # before the second reading, so it only spends a call on warnings the system context can back
+        gate_severity(ctx, checked)
+    else:  # a failing case the warehouse disproved is lowered under either policy, unless a firing constraint backs the warning
+        for f in checked:
+            if f["status"] == "valid" and RANK[f["severity"]] > RANK["inform"] and (f.get("confirmation") or {}).get("status") == "not_confirmed" and not any(e.startswith("constraint:") for e in f["evidence"]):
+                f["notes"].append(f"severity lowered from {f['severity']} to inform: {NO_ROWS_NOTE}")
+                f["severity"] = "inform"
+    checked_at = time.monotonic()
     lowered, v_usage = verify(verifier or provider, ctx, checked, file_context=file_context) if second_reading and candidates else (0, None)
+    verified = time.monotonic()
     usage = _add_usage(usage, v_usage)
     det = deterministic_findings(ctx)
+    verdict_severity = (ctx.verdict or {}).get("severity", "inform")
+    if escalation == "evidence" and (ctx.verdict or {}).get("raised_for_unresolved"):
+        # A path Orion cannot map is a gap in what it can see, not evidence the change is wrong: listed, at inform.
+        verdict_severity = "inform"
+        for f in det:
+            if f.pop("gap", False) and RANK[f["severity"]] > RANK["inform"]:
+                f["notes"].append(f"severity lowered from {f['severity']} to inform: {GAP_NOTE}")
+                f["severity"] = "inform"
+    for f in det:
+        f.pop("gap", None)
     model = _dedupe(det, checked)
     valid = det + sorted([m for m in model if m["status"] == "valid"], key=lambda f: (-RANK[f["severity"]], f["path"], f["line"] or 0))
-    severity = max([f["severity"] for f in valid] + [(ctx.verdict or {}).get("severity", "inform")], key=lambda s: RANK[s])
+    severity = max([f["severity"] for f in valid] + [verdict_severity], key=lambda s: RANK[s])
     rid = "rv_" + hashlib.sha1((diff_text + provider.name).encode()).hexdigest()[:16]
     v = ctx.verdict or {}
     return {
@@ -811,6 +1045,10 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
         "verdict_summary": v.get("summary") or v.get("error"),
         "usage": usage,
         "second_reading": {"on": bool(second_reading), "lowered": lowered},
+        "timing": {"gather_s": round(gathered - started, 2), "passes_s": round(generated - gathered, 2), "confirm_and_gate_s": round(checked_at - generated, 2), "second_reading_s": round(verified - checked_at, 2), "total_s": round(time.monotonic() - started, 2)},
+        "routing": {"changed_lines": changed, "passes": (complex_provider if routed else provider).name, "second_reading": verifier.name},
+        "cache": {"on": bool(cached), "hits": sum(c.hits for c in cached), "misses": sum(c.misses for c in cached)},
+        "escalation": {"policy": escalation, "lowered": sum(1 for m in model if m["status"] == "valid" and any(n.startswith("severity lowered") and (GATE_NOTE in n or NO_ROWS_NOTE in n) for n in m["notes"]))},
         "passes": (["agent:" + x for x in lenses] or ["agent"]) if agent else (list(lenses) or ["general"]),
         "agent": trace,
         "counts": {"deterministic": len(det), "model_valid": sum(m["status"] == "valid" for m in model), "uncertain": sum(m["status"] == "uncertain" for m in model), "rejected": sum(m["status"] == "rejected" for m in model)},
@@ -827,6 +1065,9 @@ def to_markdown(r: dict[str, Any]) -> str:
         lines.append(f"  {f['body']}")
         if f.get("failure"):
             lines.append(f"  fails when: {f['failure']}")
+        c = f.get("confirmation") or {}
+        if c.get("status") in ("confirmed", "not_confirmed"):
+            lines.append(f"  checked against the warehouse: {c['rows']} row{'s' if c['rows'] != 1 else ''} (`{c['sql'][:300]}`)")
         lines.append(f"  evidence: {', '.join(f['evidence'])}")
     if not r["findings"]:
         lines.append("No findings.")

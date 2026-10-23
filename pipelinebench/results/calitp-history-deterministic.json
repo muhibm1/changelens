@@ -1,0 +1,2604 @@
+{
+ "provider": "stub",
+ "model": null,
+ "args": [],
+ "clone": "calitp",
+ "commits": [
+  {
+   "commit": "1bff55fb8c4b71104137bd62f29c85ea77665e73",
+   "date": "2026-04-23",
+   "title": "Create new incremental macro and handle models at the `dt`/`service_date` incremental interface (#5053) (#5092)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 7.24,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 7.28
+   },
+   "usage": {}
+  },
+  {
+   "commit": "531cd1238865744c0ff56147350ec34c76818458",
+   "date": "2026-04-23",
+   "title": "Review `deploy-dbt` workflow (#5106)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.72,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.75
+   },
+   "usage": {}
+  },
+  {
+   "commit": "3beb7b37f89d89b4b050f00ef5ce09aa58a4d824",
+   "date": "2026-04-23",
+   "title": "Convert GTFS Schedule files with Byte Order Marker (#5148)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.4,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.44
+   },
+   "usage": {}
+  },
+  {
+   "commit": "18dc437b0367d8a7afc69fcab03743eb79a48a56",
+   "date": "2026-04-24",
+   "title": "Add product_type to final CTE for fct_payment_rides (#5107)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.85,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.85
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2af86094eb73a7073416304c34b86dcdc59ec6a4",
+   "date": "2026-04-24",
+   "title": "Migrate final GTFS schedule incremental models to microbatch (#5064) (#5141)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.86,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.88
+   },
+   "usage": {}
+  },
+  {
+   "commit": "7bef4dadbebe434f5e2bc3ccfd0afa74a6609b8f",
+   "date": "2026-04-24",
+   "title": "Manual job to run dbt with arguments (#5095)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.23,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.24
+   },
+   "usage": {}
+  },
+  {
+   "commit": "b0e02bd1e85d579d852767ab2887168e9bcfb691",
+   "date": "2026-04-27",
+   "title": "`fct_payments_aggregations` updates for reconciliation (#5017) (#5130)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.6,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.63
+   },
+   "usage": {}
+  },
+  {
+   "commit": "8a8cf036f0dc2ae062b72960c139f889c87013ca",
+   "date": "2026-04-27",
+   "title": "Alerts and failing emails are not sent from Local Airflow by default (#5175)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.4,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.41
+   },
+   "usage": {}
+  },
+  {
+   "commit": "1ca79016f38942e987e99af5174c0acd4a07a2ac",
+   "date": "2026-04-28",
+   "title": "Add download type to the GTFS results file (#5176)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 6.0,
+    "passes_s": 0.06,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 6.09
+   },
+   "usage": {}
+  },
+  {
+   "commit": "51398e84f695644a2f10d9b1c3f2768071472ac8",
+   "date": "2026-04-30",
+   "title": "Add RT completeness issue closure workflow and refine email reporting (#5182)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.73,
+    "passes_s": 0.05,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.77
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2832a65749240940f87f6f35eb583fa1c9287bec",
+   "date": "2026-04-30",
+   "title": "Payments(Enghouse): create new parse operator and associated changes (#5184)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.22,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.25
+   },
+   "usage": {}
+  },
+  {
+   "commit": "4adefb961b04a3a4f3c9fc49e11efd401cf72023",
+   "date": "2026-05-01",
+   "title": "payments(enghouse): modify parse schedule to better align with warehouse runs (#5207)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.18
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2152177bf51754361c054f71b1e72bd4315c2c8e",
+   "date": "2026-05-01",
+   "title": "feat: add enghouse agencies to elavon transactions (#5206)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.69,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.69
+   },
+   "usage": {}
+  },
+  {
+   "commit": "d9c7a871c549ca8bb3afd6153d5a511df4f1925d",
+   "date": "2026-05-01",
+   "title": "Update incremental model documentation for microbatch + new macro logic (#4925) (#5178)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 13.1,
+    "passes_s": 0.06,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 13.16
+   },
+   "usage": {}
+  },
+  {
+   "commit": "39cdaa1ddf6bac127b252bc32543627357665b78",
+   "date": "2026-05-01",
+   "title": "feat: add enghouse org names to fct payments * transactions models (#5212)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.69,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.7
+   },
+   "usage": {},
+   "bug": "inform_only",
+   "bug_detected": true
+  },
+  {
+   "commit": "7ef854e82112eda99161a595b32a087d8149a03c",
+   "date": "2026-05-05",
+   "title": "fix: add enghouse_operator_id to fct_payments_*_transactions SQL (#5211) (#5241)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.03,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.04
+   },
+   "usage": {}
+  },
+  {
+   "commit": "d40bdf16c56695956f1f30c4166caa88f53c5ea7",
+   "date": "2026-05-06",
+   "title": "Resolve deprecated syntax warnings when running dbt commands (#5103)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.44,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.45
+   },
+   "usage": {}
+  },
+  {
+   "commit": "db6795523ffd3b056500e9b4af9846765ed462c4",
+   "date": "2026-05-06",
+   "title": "5240: Unpin uv version to align with jupyterlab image in warehouse uv.lock (#5250)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.15,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.16
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e4b26f26e464fb9fdf83f36d3bfbbb1f5ca59c88",
+   "date": "2026-05-06",
+   "title": "Move dbt manual to monthly (#4849) (#5251)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.19,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.21
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e251bff02c7e139606eba60c9c2e51dbe8ecd2ca",
+   "date": "2026-05-06",
+   "title": "Revert \"feat(airflow): Disable prod gtfs-rt parsed/validation copy to staging (#5111) (#5131)\" (#5267)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.29,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.29
+   },
+   "usage": {}
+  },
+  {
+   "commit": "83c7da3002b16605df133388f5f8c0a8b3a109cf",
+   "date": "2026-05-06",
+   "title": "Replace enghouse bucket on production with the correct bucket name (#4759)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.24,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.26
+   },
+   "usage": {}
+  },
+  {
+   "commit": "9035bbc6270c60ffc70d659bd2821b42e4cb6e23",
+   "date": "2026-05-07",
+   "title": "Fix payments failing tests (#5087) (#5145)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.78,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.8
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e56de4ff0048e06927604d584e5fc798b15e4b43",
+   "date": "2026-05-08",
+   "title": "Add fct_tides_vehicle_locations dbt model (closes #4837) (#5216)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.98,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.01
+   },
+   "usage": {}
+  },
+  {
+   "commit": "3afb85658928ad011897a0c2b176e0a66e32570d",
+   "date": "2026-05-08",
+   "title": "Add fct_tides_trips_performed dbt model (#5220)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.58,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.59
+   },
+   "usage": {}
+  },
+  {
+   "commit": "05bf2c4d605c6e854e516d971ecfb9cb46424be7",
+   "date": "2026-05-08",
+   "title": "Refactor TIDES models for SCD Type 2 historical correctness + persistent source_record_id seed (#5287)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.33,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.34
+   },
+   "usage": {}
+  },
+  {
+   "commit": "6503a211871a8a35ebec0f25660d6a40129a279c",
+   "date": "2026-05-08",
+   "title": "Adding GTFS url to expiring issues model (#5290)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.37,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.38
+   },
+   "usage": {}
+  },
+  {
+   "commit": "82ded47cf107e29d5716562fbc03d6b0fcfc2812",
+   "date": "2026-05-13",
+   "title": "Payments: Enghouse mart fixes, Valley onboarding, fix deduplication, and dbt docs (#5284)",
+   "in_window": true,
+   "week": [
+    2026,
+    20
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.79,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.82
+   },
+   "usage": {}
+  },
+  {
+   "commit": "f7b3555522012ad9725c0bb1af5f6b948f56fdbd",
+   "date": "2026-05-19",
+   "title": "feat(payments): add status to littlepay micropayments table (#5168) (#5319)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.32,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.32
+   },
+   "usage": {}
+  },
+  {
+   "commit": "27453feb6c0b7b540cb66e894e6b56e5b538c7cf",
+   "date": "2026-05-19",
+   "title": "Add dbt docs for new models in `mart_gtfs` and `mart_gtfs_rollup` (#5305)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.25,
+    "passes_s": 0.1,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.34
+   },
+   "usage": {}
+  },
+  {
+   "commit": "6db8c535be08cd9a1779b0b2b08c5d76ae4d33df",
+   "date": "2026-05-21",
+   "title": "feat(tides): org-level publication seed, vehicle_locations as view (#5318)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.78,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.81
+   },
+   "usage": {}
+  },
+  {
+   "commit": "400277816aea24e3ceec821115137001f650391e",
+   "date": "2026-05-22",
+   "title": "TIDES DAG (part 1 generating parquet files) (#5307)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.39,
+    "passes_s": 0.1,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.49
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2a5459b1b573fb788e24f959f827a78fe90f3532",
+   "date": "2026-05-26",
+   "title": "Remove broken dbt visualization, fix duplicate exposure comments (#5343)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.71,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.74
+   },
+   "usage": {}
+  },
+  {
+   "commit": "d9d9f560785fe67179c116b65b518f3f4ca89525",
+   "date": "2026-05-26",
+   "title": "Create Outcomes table for TIDES Audit Dashboard (#5341)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.3,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.3
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e38f68edbda7deb7914c9d0e91b68408a8c27587",
+   "date": "2026-05-27",
+   "title": "Chore(deps): Bump idna from 3.4 to 3.15 in /warehouse (#5323)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.19,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.2
+   },
+   "usage": {}
+  },
+  {
+   "commit": "02fd6f86606950c88c56d853a0874e12e14df231",
+   "date": "2026-05-28",
+   "title": "Propagate `service_hours/flex_service_hours` consistently in mart+rollup models, update dbt docs (#5348)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.52,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.56
+   },
+   "usage": {}
+  },
+  {
+   "commit": "0ce7a9f641149a7696c6435ceb629023170a7cec",
+   "date": "2026-05-28",
+   "title": "Update parse_elavon dag to use new sftp bucket (#5032)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.22,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.23
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e2374bab2fb47ddbc04e666286274103fb23c58a",
+   "date": "2026-05-28",
+   "title": "fix(ntd): type text API columns as STRING in external tables (#5336) (#5337)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.31,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.33
+   },
+   "usage": {}
+  },
+  {
+   "commit": "b376faedbf2f117d5df57516f78b18df2bca3274",
+   "date": "2026-06-01",
+   "title": "TIDES external tables `trips_performed_outcomes` and `vehicle_positions_outcomes` (#5362)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.82,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.83
+   },
+   "usage": {}
+  },
+  {
+   "commit": "aeecbc34e9377e4a5a25007fd64edf7fefd20461",
+   "date": "2026-06-01",
+   "title": "Developer sees trips performed in the TIDES bucket (#5353)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.19,
+    "passes_s": 0.17,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.36
+   },
+   "usage": {}
+  },
+  {
+   "commit": "13db6b79afda1b67b24ec3eb9cd1be88d20238b9",
+   "date": "2026-06-01",
+   "title": "Materialize fct_tides_vehicle_locations incrementally by service_date (#5364)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.69,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.7
+   },
+   "usage": {}
+  },
+  {
+   "commit": "14ec630f2114f5de43b794d76c06e3acbdb0ed9a",
+   "date": "2026-06-01",
+   "title": "Developer does not see project access error when uploading TIDES reports (#5367)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.29,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.3
+   },
+   "usage": {}
+  },
+  {
+   "commit": "55e0d96c2c90564dccda7355dd39e997a40e8f5c",
+   "date": "2026-06-01",
+   "title": "Developer does not see an error when uploading TIDES trips perfomed (#5369)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.21,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.21
+   },
+   "usage": {}
+  },
+  {
+   "commit": "473c3608a68cdd1968ce9441e6c6cfd93dca590c",
+   "date": "2026-06-04",
+   "title": "Chore(payments): SCRRA Payments Service Account and Littlepay Parse (#5316) (#5380)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.2,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.21
+   },
+   "usage": {}
+  },
+  {
+   "commit": "a46bf47ffd954b8082036138ed2b270f6d47bd76",
+   "date": "2026-06-04",
+   "title": "chore(payments): Payments Warehouse Onboarding for SCRRA (#5316) (#5381)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.48,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.49
+   },
+   "usage": {}
+  },
+  {
+   "commit": "8d30bc269c695113caeedeaa8034c08c28ad098b",
+   "date": "2026-06-04",
+   "title": "Fix(Payments): Filter `DELETED` Littlepay Micropayments from Downstream Tables (#5344)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 5.46,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 5.5
+   },
+   "usage": {}
+  },
+  {
+   "commit": "815b047fea17e9ac68db8023ae986ea6589993f4",
+   "date": "2026-06-05",
+   "title": "Local composer3 airflow (#5382)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.66,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.69
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2ee5a8cfaa0ee6fe733294745b829c4dcf7e611a",
+   "date": "2026-06-05",
+   "title": "Remove unused pygraphviz and networkx dependencies (#5391)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.19,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.21
+   },
+   "usage": {}
+  },
+  {
+   "commit": "9fe7247a0e8d56526109a13133f8298406ec96d8",
+   "date": "2026-06-05",
+   "title": "Add airtable fields (#5383)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.15,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.16
+   },
+   "usage": {}
+  },
+  {
+   "commit": "5b241aa482725625500a19eaabd89e2b35c461ba",
+   "date": "2026-06-09",
+   "title": "Add teo new fields to external_airtable_california_transit_gtfs_datasets.yml (#5392)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.1,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.11
+   },
+   "usage": {}
+  },
+  {
+   "commit": "f214df8254190eff7e4584aa68276161e73874c5",
+   "date": "2026-06-09",
+   "title": "Remove Sentry SDK plumbing from Airflow / warehouse / gtfs-schedule-validator (#5279)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.84,
+    "passes_s": 0.08,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.92
+   },
+   "usage": {}
+  },
+  {
+   "commit": "a172b0ea4b26810afb8270cb8c5b654e80dbe42b",
+   "date": "2026-06-09",
+   "title": "fix(payments)!: Remove `taps` Join and Associated Columns from `fct_payments_settlements_enghouse` (#5399) (#5405)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.84,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.84
+   },
+   "usage": {}
+  },
+  {
+   "commit": "8934c2d70ff2fe5c1adca68bca94d6496e603825",
+   "date": "2026-06-10",
+   "title": "Disable catchup and reset start_date for parse_and_validate_rt and generate_tides (#5424)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.23,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.23
+   },
+   "usage": {}
+  },
+  {
+   "commit": "50d27b758173e9585ddeffa6f9ab3bf26e11cfb8",
+   "date": "2026-06-11",
+   "title": "Revert \"Add teo new fields to external_airtable_california_transit_gtfs_datasets.yml (#5392)\" (#5427)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "tides_gtfs_datasets still selects dim_gtfs_datasets.has_authentication",
+     "verdict": "setup",
+     "escalation": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "dim_gtfs_datasets_latest still selects dim_gtfs_datasets.has_authentication",
+     "verdict": "setup",
+     "escalation": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "tides_gtfs_datasets still selects dim_gtfs_datasets.authentication_contact_details",
+     "verdict": "setup",
+     "escalation": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "dim_gtfs_datasets_latest still selects dim_gtfs_datasets.authentication_contact_details",
+     "verdict": "setup",
+     "escalation": []
+    }
+   ],
+   "timing": {
+    "gather_s": 4.42,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 4.43
+   },
+   "usage": {}
+  },
+  {
+   "commit": "5d9dd8849fa0a4830d33e6783a4d152f35fdc71f",
+   "date": "2026-06-11",
+   "title": "fix(airflow): set gusty DAG catchup at METADATA top-level and drop dead core-catchup_by_default override (#5429)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.4,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.42
+   },
+   "usage": {}
+  },
+  {
+   "commit": "18b80a293bd932169f217db988b6326ed21fa235",
+   "date": "2026-06-17",
+   "title": "Chore(deps): Bump aiohttp from 3.14.0 to 3.14.1 in /warehouse (#5450)",
+   "in_window": true,
+   "week": [
+    2026,
+    25
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.19
+   },
+   "usage": {}
+  },
+  {
+   "commit": "d7d76c3e015fbd1422feb5d13081051d331dca85",
+   "date": "2026-06-22",
+   "title": "Remove old elavon infra (#5068)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.33,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.35
+   },
+   "usage": {}
+  },
+  {
+   "commit": "70262509ff6aef4bd4ee3feb2ab9d113e1f51d36",
+   "date": "2026-06-22",
+   "title": "feat!: De-Duplicate Enghouse Settlements Table (#5397) (#5426)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.3,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.32
+   },
+   "usage": {}
+  },
+  {
+   "commit": "506bdd0507b7f9863492fb42eac9c3ec6b60f624",
+   "date": "2026-06-22",
+   "title": "Add authentication fields to GTFS models  (#5461)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.7,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.72
+   },
+   "usage": {}
+  },
+  {
+   "commit": "15414b015e046a31a72f06da5e8301f0dce81327",
+   "date": "2026-06-24",
+   "title": "Consolidate NTD annual funding and expenses dbt models into 1 (#5487)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.57,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.58
+   },
+   "usage": {}
+  },
+  {
+   "commit": "0750c53fe1d511057c89829ee06a1ebb48b00864",
+   "date": "2026-06-29",
+   "title": "Move authentication fields to correct model in transit_database_latest YAML (#5469)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.58,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.58
+   },
+   "usage": {}
+  },
+  {
+   "commit": "a0849f40150ed01ab72ee18e6f7f16ecf9b9a621",
+   "date": "2026-07-01",
+   "title": "feat(airtable): add loader config for payment device mapping table (#5492)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.29,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.3
+   },
+   "usage": {}
+  },
+  {
+   "commit": "7e99651568f9882b24366c16f04bdfbbe54d2e8d",
+   "date": "2026-07-01",
+   "title": "chore(Payments): Service accounts, Download/Parse for Santa Cruz Metro and Roseville Transit (#5508)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.16,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.17
+   },
+   "usage": {}
+  },
+  {
+   "commit": "1b89e916fc6d35041adc403333065495beb60b83",
+   "date": "2026-07-01",
+   "title": "feat(payments): expose dt and line_number in enghouse to mart to match lpay (#4912) (#5460)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.34,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.36
+   },
+   "usage": {}
+  },
+  {
+   "commit": "01d59fc110229941d1c256793251bcf9918f302a",
+   "date": "2026-07-01",
+   "title": "Reduce TIDES exclusion to only Anaheim Transportation Network (#5503)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.3,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.31
+   },
+   "usage": {}
+  },
+  {
+   "commit": "78821f091d3fac2cf84a6fa7e17622a7007b3e55",
+   "date": "2026-07-02",
+   "title": "fix(payments): fix aws buckets (#5444, 5384) (#5510)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.2,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.2
+   },
+   "usage": {}
+  },
+  {
+   "commit": "91b02d1d935ad5c643f637c431f143554d8ea4f5",
+   "date": "2026-07-03",
+   "title": "feat(airtable): add agency name to payment device mapping (#5517)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.27,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.27
+   },
+   "usage": {}
+  },
+  {
+   "commit": "ecfb7977e78fc4d95afc7feb04de6323f2504b6f",
+   "date": "2026-07-03",
+   "title": "feat(dbt): add payment device mapping models (#5518)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.59,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.61
+   },
+   "usage": {}
+  },
+  {
+   "commit": "5a920d71bbb1ccb3449cc069e99641e26fe38619",
+   "date": "2026-07-07",
+   "title": "Expire partitions where service_date is older than 15 days (#5502)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.69,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.71
+   },
+   "usage": {}
+  },
+  {
+   "commit": "382c32b2cf2dedb3dfc469159778ce5461516840",
+   "date": "2026-07-09",
+   "title": "Refactor ntd monthly models (#5523)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.01,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.02
+   },
+   "usage": {}
+  },
+  {
+   "commit": "ff02c783d285f5f4f5e2444f83c4568dab4533c5",
+   "date": "2026-07-09",
+   "title": "Deprecate old NTD models, remove from yaml (#5525)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.49,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.52
+   },
+   "usage": {}
+  },
+  {
+   "commit": "04734927ce903502381597f4e3f0d3225facc8a4",
+   "date": "2026-07-09",
+   "title": "add trip modifications feed type to dbt (#5528)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.84,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.86
+   },
+   "usage": {}
+  },
+  {
+   "commit": "36e10062c6d45ff574f15ad57c4bdc54af40fd51",
+   "date": "2026-07-14",
+   "title": "Feat/airtable loader v2 add programs table (#5537)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.18
+   },
+   "usage": {}
+  },
+  {
+   "commit": "90e6ffa2fe413393c12eeb35a6f34dc0401ea42b",
+   "date": "2026-07-14",
+   "title": "Provide `organization_id` in Littlepay Tables to Disambiguate Regional Agencies (#5538)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.91,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.93
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2917fcea011002bdd61e3fb17f1e533a9868ad33",
+   "date": "2026-07-15",
+   "title": "Fix NTD unnamed columns, add month-over-month change in monthly ridership (#5539)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.32,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.33
+   },
+   "usage": {}
+  },
+  {
+   "commit": "54ffad28a75c60881af5ea0d9cfe07f6e9c126ff",
+   "date": "2026-07-17",
+   "title": "Fill out `mart_ntd_funding_and_expenses` YAML (#5541)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.59,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.61
+   },
+   "usage": {}
+  },
+  {
+   "commit": "22c8a93fed7683a9e98c3d21ee7d2ed8d1366739",
+   "date": "2026-07-23",
+   "title": "Devcontainer (#5519)",
+   "in_window": true,
+   "week": [
+    2026,
+    30
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.27,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.31
+   },
+   "usage": {}
+  },
+  {
+   "commit": "0c73919523f019ae9bf67ab7094637d4fad675f7",
+   "date": "2026-07-23",
+   "title": "chore(payments): Payments Entity Mapping and Row Level Permissions for SCMTD and Roseville Transit (#5516)",
+   "in_window": true,
+   "week": [
+    2026,
+    30
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.46,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.47
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2eff9b4627a3bf8d232a1fb80393c792a59d17f7",
+   "date": "2026-07-27",
+   "title": "fix(payments): De-duplicate `fct_payments_settlements` Rows (#5884) (#5586)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.21,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.22
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e636f6e2491797c773753b1999e32ddb9687349c",
+   "date": "2026-07-27",
+   "title": "fix(payments): all datetimes  in fct_payments_aggregations are typed as datetimes (#5582) (#5583)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.39,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.4
+   },
+   "usage": {}
+  },
+  {
+   "commit": "b35c8ffbb4ae75a99b9a0ff11bc89eb0249b810d",
+   "date": "2026-07-27",
+   "title": "chore(payments): onboard Simi Valley, Thousand Oaks, Moorpark, and Gold Coast to Enghouse (#5587)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.41,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.42
+   },
+   "usage": {}
+  },
+  {
+   "commit": "cd9fb106357bb04e6d391d962390c1d2fd2b1e0f",
+   "date": "2026-07-30",
+   "title": "Add columns to external_airtable.california_transit__services (#5599)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.1,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.11
+   },
+   "usage": {}
+  },
+  {
+   "commit": "846a62bc9b404e4220325307f8779d3dde0027e8",
+   "date": "2026-08-05",
+   "title": "feat(payments): add settled and unsettled credit amoutn columns (#5597) (#5629)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.45,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.46
+   },
+   "usage": {}
+  },
+  {
+   "commit": "00dfc5548c327ae92ce10c3b6f98fac3a93227ed",
+   "date": "2026-08-07",
+   "title": "Add Reconciliation Category and Update Tests for Duplicate RRNs (#5459, #5278) (#5631)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.2,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.22
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2e7c8211d0b1a52b6e76f0b44d909ab6191cce8f",
+   "date": "2026-08-07",
+   "title": "refactor(gtfs): microbatch daily RT validation notices (#5636)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.42,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.43
+   },
+   "usage": {}
+  },
+  {
+   "commit": "287244333faad146cc1fc93c796f60893471090b",
+   "date": "2026-08-11",
+   "title": "refactor(gtfs): incrementally build daily service alerts (#5643)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.39,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.39
+   },
+   "usage": {}
+  },
+  {
+   "commit": "5b9885a025930f53ba9a2310bae51faa09d562e5",
+   "date": "2026-08-11",
+   "title": "refactor(gtfs): incrementally build vehicle position trip summaries (#5642)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.57,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.58
+   },
+   "usage": {}
+  },
+  {
+   "commit": "008d78a8b3332fc6a14317e3a2c960f31dd93e45",
+   "date": "2026-08-13",
+   "title": "feat(payments)!: Remove non-RBAP Payments Tables (#5600) (#5651)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.46,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.47
+   },
+   "usage": {}
+  },
+  {
+   "commit": "3127f5747e2a5d532e89b390a0b77ec092f5748f",
+   "date": "2026-08-13",
+   "title": "Add `_feed_valid_from`  to multiple daily GTFS summary tables (#5656)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.84,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.86
+   },
+   "usage": {}
+  },
+  {
+   "commit": "a61247bd6658a1db552623b903926610e1a78e36",
+   "date": "2026-08-13",
+   "title": "Add demand response service fields and update the paratransit bridge table (#5657)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.29,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.3
+   },
+   "usage": {}
+  },
+  {
+   "commit": "b6a4ba5a4f5b1b4b5892735014417ca5c39a6d20",
+   "date": "2026-08-18",
+   "title": "Add Rider Requirements Dimension Tables and Bridge Table (#5667)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.3,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.31
+   },
+   "usage": {}
+  },
+  {
+   "commit": "fbe45897de83b0137a1db9b73e301c1426a4bf3d",
+   "date": "2026-08-18",
+   "title": "Remove legacy stg_rt models that read the deleted rt-parsed bucket (#5633)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.57,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.57
+   },
+   "usage": {}
+  },
+  {
+   "commit": "49a39e77d9c5554b48f162efee67e966748138df",
+   "date": "2026-08-19",
+   "title": "Add Public/Conditional Currently Operating col to external airtable (#5668)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.08,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.09
+   },
+   "usage": {}
+  },
+  {
+   "commit": "f20856f3f4cfe37f9e36f42bfe3ea22f6d4a2cfa",
+   "date": "2026-08-21",
+   "title": "fix: roll up GTFS download failure alerts (#5672)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.19
+   },
+   "usage": {}
+  },
+  {
+   "commit": "6a6df64e2d54f1d72a69332fb094b6fa9c09f186",
+   "date": "2026-08-25",
+   "title": "Add Public/Conditional Operating Column to Dim Tables (#5674)",
+   "in_window": true,
+   "week": [
+    2026,
+    35
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 5.64,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 5.65
+   },
+   "usage": {}
+  },
+  {
+   "commit": "6d8033ef1d7f4e2f214d9ec7471e1940242ccbaf",
+   "date": "2026-08-28",
+   "title": "Upgrade Schedule Validator to v8.0.01 (#5331) (#5677)",
+   "in_window": true,
+   "week": [
+    2026,
+    35
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.4,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.42
+   },
+   "usage": {}
+  },
+  {
+   "commit": "2f53a705c891dc9ffba7893be3551a65c7b4e5a7",
+   "date": "2026-08-31",
+   "title": "Use SUM instead of COUNT to fix total arrivals per route type and time of day (#5679)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.56,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.57
+   },
+   "usage": {}
+  },
+  {
+   "commit": "be8ceca2f45e198baa11910cc7ed30bcc6886233",
+   "date": "2026-09-02",
+   "title": "Daily and Monthly Scheduled Stop review (#5684)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.12,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.16
+   },
+   "usage": {}
+  },
+  {
+   "commit": "c3ca6038834dc7dbda0cae3ed8af1220d4fd24a0",
+   "date": "2026-09-02",
+   "title": "Publish TIDES reference data in the TIDES bucket (#5561)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.55,
+    "passes_s": 0.06,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.61
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e34fe9ecb1cb258d54e6aa5d158fc06d30ef9f26",
+   "date": "2026-09-03",
+   "title": "Staging/airflow alerts payments (#5686)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.2,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.2
+   },
+   "usage": {}
+  },
+  {
+   "commit": "0eaf78eb78357fb71bed2ffdccccaedfd3fc52d1",
+   "date": "2026-09-10",
+   "title": "(bridge): add org_name to partition (#5709)",
+   "in_window": true,
+   "week": [
+    2026,
+    37
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.45,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.45
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e5c0eedf04d8cd21536a0651d5e8461e2299aca1",
+   "date": "2026-09-15",
+   "title": "Increase GTFS-RT parse and validate retries (#5716)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.21,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.22
+   },
+   "usage": {}
+  },
+  {
+   "commit": "248a326fb8e75dc6930815cc11aab29fd16fad84",
+   "date": "2026-09-17",
+   "title": "Feat: Payments analysts have draft Enghouse Aggregation Table (#5713)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.13,
+    "passes_s": 0.06,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.19
+   },
+   "usage": {}
+  },
+  {
+   "commit": "a2968577f1f07530c666a82b202d0474fd08423b",
+   "date": "2026-09-18",
+   "title": "Fix Airflow failure Slack log link for Caltrans SSO users (#5708)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.19
+   },
+   "usage": {}
+  },
+  {
+   "commit": "1269de75eec07a734958401c85a1a9f543f8bca1",
+   "date": "2026-09-21",
+   "title": "chore: remaining yolobus onboard steps (#5521) (#5729)",
+   "in_window": true,
+   "week": [
+    2026,
+    39
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.44
+   },
+   "usage": {}
+  },
+  {
+   "commit": "ada5891daac5906ea7ed4f189331d1dc01e2ceca",
+   "date": "2026-09-29",
+   "title": "Fix: Enghouse Null Timestamps (#5694) (#5736)",
+   "in_window": true,
+   "week": [
+    2026,
+    40
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.42,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.45
+   },
+   "usage": {}
+  },
+  {
+   "commit": "9d3363b179d2893baa0becd056c633b50b6701b8",
+   "date": "2026-10-07",
+   "title": "Publish TIDES reference history to stable paths (#5733)",
+   "in_window": true,
+   "week": [
+    2026,
+    41
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.26,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.27
+   },
+   "usage": {}
+  },
+  {
+   "commit": "93b311985176024afd1ab167cda36942e030f483",
+   "date": "2026-10-08",
+   "title": "test: make taps test updates (#5397 #5738) (#5759)",
+   "in_window": true,
+   "week": [
+    2026,
+    41
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.42,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.42
+   },
+   "usage": {}
+  },
+  {
+   "commit": "34716dcc275e96b201cc36aa514fa9c76f973a8f",
+   "date": "2026-10-12",
+   "title": "Fix daily schedule+RT route-direction summary trip counting (#5767)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.9,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.91
+   },
+   "usage": {},
+   "bug": "missed",
+   "bug_detected": false
+  },
+  {
+   "commit": "b0b73b32bb8a09ce0eaecda4a98362d0781e26fa",
+   "date": "2026-10-12",
+   "title": "fix refs (#5768)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.56,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.57
+   },
+   "usage": {}
+  },
+  {
+   "commit": "ad497afc69caf377f6746014172189a19ca6d88e",
+   "date": "2026-10-14",
+   "title": "fix: De-duplicate Littlepay Customers and Rides (#5761)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.85,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.89
+   },
+   "usage": {}
+  },
+  {
+   "commit": "e8e60ae831ff6e6881ca001e3c2bf436efaef6c4",
+   "date": "2026-10-15",
+   "title": "chore: update payments_entity_mapping for scmetro (#5778) (#5786)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.27,
+    "passes_s": 0.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.27
+   },
+   "usage": {}
+  },
+  {
+   "commit": "eaac643232282c110288ad4d41c48be2d903adf9",
+   "date": "2026-10-15",
+   "title": "Remove deprecated GTFS Schedule DAGs and associated code (issue #4814) (#5777)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.45,
+    "passes_s": 0.14,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.58
+   },
+   "usage": {}
+  },
+  {
+   "commit": "6f1cc4b76ca1ed764ce8a9f92f6852c691737a05",
+   "date": "2026-10-15",
+   "title": "chore: Enghouse Transactions Cleanup (#5712) (#5763)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.88,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.91
+   },
+   "usage": {}
+  },
+  {
+   "commit": "8af13f105cb1e5b3eed049748b0977e3f504681c",
+   "date": "2026-10-16",
+   "title": "feat: enghouse parse job writes audit table (#5766) (#5788)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.47,
+    "passes_s": 0.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.51
+   },
+   "usage": {}
+  },
+  {
+   "commit": "8799510bb66f4305b319a10ad76b3c49ac738da3",
+   "date": "2026-10-21",
+   "title": "feat: handle passes and revenue-inspection-outcomes changes (#5793) (#5802)",
+   "in_window": true,
+   "week": [
+    2026,
+    43
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.34,
+    "passes_s": 0.01,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.35
+   },
+   "usage": {}
+  },
+  {
+   "commit": "4de38421e89e93da98c4df016677f2fbf98324fc",
+   "date": "2026-10-22",
+   "title": "Remove deprecated PodOperator and GTFS Schedule configuration (#5796)",
+   "in_window": true,
+   "week": [
+    2026,
+    43
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.22,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.24
+   },
+   "usage": {}
+  },
+  {
+   "commit": "b111f6f57016282d0e334012d932160f50846baa",
+   "date": "2026-01-06",
+   "title": "payments: warehouse staging and source tables for enghouse data (#4122)",
+   "in_window": false,
+   "week": [
+    2026,
+    2
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.19,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 2.21
+   },
+   "usage": {},
+   "bug": "missed",
+   "bug_detected": false
+  },
+  {
+   "commit": "f26b2970ab23f00bdd6c2dcad1cd50374e5c6a9f",
+   "date": "2026-02-06",
+   "title": "Dedupe payments settlements (#4755)",
+   "in_window": false,
+   "week": [
+    2026,
+    6
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.03,
+    "passes_s": 0.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 3.05
+   },
+   "usage": {},
+   "bug": "missed",
+   "bug_detected": false
+  },
+  {
+   "commit": "6a9eae65a22e7aa30e65ed2b80d57713f5cb9c54",
+   "date": "2025-12-29",
+   "title": "Refactor stop time update related models (#4627)",
+   "in_window": false,
+   "week": [
+    2026,
+    1
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.78,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 1.8
+   },
+   "usage": {},
+   "bug": "missed",
+   "bug_detected": false
+  },
+  {
+   "commit": "0dfe3b65e7912a37b0be77ff8f4ad02610085963",
+   "date": "2024-11-26",
+   "title": "Scrape geoportal for shn, add SHN flag on stops table (#3529)",
+   "in_window": false,
+   "week": [
+    2024,
+    48
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.9,
+    "passes_s": 0.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 0.92
+   },
+   "usage": {},
+   "bug": "missed",
+   "bug_detected": false
+  }
+ ],
+ "bugs_outside_window": [],
+ "summary": {
+  "commits": 116,
+  "errors": 0,
+  "weeks": 26,
+  "commits_warned": 0,
+  "warns": 0,
+  "warns_per_week": 0.0,
+  "deterministic_warns": 4,
+  "model_warns": 0,
+  "confirmed": 0,
+  "plausible": 0,
+  "noise": 0,
+  "unjudged": 0,
+  "setup": 4,
+  "false_alarms_per_week": 0.0,
+  "bugs_flagged": "0/6",
+  "bugs_surfaced_any_severity": "1/6",
+  "median_review_s": 0.71,
+  "p90_review_s": 2.86,
+  "tokens_in": 0,
+  "tokens_out": 0
+ },
+ "window": {
+  "since": "2026-04-23",
+  "until": null,
+  "paths": [
+   "warehouse",
+   "airflow/dags"
+  ]
+ }
+}

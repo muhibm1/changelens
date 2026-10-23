@@ -96,7 +96,8 @@ def column_readers(store: Store, cs: ChangeSet) -> list[dict[str, Any]]:
     """Models that select a changed column directly, and whether this change also edits them.
 
     A reader the change leaves alone still selects a name a drop or rename removed, so it fails to
-    build; after a retype or a new expression it still builds but its values change.
+    build; after a retype or a new expression it still builds but its values change. A reader that gets the column
+    through ``select *`` (``by_name`` false) still builds after a drop or rename; it just no longer has the column.
     """
     touched = set(cs.touched)
     rows: dict[tuple[str, str], dict[str, Any]] = {}
@@ -111,7 +112,8 @@ def column_readers(store: Store, cs: ChangeSet) -> list[dict[str, Any]]:
             n = store.node(cid)
             reader = n["properties"].get("asset") if n else None
             if reader and reader != op.asset:
-                rows.setdefault((col, reader), {"column": col, "asset": op.asset, "op": op.kind, "reader": reader, "in_change": reader in touched, "evidence": [f"edge:{info['via_edge']}"]})
+                props = next((e["properties"] for e in store.edges_from(cid, [EdgeKind.DERIVES_FROM]) if e["dst"] == col_id), {})
+                rows.setdefault((col, reader), {"column": col, "asset": op.asset, "op": op.kind, "reader": reader, "in_change": reader in touched, "by_name": props.get("by_name", True), "evidence": [f"edge:{info['via_edge']}"]})
     return list(rows.values())
 
 
@@ -157,7 +159,7 @@ def _history(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], h
 
 def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hits: list[ConstraintHit], readers: list[dict[str, Any]]) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
-    broken = [r for r in readers if not r["in_change"] and r["op"] in ("drop_column", "rename_column")]
+    broken = [r for r in readers if not r["in_change"] and r.get("by_name", True) and r["op"] in ("drop_column", "rename_column")]
     if broken:
         checks.append({"kind": "update_readers", "readers": sorted({r["reader"] for r in broken}), "columns": sorted({r["column"] for r in broken}), "evidence": [e for r in broken for e in r["evidence"]]})
     touched_owners = {(store.node(t) or {}).get("owner") for t in cs.touched}

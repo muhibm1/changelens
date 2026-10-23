@@ -1,0 +1,176 @@
+{
+ "runs": 3,
+ "provider": "claude-code",
+ "model": "claude-sonnet-5-5",
+ "cases": 45,
+ "metrics": {
+  "detection_recall": {
+   "mean": 0.741,
+   "min": 0.733,
+   "max": 0.756,
+   "runs": [
+    0.733,
+    0.733,
+    0.756
+   ]
+  },
+  "escalation_recall": {
+   "mean": 0.148,
+   "min": 0.133,
+   "max": 0.156,
+   "runs": [
+    0.156,
+    0.156,
+    0.133
+   ]
+  },
+  "recall_in_file": {
+   "mean": 0.148,
+   "min": 0.133,
+   "max": 0.156,
+   "runs": [
+    0.156,
+    0.156,
+    0.133
+   ]
+  },
+  "inform_only": {
+   "mean": 26.667,
+   "min": 26,
+   "max": 28,
+   "runs": [
+    26,
+    26,
+    28
+   ]
+  },
+  "missed": {
+   "mean": 11.667,
+   "min": 11,
+   "max": 12,
+   "runs": [
+    12,
+    12,
+    11
+   ]
+  },
+  "warns_per_case": {
+   "mean": 0.317,
+   "min": 0.29,
+   "max": 0.33,
+   "runs": [
+    0.33,
+    0.33,
+    0.29
+   ]
+  },
+  "other_warns_per_case": {
+   "mean": 0.173,
+   "min": 0.16,
+   "max": 0.18,
+   "runs": [
+    0.18,
+    0.18,
+    0.16
+   ]
+  },
+  "errors": {
+   "mean": 0.0,
+   "min": 0,
+   "max": 0,
+   "runs": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "unstable_cases": [
+  {
+   "repo": "starlette",
+   "commit": "097152be5a",
+   "outcomes": [
+    "missed",
+    "missed",
+    "inform_only"
+   ]
+  },
+  {
+   "repo": "starlette",
+   "commit": "0aef1724cf",
+   "outcomes": [
+    "missed",
+    "missed",
+    "inform_only"
+   ]
+  },
+  {
+   "repo": "werkzeug",
+   "commit": "9c92a5f904",
+   "outcomes": [
+    "inform_only",
+    "missed",
+    "missed"
+   ]
+  },
+  {
+   "repo": "echo",
+   "commit": "c3887ebb13",
+   "outcomes": [
+    "missed",
+    "missed",
+    "inform_only"
+   ]
+  },
+  {
+   "repo": "echo",
+   "commit": "124825ee62",
+   "outcomes": [
+    "inform_only",
+    "inform_only",
+    "missed"
+   ]
+  },
+  {
+   "repo": "ky",
+   "commit": "bf9eca6aff",
+   "outcomes": [
+    "missed",
+    "inform_only",
+    "missed"
+   ]
+  },
+  {
+   "repo": "h3",
+   "commit": "080bf53d69",
+   "outcomes": [
+    "missed",
+    "inform_only",
+    "missed"
+   ]
+  },
+  {
+   "repo": "h3",
+   "commit": "61b395e31b",
+   "outcomes": [
+    "inform_only",
+    "missed",
+    "inform_only"
+   ]
+  },
+  {
+   "repo": "h3",
+   "commit": "631249d0f4",
+   "outcomes": [
+    "caught",
+    "caught",
+    "inform_only"
+   ]
+  }
+ ],
+ "files": [
+  "heldout-gated-1.json",
+  "heldout-gated-2.json",
+  "heldout-gated-3.json"
+ ]
+}

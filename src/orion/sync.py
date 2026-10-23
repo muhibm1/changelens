@@ -38,7 +38,7 @@ def run_sync(cfg: OrionConfig, store: Store, only: list[str] | None = None, forc
         res = SyncResult(adapter=name)
         if name == "dbt" and cfg.adapters.dbt:
             project = cfg.path(cfg.adapters.dbt.project)
-            digest = digest_paths([project / "target" / "manifest.json", project / "target" / "catalog.json"])
+            digest = f"v{dbt_adapter.GRAPH_VERSION}:" + digest_paths([project / "target" / "manifest.json", project / "target" / "catalog.json"])
             if not force and store.last_digest(name, str(project)) == digest:
                 res.skipped = True
             else:

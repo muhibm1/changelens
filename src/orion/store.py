@@ -81,6 +81,12 @@ CREATE TABLE IF NOT EXISTS chunk_vectors (
     vec         FLOAT[] NOT NULL,
     PRIMARY KEY (chunk_id, model)
 );
+CREATE TABLE IF NOT EXISTS review_cache (
+    cache_key   VARCHAR PRIMARY KEY,
+    findings    JSON    NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL,
+    hit_count   INTEGER NOT NULL DEFAULT 0
+);
 CREATE INDEX IF NOT EXISTS edges_src ON edges (src);
 CREATE INDEX IF NOT EXISTS edges_dst ON edges (dst);
 CREATE INDEX IF NOT EXISTS provenance_subject ON provenance (subject_id);
@@ -102,6 +108,22 @@ class Store:
             self.path.parent.mkdir(parents=True, exist_ok=True)
         self.con = duckdb.connect(str(self.path))
         self.con.execute(SCHEMA)
+
+    # ------------------------------------------------------------------ review cache
+    def cache_get(self, key: str) -> Any | None:
+        """A model answer kept under ``key``, counting the hit; None when there is none."""
+        row = self.con.execute("SELECT findings FROM review_cache WHERE cache_key = ?", [key]).fetchone()
+        if row is None:
+            return None
+        self.con.execute("UPDATE review_cache SET hit_count = hit_count + 1 WHERE cache_key = ?", [key])
+        return json.loads(row[0])
+
+    def cache_put(self, key: str, value: Any) -> None:
+        self.con.execute("INSERT INTO review_cache VALUES (?, ?, now(), 0) ON CONFLICT (cache_key) DO NOTHING", [key, json.dumps(value)])
+
+    def cache_stats(self) -> dict[str, int]:
+        entries, hits = self.con.execute("SELECT count(*), coalesce(sum(hit_count), 0) FROM review_cache").fetchone()
+        return {"entries": int(entries), "hits": int(hits)}
 
     # ------------------------------------------------------------------ writes
     def upsert_node(self, node: Node) -> None:

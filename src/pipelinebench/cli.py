@@ -101,6 +101,7 @@ def review_eval_cmd(
     repeat: int = typer.Option(1, "--repeat", help="Run every case this many times."),
     file_context: bool = typer.Option(True, "--file-context/--no-file-context", help="Send whole changed files to the model, not just the hunks."),
     second_reading: bool = typer.Option(True, "--second-reading/--no-second-reading", help="Check model warn/block findings with a second call."),
+    escalation: str = typer.Option("evidence", "--escalation", help="evidence: model warn/block needs recorded system context behind it; model: keep the model's severity."),
     verify_model: str | None = typer.Option(None, "--verify-model", help="Model for the second reading (same provider); default: the review model."),
     effort: str | None = typer.Option(None, "--effort", help="Model effort for the review passes (Anthropic)."),
     verify_effort: str | None = typer.Option(None, "--verify-effort", help="Model effort for the second reading (Anthropic)."),
@@ -129,7 +130,7 @@ def review_eval_cmd(
     cases = [c for c in load_cases(cases_file, cfg.root) if not case or c.id in case]
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     with console.status("reviewing") as status:
-        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, file_context=file_context, second_reading=second_reading, verifier=verifier, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
+        res = run_eval(cases, prov, store=store, repo_root=cfg.root, constraints=constraints, risk_model=load_risk(cfg.path(cfg.risk) if cfg.risk else None), scope=_scope(cfg), ignore=_ignore(cfg), repeat=repeat, file_context=file_context, second_reading=second_reading, verifier=verifier, escalation=escalation, progress=lambda g: status.update(f"{g['case']}: {g['caught']}/{g['expected']} caught, {len(g['false_alarms'])} false alarms"))
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "review-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
@@ -192,6 +193,8 @@ def recall_eval_cmd(
     jobs: int = typer.Option(1, "--jobs", help="Cases reviewed at once, each in its own worktree of the clone."),
     judge_model: str | None = typer.Option(None, "--judge-model", help="Judge 'about the bug' with this model (same provider) reading each case's hand-written label, instead of the must_mention words."),
     rejudge_dir: Path | None = typer.Option(None, "--rejudge", help="Judge the raw reviews kept in this folder again instead of reviewing (no review calls)."),
+    gate: bool = typer.Option(False, "--gate", help="With --rejudge: apply the evidence-gated severity to the kept reviews first, as that build would have returned them."),
+    reuse: Path | None = typer.Option(None, "--reuse-judged", help="With --rejudge: the results JSON of the run that produced these raw reviews; its judged matches are reused instead of calling the judge again."),
 ):
     """Review real bug-introducing commits from public repositories and count how many bugs the review catches."""
     import shutil
@@ -201,6 +204,8 @@ def recall_eval_cmd(
     from .recall_eval import run as run_recall
     from .recall_eval import to_markdown as recall_md
 
+    if (gate or reuse) and not rejudge_dir:
+        raise typer.BadParameter("--gate and --reuse-judged only apply with --rejudge")
     repos, cases = load_recall(cases_file)
     cases = [c for c in cases if (not repo or c.repo in repo) and (not case or any(c.commit.startswith(x) for x in case))]
     exe = orion or shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
@@ -210,8 +215,8 @@ def recall_eval_cmd(
     if rejudge_dir:
         from .recall_eval import rejudge, summarise
 
-        rows = rejudge(cases, rejudge_dir, judge_provider)
-        res = {"provider": provider, "model": model, "args": review_arg, "rejudged": rejudge_dir.name, "judge_model": judge_model, "cases": rows, "skipped": [], "summary": summarise(rows)}
+        rows = rejudge(cases, rejudge_dir, judge_provider, gate=gate, verdicts=json.loads(reuse.read_text())["cases"] if reuse else None)
+        res = {"provider": provider, "model": model, "args": review_arg + (["(regated: --escalation evidence)"] if gate else []), "rejudged": rejudge_dir.name, "judge_model": f"{json.loads(reuse.read_text()).get('judge_model') or 'words'}, reused" if reuse else judge_model, "cases": rows, "skipped": [], "summary": summarise(rows)}
     else:
         workdir.mkdir(parents=True, exist_ok=True)
         with console.status("reviewing") as status:
@@ -221,6 +226,69 @@ def recall_eval_cmd(
     stem = name or "recall-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
     md = recall_md(res)
+    (out / f"{stem}.md").write_text(md)
+    console.print(md)
+    console.print(f"wrote {out / stem}.json and .md")
+
+
+@app.command("recall-spread")
+def recall_spread_cmd(
+    runs: list[Path] = typer.Argument(..., help="Result JSON files of `recall-eval` runs of the same build on the same cases."),
+    name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
+    title: str = typer.Option("", "--title", help="What was measured, for the heading."),
+    out: Path = typer.Option(RESULTS, "--out"),
+):
+    """Mean and range of detection and escalation recall across repeated runs, and the cases that changed outcome."""
+    from datetime import UTC, datetime
+
+    from .recall_eval import spread, spread_markdown
+
+    sp = spread([json.loads(p.read_text()) for p in runs])
+    sp["files"] = [p.name for p in runs]
+    out.mkdir(parents=True, exist_ok=True)
+    stem = name or "recall-spread-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+    (out / f"{stem}.json").write_text(json.dumps(sp, indent=1))
+    md = spread_markdown(sp, title)
+    (out / f"{stem}.md").write_text(md)
+    console.print(md)
+    console.print(f"wrote {out / stem}.json and .md")
+
+
+@app.command("history-replay")
+def history_replay_cmd(
+    clone: Path = typer.Argument(..., help="A synced clone of the repository (orion.yaml and .orion/ in place)."),
+    since: str = typer.Option(..., "--since", help="Start of the window (a date git understands)."),
+    until: str | None = typer.Option(None, "--until"),
+    path: list[str] = typer.Option([], "--path", help="Only commits touching these paths (repeatable)."),
+    labels: Path | None = typer.Option(None, "--labels", help="Hand-written labels: bugs (introducing commits) and verdicts for warnings."),
+    provider: str = typer.Option("stub", "--provider"),
+    model: str | None = typer.Option(None, "--model"),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
+    jobs: int = typer.Option(1, "--jobs", help="Commits reviewed at once, each in its own worktree with its own copy of the graph."),
+    judge_model: str | None = typer.Option(None, "--judge-model", help="Judge 'about the bug' with this model (same provider) reading each bug's label."),
+    raw_dir: Path | None = typer.Option(None, "--raw-dir"),
+    limit: int | None = typer.Option(None, "--limit", help="Only the first N commits of the window (a smoke run)."),
+    name: str | None = typer.Option(None, "--name"),
+    out: Path = typer.Option(RESULTS, "--out"),
+):
+    """Review every change merged in a window as it landed: warnings per week, false alarms per week, bugs flagged."""
+    import shutil
+    from datetime import UTC, datetime
+
+    from orion.providers import make_provider
+
+    from .history_replay import commits, run, to_markdown, with_bugs
+
+    picked = with_bugs(clone, commits(clone, since, until, path)[:limit], labels)
+    exe = shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
+    judge_provider = make_provider(provider, model=judge_model, effort="medium") if judge_model else None
+    with console.status(f"reviewing {len(picked)} commits") as status:
+        res = run(clone.resolve(), picked, orion=exe, provider=provider, model=model, extra_args=review_arg, labels=labels, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['date']} {r['commit'][:8]}: {len(r['warns'])} warns"))
+    res["window"] = {"since": since, "until": until, "paths": path}
+    out.mkdir(parents=True, exist_ok=True)
+    stem = name or "history-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+    (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
+    md = to_markdown(res)
     (out / f"{stem}.md").write_text(md)
     console.print(md)
     console.print(f"wrote {out / stem}.json and .md")

@@ -317,3 +317,73 @@ def test_an_unmapped_dbt_project_file_says_why_in_words(synced_store, constraint
     cs, _ = run(synced_store, constraints, tmp_path, file_changes=[("fixture/dbt_project/package-lock.yml", "packages: []\n", "packages:\n  - package: dbt-labs/dbt_utils\n    version: 1.4.1\n")])
     [u] = cs.unresolved
     assert "dbt package versions" in u["reason"]
+
+
+def test_a_changed_project_macro_modifies_the_models_that_call_it(tmp_path):
+    from orion.adapters.dbt import _macro_paths
+    from orion.model import Node, NodeKind, Provenance
+    from orion.store import Store
+
+    project = tmp_path / "warehouse"
+    manifest = {
+        "nodes": {"model.p.orders": {"resource_type": "model", "package_name": "p", "depends_on": {"macros": ["macro.p.cents", "macro.dbt.is_incremental"]}}},
+        "macros": {
+            "macro.p.cents": {"package_name": "p", "original_file_path": "macros/cents.sql", "depends_on": {"macros": ["macro.p.round_to"]}},
+            "macro.p.round_to": {"package_name": "p", "original_file_path": "macros/round_to.sql", "depends_on": {"macros": ["macro.p.cents"]}},
+            "macro.dbt.is_incremental": {"package_name": "dbt", "original_file_path": "macros/is_incremental.sql", "depends_on": {"macros": []}},
+        },
+    }
+    assert _macro_paths(manifest, "model.p.orders", project, tmp_path) == ["warehouse/macros/cents.sql", "warehouse/macros/round_to.sql"]
+
+    store = Store(":memory:")
+    store.upsert_node(Node(NodeKind.MODEL, "orders", properties={"path": "warehouse/models/orders.sql", "macro_paths": ["warehouse/macros/cents.sql", "warehouse/macros/round_to.sql"]}, provenance=[Provenance("test", "unit")]))
+    cs = collect_changes(store, tmp_path, file_changes=[("warehouse/macros/round_to.sql", "{% macro round_to(x) %}{{ x }}{% endmacro %}", "{% macro round_to(x) %}round({{ x }}){% endmacro %}"), ("warehouse/macros/unused.sql", "a", "b")], tmp=tmp_path)
+    assert [(o.kind, o.asset) for o in cs.ops] == [("modify", "model:orders")] and "round_to.sql" in cs.ops[0].details["note"]
+    assert [u["path"] for u in cs.unresolved] == ["warehouse/macros/unused.sql"], "a macro no model calls stays unmapped, and says so"
+
+
+def test_a_documented_column_the_model_does_not_select_is_raised(synced_store, constraints, tmp_path):
+    from orion.changes import NOT_SELECTED
+
+    old = SCHEMA_YML.read_text()
+    new = old.replace("  - name: fct_refunds\n    meta: { owner: team/finance-data, tier: 1 }\n", "  - name: fct_refunds\n    meta: { owner: team/finance-data, tier: 1 }\n    columns:\n      - name: reason\n      - name: refund_channel\n        tests: [not_null]\n")
+    assert new != old
+    rel = str(SCHEMA_YML.relative_to(ROOT))
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new)])
+    flagged = [(o.asset, o.column, o.details["line"], o.details["breaks"]) for o in cs.ops if o.details.get("field") == NOT_SELECTED]
+    line = new.splitlines().index("      - name: refund_channel") + 1
+    assert flagged == [("model:fct_refunds", "refund_channel", line, "tests")], "reason is selected; refund_channel is not, and its test will fail"
+
+    # The same change that also selects the column in the model's SQL is fine.
+    sql_path = ROOT / "fixture" / "dbt_project" / "models" / "marts" / "fct_refunds.sql"
+    sql = sql_path.read_text()
+    cs, _ = run(synced_store, constraints, tmp_path, file_changes=[(rel, old, new), (str(sql_path.relative_to(ROOT)), sql, sql.replace("    r.reason\n", "    r.reason,\n    'web' as refund_channel\n"))])
+    assert not [o for o in cs.ops if o.details.get("field") == NOT_SELECTED]
+
+
+def test_a_model_whose_columns_jinja_stands_for_is_not_judged():
+    from orion.changes import _produced
+
+    assert _produced("select {{ dbt_utils.star(ref('a')) }} from {{ ref('a') }}", "m", {}) is None
+    assert _produced("{{ config(post_hook=\"{{ grant() }}\") }}\nwith x as (select 1 as a) select * from x", "m", {}) == {"a"}
+
+
+def test_a_reader_that_gets_a_dropped_column_through_a_star_is_not_broken(synced_store):
+    from orion.changes import ChangeOp, ChangeSet
+    from orion.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
+    from orion.store import Store
+    from orion.verdict import column_readers
+
+    named = [e for e in synced_store.con.execute("SELECT json_extract(properties, '$.by_name') FROM edges WHERE kind = 'derives_from'").fetchall()]
+    assert named and all(v[0] is not None for v in named), "every column lineage edge says whether the SQL names the column"
+
+    store, prov = Store(":memory:"), [Provenance("test", "unit")]
+    for n in ("a", "named", "star"):
+        store.upsert_node(Node(NodeKind.MODEL, n, provenance=prov))
+        store.upsert_node(Node(NodeKind.COLUMN, f"{n}.x", properties={"asset": f"model:{n}"}, provenance=prov))
+    store.upsert_edge(Edge("column:named.x", "column:a.x", EdgeKind.DERIVES_FROM, Confidence.PARSED, {"by_name": True}, prov))
+    store.upsert_edge(Edge("column:star.x", "column:a.x", EdgeKind.DERIVES_FROM, Confidence.PARSED, {"by_name": False}, prov))
+    cs = ChangeSet()
+    cs.add(ChangeOp("drop_column", "model:a", "x"))
+    by_reader = {r["reader"]: r["by_name"] for r in column_readers(store, cs)}
+    assert by_reader == {"model:named": True, "model:star": False}

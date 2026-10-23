@@ -51,8 +51,9 @@ def constraints():
     return cs
 
 
-def _review(store, constraints, diff, provider):
-    return review(store, ROOT, provider, constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/orion"])
+def _review(store, constraints, diff, provider, escalation="model"):
+    """``escalation`` defaults to the model's own severity, so tests of validation and the second reading see it unchanged."""
+    return review(store, ROOT, provider, constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/orion"], escalation=escalation)
 
 
 def test_parse_diff_line_numbers():
@@ -590,10 +591,18 @@ def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tm
 def test_a_warn_raised_only_for_unmapped_paths_has_a_finding_behind_it(synced_store, constraints):
     path = "fixture/dbt_project/macros/cents.sql"  # a changed macro: Orion maps no asset to it
     diff = f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -1 +1 @@\n-select 1 as id\n+select 2 as id\n"
-    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"])
+    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], escalation="model")
     assert r["severity"] == "warn"
     [f] = [f for f in r["findings"] if f["severity"] == "warn"]
     assert f["title"] == "1 changed path is not mapped to any asset" and "no asset defined at this path" in f["body"]
+    assert "gap" not in f
+
+    # Under evidence-gated escalation the gap is still reported, at inform: it is not evidence the change is wrong.
+    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"])
+    assert r["severity"] == "inform"
+    [f] = [f for f in r["findings"] if f["title"] == "1 changed path is not mapped to any asset"]
+    assert f["severity"] == "inform" and "gap in what Orion can see" in f["notes"][-1]
+    assert [u["path"] for u in r["unresolved"]] == [path]
 
 
 def test_a_confirmed_case_that_is_the_changes_own_choice_is_lowered_with_its_kind(synced_store, constraints):
@@ -641,7 +650,7 @@ def test_a_second_reading_rejects_a_repeat_of_an_earlier_finding(synced_store, c
             return {"verdicts": [{"index": 0, "holds": True, "kind": "defect", "reason": "reachable", "duplicate_of": -1}, {"index": 1, "holds": True, "kind": "defect", "reason": "same", "duplicate_of": 0}, {"index": 2, "holds": True, "kind": "defect", "reason": "same again", "duplicate_of": 1}]}
         return first
 
-    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[])
+    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[], escalation="model")
     assert [f["title"] for f in r["findings"] if f["source"] == "model"] == ["shell=True with caller input"]
     assert [f["title"] for f in r["rejected"]] == ["Command injection through the name argument", "Shell metacharacters in name run commands"], "a repeat of a repeat is a repeat too"
     assert all("shell=True with caller input" in f["notes"][-1] for f in r["rejected"])
@@ -717,3 +726,167 @@ def test_a_line_of_the_shown_file_is_valid_ref_evidence(synced_store, constraint
     assert shown["evidence"] == ["ref:app/m.py:9"], "line 9 was shown to the model; line 99 does not exist"
     hidden = run(file_context=False)
     assert not [f for f in hidden["findings"] if f["source"] == "model"], "without the file shown, the ref does not resolve"
+def _one_warning(path, line, title="t"):
+    return StubProvider(lambda system, user: {"findings": [{"path": path, "line": line, "severity": "warn", "category": "correctness", "title": title, "body": "b", "failure": "a caller passing None gets a TypeError", "evidence": [f"hunk:{path}:{line}"]}]})
+
+
+def test_evidence_gate_keeps_a_warning_on_data_the_system_says_matters(synced_store, constraints):
+    r = _review(synced_store, constraints, DROP_DIFF, _one_warning(FCT, 7), escalation="evidence")
+    (f,) = [f for f in r["findings"] if f["source"] == "model"]
+    assert f["severity"] == "warn" and "constraint:CON-031" in f["escalation"] and "incident:INC-241" in f["escalation"]
+    assert set(f["escalation"]) <= set(f["evidence"]), "what the escalation rests on is cited like any evidence"
+    assert r["escalation"] == {"policy": "evidence", "lowered": 0}
+
+
+def test_evidence_gate_lowers_a_warning_nothing_recorded_backs(synced_store, constraints):
+    r = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="evidence")
+    (f,) = [f for f in r["findings"] if f["source"] == "model"]
+    assert f["severity"] == "inform" and "escalation" not in f
+    assert any("nothing recorded about the system backs it" in n for n in f["notes"])
+    assert r["escalation"]["lowered"] == 1
+    same = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="model")
+    assert [f["severity"] for f in same["findings"] if f["source"] == "model"] == ["warn"], "the model policy keeps the model's severity"
+    with pytest.raises(ValueError):
+        _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="loud")
+
+
+def test_system_evidence_for_code_areas_reverts_callers_and_column_readers():
+    from orion.codectx import Area, CodeContext
+    from orion.review import ReviewContext, system_evidence
+    from orion.symbols import SymbolChange
+
+    files = parse(APP_DIFF)
+    f = {"path": "app/service.py", "line": 5, "evidence": []}
+    bare = ReviewContext(files, None)
+    assert system_evidence(bare, f) == []
+    code = CodeContext(areas=[{"area": Area(id="SHELL", reason="r"), "paths": ["app/service.py"], "line": 5}],
+                       history=[{"commit": "a" * 40, "date": "2026-01-01", "subject": "Revert \"run commands through the shell\"", "paths": ["app/service.py"]},
+                                {"commit": "b" * 40, "date": "2026-01-02", "subject": "fix typo in docstring", "paths": ["app/service.py"]}])
+    ctx = ReviewContext(files, None, code=code)
+    assert system_evidence(ctx, f) == ["area:SHELL", "commit:" + "a" * 12], "a plain fix commit is not incident history; a revert is"
+    ref = {"path": "app/cli.py", "line": 9, "text": "run(x)", "kind": "call", "scope": "imports_it", "in_diff": False}
+    ctx = ReviewContext(files, None, symbols=[SymbolChange("run", "app/service.py", "signature_changed", 4, "run(cmd)", "run(cmd, env)", refs=[ref])])
+    assert system_evidence(ctx, f) == ["ref:app/cli.py:9"]
+    drop = parse(DROP_DIFF)
+    verdict = {"change": {"ops": [{"kind": "drop_column", "asset": "model:fct_orders", "column": "discount_pct", "evidence": [f"diff:{FCT}"]}]}, "constraints": [], "affected": [], "history": [],
+               "readers": [{"column": "fct_orders.discount_pct", "asset": "model:fct_orders", "op": "drop_column", "reader": "model:rpt_discounts", "in_change": False, "evidence": []}]}
+    ctx = ReviewContext(drop, verdict)
+    assert system_evidence(ctx, {"path": FCT, "line": 8, "evidence": []}) == ["node:model:rpt_discounts"], "the hunk names a column another model reads"
+    verdict["readers"][0]["column"] = "fct_orders.currency_code"
+    assert system_evidence(ReviewContext(drop, verdict), {"path": FCT, "line": 8, "evidence": []}) == [], "a reader of a column this hunk does not touch is not evidence"
+
+
+def test_review_cache_reuses_exact_calls_and_misses_when_the_context_changes(synced_store, constraints):
+    from orion.store import Store
+
+    cache = Store(":memory:")
+    calls = []
+
+    def respond(system, user):
+        calls.append(user)
+        return {"findings": [{"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "shell=True", "body": "b", "failure": "a name with ; runs a second command", "evidence": ["hunk:app/service.py:5"]}]}
+
+    def run(store, diff=APP_DIFF):
+        return review(store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/orion"], escalation="model", second_reading=False, cache=cache)
+
+    first = run(synced_store)
+    n = len(calls)
+    assert first["cache"] == {"on": True, "hits": 0, "misses": n}
+    again = run(synced_store)
+    assert len(calls) == n and again["cache"]["hits"] == n and again["findings"] == first["findings"], "an identical review makes no model call"
+    assert cache.cache_stats() == {"entries": n, "hits": n}
+    run(synced_store, APP_DIFF.replace("shell=True", "shell=True, check=True"))
+    assert len(calls) == 2 * n, "a changed hunk is reviewed again"
+    uncached = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False)
+    assert uncached["cache"]["on"] is False and len(calls) == 3 * n
+
+
+def test_review_cache_key_carries_the_system_context():
+    from orion.review import CachedProvider
+    from orion.store import Store
+
+    c = CachedProvider(StubProvider({"findings": []}), Store(":memory:"))
+    base = c.key("rules", ["System facts:\n- downstream node:model:a", "lens"], {"type": "object"}, "report_findings")
+    assert base == c.key("rules", ["System facts:\n- downstream node:model:a", "lens"], {"type": "object"}, "report_findings")
+    assert base != c.key("rules", ["System facts:\n- downstream node:model:a\n- downstream node:model:b", "lens"], {"type": "object"}, "report_findings"), "a new downstream consumer is a new key"
+    assert base != c.key("rules", ["System facts:\n- downstream node:model:a", "other lens"], {"type": "object"}, "report_findings")
+
+
+REFUNDS = "fixture/dbt_project/models/marts/fct_refunds.sql"
+JOIN_DIFF = f"""diff --git a/{REFUNDS} b/{REFUNDS}
+--- a/{REFUNDS}
++++ b/{REFUNDS}
+@@ -7,4 +7,4 @@ select
+     r.refunded_at,
+     r.reason
+ from {{{{ ref('stg_refunds') }}}} r
+-join {{{{ ref('fct_orders') }}}} o on o.order_id = r.order_id
++left join {{{{ ref('fct_orders') }}}} o on o.order_id = r.order_id
+"""
+
+
+def test_a_warning_on_a_data_model_is_run_against_the_warehouse(synced_store, constraints, tmp_path):
+    import duckdb
+
+    wh = tmp_path / "wh.duckdb"
+    con = duckdb.connect(str(wh))
+    con.execute("CREATE TABLE stg_refunds AS SELECT * FROM (VALUES (1, 10), (2, 99)) t(refund_id, order_id)")
+    con.execute("CREATE TABLE fct_orders AS SELECT * FROM (VALUES (10, 7)) t(order_id, customer_id)")
+    con.close()
+
+    def run(sql, escalation="evidence"):
+        def respond(system, user):
+            if "into checks against the current warehouse" in system:
+                return {"checks": [{"index": "0", "sql": sql, "note": ""}]}  # an index sent as a string still matches
+            return {"findings": [{"path": REFUNDS, "line": 10, "severity": "warn", "category": "data_contract", "title": "Refunds without an order now kept", "body": "b", "failure": "a refund whose order_id is not in fct_orders gets a null customer_id", "evidence": [f"hunk:{REFUNDS}:10"]}]}
+
+        return review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=JOIN_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[], second_reading=False, warehouse=wh, escalation=escalation)
+
+    real = run("select r.refund_id from stg_refunds r left join fct_orders o using (order_id) where o.order_id is null")
+    (f,) = [f for f in real["findings"] if f["source"] == "model"]
+    assert f["confirmation"]["status"] == "confirmed" and f["confirmation"]["sample"] == [["2"]]
+    assert f["severity"] == "warn" and any(e.startswith("exec:") for e in f["escalation"])
+    none = run("select r.refund_id from stg_refunds r where r.refund_id > 100")
+    (f,) = [f for f in none["findings"] if f["source"] == "model"]
+    assert f["confirmation"]["status"] == "not_confirmed" and f["severity"] == "inform"
+    assert none["escalation"]["lowered"] == 1
+    (f,) = [f for f in run("select r.refund_id from stg_refunds r where r.refund_id > 100", escalation="model")["findings"] if f["source"] == "model"]
+    assert f["severity"] == "inform", "a case the warehouse disproved is lowered under the model policy too"
+
+
+def test_lens_passes_after_the_first_run_at_once_and_report_timing(synced_store, constraints):
+    import threading
+    import time
+
+    from orion.store import Store
+
+    live, peak, lock = [0], [0], threading.Lock()
+
+    def respond(system, user):
+        with lock:
+            live[0] += 1
+            peak[0] = max(peak[0], live[0])
+        time.sleep(0.2)
+        with lock:
+            live[0] -= 1
+        return {"findings": []}
+
+    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False, cache=Store(":memory:"))
+    assert peak[0] == len(LENSES) - 1, "the first pass warms the prompt cache alone, the rest run together"
+    assert r["timing"]["passes_s"] < 0.2 * len(LENSES) and r["timing"]["total_s"] >= r["timing"]["passes_s"]
+    assert r["cache"] == {"on": True, "hits": 0, "misses": len(LENSES)}, "copies of the cached provider add to one count"
+
+
+def test_model_routing_sends_large_diffs_to_the_complex_model(synced_store, constraints):
+    cheap, strong = [], []
+    small = StubProvider(lambda s, u: cheap.append(1) or {"findings": []})
+    big = StubProvider(lambda s, u: strong.append(1) or {"findings": []})
+    big.name = "strong"
+
+    def run(limit):
+        return review(synced_store, ROOT, small, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False, complex_provider=big, complex_lines=limit)
+
+    r = run(400)
+    assert cheap and not strong and r["routing"] == {"changed_lines": 6, "passes": "stub", "second_reading": "stub"}
+    r = run(6)
+    assert strong and r["routing"]["passes"] == "strong" and r["routing"]["second_reading"] == "stub"

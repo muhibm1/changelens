@@ -85,7 +85,8 @@ def prepare(name: str, spec: dict[str, Any], workdir: Path) -> Path:
 def review_commit(orion: str, clone: Path, commit: str, provider: str, model: str | None, extra_args: list[str] | None = None) -> dict[str, Any]:
     subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", commit], check=True)
     cmd = [orion, "review", "--git", f"{commit}^", "--provider", provider, "--format", "json"] + (["--model", model] if model else []) + list(extra_args or [])
-    p = subprocess.run(cmd, cwd=clone, capture_output=True, text=True, env=os.environ.copy())
+    # Every eval review is a fresh sample: a cached answer would freeze one run's result into the next.
+    p = subprocess.run(cmd, cwd=clone, capture_output=True, text=True, env={**os.environ, "ORION_REVIEW_CACHE": "0"})
     if p.returncode not in (0, 1):  # 1 is a block verdict
         return {"error": (p.stderr or p.stdout)[-2000:]}
     return json.loads(p.stdout)

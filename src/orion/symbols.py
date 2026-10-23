@@ -48,6 +48,7 @@ DEF_PATTERNS: dict[str, list[re.Pattern[str]]] = {
 }
 _LANG = {".py": "py", ".pyi": "py", ".ts": "js", ".tsx": "js", ".js": "js", ".jsx": "js", ".mjs": "js", ".cjs": "js", ".go": "go", ".rs": "rs", ".rb": "rb"}
 MAX_REFS = 50
+NOT_CODE = (".sql", ".md", ".rst", ".txt", ".csv")  # files whose words never call a definition
 # How a referencing file relates to the changed definition. ``unknown`` means the file was not parsed (text search only).
 SCOPES = ("same_file", "imports_it", "imports_module", "same_package", "defines_own", "imports_other", "no_import", "unknown")
 LINKED = ("same_file", "imports_it", "imports_module", "same_package")
@@ -463,14 +464,24 @@ def _owner_scope(sc: SymbolChange, ref: Ref) -> str | None:
 def symbol_changes(files: list[FileDiff], repo_root: Path, overlay: dict[str, str]) -> list[SymbolChange]:
     """Removed and re-signed definitions across the diff, each with its references, how each referencing file relates to the definition, and whether the diff touches the reference."""
     by_path = {f.path: f for f in files}
+    # Definitions the diff adds, by language and exact text: one removed from a file and added unchanged in another was moved.
+    added: set[tuple[str, str]] = set()
+    for fd in files:
+        if (lang := _lang(fd.path)) and not fd.binary:
+            added |= {(lang, t.strip()) for h in fd.hunks for op, _n, t in h.lines if op == "+" and _definition(lang, t)}
     out = []
     try:
         for fd in files:
             for sc in changed_definitions(fd, overlay.get(fd.path)):
+                if sc.kind == "removed" and (_lang(sc.path), sc.old) in added:
+                    continue
                 found = search(repo_root, sc.name, overlay, sc.owner)
                 sc.search_failed, sc.truncated = found.failed, found.truncated
                 for ref in found.refs:
                     # The parser already leaves definitions out. For a text match, skip the definition's own line and the old definition's replacement when it was renamed in place.
+                    # A whole-word match in SQL or prose (a Python name in a SQL model) cannot call the definition: it is another thing with the same name.
+                    if not ref.parsed and Path(ref.path).suffix.lower() in NOT_CODE:
+                        continue
                     if not ref.parsed and ((ref.path, ref.line) == (sc.path, sc.line) or (ref.path == sc.path and _definition(_lang(ref.path) or "py", ref.text) == sc.name)):
                         continue
                     fd2 = by_path.get(ref.path)

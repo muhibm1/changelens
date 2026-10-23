@@ -20,7 +20,7 @@ from sqlglot.optimizer.qualify import qualify
 # ref('model'), ref('package', 'model'), ref('model', v=2): the model is the last quoted positional argument
 REF_RE = re.compile(r"\{\{\s*ref\(\s*(?:['\"][^'\"]+['\"]\s*,\s*)?['\"]([^'\"]+)['\"]\s*(?:,\s*(?:v|version)\s*=\s*[^)]*)?\)\s*\}\}")
 SOURCE_RE = re.compile(r"\{\{\s*source\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]+)['\"]\s*\)\s*\}\}")
-CONFIG_RE = re.compile(r"\{\{\s*config\(.*?\)\s*\}\}", re.DOTALL)
+CONFIG_RE = re.compile(r"\{\{\s*config\(.*?\)\s*\}\}(?!['\"])", re.DOTALL)  # not the end of a Jinja string inside the config
 THIS_RE = re.compile(r"\{\{\s*this\s*\}\}")
 # a macro that is a whole CTE body, `name as ({{ spine() }})`, keeps the CTE parseable
 CTE_MACRO_RE = re.compile(r"(\bas\s*\(\s*)\{\{(?:(?!\}\}).)*\}\}(\s*\))", re.DOTALL | re.IGNORECASE)

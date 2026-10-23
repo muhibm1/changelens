@@ -1,0 +1,64 @@
+# cal-itp/data-infra history replay labels (pipelinebench history-replay --labels).
+# Written by hand from the upstream history: each bug is a commit that introduced a problem a later commit fixed,
+# found with `pipelinebench mine-introducers` and then read; candidates whose fix needs knowledge no reviewer of the
+# diff has (an upstream app's version strings, a CSV consumer's format), or whose fix gives no reason, are left out.
+# Never derive these from Orion's output.
+repo: calitp
+bugs:
+  - commit: 34716dcc27
+    title: "Fix daily schedule+RT route-direction summary trip counting (#5767)"
+    fix: b0b73b32bb
+    fix_title: "fix refs (#5768)"
+    bug: "ref() calls replaced by hardcoded prod table names (a debugging leftover), so the model reads prod instead of the dbt graph"
+    expect: [{path: warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql, line: 5, end_line: 33}]
+  - commit: b111f6f570
+    title: "payments: warehouse staging and source tables for enghouse data (#4122)"
+    fix: ada5891daa
+    fix_title: "Fix: Enghouse Null Timestamps (#5694) (#5736)"
+    bug: "SAFE_CAST of Enghouse's non-ISO timestamp strings to TIMESTAMP silently yields NULL instead of failing"
+    expect:
+      - {path: warehouse/models/staging/payments/enghouse/stg_enghouse__taps.sql, line: 15, end_line: 16}
+      - {path: warehouse/models/staging/payments/enghouse/stg_enghouse__ticket_results.sql, line: 16, end_line: 21}
+      - {path: warehouse/models/staging/payments/enghouse/stg_enghouse__transactions.sql, line: 13}
+  - commit: f26b2970ab
+    title: "Dedupe payments settlements (#4755)"
+    fix: 2eff9b4627
+    fix_title: "fix(payments): De-duplicate `fct_payments_settlements` Rows (#5586)"
+    bug: "dedup partitions by participant_id, _payments_key and transaction_amount instead of the settlement id, so one settlement can survive as several rows"
+    expect: [{path: warehouse/models/intermediate/payments/int_payments__settlements_deduped.sql, line: 10, end_line: 15}]
+  - commit: 39cdaa1dd
+    title: "feat: add enghouse org names to fct payments * transactions models (#5212)"
+    fix: 7ef854e821
+    fix_title: "fix: add enghouse_operator_id to fct_payments_*_transactions SQL (#5241)"
+    bug: "enghouse_operator_id is documented on four fct_payments_*_transactions models in the YAML but none of their SQL selects it, so the documented column does not exist"
+    expect:
+      - {path: warehouse/models/mart/payments/_payments.yml, line: 602}
+      - {path: warehouse/models/mart/payments/_payments.yml, line: 630}
+      - {path: warehouse/models/mart/payments/_payments.yml, line: 674}
+      - {path: warehouse/models/mart/payments/_payments.yml, line: 714}
+  - commit: 6a9eae65a2
+    title: "Refactor stop time update related models (#4627)"
+    fix: 3bc669255c
+    fix_title: "Bug: fix typo and add `where` back into SQL (#4630)"
+    bug: "the incremental_where macro call lost its WHERE keyword, so the incremental filter is not applied as a filter"
+    expect: [{path: warehouse/models/mart/gtfs/fct_stop_time_metrics.sql, line: 16, end_line: 19}]
+  - commit: 0dfe3b65e7
+    title: "Scrape geoportal for shn, add SHN flag on stops table (#3529)"
+    fix: e725cdaa9e
+    fix_title: "fix(dim_stops_latest): hotfix to stop duplicates from geometries causing fanout (#4942)"
+    bug: "stops_on_shn cross-joins stops with every buffered highway geometry they fall in, so a stop near several segments appears several times and fans out the join back to stops"
+    expect: [{path: warehouse/models/mart/gtfs_schedule_latest/dim_stops_latest.sql, line: 32, end_line: 33}]
+# Verdicts for warnings, keyed by commit, added after a person reads them (confirmed | plausible | noise | setup).
+warnings:
+  # Read by hand against the upstream history. A warning whose cause is the replay's graph (synced from today's main,
+  # newer than the commit) and not the change is `setup`: CI syncs the graph from the base branch, so it would not occur.
+  "50d27b75":
+    - path: warehouse/models/mart/transit_database/_mart_transit_database.yml
+      line: 359
+      verdict: setup
+      note: "the revert drops has_authentication and authentication_contact_details; the readers named are from a later graph (tides_gtfs_datasets did not exist yet, and dim_gtfs_datasets_latest named the columns only from 506bdd05), so at this commit no model selected them by name"
+  "3beb7b37":
+    - path: airflow/plugins/operators/gtfs_csv_to_jsonl_operator.py
+      line: 13
+      verdict: noise
+      note: "GTFSCSVConverter and its methods moved to hooks/gtfs_csv_converter_hook.py, which the operator imports; valid, success, report and convert matched as words in SQL models"

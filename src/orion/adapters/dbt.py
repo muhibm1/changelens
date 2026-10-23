@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -59,6 +60,23 @@ def _singular_tests(manifest: dict, uid: str, project_dir: Path, repo_root: Path
     return sorted(set(out))
 
 
+def _macro_paths(manifest: dict, uid: str, project_dir: Path, repo_root: Path) -> list[str]:
+    """Paths of the project's own macro files this node calls, directly or through other project macros. Package
+    macros are left out: they change with a package upgrade, which is reported on its own."""
+    macros = manifest.get("macros", {})
+    package = (manifest.get("nodes", {}).get(uid) or {}).get("package_name")
+    seen: set[str] = set()
+    todo = list(((manifest.get("nodes", {}).get(uid) or {}).get("depends_on") or {}).get("macros") or [])
+    while todo:
+        m = todo.pop()
+        mac = macros.get(m)
+        if m in seen or not mac or mac.get("package_name") != package:
+            continue
+        seen.add(m)
+        todo.extend((mac.get("depends_on") or {}).get("macros") or [])
+    return sorted({repo_relative(project_dir / macros[m]["original_file_path"], repo_root) for m in seen if macros[m].get("original_file_path")})
+
+
 def _owner_node(owner: str, prov: Provenance) -> Node:
     kind = NodeKind.TEAM if owner.startswith("team/") else NodeKind.PERSON
     return Node(kind=kind, name=owner, provenance=[prov])
@@ -73,6 +91,8 @@ def _lineage_job(job: tuple[str, str, dict[str, dict[str, str]], str]) -> tuple[
     return gid, lin.columns, {c: sorted(d) for c, d in lin.derives.items()}, lin.error
 
 
+SQL_COMMENT_RE = re.compile(r"--[^\n]*|/\*.*?\*/", re.S)
+GRAPH_VERSION = 3  # bump when the nodes or edges this adapter emits change shape, so an unchanged manifest is read again (2: macro_paths, 3: by_name)
 LINEAGE_VERSION = 1  # bump when column lineage changes what it computes, so cached results are recomputed
 
 
@@ -209,6 +229,7 @@ def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> 
                 "tests": [t for t in manifest.get("child_map", {}).get(uid, []) if t.startswith("test.")],
                 "schema_path": _patch_path(n, project_dir, repo_root),
                 "test_paths": _singular_tests(manifest, uid, project_dir, repo_root),
+                "macro_paths": _macro_paths(manifest, uid, project_dir, repo_root),
                 "columns": sorted(cols),
                 "declared_columns": sorted(declared_cols),
             },
@@ -308,6 +329,7 @@ def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> 
                 node.properties["columns_source"] = "sql"
 
     col_prov = Provenance(adapter=ADAPTER, source="sqlglot column lineage over model SQL")
+    uncommented: dict[str, str] = {}
     ids = set(unique_to_graph.values())
     jobs = [(gid, sql, tables_schema(parse_model(sql, dialect), schema) if _parses(sql, dialect) else {}, dialect) for gid, sql in sql_by_graph.items()]
     for gid, columns, derives, error in _all_lineage(jobs, cache_path, out.notes):
@@ -326,7 +348,9 @@ def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> 
                 src_col_node = Node(NodeKind.COLUMN, f"{src_name}.{src_col}", properties={"asset": src_asset}, provenance=[col_prov])
                 out.nodes.append(src_col_node)
                 out.edges.append(Edge(src_col_node.id, src_asset, EdgeKind.COLUMN_OF, Confidence.PARSED, provenance=[col_prov]))
-                out.edges.append(Edge(cnode.id, src_col_node.id, EdgeKind.DERIVES_FROM, Confidence.PARSED, provenance=[col_prov]))
+                # by_name: the model's SQL names the column; otherwise it arrives through a star, and dropping it upstream does not break this model's build
+                by_name = bool(re.search(rf"\b{re.escape(src_col)}\b", uncommented.setdefault(gid, SQL_COMMENT_RE.sub(" ", sql_by_graph.get(gid, ""))), re.I))
+                out.edges.append(Edge(cnode.id, src_col_node.id, EdgeKind.DERIVES_FROM, Confidence.PARSED, {"by_name": by_name}, provenance=[col_prov]))
     return out
 
 

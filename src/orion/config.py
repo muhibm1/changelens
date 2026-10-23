@@ -51,6 +51,10 @@ class ReviewConfig(BaseModel):
     verify_model: str | None = None  # model for that second call (same provider); default: ``model``
     verify_effort: str | None = "high"  # effort for the second reading (Anthropic); None means ``effort``
     effort: str | None = None  # how hard an Anthropic model thinks: low | medium | high | xhigh | max (default medium)
+    escalation: Literal["evidence", "model"] = "evidence"  # evidence: model warn/block needs recorded system context behind it; model: keep the model's severity
+    warehouse: str | None = None  # a DuckDB warehouse file; model warnings on data models get their failing case run against it
+    complex_model: str | None = None  # lens passes on a complex diff use this model (same provider); e.g. a cheap `model` with a strong one here
+    complex_lines: int = 400  # changed lines (added + removed) from which a diff counts as complex
     lenses: list[str] | None = None  # focused review passes (orion.review.LENSES); default all, [] for one general pass
     agent: bool = False  # the model investigates with read-only tools before it reports (orion.review_agent)
     agent_steps: int | None = Field(None, ge=1, le=30)  # turns per agent run (default orion.review_agent.MAX_STEPS); bounded like --agent-steps

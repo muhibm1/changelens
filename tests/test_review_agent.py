@@ -136,6 +136,7 @@ def _finding(evidence, line=1, severity="warn"):
 
 
 def _review(repo: Path, provider, **kw):
+    kw.setdefault("escalation", "model")  # these test the agent; the evidence gate has its own tests
     return review(Store(":memory:"), repo, provider, constraints=[], risk_model=RiskModel.load(None), base_ref="HEAD~1", diff_text=_diff(repo), ignore=["*"], second_reading=False, agent=True, **kw)
 
 
@@ -186,7 +187,7 @@ def test_the_second_reading_sees_the_lines_an_agent_cited(repo: Path):
         {"notes": "", "done": True, "calls": [], "findings": [_finding(["ref:app.py:5", "hunk:lib.py:2"])]},
         {"verdicts": [{"index": 0, "holds": True, "kind": "defect", "reason": "it raises", "duplicate_of": -1}]},
     ])
-    r = review(Store(":memory:"), repo, p, constraints=[], risk_model=RiskModel.load(None), base_ref="HEAD~1", diff_text=_diff(repo), ignore=["*"], agent=True)
+    r = review(Store(":memory:"), repo, p, constraints=[], risk_model=RiskModel.load(None), base_ref="HEAD~1", diff_text=_diff(repo), ignore=["*"], agent=True, escalation="model")
     assert r["findings"][0]["severity"] == "warn"
     verify_user = p.seen[2][1]
     assert "Cited lines (read from the repository by the reviewer)" in verify_user and 'app.py:5:     return total(r["amount"] for r in rows)' in verify_user

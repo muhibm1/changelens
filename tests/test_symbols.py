@@ -711,3 +711,26 @@ def test_a_self_member_is_typed_by_its_own_class_only():
     assert _receiver_type(lines, "self.build()", 10, _lang("a.py")) == "Client"
     assert _receiver_type(lines, "self.client", 15, _lang("a.py")) is None
     assert _receiver_type(lines, "self.build()", 16, _lang("a.py")) is None
+
+
+def test_a_definition_moved_to_another_file_is_not_removed_and_sql_words_are_not_references(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "ops").mkdir()
+    (tmp_path / "models").mkdir()
+    old = "class Converter:\n    def convert(self):\n        return 1\n\n\ndef valid():\n    return True\n"
+    (tmp_path / "ops" / "op.py").write_text("x = 1\n")
+    (tmp_path / "ops" / "use.py").write_text("from ops.hook import Converter\n\nConverter().convert()\n")
+    (tmp_path / "models" / "m.sql").write_text("select valid from t\n")
+    files = parse(Change("ops/op.py", old, "x = 1\n").diff() + Change("ops/hook.py", "", "class Converter:\n    def convert(self):\n        return 2\n").diff())
+    changes = {sc.name: sc for sc in symbol_changes(files, tmp_path, {"ops/op.py": "x = 1\n", "ops/hook.py": "class Converter:\n    def convert(self):\n        return 2\n"})}
+    assert "Converter" not in changes and "convert" not in changes, "moved to ops/hook.py, not removed"
+    assert [r["path"] for r in changes["valid"].refs] == [], "a word in a SQL model is not a reference to a Python function"
+
+
+def test_a_different_definition_with_the_same_name_elsewhere_does_not_hide_a_removal(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "a.py").write_text("x = 1\n")
+    (tmp_path / "use.py").write_text("from a import fmt\n\nfmt(1)\n")
+    files = parse(Change("a.py", "def fmt(x):\n    return x\n", "x = 1\n").diff() + Change("b.py", "", "def fmt(x, y):\n    return y\n").diff())
+    names = {sc.name for sc in symbol_changes(files, tmp_path, {"a.py": "x = 1\n", "b.py": "def fmt(x, y):\n    return y\n"})}
+    assert "fmt" in names

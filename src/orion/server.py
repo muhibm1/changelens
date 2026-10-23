@@ -7,6 +7,7 @@ drafts constraint files; nothing else.
 from __future__ import annotations
 
 import json
+import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -160,7 +161,7 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
         except (ProviderError, AreasError) as e:
             return {"ok": False, "error": str(e)}
         try:
-            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=cfg.review.second_reading, verifier=_verifier(cfg.review), lenses=([] if agentic else cfg.review.lenses), areas=areas, agent=agentic, agent_steps=cfg.review.agent_steps)
+            r = run_review(store, cfg.root, prov, constraints=constraints, risk_model=risk_model, base_ref=base_ref, diff_text=diff, scope=_scope(cfg), ignore=_ignore(cfg), intent=intent, second_reading=cfg.review.second_reading, verifier=_verifier(cfg.review), lenses=([] if agentic else cfg.review.lenses), areas=areas, escalation=cfg.review.escalation, cache=None if os.environ.get("ORION_REVIEW_CACHE", "1").strip().lower() in ("0", "false", "f", "no", "n", "off") else store, warehouse=cfg.path(cfg.review.warehouse) if cfg.review.warehouse else None, agent=agentic, agent_steps=cfg.review.agent_steps)
         except Exception as e:  # noqa: BLE001 - a bad ref or diff is the caller's to fix; say so in the tool's own shape
             return {"ok": False, "error": f"review failed: {e}"}
         return review_md(r) if format == "markdown" else _jsonable(r)
