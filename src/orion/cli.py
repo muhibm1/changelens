@@ -931,7 +931,7 @@ def daemon_status(as_json: bool = typer.Option(False, "--json")):
 @daemon_app.command("bench")
 def daemon_bench(
     n: int = typer.Option(20, "-n", min=1),
-    prompt: str = typer.Option("how does the retrieval index stay current with my repositories", "--prompt"),
+    prompt: str | None = typer.Option(None, "--prompt", help="One prompt for every run (default: six varied ones); each run gets a run number so no answer is served from cache."),
 ):
     """Time the prompt hook end to end, as the harness runs it: p50, p95, max, and how often it added context."""
     from .daemon import bench
