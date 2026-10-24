@@ -168,7 +168,7 @@ def git_diff(repo_root: Path, base_ref: str, paths: list[str] | None = None) -> 
     out = subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
     untracked = subprocess.run(["git", "-C", str(repo_root), "ls-files", "-z", "--others", "--exclude-standard", *(["--", *paths] if paths else [])], check=True, capture_output=True, text=True).stdout.split("\0")
     for u in filter(None, untracked):
-        res = subprocess.run(["git", "-C", str(repo_root), "diff", "--no-index", "--unified=3", "--no-color", "/dev/null", u], capture_output=True, text=True)
+        res = subprocess.run(["git", "-C", str(repo_root), "diff", "--no-index", "--unified=3", "--no-color", "--", "/dev/null", u], capture_output=True, text=True)
         out += res.stdout
     return out
 

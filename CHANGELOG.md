@@ -50,6 +50,7 @@
 - `orion.codegraph` indexes Python, JavaScript/TypeScript and Go repositories with tree-sitter into the store: definitions, imports, calls (including through annotated or constructed receivers), package manifests, HTTP routes and the clients that call them, environment variables (names only) and compose services. Imports resolve across repositories, so a function another repository imports by package name has that repository's callers as dependants.
 - `orion codegraph impact` gives the blast radius of symbols, files, routes, env vars or a diff, with hops, confidence (`parsed`, `declared`, `inferred`) and the file and line of each dependency; `describe`, `stats` and `sync` alongside. `adapters.code` in `orion.yaml` adds it to `orion sync`, and can index every repository a `record.toml` lists.
 - Incremental: facts cached per file by content hash, unchanged syncs write nothing, queries are batched lookups over precomputed edges (tens of milliseconds). See `docs/codegraph.md`.
+- Resolution follows Python's rules for star imports (`__all__`, private names, the later import wins), package re-exports (`pkg.f()`, `from .models import *`) and ES module exports (only exported names bind; CommonJS is taken at its word). Anonymous default exports are definitions. PyPI names are PEP 503 normalised.
 
 ### Reviews for app projects, on a subscription
 
