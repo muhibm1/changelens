@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Hands-free service
+
+- `orion daemon run|install|uninstall|status|bench`: one long-running process (a launchd agent on macOS) keeps the record, the retrieval index and the code graph current for every checkout in the record file: changed checkouts every 30 s, `git fetch` and fast-forward of clean checkouts with no local commits every 15 min, the harness sessions every 10 min, GitHub every 30 min (token from `gh auth token` at run time). No model calls. It exits when its own checkout moves to new code so launchd restarts it on that code.
+- A UserPromptSubmit hook (`python -m orion.hook prompt`) asks the daemon over a Unix socket for passages relevant to the prompt, with a 0.8 s deadline; it fails open and prints nothing when nothing shares enough of the prompt's topic words. End to end p50 53 ms, p95 94 ms on a 6,900-chunk index.
+- The SessionStart hook now runs `python -m orion.hook session-start`, which loads only the standard library: about 50 ms instead of over a second. The plugin's hook does the same instead of `uv run`.
+- Usage log `~/.orion/usage.jsonl`: one record per hook call, MCP tool call and daemon job (session id, latency, hits, ids, timed out, failed), plus later `used` judgements from the session transcript. `orion usage stats` summarises it. Format in `docs/hands-free.md`.
+- `orion setup mac` and `scripts/mac-setup.sh`: one idempotent install of all of the above, merged with existing the harness hooks. `orion setup claude-code --prompt-hook/--no-prompt-hook`.
+- The record file defaults to `~/.config/orion/record.toml` when it exists.
+
 ### Automatic index refresh
 
 - The MCP server keeps the retrieval index and the code graph current on its own. When a tool call finds the checkout changed (HEAD, changed files or their mtimes, the same two git calls that key the answer cache), a background thread runs the incremental `orion rag index` and `orion codegraph sync` work for that checkout, plus the ingested record's new documents. The call is never held: it answers at once, and while the refresh runs the answer says so under `unresolved` and is not cached. Also run once when the server starts. No model call.
