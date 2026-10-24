@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Automatic index refresh
+
+- The MCP server keeps the retrieval index and the code graph current on its own. When a tool call finds the checkout changed (HEAD, changed files or their mtimes, the same two git calls that key the answer cache), a background thread runs the incremental `orion rag index` and `orion codegraph sync` work for that checkout, plus the ingested record's new documents. The call is never held: it answers at once, and while the refresh runs the answer says so under `unresolved` and is not cached. Also run once when the server starts. No model call.
+- It refreshes what exists and creates nothing: a checkout the index does not hold, or a code graph never synced, is left alone. `ORION_REFRESH=all` also indexes new checkouts; `ORION_REFRESH=off` turns it off. A file another process holds is reported busy and retried on a later call after 30 s.
+- `orion refresh [PATH] [--new]` runs the same refresh in the foreground, for a git hook or a cron job.
+
 ### Engineering record ingestion
 
 - `orion record ingest` stores git commits, GitHub pull requests, reviews, comments and issues, the harness session transcripts and Markdown notes as documents with stable ids, file and link refs and provenance, in a SQLite store (`orion.record.documents.DocStore`) that retrieval and the context tools read. Credentials are scrubbed first (`orion.record.scrub`). Runs are incremental (stored commits skipped, files re-read only when changed, GitHub since the last cursor, unchanged documents not rewritten), identical files and commits are kept once, and removed Markdown files become tombstones. `orion record docs` shows counts or one document. `orion record export-sessions` copies a machine's transcripts, scrubbed, to a shared folder so cloud sessions outlive their containers. A changed scrubbing rule re-reads every source on the next full run.

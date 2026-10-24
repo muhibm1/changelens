@@ -53,6 +53,8 @@ def register_agent_tools(server: MCPServer, ws: Any) -> None:
     """The agent-facing context API (orion.agent). Works in any git checkout; richer where an orion.yaml is."""
     from . import agent
 
+    agent.start_refresh(ws)  # the index and graph catch up with the checkout while the session starts
+
     def out(r: dict[str, Any], format: str) -> dict[str, Any] | str:
         fmt = (format or "").strip().lower() or "markdown"
         if fmt not in ("markdown", "md", "json"):

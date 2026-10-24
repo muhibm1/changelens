@@ -30,3 +30,9 @@ def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> St
     store = Store(tmp_path_factory.mktemp("orion") / "graph.duckdb")
     run_sync(cfg, store)
     return store
+
+
+@pytest.fixture(autouse=True)
+def _no_background_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Servers built in tests do not refresh indexes behind the test's back; tests of the refresh turn it on."""
+    monkeypatch.setenv("ORION_REFRESH", "off")

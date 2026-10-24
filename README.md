@@ -241,7 +241,11 @@ tree and the graph (`cached: true`). On the fixture, uncached calls take 5 to 40
 Without an `orion.yaml`, `impact` and `read` use the code graph `orion codegraph sync --repo .` writes to
 `.orion/graph.duckdb` (callers and importers in every indexed repository, from parsed calls rather than a text match).
 The server opens that file and the retrieval index only while it answers (the index stays open for 5 s after the
-last call), so `orion rag index` and `orion codegraph sync` can run while sessions are open. `tests/test_e2e.py`
+last call), so `orion rag index` and `orion codegraph sync` can run while sessions are open. Nobody has to run them
+by hand after the first time: when a call finds the checkout changed (HEAD, changed files, their mtimes), the server
+refreshes the index, the record's new documents and the code graph incrementally in a background thread, and answers
+given meanwhile say so under `unresolved`. It only refreshes what was indexed before (`ORION_REFRESH=all` also indexes
+new checkouts, `off` stops it); `orion refresh` does the same in the foreground for a git hook or cron job. `tests/test_e2e.py`
 runs the whole path on two small repositories: ingest the record, sync the code graph, index, then every tool over
 MCP on a sample change, checking that cited ids read back, the blast radius crosses repositories, answers fit their
 budgets and repeated calls are cached.

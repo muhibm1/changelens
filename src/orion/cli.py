@@ -664,6 +664,30 @@ def rag_read(chunk_id: str, index: Path | None = typer.Option(None, "--index")):
     raise typer.Exit(1 if "error" in got else 0)
 
 
+@app.command()
+def refresh(
+    path: Path | None = typer.Argument(None, help="The checkout (default: the current repository)."),
+    config: Path | None = typer.Option(None, "--config", "-c", help="A platform's orion.yaml: refresh its adapters.code repositories in its store."),
+    new: bool = typer.Option(False, "--new", help="Also index a checkout the index does not hold yet, and create a code graph that was never synced."),
+):
+    """Bring the retrieval index, the record's new documents and the code graph up to date for one checkout.
+
+    What the MCP server does in the background when a call finds the checkout changed; for a git hook or cron job.
+    Incremental, no model call; creates nothing without --new."""
+    import contextlib
+
+    from .config import repo_root
+    from .refresh import refresh as run_refresh
+
+    root = repo_root(path or Path.cwd())
+    cfg = store = None
+    with contextlib.suppress(FileNotFoundError):
+        cfg = load_config(config or root / "orion.yaml") if config or (root / "orion.yaml").is_file() else None
+    if cfg is not None:
+        store = Store(cfg.path(cfg.db))
+    print(_json(run_refresh(root, cfg=cfg, store=store, include_new=new or None)))
+
+
 codegraph_app = typer.Typer(help="The code graph: symbols, imports, calls, packages, HTTP routes and env across repositories, and what a change affects.", no_args_is_help=True)
 app.add_typer(codegraph_app, name="codegraph")
 
