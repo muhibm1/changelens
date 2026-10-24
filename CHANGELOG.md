@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Lessons from Auspex cases
+
+- Auspex cases (`~/.auspex/cases.jsonl`, `auspex.case/1`) are ingested as record documents `case:<session>:<turn>:<kind>`; a later line with the same id replaces the earlier one, and a line that is not a case is reported with its line number. The daemon reads them with the sessions job.
+- `orion propose --lessons [--write]` drafts a lesson when one kind of case repeats twice or more in one file or one repository, scoped to the narrowest place the cases share, citing every case id, at rung `explain`. A case seen in a lesson's scope after Orion first served it (from the usage log) proposes the same lesson one rung down (`checklist`, `check`, `enforce`). `orion lessons accept` moves a proposal into `lessons/`; merging that is the approval. `orion lessons list` shows what is served.
+- The `context` tool lists accepted lessons first when the checkout's repository and the task's paths are inside their scope; the prompt hook adds them once a session, path-scoped ones only when the prompt names a covered path. `read` resolves `lesson:` and `case:` ids.
+- `orion lint-guide` lists CLAUDE.md rule lines that cite no incident, record id or lesson. Report only.
+
 ### Hands-free service
 
 - Prompt hook tuning after the first Mac install: the daemon answers with BM25 only (the gate is lexical; embedding the prompt and scanning every vector made cold answers take 600 to 800 ms), searches the whole record only while half the time budget is left, ingests in a child process so jobs never hold the interpreter lock the answers need, and runs one search after every index write. `orion daemon bench` now uses prompts the daemon has not seen. Novel prompts: p95 86 to 122 ms, also during an ingest.

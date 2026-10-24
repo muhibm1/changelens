@@ -533,12 +533,18 @@ def postflight(
 
 @app.command()
 def propose(
-    write: bool = typer.Option(False, "--write", help="Write proposals under <constraints>/proposed/ and record them."),
+    write: bool = typer.Option(False, "--write", help="Write proposals under <constraints>/proposed/ (or lessons/proposed/ with --lessons) and record them."),
     window_days: int = typer.Option(90, "--window-days"),
     as_json: bool = typer.Option(False, "--json"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    lessons: bool = typer.Option(False, "--lessons", help="Draft lessons from repeated Auspex cases instead of constraints from the ledger."),
+    cases: Path | None = typer.Option(None, "--cases", help="Auspex case file to read first (default: AUSPEX_CASES, else ~/.auspex/cases.jsonl)."),
+    lessons_dir: Path | None = typer.Option(None, "--dir", help="Lessons folder (default: ORION_LESSONS, else lessons/ in the Orion checkout)."),
 ):
-    """Draft constraints from ledger patterns for a human to merge. Orion never approves."""
+    """Draft constraints from ledger patterns, or lessons from Auspex cases, for a human to merge. Orion never approves."""
+    if lessons:
+        _propose_lessons(write, as_json, cases, lessons_dir)
+        return
     from .proposals import propose as draft
     from .proposals import write as write_proposals
 
@@ -565,6 +571,96 @@ def propose(
             console.print(f"wrote {path.relative_to(cfg.root)}")
         if not paths:
             console.print("all proposals already exist under proposed/")
+
+
+def _propose_lessons(write: bool, as_json: bool, cases_path: Path | None, root: Path | None) -> None:
+    from . import lessons as les
+    from . import usage
+    from .record.documents import DocStore
+    from .record.ingest import cases as auspex
+
+    source = cases_path or auspex.default_path()
+    with DocStore.open() as docs:
+        report = auspex.ingest(docs, source)
+        held_cases = les.cases_from_docs(docs)
+    held, problems = les.load_lessons(root)
+    proposals, notes = les.propose(held_cases, held, les.served_since(usage.read()))
+    if as_json:
+        typer.echo(_json({"cases": len(held_cases), "proposals": [{**p.to_dict(), "why": p.why} for p in proposals], "notes": report.notes + problems + notes}))
+    else:
+        console.print(f"{len(held_cases)} case(s) in the record ({escape(str(source))}: +{report.added} ~{report.updated})")
+        for note in report.notes + problems + notes:
+            console.print(f"[yellow]{escape(note)}[/yellow]")
+        if not proposals:
+            console.print("nothing to propose: no kind of case repeats in one place without a lesson")
+        for p in proposals:
+            console.print(f"[bold]{p.id}[/bold] {p.kind} ({p.rung}) for {escape(p.scope.where())}" + (f", supersedes {p.supersedes}" if p.supersedes else ""))
+            console.print(f"  {escape(p.why)}")
+    if write and proposals:
+        for path in les.write(proposals, root):
+            console.print(f"wrote {path}")
+
+
+lessons_app = typer.Typer(help="Lessons drawn from Auspex cases: lessons list | accept.", no_args_is_help=True)
+app.add_typer(lessons_app, name="lessons")
+
+
+@lessons_app.command("list")
+def lessons_list(
+    lessons_dir: Path | None = typer.Option(None, "--dir"),
+    as_json: bool = typer.Option(False, "--json"),
+):
+    """Every lesson, accepted (served) and proposed (not served), with its rung and scope."""
+    from . import lessons as les
+
+    held, problems = les.load_lessons(lessons_dir)
+    served = {x.id for x in les.active(held)}
+    if as_json:
+        typer.echo(_json({"lessons": [{**x.to_dict(), "status": x.status, "served": x.id in served} for x in held], "problems": problems}))
+        return
+    for x in held:
+        state = "served" if x.id in served else x.status if x.status == "proposed" else "superseded"
+        console.print(f"[bold]{x.id}[/bold] {state:10} {x.rung:9} {escape(x.title)} ({escape(x.scope.where())}, {len(x.cases)} case(s))")
+    for pr in problems:
+        console.print(f"[yellow]{escape(pr)}[/yellow]")
+    if not held:
+        console.print("no lessons yet")
+
+
+@lessons_app.command("accept")
+def lessons_accept(lesson_id: str = typer.Argument(...), lessons_dir: Path | None = typer.Option(None, "--dir")):
+    """Move a proposed lesson into the served folder. Commit it on a branch; merging that pull request is the approval."""
+    from . import lessons as les
+
+    try:
+        path = les.accept(lesson_id, lessons_dir)
+    except (FileNotFoundError, FileExistsError, ValueError) as e:
+        raise typer.BadParameter(str(e)) from e
+    console.print(f"moved to {path}; open a pull request with it, and merge it to approve")
+
+
+@app.command("lint-guide")
+def lint_guide(
+    paths: list[Path] = typer.Argument(None, help="Guide files (default: every CLAUDE.md in the checkout)."),
+    every_bullet: bool = typer.Option(False, "--all", help="Check every bullet, not only lines that read as rules."),
+    as_json: bool = typer.Option(False, "--json"),
+):
+    """List rules in CLAUDE.md files that cite no incident, record id or lesson. Reports only; never edits."""
+    from .config import repo_root
+    from .guidelint import guides, lint
+
+    root = repo_root(Path.cwd())
+    files = [p.resolve() for p in paths] if paths else guides(root)
+    reports = lint(files, root, every_bullet=every_bullet)
+    if as_json:
+        typer.echo(_json([r.to_dict() for r in reports]))
+        return
+    if not reports:
+        console.print("no CLAUDE.md here")
+    for r in reports:
+        console.print(f"[bold]{escape(r.path)}[/bold]: {r.rules} rule line(s), {r.cited} cite a source, {len(r.uncited)} cite nothing")
+        for f in r.uncited:
+            console.print(f"  {f.line}: {escape(f.text)}")
 
 
 @app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True}, add_help_option=False)
