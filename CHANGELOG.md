@@ -4,6 +4,9 @@
 
 ### Hands-free service
 
+- Prompt hook tuning after the first Mac install: the daemon answers with BM25 only (the gate is lexical; embedding the prompt and scanning every vector made cold answers take 600 to 800 ms), searches the whole record only while half the time budget is left, ingests in a child process so jobs never hold the interpreter lock the answers need, and runs one search after every index write. `orion daemon bench` now uses prompts the daemon has not seen. Novel prompts: p95 86 to 122 ms, also during an ingest.
+- The daemon runs the Hugging Face Hub offline once the index's model is cached, and `orion daemon status` names the index's embedder. Docs say how the index keeps the model it was built with.
+
 - `orion daemon run|install|uninstall|status|bench`: one long-running process (a launchd agent on macOS) keeps the record, the retrieval index and the code graph current for every checkout in the record file: changed checkouts every 30 s, `git fetch` and fast-forward of clean checkouts with no local commits every 15 min, the harness sessions every 10 min, GitHub every 30 min (token from `gh auth token` at run time). No model calls. It exits when its own checkout moves to new code so launchd restarts it on that code.
 - A UserPromptSubmit hook (`python -m orion.hook prompt`) asks the daemon over a Unix socket for passages relevant to the prompt, with a 0.8 s deadline; it fails open and prints nothing when nothing shares enough of the prompt's topic words. End to end p50 53 ms, p95 94 ms on a 6,900-chunk index.
 - The SessionStart hook now runs `python -m orion.hook session-start`, which loads only the standard library: about 50 ms instead of over a second. The plugin's hook does the same instead of `uv run`.
