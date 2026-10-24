@@ -147,6 +147,7 @@ def replay_eval_cmd(
     model: str | None = typer.Option(None, "--model"),
     repo: list[str] = typer.Option([], "--repo", help="Only these repositories."),
     cases_file: Path = typer.Option(REVIEW_CASES.parent / "replay.yaml", "--cases"),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     out: Path = typer.Option(RESULTS, "--out"),
 ):
@@ -167,7 +168,7 @@ def replay_eval_cmd(
     orion = shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
     workdir.mkdir(parents=True, exist_ok=True)
     with console.status("replaying") as status:
-        res = run_replay(cases, repos, workdir.resolve(), orion=orion, provider=provider, model=model, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {len(r['warns'])} warnings"))
+        res = run_replay(cases, repos, workdir.resolve(), orion=orion, provider=provider, model=model, extra_args=review_arg, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {len(r['warns'])} warnings"))
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "replay-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))

@@ -127,7 +127,7 @@ def _head(clone: Path) -> str:
     return subprocess.run(["git", "-C", str(clone), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
 
 
-def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, orion: str, provider: str, model: str | None, progress=None) -> dict[str, Any]:
+def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, orion: str, provider: str, model: str | None, extra_args: list[str] | None = None, progress=None) -> dict[str, Any]:
     clones = {name: prepare(name, repos[name], workdir) for name in sorted({c.repo for c in cases})}
     heads = {name: _head(clone) for name, clone in clones.items()}
     unsynced = {n for n, clone in clones.items() if repos[n].get("needs_sync") and not (clone / ".orion" / "graph.duckdb").exists()}
@@ -136,14 +136,14 @@ def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, o
         if c.repo in unsynced:
             result = {"error": f"{c.repo} needs a compiled manifest and `orion sync` in {clones[c.repo]} first"}
         else:
-            result = review_commit(orion, clones[c.repo], c.commit, provider, model)
+            result = review_commit(orion, clones[c.repo], c.commit, provider, model, extra_args)
         row = judge(c, result)
         rows.append(row)
         if progress:
             progress(row)
     for name, clone in clones.items():
         subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", heads[name]], capture_output=True)
-    return {"provider": provider, "model": model, "cases": rows, "summary": summarise(rows)}
+    return {"provider": provider, "model": model, "args": list(extra_args or []), "cases": rows, "summary": summarise(rows)}
 
 
 def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:

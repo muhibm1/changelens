@@ -55,6 +55,17 @@ On held-out, the sweep matches the four lenses: its mean is one case higher, and
 
 What did not work: telling the agent that a suspect that holds is a `warn`. It moved detection more than escalation. Several right findings still end at `inform`, by the model's own choice or through the second reading's "did not confirm". These two are the next lever, together with false alarms: "other warns per case" is 1.07 against 0.99, and this build has not been run on the replay (noise) eval.
 
+## Noise on merged changes (replay eval, 2026-10-24)
+
+The 26 merged commits of `replay.yaml` that run without a synced dbt graph were reviewed with Sonnet 5.5 via claude-code and `--escalation model`, one run each. The 12 commits that need one were left out. `pipelinebench replay-eval` now takes `--review-arg`, as recall-eval does.
+
+| run | warns | confirmed | plausible | noise | unjudged | out tokens | wall |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| four lenses | 6 | 1 | 4 | 1 | 0 | 80k | 11 min |
+| sweep | 5 | 1 | 2 | 0 | 2 | 69k | 10 min |
+
+Both builds catch the one confirmed bug, the chunked ETag. The sweep files one fewer warning and no labelled noise. Its two unlabelled warnings are a filesystem-root output directory rejected as path traversal (hono `3a67f7f3`) and a `--version` usage guard that checks `Name()` but prints `DisplayName()` (cobra `5bef9d8`). Both need a hand label before they count either way. On this sample, the sweep raises no more noise than the four lenses do. Details: [replay-sonnet-5-5-agent-sweep.md](replay-sonnet-5-5-agent-sweep.md), [replay-sonnet-5-5-lenses.md](replay-sonnet-5-5-lenses.md).
+
 ## Status and next step
 
-`--agent` stays opt-in (`review.agent: false`), because the default review should not change on recall alone. Before it becomes the default, it needs a replay-eval run for noise, and the strategy thread's history replay for false alarms per week. `--agent --lens <name>` still runs one investigating agent per lens. `--agent --agent-steps 1` is the one-call checklist from #49, with no tools.
+`--agent` stays opt-in (`review.agent: false`), because the default review should not change on recall alone. The replay eval above found no extra noise. What remains is the strategy thread's history replay, for false alarms per week on dbt changes, before it becomes the default. `--agent --lens <name>` still runs one investigating agent per lens. `--agent --agent-steps 1` is the one-call checklist from #49, with no tools.
