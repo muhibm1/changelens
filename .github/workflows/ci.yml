@@ -1,16 +1,40 @@
+# Actions minutes are a budget: CI runs once per ready state, not once per push.
+# Drafts and changes to the top-level docs only are skipped (fixture postmortems are
+# Markdown and still run), a newer push cancels the run it replaces, and every code
+# push to main runs the full suite. CONTRIBUTING.md has the push discipline.
 name: ci
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - "LICENSE"
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - "LICENSE"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  # A newer push to a pull request makes its older run worthless; main runs to completion.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install
         run: |
           uv venv .venv

@@ -19,6 +19,7 @@ Orion is a provider-agnostic code-review and change-intelligence layer for devel
 - Preserve CLI flags, MCP tool names and argument shapes, and the verdict JSON fields once released.
 - Do not build deferred features (more providers, more platform adapters, hosted services) without an explicit reason recorded in the commit message.
 - Never commit credentials, API keys or `.env` files.
+- Actions minutes are limited: batch commits and push once per ready state, keep work-in-progress PRs as drafts, and ask for Orion's self-review with the `orion-review` label only when ready. See `CONTRIBUTING.md`.
 
 ## Layout
 

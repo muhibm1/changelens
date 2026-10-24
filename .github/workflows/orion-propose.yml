@@ -1,10 +1,11 @@
-# Nightly: ingest run history, watch landed changes, draft constraints from
+# Weekly (Mondays), or by hand: ingest run history, watch landed changes, draft constraints from
 # ledger patterns and open a pull request. A human merges it; Orion never does.
 name: orion-propose
 
 on:
   schedule:
-    - cron: "17 3 * * *"
+    # Weekly rather than nightly to save Actions minutes; ledger patterns move slowly.
+    - cron: "17 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -14,11 +15,15 @@ permissions:
 jobs:
   propose:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install
         run: |
           uv venv .venv

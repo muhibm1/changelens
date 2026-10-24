@@ -43,7 +43,7 @@ Run `dbt parse` so `target/manifest.json` exists, then `orion sync`. On cal-itp/
 
 ## Two weeks in shadow mode
 
-Copy `.github/workflows/orion-review.yml` and change the paths. It posts one summary comment per pull request, updated on each push, plus inline comments on new findings, and it never fails the build. After two weeks:
+Copy `.github/workflows/orion-review.yml` and change the paths. Orion's own repository runs it on demand (the `orion-review` label); for shadow mode set its trigger to `pull_request: types: [opened, ready_for_review]` so every pull request gets a review. It posts one summary comment per pull request, updated when it runs again, plus inline comments on new findings, and it never fails the build. After two weeks:
 
 - Count the warnings per week and label each one confirmed, plausible or noise. This is the same scoring `pipelinebench history-replay` uses.
 - Run `orion postflight --summary` to set each verdict's predicted severity against what the next three runs did.
