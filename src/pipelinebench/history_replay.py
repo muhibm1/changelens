@@ -151,6 +151,17 @@ def run(clone: Path, picked: list[dict[str, str]], *, orion: str, provider: str,
     return {"provider": provider, "model": model, "args": extra_args or [], "clone": clone.name, "commits": rows, "bugs_outside_window": missing, "summary": summarise(rows)}
 
 
+def relabel(res: dict[str, Any], labels: Path) -> dict[str, Any]:
+    """A finished replay scored again against changed warning labels, with no review or judge call."""
+    _, warn_labels = load_labels(labels)
+    for r in res["commits"]:
+        mine = _labels_for(warn_labels, r["commit"])
+        for w in r["warns"]:
+            w["verdict"] = _verdict(mine, w)
+    res["summary"] = summarise(res["commits"])
+    return res
+
+
 def with_bugs(clone: Path, window: list[dict[str, str]], labels: Path | None) -> list[dict[str, str]]:
     """The window's commits, then each labelled bug-introducing commit from before it (marked ``in_window: False``), so a
     bug introduced earlier and fixed later is still reviewed; only in-window commits count toward warnings per week."""

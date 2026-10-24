@@ -49,12 +49,14 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     touched = set(cs.touched)
 
-    def record(nid: str, via: str, hops: int, evidence: list[str]) -> None:
+    def record(src: str, nid: str, via: str, hops: int, evidence: list[str]) -> None:
         if nid in touched or nid.startswith("column:"):
             return
         prev = out.get(nid)
         if prev is None or hops < prev["hops"]:
-            out[nid] = {"via": via, "hops": hops, "evidence": evidence}
+            out[nid] = {"via": via, "hops": hops, "evidence": evidence, "from": prev["from"] if prev else []}
+        if src not in out[nid]["from"]:  # the changed assets that reach it, so a finding on one file can tell its own consumers
+            out[nid]["from"].append(src)
 
     for op in cs.ops:
         if op.kind == "add_column" or _noop(op):
@@ -72,23 +74,23 @@ def affected_assets(store: Store, cs: ChangeSet) -> dict[str, dict[str, Any]]:
                         if asset not in reached_assets or info["hops"] < reached_assets[asset][0]:
                             reached_assets[asset] = (info["hops"], path_edges)
                 for asset, (hops, ev) in reached_assets.items():
-                    record(asset, "column", hops, ev)
+                    record(op.asset, asset, "column", hops, ev)
                 # consumers without column lineage (exposures, tasks) hang off the reached assets
                 for asset in list(reached_assets) + [op.asset]:
                     for e in store.edges_to(asset, (EdgeKind.CONSUMES, EdgeKind.DEPENDS_ON)):
                         n = store.node(e["src"])
                         if n and n["kind"] not in ("model", "seed", "snapshot", "source_table"):
-                            record(e["src"], "asset", (reached_assets.get(asset, (0, []))[0]) + 1, [f"edge:{e['id']}"])
+                            record(op.asset, e["src"], "asset", (reached_assets.get(asset, (0, []))[0]) + 1, [f"edge:{e['id']}"])
                 continue
         walked = store.walk([op.asset], "downstream")
         for nid, info in walked.items():
-            record(nid, "asset", info["hops"], [f"edge:{info['via_edge']}"])
+            record(op.asset, nid, "asset", info["hops"], [f"edge:{info['via_edge']}"])
         if op.asset.startswith("task:"):
             # a task's own change reaches the tables it writes, and everything that reads them
             for e in store.edges_from(op.asset, (EdgeKind.PRODUCES,)):
-                record(e["dst"], "asset", 1, [f"edge:{e['id']}"])
+                record(op.asset, e["dst"], "asset", 1, [f"edge:{e['id']}"])
                 for nid, info in store.walk([e["dst"]], "downstream").items():
-                    record(nid, "asset", info["hops"] + 1, [f"edge:{info['via_edge']}"])
+                    record(op.asset, nid, "asset", info["hops"] + 1, [f"edge:{info['via_edge']}"])
     return out
 
 
@@ -255,7 +257,7 @@ def preflight(
     affected_rows = []
     for nid, info in sorted(affected.items(), key=lambda kv: (kv[1]["hops"], kv[0])):
         n = store.node(nid) or {"kind": "?", "name": nid, "tier": None, "owner": None}
-        affected_rows.append({"asset": nid, "kind": n["kind"], "tier": n["tier"], "owner": n["owner"], "via": info["via"], "hops": info["hops"], "evidence": info["evidence"]})
+        affected_rows.append({"asset": nid, "kind": n["kind"], "tier": n["tier"], "owner": n["owner"], "via": info["via"], "hops": info["hops"], "evidence": info["evidence"], "from": sorted(info["from"])})
 
     hits = evaluate(store, constraints, cs.ops, set(affected))
     history, background = _history(store, cs, affected)

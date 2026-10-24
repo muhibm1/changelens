@@ -811,6 +811,28 @@ def test_system_evidence_for_code_areas_reverts_callers_and_column_readers():
     assert system_evidence(ReviewContext(drop, verdict), {"path": FCT, "line": 8, "evidence": []}) == [], "a reader of a column this hunk does not touch is not evidence"
 
 
+
+def test_system_evidence_backs_a_data_change_on_an_asset_its_own_consumers_read():
+    from orion.review import ReviewContext, system_evidence
+
+    def ctx(kind, origin):
+        return ReviewContext([], {"change": {"touched": ["model:a", "model:b"], "ops": [{"kind": kind, "asset": "model:a", "evidence": ["diff:models/a.sql"]}, {"kind": "modify", "asset": "model:b", "evidence": ["diff:models/b.sql"]}]},
+                                  "constraints": [], "readers": [], "history": [], "affected": [{"asset": "model:c", "from": origin}]})
+
+    f = {"path": "models/a.sql", "line": 3, "evidence": []}
+    assert system_evidence(ctx("modify", ["model:a"]), f) == ["node:model:c"], "a logic change reaches what reads this file's model, even when the change touches other models"
+    assert system_evidence(ctx("modify", ["model:b"]), f) == [], "consumers of another file's model are not this file's"
+    assert system_evidence(ctx("change_metadata", ["model:a"]), f) == [], "docs and tests change no data a consumer reads"
+
+
+def test_affected_assets_say_which_changed_asset_reaches_them(synced_store):
+    from orion.changes import ChangeOp, ChangeSet
+    from orion.verdict import affected_assets
+
+    cs = ChangeSet(ops=[ChangeOp("modify", "model:fct_orders", evidence=["diff:x"])], touched=["model:fct_orders"])
+    reached = affected_assets(synced_store, cs)
+    assert reached and all(info["from"] == ["model:fct_orders"] for info in reached.values())
+
 def test_review_cache_reuses_exact_calls_and_misses_when_the_context_changes(synced_store, constraints):
     from orion.store import Store
 

@@ -57,6 +57,8 @@ The store is SQLite at `~/.cache/orion/record/docs.sqlite` (`ORION_DOCS`, or `OR
 
 ## Quickstart
 
+On a dbt project, start with [Orion for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
+
 Review a change in any git repository, with no setup beyond an API key:
 
 ```bash

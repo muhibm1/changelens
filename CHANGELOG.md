@@ -9,7 +9,7 @@
 ### Precision at warn
 
 - **Escalation policies** (`--escalation`, `review.escalation`).
-  - `platform` is the default. A model warning on a file that maps to a dbt or Airflow asset stays at warn or block only when recorded system context backs it: a firing constraint, a downstream reader of a column the hunk names, a row-changing op with consumers, an incident, or a warehouse-confirmed failing case. Otherwise it is lowered to inform with a note.
+  - `platform` is the default. A model warning on a file that maps to a dbt or Airflow asset stays at warn or block only when recorded system context backs it: a firing constraint, a downstream reader of a column the hunk names, a change to the rows or values of an asset other assets read (anything but docs, tests or a new asset), an incident, or a warehouse-confirmed failing case. Otherwise it is lowered to inform with a note.
   - On files Orion records no system context for, the model's severity stands.
   - `evidence` gates every file, adding sensitive areas, revert history and outside callers as backing for code.
   - `model` keeps the model's severity everywhere.
@@ -17,7 +17,7 @@
 - **Measured on 45 held-out bugs** (Sonnet 5.5, 3 runs).
   - Detection recall (surfaced at any severity) is 0.741.
   - Escalation recall (at warn or block) is 0.615 under `model` and `platform`, and 0.148 under `evidence`, with other warnings per case falling from 0.99 to 0.17.
-  - The held-out set is all application code, which is why `platform` is the default.
+  - The held-out set is all application code, so `platform` leaves it at model severity. There the gate lowers right and wrong warnings alike, and the app-code replay had no noise at model severity, so gating code buys little. `platform` keeps the gate where Orion has system context to check against.
 - **Warehouse confirmation** (`review.warehouse`). A model warning on a data model gets its failing case run as one read-only SELECT, checked in code. Rows found make it eligible for warn; no rows lower it under every policy.
 - **Findings cache.** Model answers are cached in DuckDB, keyed exactly by the prompt, provider, model, effort and endpoint. There is no semantic matching. Turn it off with `--no-cache` or `ORION_REVIEW_CACHE=0`; evals always run without it. Lens passes run in parallel after the first warms the prompt cache.
 - **Model routing.** `--complex-model` is used for large diffs.
@@ -31,6 +31,17 @@
   - `recall-eval` splits detection from escalation recall.
   - `recall-spread` reports the spread over repeated runs.
 - **cal-itp, deterministic checks, 116 commits over 26 weeks.** Warnings fell from 33 to 4, all of them artifacts of replaying against a newer graph, so there were 0 false alarms a week.
+- **cal-itp, model review, same 116 commits** (Haiku 5.5 passes, Sonnet 5.5 second reading, `--escalation model`, scored for all three policies; `pipelinebench/results/calitp-history-model.md`). Warnings were labelled by hand from the diff and the upstream history, with limited checking against the code, so treat noise counts as one reader's judgement.
+
+  | policy | warnings a week | false alarms a week | bugs flagged at warn |
+  | --- | ---: | ---: | ---: |
+  | `model` | 5.27 | 1.62 | 3 of 6 |
+  | `platform` | 1.50 | 0.58 | 0 of 6 |
+  | `evidence` | 0.23 | 0.08 | 0 of 6 |
+
+  Five of the six bugs surface at some severity. As first scored, `platform` lowered all three bugs caught at warn, because a change to a whole model got no backing unless it was the only asset the change touched.
+- **The gate now backs a finding with the consumers of its own file's asset.** Pre-flight's `affected` entries say which changed assets reach them (`from`), and any change to the rows or values of an asset other assets read is backing. Re-scored on the same reviews (`pipelinebench/results/calitp-history-model-consumers.md`), `platform` has 2.23 warnings and 0.81 false alarms a week and flags 3 of 6 bugs, the same bugs as `model` at half its false alarms. The rule was written after seeing the misses, so this is a tuning result. The held-out set is application code, which `platform` does not gate, so it is unchanged there.
+- `pipelinebench history-relabel` re-scores a finished replay against edited labels without re-running the reviews.
 
 ### Retrieval core
 

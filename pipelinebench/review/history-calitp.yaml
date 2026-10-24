@@ -57,8 +57,665 @@ warnings:
       line: 359
       verdict: setup
       note: "the revert drops has_authentication and authentication_contact_details; the readers named are from a later graph (tides_gtfs_datasets did not exist yet, and dim_gtfs_datasets_latest named the columns only from 506bdd05), so at this commit no model selected them by name"
+    - path: warehouse/models/mart/transit_database/dim_gtfs_datasets.sql
+      line: 35
+      verdict: setup
+      note: "same readers as the setup findings: from a later graph"
   "3beb7b37":
     - path: airflow/plugins/operators/gtfs_csv_to_jsonl_operator.py
       line: 13
       verdict: noise
       note: "GTFSCSVConverter and its methods moved to hooks/gtfs_csv_converter_hook.py, which the operator imports; valid, success, report and convert matched as words in SQL models"
+    - path: airflow/plugins/hooks/gtfs_csv_converter_hook.py
+      line: 116
+      verdict: plausible
+      note: "BOM-only file reaches len(None)"
+    - path: airflow/tests/hooks/test_gtfs_csv_converter_hook.py
+      line: 76
+      verdict: noise
+      note: "only fails if someone later changes chunks()"
+
+  # Model replay of 2026-10-24 (Haiku 5.5 lenses, Sonnet 5.5 second reading, --escalation model). Read by hand against
+  # the diff and the later upstream history: confirmed = a later commit fixes exactly this; plausible = specific and true
+  # of the code, never fixed upstream; noise = wrong, intended by the change, an unusual input or a hedge.
+  "1bff55fb":
+    - path: warehouse/dbt_project.yml
+      line: 26
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "531cd123":
+    - path: .github/workflows/deploy-dbt.yml
+      line: 421
+      verdict: plausible
+      note: "staging apply now auto-approves on main"
+    - path: .github/workflows/deploy-dbt.yml
+      line: 452
+      verdict: noise
+      note: "production auto-apply on main is what the workflow review set out to do"
+  "2af86094":
+    - path: warehouse/macros/_macros.yml
+      line: 4
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: runbooks/data/microbatch/microbatch_repartitioning.ipynb
+      line: 27
+      verdict: plausible
+      note: "runbook drops the feed_key clustering"
+  "7bef4dad":
+    - path: airflow/dags/dbt_manual_run_with_args.py
+      line: 42
+      verdict: plausible
+      note: "quote stripping breaks multi-line vars"
+  "b0e02bd1":
+    - path: warehouse/models/mart/payments/fct_payments_aggregations_reconciliation.sql
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: warehouse/models/mart/payments/fct_payments_aggregations.sql
+      line: 81
+      verdict: plausible
+      note: "refund join can fan out by RRN; later work on duplicate RRNs"
+    - path: warehouse/models/mart/payments/fct_payments_aggregations.sql
+      line: 81
+      verdict: plausible
+      note: "refund-only aggregation has null ids"
+  "51398e84":
+    - path: airflow/plugins/operators/airtable_issues_email_operator.py
+      line: 175
+      verdict: plausible
+      note: "failure-only run sends an empty email"
+    - path: warehouse/models/mart/transit_database/fct_close_rt_completeness_issues.sql
+      line: 41
+      verdict: plausible
+      note: "feed-version join can duplicate issues"
+  "2832a657":
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 36
+      verdict: noise
+      note: "hedged on an external-table setting not shown"
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 110
+      verdict: plausible
+      note: "undated files re-parsed every day"
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 110
+      verdict: noise
+      note: "needs an invalid calendar date in a filename"
+  "2152177b":
+    - path: warehouse/models/mart/payments/fct_elavon__transactions.sql
+      line: 62
+      verdict: plausible
+      note: "customer in both entity mappings duplicates rows"
+  "d9c7a871":
+    - path: warehouse/dbt_project.yml
+      line: 30
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: .github/workflows/deploy-dbt.yml
+      line: 142
+      verdict: confirmed
+      note: "deed91c8 'chore: re-add full refresh post #5178' restores it"
+  "39cdaa1d":
+    - path: warehouse/macros/annotate_payments_entities.sql
+      line: 37
+      verdict: plausible
+      note: "entity join fan-out once the Enghouse mapping is unioned"
+  "d40bdf16":
+    - path: warehouse/package-lock.yml
+      line: 8
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "db679552":
+    - path: warehouse/pyproject.toml
+      line: 62
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "e4b26f26":
+    - path: warehouse/dbt_project.yml
+      line: 32
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "83c7da30":
+    - path: airflow/dags/parse_enghouse/README.md
+      line: 5
+      verdict: plausible
+      note: "pre-cutover files in the old raw bucket are not scanned"
+    - path: airflow/dags/parse_enghouse/README.md
+      line: 5
+      verdict: plausible
+      note: "same as previous, old bucket files never parsed"
+    - path: iac/cal-itp-data-infra-staging/gcs/us/storage_bucket.tf
+      line: 188
+      verdict: noise
+      note: "destroying the staging bucket is what removing the resource is for"
+    - path: iac/cal-itp-data-infra-staging/gcs/us/storage_bucket.tf
+      line: 188
+      verdict: noise
+      note: "intended removal"
+    - path: iac/cal-itp-data-infra-staging/gcs/us/storage_bucket.tf
+      line: 188
+      verdict: noise
+      note: "intended removal"
+    - path: iac/cal-itp-data-infra/composer/us/environment.tf
+      line: 98
+      verdict: plausible
+      note: "production files in the old bucket not scanned"
+    - path: iac/cal-itp-data-infra/enghouse-sftp/us/kubernetes.tf
+      line: 201
+      verdict: noise
+      note: "rollout race with no evidence of mixed pods"
+    - path: iac/cal-itp-data-infra/enghouse-sftp/us/kubernetes.tf
+      line: 201
+      verdict: noise
+      note: "apply ordering speculation; a rerun succeeds"
+  "e56de4ff":
+    - path: warehouse/dbt_project.yml
+      line: 227
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: warehouse/models/mart/tides/_mart_tides.yml
+      line: 4
+      verdict: plausible
+      note: "publish.product meta the intent names is absent"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 3
+      verdict: confirmed
+      note: "6db8c535 'vehicle_locations as view' makes it the view the intent described"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 27
+      verdict: plausible
+      note: "dedup key not unique across daily batches"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 30
+      verdict: plausible
+      note: "no tiebreak on equal _extract_ts"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 124
+      verdict: plausible
+      note: "seed join narrows output to three agencies"
+  "3afb8565":
+    - path: warehouse/models/mart/tides/_mart_tides.yml
+      line: 148
+      verdict: plausible
+      note: "relationships test ignores service_date"
+    - path: warehouse/models/mart/tides/_mart_tides.yml
+      line: 148
+      verdict: plausible
+      note: "relationships test scans parent without dt filter"
+    - path: warehouse/models/mart/tides/fct_tides_trips_performed.sql
+      line: 122
+      verdict: plausible
+      note: "vehicle_id can be NULL despite description"
+    - path: warehouse/models/mart/tides/fct_tides_trips_performed.sql
+      line: 125
+      verdict: plausible
+      note: "vehicle lookup ignores feed"
+  "05bf2c4d":
+    - path: warehouse/dbt_project.yml
+      line: 29
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 44
+      verdict: plausible
+      note: "two source records on one feed key fan out pings"
+    - path: warehouse/seeds/tides_publication_keys.csv
+      line: 1
+      verdict: noise
+      note: "speculative reader; the deterministic check finds none"
+  "82ded47c":
+    - path: warehouse/macros/create_row_access_policy.sql
+      line: 193
+      verdict: plausible
+      note: "row access policy grants Valley Express VCTC rows"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__pay_windows.sql
+      line: 30
+      verdict: plausible
+      note: "dedup keeps earliest pay-window state"
+  "27453feb":
+    - path: warehouse/models/docs/gtfs rt/prediction_accuracy.md
+      line: 12
+      verdict: plausible
+      note: "early/late definitions inverted in docs"
+    - path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml
+      line: 457
+      verdict: plausible
+      note: "doc names a column the table does not have"
+    - path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml
+      line: 3108
+      verdict: plausible
+      note: "malformed YAML merges description into the column name"
+    - path: warehouse/models/mart/gtfs_rollup/_mart_gtfs_rollup.yml
+      line: 354
+      verdict: plausible
+      note: "average documented as a total"
+    - path: warehouse/models/mart/gtfs_rollup/_mart_gtfs_rollup.yml
+      line: 507
+      verdict: plausible
+      note: "malformed YAML merges description into the column name"
+  "6db8c535":
+    - path: warehouse/models/mart/tides/tides_publication_feeds.sql
+      line: 32
+      verdict: plausible
+      note: "two URLs for one feed-day give two rows"
+  "40027781":
+    - path: airflow/dags/create_external_tables/tides/vehicle_location_outcomes.yml
+      line: 1
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: airflow/dags/README.md
+      line: 213
+      verdict: plausible
+      note: "README names a different source table"
+    - path: airflow/plugins/operators/tides_bigquery_to_parquet_operator.py
+      line: 103
+      verdict: plausible
+      note: "export query not scoped by organization"
+  "2a5459b1":
+    - path: warehouse/pyproject.toml
+      line: 28
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: warehouse/models/mart/gtfs/dim_shapes.sql
+      line: 1
+      verdict: plausible
+      note: "test marker comment left in a production model"
+  "d9d9f560":
+    - path: warehouse/dbt_project.yml
+      line: 233
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "e38f68ed":
+    - path: warehouse/uv.lock
+      line: 1089
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "0ce7a9f6":
+    - path: airflow/dags/parse_elavon/elavon_to_gcs_jsonl.py
+      line: 65
+      verdict: plausible
+      note: "every raw zip reprocessed each run"
+  "b376faed":
+    - path: warehouse/models/staging/tides/_src_tides.yaml
+      line: 9
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: airflow/dags/create_external_tables/tides/vehicle_locations_outcomes.yml
+      line: 4
+      verdict: plausible
+      note: "renamed prefix can leave the external table empty"
+  "aeecbc34":
+    - path: warehouse/models/mart/tides/_mart_tides.yml
+      line: 207
+      verdict: plausible
+      note: "NULL service_date rows never exported"
+    - path: warehouse/models/mart/tides/fct_tides_trips_performed.sql
+      line: 97
+      verdict: plausible
+      note: "non-TIDES enum values pass through"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 12
+      verdict: plausible
+      note: "filter moved off the pruning column"
+    - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
+      line: 47
+      verdict: plausible
+      note: "out-of-range values now published"
+  "13db6b79":
+    - path: warehouse/dbt_project.yml
+      line: 29
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "14ec630f":
+    - path: airflow/dags/generate_tides.py
+      line: 77
+      verdict: confirmed
+      note: "55e0d96c 'Developer does not see an error when uploading TIDES trips performed' the same day"
+  "473c3608":
+    - path: iac/cal-itp-data-infra/iam/us/project_iam_member.tf
+      line: 103
+      verdict: noise
+      note: "first-apply ordering; a rerun succeeds"
+  "8d30bc26":
+    - path: warehouse/models/intermediate/payments/int_payments__cleaned_micropayment_device_transactions.sql
+      line: 34
+      verdict: plausible
+      note: "device transactions of DELETED micropayments kept"
+    - path: warehouse/models/intermediate/payments/int_payments__cleaned_micropayment_device_transactions.sql
+      line: 51
+      verdict: plausible
+      note: "superseded pending micropayment resurfaces"
+  "815b047f":
+    - path: warehouse/pyproject.toml
+      line: 14
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: airflow/Makefile
+      line: 47
+      verdict: noise
+      note: "needs a .env without a trailing newline"
+    - path: airflow/README.md
+      line: 56
+      verdict: plausible
+      note: "README dropped the pools step"
+  "2ee5a8cf":
+    - path: warehouse/pyproject.toml
+      line: 28
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: warehouse/pyproject.toml
+      line: 36
+      verdict: noise
+      note: "speculative caller of a removed extra"
+  "f214df82":
+    - path: warehouse/pyproject.toml
+      line: 24
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "a172b0ea":
+    - path: warehouse/models/mart/payments/fct_payments_settlements_enghouse.sql
+      line: 111
+      verdict: noise
+      note: "speculative reader; the deterministic check finds none"
+  "18b80a29":
+    - path: warehouse/uv.lock
+      line: 39
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "d7d76c3e":
+    - path: ci/kubernetes-workloads.yaml
+      line: 24
+      verdict: plausible
+      note: "removing the release leaves the server and volume running"
+  "70262509":
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 946
+      verdict: plausible
+      note: "amount documented positive though refunds are negated"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 963
+      verdict: noise
+      note: "speculative blank RRN"
+    - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
+      line: 177
+      verdict: plausible
+      note: "unique test on id ignores operator_id"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__deduped_transactions.sql
+      line: 48
+      verdict: plausible
+      note: "empty-string reference collapses rows"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__deduped_transactions.sql
+      line: 49
+      verdict: plausible
+      note: "ties broken arbitrarily"
+  "506bdd05":
+    - path: warehouse/models/staging/transit_database/stg_transit_database__gtfs_datasets.sql
+      line: 106
+      verdict: plausible
+      note: "staging selects Airtable columns the source may lack after the revert"
+  "15414b01":
+    - path: warehouse/models/intermediate/ntd_funding_and_expenses/int_ntd__service_data_and_operating_expenses_time_series_agency_identifiers.sql
+      line: 57
+      verdict: plausible
+      note: "differing attribute values fan out identifiers"
+    - path: warehouse/models/mart/ntd_funding_and_expenses/fct_service_data_and_operating_expenses_time_series_by_mode.sql
+      line: 120
+      verdict: plausible
+      note: "expense-only rows dropped"
+    - path: warehouse/models/mart/transit_database/bridge_ntd_x_geography.sql
+      line: 29
+      verdict: plausible
+      note: "multi-county org gets mixed county and district"
+    - path: warehouse/models/mart/transit_database/bridge_ntd_x_geography.sql
+      line: 61
+      verdict: plausible
+      note: "filter contradicts its comment"
+  "7e996515":
+    - path: airflow/dags/download_and_parse_littlepay.py
+      line: 55
+      verdict: confirmed
+      note: "78821f09 'fix(payments): fix aws buckets' the next day"
+  "1b89e916":
+    - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
+      line: 110
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "ecfb7977":
+    - path: warehouse/models/staging/transit_database/base/base_tts_payment_device_mapping_idmap.sql
+      line: 16
+      verdict: plausible
+      note: "positional agency choice is unordered"
+    - path: warehouse/models/staging/transit_database/stg_transit_database__payment_device_mapping.sql
+      line: 13
+      verdict: plausible
+      note: "name and id can come from different positions"
+  "382c32b2":
+    - path: warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql
+      line: 39
+      verdict: confirmed
+      note: "2917fcea reworks the change columns into month-over-month and true year-over-year"
+    - path: warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql
+      line: 49
+      verdict: plausible
+      note: "removed mode filter adds rows"
+  "ff02c783":
+    - path: warehouse/models/mart/ntd_funding_and_expenses/fct_capital_expenditures_time_series_facilities.sql
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+  "90e6ffa2":
+    - path: warehouse/models/intermediate/payments/int_payments__agency_joined_device_transactions.sql
+      line: 75
+      verdict: plausible
+      note: "overlapping mapping windows duplicate transactions"
+    - path: warehouse/models/intermediate/payments/int_payments__agency_joined_device_transactions.sql
+      line: 78
+      verdict: plausible
+      note: "open-ended windows never match"
+  "2917fcea":
+    - path: warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql
+      line: 50
+      verdict: plausible
+      note: "YoY percent divides by last month"
+    - path: warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql
+      line: 48
+      verdict: plausible
+      note: "row-based lag shifts across gaps"
+  "54ffad28":
+    - path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml
+      line: 66
+      verdict: plausible
+      note: "docs name a column the SQL does not emit"
+    - path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml
+      line: 111
+      verdict: plausible
+      note: "docs list columns the model does not produce"
+    - path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml
+      line: 341
+      verdict: plausible
+      note: "docs name columns the model does not emit"
+  "22c8a93f":
+    - path: warehouse/.dockerignore
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: .dockerignore
+      line: 65
+      verdict: plausible
+      note: "root .dockerignore excludes data from root builds"
+    - path: README.md
+      line: 37
+      verdict: noise
+      note: "vague README gap"
+  "00dfc554":
+    - path: warehouse/models/intermediate/payments/_int_payments.yml
+      line: 75
+      verdict: plausible
+      note: "where nested under arguments is not applied"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 357
+      verdict: plausible
+      note: "documented values differ from emitted ones"
+  "2e7c8211":
+    - path: warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql
+      line: 4
+      verdict: plausible
+      note: "microbatch inputs without event_time read full history"
+  "5b9885a0":
+    - path: warehouse/models/mart/gtfs/fct_vehicle_positions_trip_summaries.sql
+      line: 3
+      verdict: plausible
+      note: "switch to partitioned incremental needs a full refresh"
+  "008d78a8":
+    - path: warehouse/models/mart/payments/elavon_littlepay__daily_history_transactions_deposits_billing.sql
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+  "3127f574":
+    - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
+      line: 96
+      verdict: plausible
+      note: "most-common shape has no tiebreak"
+    - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
+      line: 191
+      verdict: plausible
+      note: "inner join drops NULL direction_id"
+  "a61247bd":
+    - path: warehouse/models/mart/transit_database/bridge_paratransit_services.sql
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: warehouse/models/mart/transit_database/bridge_services_x_paratransit.sql
+      line: 26
+      verdict: plausible
+      note: "dangling id yields null-key bridge rows"
+  "fbe45897":
+    - path: warehouse/dbt_project.yml
+      line: 98
+      verdict: noise
+      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+  "6a6df64e":
+    - path: warehouse/models/staging/transit_database/stg_transit_database__organizations.sql
+      line: 48
+      verdict: noise
+      note: "speculative missing Airtable field"
+  "6d8033ef":
+    - path: warehouse/models/mart/gtfs_quality/_mart_gtfs_quality.yml
+      line: 116
+      verdict: plausible
+      note: "existing test loses its arguments block"
+  "2f53a705":
+    - path: warehouse/models/mart/gtfs/fct_daily_scheduled_stops.sql
+      line: 93
+      verdict: confirmed
+      note: "be8ceca2 'Daily and Monthly Scheduled Stop review' two days later reworks these totals"
+  "be8ceca2":
+    - path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml
+      line: 1370
+      verdict: plausible
+      note: "uniqueness test removed"
+    - path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml
+      line: 1536
+      verdict: plausible
+      note: "expression_is_true without an expression"
+    - path: warehouse/models/mart/gtfs_rollup/fct_monthly_scheduled_stops.sql
+      line: 68
+      verdict: plausible
+      note: "partial current month published"
+    - path: warehouse/models/mart/gtfs_rollup/fct_monthly_scheduled_stops.sql
+      line: 69
+      verdict: plausible
+      note: "join on the 1st drops mid-month feeds"
+    - path: warehouse/models/mart/gtfs_rollup/fct_monthly_scheduled_stops.sql
+      line: 72
+      verdict: plausible
+      note: "grouping by stop_key duplicates stop_ids"
+  "c3ca6038":
+    - path: airflow/dags/create_external_tables/tides/reference_outcomes.yml
+      line: 12
+      verdict: plausible
+      note: "JSON ts key collides with the partition key"
+    - path: warehouse/models/mart/tides/tides_gtfs_datasets.sql
+      line: 74
+      verdict: plausible
+      note: "private_dataset filtered per version"
+  "0eaf78eb":
+    - path: warehouse/models/mart/transit_database/bridge_gtfs_analysis_name_x_ntd.sql
+      line: 113
+      verdict: noise
+      note: "TRIM is a harmless cleanup"
+  "248a326f":
+    - path: warehouse/models/intermediate/payments/int_payments__settlements_to_aggregations_enghouse.sql
+      line: 14
+      verdict: plausible
+      note: "NULL response_type counted as settled"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 979
+      verdict: noise
+      note: "needs a zero-amount refund"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 1047
+      verdict: plausible
+      note: "documented column name differs"
+    - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
+      line: 52
+      verdict: plausible
+      note: "where nested under arguments"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__pay_windows.sql
+      line: 54
+      verdict: plausible
+      note: "NULL references share one key"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__taps.sql
+      line: 118
+      verdict: noise
+      note: "needs a padded operator_id"
+  "93b31198":
+    - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
+      line: 39
+      verdict: plausible
+      note: "NULL tx_status skips the relationship test"
+  "34716dcc":
+    - path: warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql
+      line: 5
+      verdict: confirmed
+      note: "b0b73b32 'fix refs' restores ref() (labelled bug)"
+    - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
+      line: 20
+      verdict: plausible
+      note: "MAX over RT keys drops feeds"
+    - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
+      line: 213
+      verdict: plausible
+      note: "dedupe ties without tiebreak"
+    - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
+      line: 213
+      verdict: noise
+      note: "hedged on an unshown macro"
+  "ad497afc":
+    - path: warehouse/models/intermediate/payments/int_payments__customer_funding_source_vaults.sql
+      line: 10
+      verdict: plausible
+      note: "vault rank after the funding-source filter drops vaults"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 54
+      verdict: plausible
+      note: "adds a not_null test the intent says to revoke"
+  "eaac6432":
+    - path: airflow/dags/unzip_and_validate_gtfs_schedule_hourly/convert_to_json/METADATA.yml
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+  "8af13f10":
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 142
+      verdict: plausible
+      note: "audit path omits the entity"
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 146
+      verdict: plausible
+      note: "audit row never written after a failed audit upload"
+  "4de38421":
+    - path: warehouse/Dockerfile
+      line: 0
+      verdict: setup
+      note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"

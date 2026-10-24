@@ -294,6 +294,21 @@ def history_replay_cmd(
     console.print(f"wrote {out / stem}.json and .md")
 
 
+@app.command("history-relabel")
+def history_relabel_cmd(
+    results: Path = typer.Argument(..., help="A history-replay results JSON."),
+    labels: Path = typer.Option(..., "--labels", help="The hand-written labels to score its warnings against."),
+):
+    """Score a finished history replay again after its warnings were labelled (no reviews, no judge calls)."""
+    from .history_replay import relabel, to_markdown
+
+    res = relabel(json.loads(results.read_text()), labels)
+    results.write_text(json.dumps(res, indent=1, default=str))
+    md = to_markdown(res)
+    results.with_suffix(".md").write_text(md)
+    console.print(md)
+
+
 @app.command("retrieval-eval")
 def retrieval_eval_cmd(
     models: bool = typer.Option(False, "--models", help="Also run the local-model configurations (sentence-transformers embeddings and cross-encoder; the `embed` extra)."),

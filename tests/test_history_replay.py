@@ -53,3 +53,13 @@ def test_one_model_run_compares_the_escalation_policies():
     assert s["model"]["noise"] == 1 and s["evidence"]["noise"] == 0 and s["platform"]["noise"] == 1
     assert s["evidence"]["bugs_flagged"] == "0/1" and s["platform"]["bugs_flagged"] == "1/1"
     assert "| evidence |" in to_markdown({"provider": "stub", "model": None, "clone": "c", "commits": rows, "summary": summarise(rows)})
+
+
+def test_relabel_scores_a_finished_replay_against_new_labels(tmp_path):
+    from pipelinebench.history_replay import relabel
+
+    labels = tmp_path / "labels.yaml"
+    labels.write_text('warnings:\n  "00000000":\n    - {path: a.sql, line: 1, verdict: noise}\n')
+    w = {"source": "model", "path": "a.sql", "line": 2, "title": "x", "verdict": "unjudged"}
+    res = relabel({"commits": [_row(1, [w])]}, labels)
+    assert res["commits"][0]["warns"][0]["verdict"] == "noise" and res["summary"]["noise"] == 1

@@ -680,7 +680,7 @@ GATE_NOTE = "nothing recorded about the system backs it here (no constraint, dow
 NO_ROWS_NOTE = "its failing case was run against the warehouse and returned no rows"
 GAP_NOTE = "an unmapped path is a gap in what Orion can see, not evidence the change is wrong; map it to have it checked"
 INCIDENT_COMMIT_RE = re.compile(r"\brevert(s|ed)?\b|\bhotfix\b|\bregression\b|\bincident\b|\brollback\b|\brolled back\b", re.I)
-ROW_OPS = ("change_filter", "change_partition", "delete_asset", "change_selection")  # ops that change which rows every consumer reads
+NO_DATA_OPS = ("change_metadata", "add_asset")  # docs and tests change no data, and a new asset has no consumers yet
 
 
 def _hunk_text(fd: FileDiff, line: int) -> str:
@@ -699,7 +699,7 @@ def system_evidence(ctx: ReviewContext, f: dict[str, Any]) -> list[str]:
     one that ran and found nothing lowers the finding unless a firing constraint backs it.
 
     Data platform: a firing constraint on an asset of the file; a column the hunk names that other models read; a
-    row-changing op (filter, partition, selection, delete) on an asset with downstream consumers; an incident on an
+    change to the rows or values of an asset (anything but docs, tests or a new asset) that other assets read; an incident on an
     asset of the file. Code: a sensitive area covering the file; a revert, hotfix, regression or incident commit
     that touched it; a changed definition in the file that code outside the diff calls."""
     path, line = f["path"], f.get("line")
@@ -716,9 +716,9 @@ def system_evidence(ctx: ReviewContext, f: dict[str, Any]) -> list[str]:
         col = r["column"].rsplit(".", 1)[-1].lower()
         if r["asset"] in assets and hunk and re.search(rf"\b{re.escape(col)}\b", hunk):
             out.append(f"node:{r['reader']}")
-    # The blast radius is the whole change's, so it backs this file's row-changing op only when every touched asset is this file's.
-    downstream = [a["asset"] for a in v.get("affected", [])] if set(v.get("change", {}).get("touched", [])) <= assets else []
-    if downstream and any(o["kind"] in ROW_OPS for o in ops):
+    # Consumers this file's own assets reach: a change to the rows or values an asset returns reaches every one of them.
+    downstream = [a["asset"] for a in v.get("affected", []) if assets & set(a.get("from", []))]
+    if downstream and any(o["kind"] not in NO_DATA_OPS for o in ops):
         out += [f"node:{a}" for a in downstream[:3]]
     for h in v.get("history", []):
         if h["kind"] in ("postmortem_filed", "incident_opened") and assets & set(h["assets"]):
