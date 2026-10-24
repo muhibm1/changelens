@@ -24,6 +24,7 @@ Code-context tools index what the repository says. Orion indexes what production
 | `orion record-decision` | Writes a human's approve / waive / reject on a verdict to the ledger. |
 | `orion postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
 | `orion propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A weekly workflow opens them as a pull request; merging is the approval. |
+| `orion propose --lessons` | Drafts lessons from repeated Auspex cases (graded failures in the harness sessions) into `lessons/proposed/`, each with the case ids behind it, a scope and a rung. `orion lessons accept` moves one into `lessons/`; merging that is the approval. `orion lint-guide` lists CLAUDE.md rules that cite no incident, record id or lesson. |
 | `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, orion), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Orion and the ground truth honest with each other. |
 | `fixture/` | PipelineBench's fixture platform: a dbt project over DuckDB, three Airflow DAGs, CODEOWNERS, three postmortems, four constraints, and run history (an Airflow task-instance export, dbt `run_results.json` files, Iceberg table metadata with snapshots, a schema change and a partition-spec change). Realistic enough that the questions a verdict asks have non-trivial answers. |
 
@@ -213,6 +214,25 @@ CON-P31abc2 freshness_sla (warn) on model:fct_refunds, model:fct_revenue
 
 `orion propose --write` puts each as `constraints/proposed/<id>.yaml` with its evidence, and `.github/workflows/orion-propose.yml` opens the pull request weekly. The three fixture postmortems propose nothing because CON-014, CON-022 and CON-031 already cover them; remove one and the matching proposal appears.
 
+### Lessons from Auspex cases
+
+Auspex, the monitoring layer, grades finished the harness turns with fixed checks and writes each failure as a case to `~/.auspex/cases.jsonl` (`AUSPEX_CASES` moves it): a turn that ended with edits but no test or build after the last one (`unverified-finish`), the same failing command run again and again (`retry-loop`), one file edited over and over (`edit-churn`), a long permission wait (`long-wait`), or context past 80% (`context-high`). Orion turns repeated cases into lessons an agent reads before it works in the same place. Everything on this path is code; no model writes or judges a lesson.
+
+- **Cases are record documents.** `orion record ingest` (and the daemon's sessions job) stores each as `case:<session>:<turn>:<kind>`, linked to its session and files. A later line with the same id replaces the earlier one. `read` on the MCP server returns any case.
+- **A lesson needs two cases of one kind in one place.** Two `edit-churn` cases on `src/orion/daemon.py` give a lesson scoped to that file; two `unverified-finish` cases on different files of one repository give a lesson for that repository. The scope is the narrowest the cases share, never wider. A case with no repository is reported and not used.
+- **Each lesson has a rung**: `explain` (what went wrong and what to do), `checklist` (steps to tick before finishing), `check` (a hook or alert to build), `enforce` (the same check, blocking). A new lesson starts at `explain`. When a case of its kind happens inside its scope after Orion served it (the usage log records every id Orion returned, so "served" is a fact, not a guess), `orion propose --lessons` drafts the same lesson one rung down. Orion never builds the check itself: the rung says what to build, and a person decides.
+- **Approval is a merge.** Proposals go to `lessons/proposed/` and are never served. `orion lessons accept <id>` moves one into `lessons/`; the pull request that carries the move is the approval. `orion lessons list` shows which are served.
+- **Served only in scope.** The `context` tool lists accepted lessons first when the checkout's GitHub repository and the task's paths fall inside a lesson's scope. The prompt hook adds a repository-scoped lesson to the first prompt of a session in that checkout, and a path-scoped one only when the prompt names a path it covers. Each is cited as `lesson:<id>`.
+
+```
+$ orion propose --lessons --write      # on a hand-made case file
+5 case(s) in the record (cases.jsonl: +5 ~0)
+LES-94c4c9 edit-churn (explain) for src/orion/daemon.py in muhibm1/orion
+  2 edit-churn cases on src/orion/daemon.py in muhibm1/orion: case:sess3:3:edit-churn, case:sess4:4:edit-churn
+```
+
+`orion lint-guide` reads every `CLAUDE.md` in the checkout and lists rule lines (those that say never, always, must, avoid, only and the like) that cite nothing: no incident label (`INC-214`), record id (`git:`, `gh:`, `case:`, `lesson:`), pull request, issue or commit. It only reports. A rule with no source may still be right, but nobody can check why it is there or when it can go. Orion's own guide has 11 such lines today, all design principles and working conventions rather than lessons from incidents.
+
 ### Retrieval
 
 `orion ask` ranks with BM25 by default. `retrieval.ranker: hybrid` in `orion.yaml` fuses it with cosine over dense vectors (reciprocal rank fusion); `embedding` uses the vectors alone. Vectors come from a dependency-free hashed embedder unless `retrieval.model` names a sentence-transformers model (`pip install -e ".[embed]"`), and are cached per model in the `chunk_vectors` table. The sentence-transformers path is wired but not exercised by the test suite.
@@ -302,6 +322,8 @@ src/orion/
   retrieval.py        graph-scoped retrieval (BM25, hybrid, embedding) over postmortems, descriptions and constraint reasons
   postflight.py       verdict -> landing commit -> next N runs -> outcome_observed; calibration table
   proposals.py        ledger patterns -> draft constraints with evidence, written under proposed/
+  lessons.py          repeated Auspex cases -> scoped lessons with a rung, written under lessons/proposed/; scoped serving
+  guidelint.py        CLAUDE.md rule lines that cite no incident, record id or lesson
   server.py           the MCP server (nine tools)
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
   providers.py        Provider interface; stub, Anthropic, OpenAI-compatible, local command (claude-code preset); retries and timeouts

@@ -110,7 +110,7 @@ def register_agent_tools(server: MCPServer, ws: Any) -> None:
             return {"error": f"format must be markdown or json, not {format!r}"}
         return agent.to_markdown(r) if fmt in ("markdown", "md") and "error" not in r else _jsonable(r)
 
-    @server.tool(name="context", description="Call at the START of a task. Give the task in a sentence or two and the paths you expect to touch. Returns what to know first: constraints and sensitive areas in scope, owners, platform assets involved, related passages from the engineering record, recent fixes on those files. Every item has an id; packed to budget_tokens.")
+    @server.tool(name="context", description="Call at the START of a task. Give the task in a sentence or two and the paths you expect to touch. Returns what to know first: lessons, constraints and sensitive areas in scope, owners, platform assets involved, related passages from the engineering record, recent fixes on those files. Every item has an id; packed to budget_tokens.")
     def context_tool(task: str, paths: list[str] | None = None, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
         return out(agent.context(ws, task, paths=paths, budget_tokens=budget_tokens), format)
 
@@ -122,7 +122,7 @@ def register_agent_tools(server: MCPServer, ws: Any) -> None:
     def search_tool(query: str, repo: str | None = None, k: int = 8, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
         return out(agent.search(ws, query, k=k, repo=repo, budget_tokens=budget_tokens), format)
 
-    @server.tool(name="read", description="The full text behind any id an Orion tool returned: a record section, chunk, commit (git:<repo>@<sha>), PR or issue (gh:...), session, asset, event, constraint or verdict. An id Orion does not hold returns an error: a citation that does not read back is not recorded.")
+    @server.tool(name="read", description="The full text behind any id an Orion tool returned: a record section, chunk, commit (git:<repo>@<sha>), PR or issue (gh:...), session, Auspex case (case:...), lesson (lesson:...), asset, event, constraint or verdict. An id Orion does not hold returns an error: a citation that does not read back is not recorded.")
     def read_tool(id: str, budget_tokens: int | None = None, format: str = "markdown") -> dict[str, Any] | str:
         return out(agent.read(ws, id, budget_tokens=budget_tokens), format)
 
