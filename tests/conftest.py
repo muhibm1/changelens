@@ -36,3 +36,12 @@ def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> St
 def _no_background_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
     """Servers built in tests do not refresh indexes behind the test's back; tests of the refresh turn it on."""
     monkeypatch.setenv("ORION_REFRESH", "off")
+
+
+@pytest.fixture(autouse=True)
+def _usage_log_in_tmp(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
+    """Hooks and tools log to the usage log; in tests that log is a temporary file, never the user's."""
+    home = tmp_path_factory.mktemp("orion-home")
+    monkeypatch.setenv("ORION_HOME", str(home))
+    monkeypatch.setenv("ORION_USAGE", str(home / "usage.jsonl"))
+    monkeypatch.setenv("ORION_SOCKET", str(tmp_path_factory.mktemp("sock") / "d.sock"))

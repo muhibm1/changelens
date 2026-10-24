@@ -6,8 +6,11 @@ drafts constraint files; nothing else.
 
 from __future__ import annotations
 
+import functools
 import json
 import os
+import re
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -47,6 +50,52 @@ token budget (`budget_tokens`, at least 200; the answer reports the budget it us
   sensitive areas, owners, fix history and, on a data platform, the pre-flight verdict and its blast radius.
 - `search` for anything in the engineering record; `read` an id to see its full text; `file_history` for one file.
 Cite ids (`[id]`) for any claim you take from Orion. What Orion does not list is not recorded: say so, do not guess."""
+
+
+_ID_LINE = re.compile(r"^\s*[-*]\s+\[([^\]\s]+)\]", re.M)
+
+
+def _log_calls(server: MCPServer) -> MCPServer:
+    """Every tool registered from here on writes one ``mcp.call`` record to the usage log (``orion.usage``): which
+    tool, how long it took, how many ids it returned and which. The answer itself is not changed."""
+    from . import usage
+
+    register = server.tool
+
+    def tool(*args: Any, **kwargs: Any):
+        def deco(fn):
+            name = kwargs.get("name") or fn.__name__
+
+            @functools.wraps(fn)
+            def logged(*a: Any, **kw: Any):
+                t0 = time.monotonic()
+                outcome, result = "error", None
+                try:
+                    result = fn(*a, **kw)
+                    outcome = "error" if isinstance(result, dict) and result.get("error") else "ok"
+                    return result
+                finally:
+                    ids = _result_ids(result)
+                    usage.log("mcp", "call", tool=name, session_id=usage.session_for_parent(), cwd=os.getcwd(), latency_ms=round((time.monotonic() - t0) * 1000, 1), outcome=outcome, hits=len(ids), ids=ids[:20], timed_out=False, failed=outcome == "error")
+
+            return register(*args, **kwargs)(logged)
+
+        return deco
+
+    server.tool = tool  # type: ignore[method-assign]
+    return server
+
+
+def _result_ids(result: Any) -> list[str]:
+    """The ids an answer cites: its items' (JSON), or the ``- [id]`` lines (Markdown)."""
+    if isinstance(result, str):
+        return _ID_LINE.findall(result)
+    if isinstance(result, dict):
+        items = result.get("items") or result.get("events") or []
+        return [str(i.get("id")) for i in items if isinstance(i, dict) and i.get("id")]
+    if isinstance(result, list):
+        return [str(i.get("id")) for i in result if isinstance(i, dict) and i.get("id")]
+    return []
 
 
 def register_agent_tools(server: MCPServer, ws: Any) -> None:
@@ -110,7 +159,7 @@ def build_server(cfg: OrionConfig | None = None, review_provider: Any = None) ->
     store = Store(cfg.path(cfg.db))
     constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     risk_model = load_risk(cfg.path(cfg.risk) if cfg.risk else None)
-    server = MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
+    server = _log_calls(MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0"))
     register_record_tools(server)
     from .agent import Workspace
 
@@ -220,7 +269,7 @@ def build_record_server(project_dir: Path | None = None) -> MCPServer:
     """The record tools and the agent context API, for a checkout with no orion.yaml."""
     from .agent import Workspace
 
-    server = MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0")
+    server = _log_calls(MCPServer("orion", instructions=AGENT_INSTRUCTIONS + "\n\n" + RECORD_INSTRUCTIONS, version="0.1.0"))
     register_record_tools(server)
     register_agent_tools(server, Workspace.at(project_dir))
     return server

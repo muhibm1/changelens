@@ -255,6 +255,12 @@ add`) and a SessionStart hook that tells each session Orion is there and when to
 the repository's `.mcp.json` and `.claude/settings.json` instead, which cloud sessions of that repository pick up.
 Those files are committed, so they call `orion` by name rather than this machine's Python; `orion` must be on `PATH`.
 
+**Hands-free on a Mac:** `bash scripts/mac-setup.sh` installs Orion, registers it with the harness (MCP server,
+SessionStart hook and a UserPromptSubmit hook that adds the record's most relevant passages to a prompt, or nothing,
+in well under a second) and starts `orion daemon` as a launch agent that ingests, indexes, fetches and fast-forwards
+clean checkouts on its own. Every call is logged to `~/.orion/usage.jsonl` for `orion usage stats` and for Auspex.
+See [docs/hands-free.md](docs/hands-free.md).
+
 **Cloud environments:** add `scripts/cloud-setup.sh` to the environment's setup script; it clones and installs Orion,
 links `orion` onto `PATH` and runs `orion setup claude-code`. **As a plugin (local):** `/plugin marketplace add muhibm1/orion`, then
 `/plugin install orion@orion`; it needs `uv`. Plugins are not installed in cloud sessions, so use the setup script

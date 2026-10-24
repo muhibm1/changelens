@@ -818,27 +818,162 @@ def serve(
 
 @app.command()
 def setup(
-    target: str = typer.Argument("claude-code", help="What to set up: claude-code."),
+    target: str = typer.Argument("claude-code", help="What to set up: claude-code, or mac (claude-code with the prompt hook, this machine's record file and the always-on daemon)."),
     scope: str = typer.Option("user", "--scope", help="user: every the harness session on this machine. project: this repository's .mcp.json and .claude/settings.json, committed so cloud sessions get it too."),
     project: Path | None = typer.Option(None, "--project", help="The repository for --scope project (default: the current directory)."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Say what would change without writing."),
+    prompt_hook: bool | None = typer.Option(None, "--prompt-hook/--no-prompt-hook", help="Add or remove the UserPromptSubmit hook that asks the Orion daemon for context on every prompt (user scope; mac adds it unless --no-prompt-hook)."),
+    python: str | None = typer.Option(None, "--python", help="mac: the Python the daemon and hooks run with (default: this one)."),
+    projects: Path | None = typer.Option(None, "--projects", help="mac: the folder holding your checkouts, for a new record file (default: the folder holding Orion's checkout)."),
+    no_daemon: bool = typer.Option(False, "--no-daemon", help="mac: skip the launch agent."),
 ):
-    """Register Orion's MCP server and a SessionStart hook with the harness."""
+    """Register Orion with the harness (MCP server and hooks); `setup mac` also installs the always-on daemon."""
+    import sys
+
     from .install import setup_claude_code
 
-    if target != "claude-code":
-        raise typer.BadParameter("only claude-code is supported")
+    if target not in ("claude-code", "mac"):
+        raise typer.BadParameter("claude-code or mac")
     try:
-        done = setup_claude_code(scope, project, dry_run=dry_run)
+        if target == "mac":
+            from .daemon import setup_mac
+
+            if sys.platform != "darwin" and not no_daemon:
+                raise RuntimeError("the daemon is a macOS launch agent; on this system pass --no-daemon and run `orion daemon run` yourself")
+            done = setup_mac(python=python, projects=projects, daemon=not no_daemon, prompt_hook=prompt_hook is not False, dry_run=dry_run)
+        else:
+            done = [("would add " if dry_run else "added ") + line for line in setup_claude_code(scope, project, dry_run=dry_run, prompt_hook=prompt_hook)]
     except (ValueError, RuntimeError, OSError) as e:
         console.print(f"[red]setup failed:[/red] {e}")
         raise typer.Exit(1) from e
     for line in done:
-        console.print(("would add " if dry_run else "added ") + line)
+        console.print(line)
+    if target == "mac" and not dry_run and not no_daemon:
+        import time
+
+        from .daemon import bench
+        from .hook import ask
+
+        for _ in range(30):  # the first start loads the index and the embedding model
+            if ask({"op": "ping"}, 0.5) is not None:
+                break
+            time.sleep(1)
+        else:
+            console.print("[yellow]the daemon is not answering yet; `orion daemon status` shows why (it may still be starting)[/]")
+            return
+        r = bench(5)
+        console.print(f"prompt hook end to end: p50 {r['p50_ms']} ms, p95 {r['p95_ms']} ms over {r['runs']} runs")
+
+
+daemon_app = typer.Typer(help="The always-on service: keeps the record, retrieval index and code graph current and answers the prompt hook.", no_args_is_help=True)
+app.add_typer(daemon_app, name="daemon")
+
+
+@daemon_app.command("run")
+def daemon_run(
+    once: bool = typer.Option(False, "--once", help="Run every job one time, print what each did, and exit."),
+    record_file: Path | None = typer.Option(None, "--record", help="The record file (default: ORION_RECORD, ~/.config/orion/record.toml, or the checkout's)."),
+):
+    """Run the service in the foreground (launchd runs this). Stops on SIGTERM, or when Orion's own code changes."""
+    from .daemon import run as run_daemon
+
+    try:
+        raise typer.Exit(run_daemon(record_file, once=once))
+    except RuntimeError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1) from e
+
+
+@daemon_app.command("install")
+def daemon_install(
+    python: str | None = typer.Option(None, "--python", help="The Python to run it with (default: this one)."),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+):
+    """Install (or restart) the macOS launch agent: started at login, restarted if it exits."""
+    from .daemon import install
+
+    try:
+        for line in install(python, dry_run=dry_run):
+            console.print(line)
+    except (RuntimeError, OSError) as e:
+        console.print(f"[red]install failed:[/red] {e}")
+        raise typer.Exit(1) from e
+
+
+@daemon_app.command("uninstall")
+def daemon_uninstall():
+    """Stop the launch agent and remove it. The hooks stay and stay silent without it."""
+    from .daemon import uninstall
+
+    for line in uninstall():
+        console.print(line)
+
+
+@daemon_app.command("status")
+def daemon_status(as_json: bool = typer.Option(False, "--json")):
+    """Whether launchd has it, whether it answers, and what each job did last."""
+    from .daemon import status
+
+    st = status()
+    if as_json:
+        print(_json(st))
+        return
+    console.print(f"installed: {st['installed']} ({st['plist']})")
+    if "launchd" in st:
+        console.print(f"launchd: {st['launchd']}")
+    console.print(f"answering: {st['answering']}")
+    d = st.get("daemon") or {}
+    d = d.get("last_saved", d)
+    for job, j in (d.get("jobs") or {}).items():
+        console.print(f"  {job:9} {j['at']} {j['outcome']:8} {j['ms']:.0f} ms  {escape(json.dumps(j['result'], default=str)[:160])}")
+
+
+@daemon_app.command("bench")
+def daemon_bench(
+    n: int = typer.Option(20, "-n", min=1),
+    prompt: str = typer.Option("how does the retrieval index stay current with my repositories", "--prompt"),
+):
+    """Time the prompt hook end to end, as the harness runs it: p50, p95, max, and how often it added context."""
+    from .daemon import bench
+
+    print(_json(bench(n, prompt)))
+
+
+usage_app = typer.Typer(help="The usage log every hook, MCP call and daemon job writes (format: docs/hands-free.md).", no_args_is_help=True)
+app.add_typer(usage_app, name="usage")
+
+
+@usage_app.command("stats")
+def usage_stats(
+    hours: float = typer.Option(24 * 7, "--hours", help="Look back this far."),
+    as_json: bool = typer.Option(False, "--json"),
+):
+    """Calls, outcomes, latency p50/p95 and how often injected context was used, per hook, tool and job."""
+    from datetime import UTC, datetime, timedelta
+
+    from . import usage
+
+    st = usage.stats(usage.read(datetime.now(UTC) - timedelta(hours=hours)))
+    if as_json:
+        print(_json(st))
+        return
+    t = Table("event", "calls", "p50 ms", "p95 ms", "used", "outcomes")
+    for k, r in st.items():
+        t.add_row(k, str(r["calls"]), str(r["p50_ms"]), str(r["p95_ms"]), r.get("used", ""), ", ".join(f"{a} {b}" for a, b in r["outcomes"].items()))
+    console.print(t)
+    console.print(f"[dim]{usage.path()}[/dim]")
+
+
+@usage_app.command("path")
+def usage_path():
+    """Where the log is (ORION_USAGE, else ~/.local/state/orion/usage.jsonl)."""
+    from . import usage
+
+    print(usage.path() or "off")
 
 
 @app.command()
-def hook(event: str = typer.Argument(..., help="session-start")):
+def hook(event: str = typer.Argument(..., help="session-start | prompt")):
     """A the harness hook: prints the hook's JSON output. Always exits 0."""
     import sys
 
