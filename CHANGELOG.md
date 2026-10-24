@@ -48,6 +48,7 @@
   Five of the six bugs surface at some severity. As first scored, `platform` lowered all three bugs caught at warn, because a change to a whole model got no backing unless it was the only asset the change touched.
 - **The gate now backs a finding with the consumers of its own file's asset.** Pre-flight's `affected` entries say which changed assets reach them (`from`), and any change to the rows or values of an asset other assets read is backing. Re-scored on the same reviews (`pipelinebench/results/calitp-history-model-consumers.md`), `platform` has 2.23 warnings and 0.81 false alarms a week and flags 3 of 6 bugs, the same bugs as `model` at half its false alarms. The rule was written after seeing the misses, so this is a tuning result. The held-out set is application code, which `platform` does not gate, so it is unchanged there.
 - `pipelinebench history-relabel` re-scores a finished replay against edited labels without re-running the reviews.
+- **cal-itp with the agentic review (`--agent`), same 116 commits, Haiku 5.5** (`pipelinebench/results/calitp-history-agent.md`). Under `platform` it raised 1.31 warnings and 0.35 false alarms a week and flagged 2 of 6 bugs at warn, against 2.23, 0.81 and 3 of 6 for the four lenses. It surfaced 3 of 6 bugs at any severity, against 5 of 6. It used 29.6M input and 1.9M output tokens, against 18.7M and 2.7M. Fewer false alarms, but less recall, so `review.agent` stays off. 25 of its warnings were new and were labelled by hand the same way.
 
 ### Retrieval core
 

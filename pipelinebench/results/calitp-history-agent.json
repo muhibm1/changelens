@@ -1,0 +1,4789 @@
+{
+ "provider": "claude-code",
+ "model": "claude-haiku-5-5",
+ "args": [
+  "--agent",
+  "--verify-model",
+  "claude-sonnet-5-5",
+  "--escalation",
+  "model",
+  "--no-cache"
+ ],
+ "clone": "calitp",
+ "commits": [
+  {
+   "commit": "1bff55fb8c4b71104137bd62f29c85ea77665e73",
+   "date": "2026-04-23",
+   "title": "Create new incremental macro and handle models at the `dt`/`service_date` incremental interface (#5053) (#5092)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 26,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 6.87,
+    "passes_s": 114.57,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.85,
+    "total_s": 137.28
+   },
+   "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 72966,
+    "cache_read_input_tokens": 344500,
+    "output_tokens": 26206
+   }
+  },
+  {
+   "commit": "531cd1238865744c0ff56147350ec34c76818458",
+   "date": "2026-04-23",
+   "title": "Review `deploy-dbt` workflow (#5106)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.76,
+    "passes_s": 63.62,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.94,
+    "total_s": 79.32
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 96069,
+    "cache_read_input_tokens": 98055,
+    "output_tokens": 13171
+   }
+  },
+  {
+   "commit": "3beb7b37f89d89b4b050f00ef5ce09aa58a4d824",
+   "date": "2026-04-23",
+   "title": "Convert GTFS Schedule files with Byte Order Marker (#5148)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "airflow/plugins/operators/gtfs_csv_to_jsonl_operator.py",
+     "line": 13,
+     "title": "`GTFSCSVConverter` removed but still referenced at airflow/plugins/operators/gtfs_csv_to_jsonl_operator.py:66",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/hooks/gtfs_csv_converter_hook.py",
+     "line": 116,
+     "title": "A BOM-only file now raises TypeError outside the try block, which the old code did not do",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/tests/hooks/test_gtfs_csv_converter_hook.py",
+     "line": 128,
+     "title": "New test pins the wrong row, which is the chunks() late-binding bug",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.08,
+    "passes_s": 117.4,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 19.15,
+    "total_s": 137.63
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 156697,
+    "cache_read_input_tokens": 194874,
+    "output_tokens": 24878
+   }
+  },
+  {
+   "commit": "18dc437b0367d8a7afc69fcab03743eb79a48a56",
+   "date": "2026-04-24",
+   "title": "Add product_type to final CTE for fct_payment_rides (#5107)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.14,
+    "passes_s": 33.5,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 34.64
+   },
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 30202,
+    "cache_read_input_tokens": 36137,
+    "output_tokens": 5805
+   }
+  },
+  {
+   "commit": "2af86094eb73a7073416304c34b86dcdc59ec6a4",
+   "date": "2026-04-24",
+   "title": "Migrate final GTFS schedule incremental models to microbatch (#5064) (#5141)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/macros/_macros.yml",
+     "line": 4,
+     "title": "3 changed paths are not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.89,
+    "passes_s": 85.11,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.15,
+    "total_s": 97.15
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 84645,
+    "cache_read_input_tokens": 85835,
+    "output_tokens": 18820
+   }
+  },
+  {
+   "commit": "7bef4dadbebe434f5e2bc3ccfd0afa74a6609b8f",
+   "date": "2026-04-24",
+   "title": "Manual job to run dbt with arguments (#5095)",
+   "in_window": true,
+   "week": [
+    2026,
+    17
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/dbt_manual_run_with_args.py",
+     "line": 30,
+     "title": "Event-time value with a space is split into two dbt arguments",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/dags/dbt_manual_run_with_args.py",
+     "line": 36,
+     "title": "Unbalanced quote or trailing backslash in select/exclude crashes the render with a Python error",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/dags/dbt_manual_run_with_args.py",
+     "line": 42,
+     "title": "Single-line quoted vars input is mangled by the outer-quote strip",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 68.69,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.33,
+    "total_s": 84.19
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 48440,
+    "cache_read_input_tokens": 72286,
+    "output_tokens": 14145
+   }
+  },
+  {
+   "commit": "b0e02bd1e85d579d852767ab2887168e9bcfb691",
+   "date": "2026-04-27",
+   "title": "`fct_payments_aggregations` updates for reconciliation (#5017) (#5130)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/payments/fct_payments_aggregations_reconciliation.sql",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/fct_payments_aggregations.sql",
+     "line": 81,
+     "title": "Refund-only aggregations get a NULL aggregation_id and break the unique key",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/fct_payments_aggregations.sql",
+     "line": 82,
+     "title": "Customers join can duplicate an aggregation row",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.48,
+    "passes_s": 74.1,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 18.29,
+    "total_s": 93.87
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 109626,
+    "cache_read_input_tokens": 195337,
+    "output_tokens": 16704
+   }
+  },
+  {
+   "commit": "8a8cf036f0dc2ae062b72960c139f889c87013ca",
+   "date": "2026-04-27",
+   "title": "Alerts and failing emails are not sent from Local Airflow by default (#5175)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.61,
+    "passes_s": 105.69,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.39,
+    "total_s": 116.69
+   },
+   "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 113835,
+    "cache_read_input_tokens": 253194,
+    "output_tokens": 18112
+   }
+  },
+  {
+   "commit": "1ca79016f38942e987e99af5174c0acd4a07a2ac",
+   "date": "2026-04-28",
+   "title": "Add download type to the GTFS results file (#5176)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 6.54,
+    "passes_s": 136.16,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 142.75
+   },
+   "usage": {
+    "input_tokens": 38,
+    "cache_creation_input_tokens": 336779,
+    "cache_read_input_tokens": 610473,
+    "output_tokens": 20468
+   }
+  },
+  {
+   "commit": "51398e84f695644a2f10d9b1c3f2768071472ac8",
+   "date": "2026-04-30",
+   "title": "Add RT completeness issue closure workflow and refine email reporting (#5182)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/transit_database/fct_close_rt_completeness_issues.sql",
+     "line": 76,
+     "title": "RT close candidates can fan out into duplicate Airtable updates and email rows",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.1,
+    "passes_s": 124.72,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.75,
+    "total_s": 142.58
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 149685,
+    "cache_read_input_tokens": 253322,
+    "output_tokens": 25493
+   }
+  },
+  {
+   "commit": "2832a65749240940f87f6f35eb583fa1c9287bec",
+   "date": "2026-04-30",
+   "title": "Payments(Enghouse): create new parse operator and associated changes (#5184)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/README.md",
+     "line": 14,
+     "title": "parse_enghouse runs at the same time as the dbt DAGs, after external tables",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py",
+     "line": 110,
+     "title": "A file with no date in its name is re-parsed into a new partition every day",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.54,
+    "passes_s": 199.44,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 26.73,
+    "total_s": 227.71
+   },
+   "usage": {
+    "input_tokens": 27,
+    "cache_creation_input_tokens": 203752,
+    "cache_read_input_tokens": 438596,
+    "output_tokens": 43410
+   }
+  },
+  {
+   "commit": "4adefb961b04a3a4f3c9fc49e11efd401cf72023",
+   "date": "2026-05-01",
+   "title": "payments(enghouse): modify parse schedule to better align with warehouse runs (#5207)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 61.61,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.94,
+    "total_s": 72.98
+   },
+   "usage": {
+    "input_tokens": 17,
+    "cache_creation_input_tokens": 82777,
+    "cache_read_input_tokens": 109185,
+    "output_tokens": 11715
+   }
+  },
+  {
+   "commit": "2152177bf51754361c054f71b1e72bd4315c2c8e",
+   "date": "2026-05-01",
+   "title": "feat: add enghouse agencies to elavon transactions (#5206)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/fct_elavon__transactions.sql",
+     "line": 62,
+     "title": "Customer name present in both entity mappings can duplicate transaction rows",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.85,
+    "passes_s": 74.96,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.49,
+    "total_s": 87.3
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 48512,
+    "cache_read_input_tokens": 66727,
+    "output_tokens": 16837
+   }
+  },
+  {
+   "commit": "d9c7a871c549ca8bb3afd6153d5a511df4f1925d",
+   "date": "2026-05-01",
+   "title": "Update incremental model documentation for microbatch + new macro logic (#4925) (#5178)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 30,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 12.92,
+    "passes_s": 51.45,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.2,
+    "total_s": 74.57
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 161590,
+    "cache_read_input_tokens": 228001,
+    "output_tokens": 9682
+   }
+  },
+  {
+   "commit": "39cdaa1ddf6bac127b252bc32543627357665b78",
+   "date": "2026-05-01",
+   "title": "feat: add enghouse org names to fct payments * transactions models (#5212)",
+   "in_window": true,
+   "week": [
+    2026,
+    18
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/_payments.yml",
+     "line": 602,
+     "title": "enghouse_operator_id is documented on four fct models but their SQL never outputs it",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.74,
+    "passes_s": 67.94,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.27,
+    "total_s": 82.95
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 42428,
+    "cache_read_input_tokens": 123601,
+    "output_tokens": 14435
+   },
+   "bug": "caught",
+   "bug_detected": true,
+   "bug_by_policy": {
+    "evidence": "inform_only",
+    "platform": "inform_only"
+   }
+  },
+  {
+   "commit": "7ef854e82112eda99161a595b32a087d8149a03c",
+   "date": "2026-05-05",
+   "title": "fix: add enghouse_operator_id to fct_payments_*_transactions SQL (#5211) (#5241)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.85,
+    "passes_s": 49.48,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 50.33
+   },
+   "usage": {
+    "input_tokens": 21,
+    "cache_creation_input_tokens": 43043,
+    "cache_read_input_tokens": 102059,
+    "output_tokens": 8123
+   }
+  },
+  {
+   "commit": "d40bdf16c56695956f1f30c4166caa88f53c5ea7",
+   "date": "2026-05-06",
+   "title": "Resolve deprecated syntax warnings when running dbt commands (#5103)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/package-lock.yml",
+     "line": 8,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.18,
+    "passes_s": 58.19,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 59.36
+   },
+   "usage": {
+    "input_tokens": 9,
+    "cache_creation_input_tokens": 46693,
+    "cache_read_input_tokens": 42694,
+    "output_tokens": 10991
+   }
+  },
+  {
+   "commit": "db6795523ffd3b056500e9b4af9846765ed462c4",
+   "date": "2026-05-06",
+   "title": "5240: Unpin uv version to align with jupyterlab image in warehouse uv.lock (#5250)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/pyproject.toml",
+     "line": 62,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.15,
+    "passes_s": 52.91,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 3.78,
+    "total_s": 56.84
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 47395,
+    "cache_read_input_tokens": 72121,
+    "output_tokens": 8094
+   }
+  },
+  {
+   "commit": "e4b26f26e464fb9fdf83f36d3bfbbb1f5ca59c88",
+   "date": "2026-05-06",
+   "title": "Move dbt manual to monthly (#4849) (#5251)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 32,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_stop_time_metrics.sql",
+     "line": 19,
+     "title": "insert_overwrite on a dt window can truncate service_date partitions at the window edge",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_schedule_rt_operator_summary",
+      "node:model:fct_monthly_operator_summary"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 1.11,
+    "passes_s": 73.88,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.4,
+    "total_s": 88.39
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 86101,
+    "cache_read_input_tokens": 92932,
+    "output_tokens": 15573
+   }
+  },
+  {
+   "commit": "e251bff02c7e139606eba60c9c2e51dbe8ecd2ca",
+   "date": "2026-05-06",
+   "title": "Revert \"feat(airflow): Disable prod gtfs-rt parsed/validation copy to staging (#5111) (#5131)\" (#5267)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.27,
+    "passes_s": 43.74,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 44.01
+   },
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 28904,
+    "cache_read_input_tokens": 40794,
+    "output_tokens": 7400
+   }
+  },
+  {
+   "commit": "83c7da3002b16605df133388f5f8c0a8b3a109cf",
+   "date": "2026-05-06",
+   "title": "Replace enghouse bucket on production with the correct bucket name (#4759)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.24,
+    "passes_s": 48.08,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.55,
+    "total_s": 59.87
+   },
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 81573,
+    "cache_read_input_tokens": 59440,
+    "output_tokens": 10779
+   }
+  },
+  {
+   "commit": "9035bbc6270c60ffc70d659bd2821b42e4cb6e23",
+   "date": "2026-05-07",
+   "title": "Fix payments failing tests (#5087) (#5145)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/littlepay/stg_littlepay__settlements.sql",
+     "line": 47,
+     "title": "Settlement key now splits one settlement into one row per status, so downstream dedupe may keep several rows",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_payments_aggregations",
+      "node:model:fct_payments_authorisations",
+      "node:model:int_littlepay__unioned_settlements"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 2.55,
+    "passes_s": 58.91,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 19.47,
+    "total_s": 80.93
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 95728,
+    "cache_read_input_tokens": 136088,
+    "output_tokens": 13613
+   }
+  },
+  {
+   "commit": "e56de4ff0048e06927604d584e5fc798b15e4b43",
+   "date": "2026-05-08",
+   "title": "Add fct_tides_vehicle_locations dbt model (closes #4837) (#5216)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 227,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_vehicle_locations.sql",
+     "line": 3,
+     "title": "Model is still an incremental microbatch table, not the view the change says it is",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_vehicle_locations.sql",
+     "line": 27,
+     "title": "Dedup on the key runs only inside each microbatch, so re-extracted pings on a later day survive as duplicates",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.02,
+    "passes_s": 67.82,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.83,
+    "total_s": 85.67
+   },
+   "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 94830,
+    "cache_read_input_tokens": 93317,
+    "output_tokens": 14286
+   }
+  },
+  {
+   "commit": "3afb85658928ad011897a0c2b176e0a66e32570d",
+   "date": "2026-05-08",
+   "title": "Add fct_tides_trips_performed dbt model (#5220)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_trips_performed.sql",
+     "line": 54,
+     "title": "Date arithmetic applied to the macro output may not compile",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_trips_performed.sql",
+     "line": 111,
+     "title": "schedule_relationship is NULL for trips seen only in vehicle positions",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_trips_performed.sql",
+     "line": 124,
+     "title": "Trips with no vehicle lookup row are written with NULL vehicle_id",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_trips_performed.sql",
+     "line": 126,
+     "title": "Vehicle lookup ignores feed, so a trip ID shared by two feeds gets a blended vehicle_id",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.58,
+    "passes_s": 106.08,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 28.19,
+    "total_s": 134.84
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 86483,
+    "cache_read_input_tokens": 125144,
+    "output_tokens": 25978
+   }
+  },
+  {
+   "commit": "05bf2c4d605c6e854e516d971ecfb9cb46424be7",
+   "date": "2026-05-08",
+   "title": "Refactor TIDES models for SCD Type 2 historical correctness + persistent source_record_id seed (#5287)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 29,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.22,
+    "passes_s": 105.12,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 106.34
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 126581,
+    "cache_read_input_tokens": 263072,
+    "output_tokens": 19872
+   }
+  },
+  {
+   "commit": "6503a211871a8a35ebec0f25660d6a40129a279c",
+   "date": "2026-05-08",
+   "title": "Adding GTFS url to expiring issues model (#5290)",
+   "in_window": true,
+   "week": [
+    2026,
+    19
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.4,
+    "passes_s": 32.71,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 33.11
+   },
+   "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 32489,
+    "cache_read_input_tokens": 29100,
+    "output_tokens": 6383
+   }
+  },
+  {
+   "commit": "82ded47cf107e29d5716562fbc03d6b0fcfc2812",
+   "date": "2026-05-13",
+   "title": "Payments: Enghouse mart fixes, Valley onboarding, fix deduplication, and dbt docs (#5284)",
+   "in_window": true,
+   "week": [
+    2026,
+    20
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/macros/create_row_access_policy.sql",
+     "line": 193,
+     "title": "Valley's Elavon access is granted at organization level, so it sees all VCTC payment history",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:int_payments__customers_vaults_to_aggregations",
+      "node:model:int_payments__regional_agencies_first_tap_by_aggregation",
+      "node:model:int_payments__settlements_to_aggregations"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 7.93,
+    "passes_s": 99.35,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 24.04,
+    "total_s": 131.33
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 56468,
+    "cache_read_input_tokens": 296177,
+    "output_tokens": 23534
+   }
+  },
+  {
+   "commit": "f7b3555522012ad9725c0bb1af5f6b948f56fdbd",
+   "date": "2026-05-19",
+   "title": "feat(payments): add status to littlepay micropayments table (#5168) (#5319)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.31,
+    "passes_s": 39.21,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 39.52
+   },
+   "usage": {
+    "input_tokens": 7,
+    "cache_creation_input_tokens": 27320,
+    "cache_read_input_tokens": 26619,
+    "output_tokens": 7428
+   }
+  },
+  {
+   "commit": "27453feb6c0b7b540cb66e894e6b56e5b538c7cf",
+   "date": "2026-05-19",
+   "title": "Add dbt docs for new models in `mart_gtfs` and `mart_gtfs_rollup` (#5305)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml",
+     "line": 2876,
+     "title": "avg_stops_served is documented as a count of distinct stops",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs_rollup/_mart_gtfs_rollup.yml",
+     "line": 506,
+     "title": "pct_vp_routes description is malformed and the real column loses its description",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 7.92,
+    "passes_s": 280.84,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 17.32,
+    "total_s": 306.07
+   },
+   "usage": {
+    "input_tokens": 46,
+    "cache_creation_input_tokens": 263479,
+    "cache_read_input_tokens": 660128,
+    "output_tokens": 54863
+   }
+  },
+  {
+   "commit": "6db8c535be08cd9a1779b0b2b08c5d76ae4d33df",
+   "date": "2026-05-21",
+   "title": "feat(tides): org-level publication seed, vehicle_locations as view (#5318)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 7.89,
+    "passes_s": 106.26,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 114.15
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 66115,
+    "cache_read_input_tokens": 204037,
+    "output_tokens": 22003
+   }
+  },
+  {
+   "commit": "400277816aea24e3ceec821115137001f650391e",
+   "date": "2026-05-22",
+   "title": "TIDES DAG (part 1 generating parquet files) (#5307)",
+   "in_window": true,
+   "week": [
+    2026,
+    21
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "airflow/dags/create_external_tables/tides/vehicle_location_outcomes.yml",
+     "line": 1,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "iac/cal-itp-data-infra-staging/composer/us/environment.tf",
+     "line": 93,
+     "title": "TIDES bucket variable added to only one of the two staging Composer environments",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 5.72,
+    "passes_s": 183.2,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 37.8,
+    "total_s": 226.72
+   },
+   "usage": {
+    "input_tokens": 32,
+    "cache_creation_input_tokens": 203617,
+    "cache_read_input_tokens": 410068,
+    "output_tokens": 31372
+   }
+  },
+  {
+   "commit": "2a5459b1b573fb788e24f959f827a78fe90f3532",
+   "date": "2026-05-26",
+   "title": "Remove broken dbt visualization, fix duplicate exposure comments (#5343)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/pyproject.toml",
+     "line": 28,
+     "title": "3 changed paths are not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.66,
+    "passes_s": 59.4,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 60.07
+   },
+   "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 89267,
+    "cache_read_input_tokens": 44140,
+    "output_tokens": 6298
+   }
+  },
+  {
+   "commit": "d9d9f560785fe67179c116b65b518f3f4ca89525",
+   "date": "2026-05-26",
+   "title": "Create Outcomes table for TIDES Audit Dashboard (#5341)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 233,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.17,
+    "passes_s": 74.16,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 76.32
+   },
+   "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 37225,
+    "cache_read_input_tokens": 56537,
+    "output_tokens": 7405
+   }
+  },
+  {
+   "commit": "e38f68edbda7deb7914c9d0e91b68408a8c27587",
+   "date": "2026-05-27",
+   "title": "Chore(deps): Bump idna from 3.4 to 3.15 in /warehouse (#5323)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 1089,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.14,
+    "passes_s": 81.58,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 81.72
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 48800,
+    "cache_read_input_tokens": 99854,
+    "output_tokens": 8795
+   }
+  },
+  {
+   "commit": "02fd6f86606950c88c56d853a0874e12e14df231",
+   "date": "2026-05-28",
+   "title": "Propagate `service_hours/flex_service_hours` consistently in mart+rollup models, update dbt docs (#5348)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.52,
+    "passes_s": 121.86,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 124.38
+   },
+   "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 100037,
+    "cache_read_input_tokens": 160907,
+    "output_tokens": 25252
+   }
+  },
+  {
+   "commit": "0ce7a9f641149a7696c6435ceb629023170a7cec",
+   "date": "2026-05-28",
+   "title": "Update parse_elavon dag to use new sftp bucket (#5032)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/parse_elavon/elavon_to_gcs_jsonl.py",
+     "line": 65,
+     "title": "Every run re-parses all zips at the bucket root, not only the newest drop",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/dags/parse_elavon/elavon_to_gcs_jsonl.py",
+     "line": 74,
+     "title": "One bad zip aborts the loop and blocks later files on every run",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 69.31,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.63,
+    "total_s": 84.11
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 101460,
+    "cache_read_input_tokens": 155879,
+    "output_tokens": 13852
+   }
+  },
+  {
+   "commit": "e2374bab2fb47ddbc04e666286274103fb23c58a",
+   "date": "2026-05-28",
+   "title": "fix(ntd): type text API columns as STRING in external tables (#5336) (#5337)",
+   "in_window": true,
+   "week": [
+    2026,
+    22
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.17,
+    "passes_s": 96.97,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 17.33,
+    "total_s": 115.48
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 120197,
+    "cache_read_input_tokens": 176361,
+    "output_tokens": 21359
+   }
+  },
+  {
+   "commit": "b376faedbf2f117d5df57516f78b18df2bca3274",
+   "date": "2026-06-01",
+   "title": "TIDES external tables `trips_performed_outcomes` and `vehicle_positions_outcomes` (#5362)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/staging/tides/_src_tides.yaml",
+     "line": 9,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/dags/create_external_tables/tides/vehicle_locations_outcomes.yml",
+     "line": 4,
+     "title": "Vehicle external table globs a prefix the producer no longer writes to",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.74,
+    "passes_s": 82.92,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.51,
+    "total_s": 99.17
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 53624,
+    "cache_read_input_tokens": 92597,
+    "output_tokens": 12639
+   }
+  },
+  {
+   "commit": "aeecbc34e9377e4a5a25007fd64edf7fefd20461",
+   "date": "2026-06-01",
+   "title": "Developer sees trips performed in the TIDES bucket (#5353)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_trips_performed.sql",
+     "line": 97,
+     "title": "INITCAP turns GTFS-RT REPLACEMENT into a value outside the TIDES enum",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:report:california_tides"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_vehicle_locations.sql",
+     "line": 12,
+     "title": "Dedup and the export filter now target service_date, which does not prune the dt-partitioned source",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:tides_gtfs_datasets",
+      "node:model:tides_publication_organizations",
+      "node:report:california_tides"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_vehicle_locations.sql",
+     "line": 43,
+     "title": "trip_stop_sequence 0 is now published, though the removed guard existed for TIDES minimum 1",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:tides_gtfs_datasets",
+      "node:model:tides_publication_organizations",
+      "node:report:california_tides"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/fct_tides_vehicle_locations.sql",
+     "line": 47,
+     "title": "Out-of-range position, speed and odometer values are no longer NULLed, but the schema still says they are",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:tides_gtfs_datasets",
+      "node:model:tides_publication_organizations",
+      "node:report:california_tides"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/tides/tides_publication_feeds.sql",
+     "line": 29,
+     "title": "A feed-URL change within one Pacific service_date yields two rows for the same feed-day",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:tides_gtfs_datasets",
+      "node:model:tides_publication_organizations",
+      "node:model:tides_agency"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 1.99,
+    "passes_s": 316.55,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 24.77,
+    "total_s": 343.32
+   },
+   "usage": {
+    "input_tokens": 42,
+    "cache_creation_input_tokens": 586245,
+    "cache_read_input_tokens": 700921,
+    "output_tokens": 67077
+   }
+  },
+  {
+   "commit": "13db6b79afda1b67b24ec3eb9cd1be88d20238b9",
+   "date": "2026-06-01",
+   "title": "Materialize fct_tides_vehicle_locations incrementally by service_date (#5364)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 29,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.72,
+    "passes_s": 84.59,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.25,
+    "total_s": 97.57
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 65452,
+    "cache_read_input_tokens": 94302,
+    "output_tokens": 17014
+   }
+  },
+  {
+   "commit": "14ec630f2114f5de43b794d76c06e3acbdb0ed9a",
+   "date": "2026-06-01",
+   "title": "Developer does not see project access error when uploading TIDES reports (#5367)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/generate_tides.py",
+     "line": 77,
+     "title": "export_trips_performed is not given user_project, so its task cannot be built",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.24,
+    "passes_s": 60.54,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.04,
+    "total_s": 76.83
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 59106,
+    "cache_read_input_tokens": 84122,
+    "output_tokens": 12965
+   }
+  },
+  {
+   "commit": "55e0d96c2c90564dccda7355dd39e997a40e8f5c",
+   "date": "2026-06-01",
+   "title": "Developer does not see an error when uploading TIDES trips perfomed (#5369)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.15,
+    "passes_s": 31.12,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 8.45,
+    "total_s": 39.72
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 30571,
+    "cache_read_input_tokens": 51418,
+    "output_tokens": 5271
+   }
+  },
+  {
+   "commit": "473c3608a68cdd1968ce9441e6c6cfd93dca590c",
+   "date": "2026-06-04",
+   "title": "Chore(payments): SCRRA Payments Service Account and Littlepay Parse (#5316) (#5380)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 55.06,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 4.11,
+    "total_s": 59.34
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 72519,
+    "cache_read_input_tokens": 125757,
+    "output_tokens": 9056
+   }
+  },
+  {
+   "commit": "a46bf47ffd954b8082036138ed2b270f6d47bd76",
+   "date": "2026-06-04",
+   "title": "chore(payments): Payments Warehouse Onboarding for SCRRA (#5316) (#5381)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.47,
+    "passes_s": 72.07,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.66,
+    "total_s": 83.21
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 116226,
+    "cache_read_input_tokens": 169567,
+    "output_tokens": 13818
+   }
+  },
+  {
+   "commit": "8d30bc269c695113caeedeaa8034c08c28ad098b",
+   "date": "2026-06-04",
+   "title": "Fix(Payments): Filter `DELETED` Littlepay Micropayments from Downstream Tables (#5344)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 4.38,
+    "passes_s": 126.07,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 17.28,
+    "total_s": 147.73
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 145875,
+    "cache_read_input_tokens": 215167,
+    "output_tokens": 27549
+   }
+  },
+  {
+   "commit": "815b047fea17e9ac68db8023ae986ea6589993f4",
+   "date": "2026-06-05",
+   "title": "Local composer3 airflow (#5382)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/pyproject.toml",
+     "line": 14,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/Makefile",
+     "line": 47,
+     "title": "Appended per-OS line can be glued onto a .env file that has no trailing newline",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.54,
+    "passes_s": 70.36,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.28,
+    "total_s": 84.19
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 104207,
+    "cache_read_input_tokens": 120183,
+    "output_tokens": 15414
+   }
+  },
+  {
+   "commit": "2ee5a8cfaa0ee6fe733294745b829c4dcf7e611a",
+   "date": "2026-06-05",
+   "title": "Remove unused pygraphviz and networkx dependencies (#5391)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/pyproject.toml",
+     "line": 28,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.19,
+    "passes_s": 51.87,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 52.06
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 83983,
+    "cache_read_input_tokens": 166007,
+    "output_tokens": 8965
+   }
+  },
+  {
+   "commit": "9fe7247a0e8d56526109a13133f8298406ec96d8",
+   "date": "2026-06-05",
+   "title": "Add airtable fields (#5383)",
+   "in_window": true,
+   "week": [
+    2026,
+    23
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.08,
+    "passes_s": 39.84,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.39,
+    "total_s": 54.31
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 38992,
+    "cache_read_input_tokens": 64953,
+    "output_tokens": 7685
+   }
+  },
+  {
+   "commit": "5b241aa482725625500a19eaabd89e2b35c461ba",
+   "date": "2026-06-09",
+   "title": "Add teo new fields to external_airtable_california_transit_gtfs_datasets.yml (#5392)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.15,
+    "passes_s": 37.2,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.46,
+    "total_s": 52.81
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 50253,
+    "cache_read_input_tokens": 80970,
+    "output_tokens": 7097
+   }
+  },
+  {
+   "commit": "f214df8254190eff7e4584aa68276161e73874c5",
+   "date": "2026-06-09",
+   "title": "Remove Sentry SDK plumbing from Airflow / warehouse / gtfs-schedule-validator (#5279)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/pyproject.toml",
+     "line": 24,
+     "title": "3 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.86,
+    "passes_s": 132.92,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 133.78
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 206429,
+    "cache_read_input_tokens": 301016,
+    "output_tokens": 25361
+   }
+  },
+  {
+   "commit": "a172b0ea4b26810afb8270cb8c5b654e80dbe42b",
+   "date": "2026-06-09",
+   "title": "fix(payments)!: Remove `taps` Join and Associated Columns from `fct_payments_settlements_enghouse` (#5399) (#5405)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.69,
+    "passes_s": 50.45,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 51.14
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 36059,
+    "cache_read_input_tokens": 52761,
+    "output_tokens": 9364
+   }
+  },
+  {
+   "commit": "8934c2d70ff2fe5c1adca68bca94d6496e603825",
+   "date": "2026-06-10",
+   "title": "Disable catchup and reset start_date for parse_and_validate_rt and generate_tides (#5424)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 48.26,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 48.45
+   },
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 32859,
+    "cache_read_input_tokens": 43492,
+    "output_tokens": 8491
+   }
+  },
+  {
+   "commit": "50d27b758173e9585ddeffa6f9ab3bf26e11cfb8",
+   "date": "2026-06-11",
+   "title": "Revert \"Add teo new fields to external_airtable_california_transit_gtfs_datasets.yml (#5392)\" (#5427)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "tides_gtfs_datasets still selects dim_gtfs_datasets.has_authentication",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "dim_gtfs_datasets_latest still selects dim_gtfs_datasets.has_authentication",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "tides_gtfs_datasets still selects dim_gtfs_datasets.authentication_contact_details",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": []
+    },
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/_mart_transit_database.yml",
+     "line": 359,
+     "title": "dim_gtfs_datasets_latest still selects dim_gtfs_datasets.authentication_contact_details",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 3.86,
+    "passes_s": 71.07,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 74.93
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 70660,
+    "cache_read_input_tokens": 126059,
+    "output_tokens": 11636
+   }
+  },
+  {
+   "commit": "5d9dd8849fa0a4830d33e6783a4d152f35fdc71f",
+   "date": "2026-06-11",
+   "title": "fix(airflow): set gusty DAG catchup at METADATA top-level and drop dead core-catchup_by_default override (#5429)",
+   "in_window": true,
+   "week": [
+    2026,
+    24
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 50.68,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.54,
+    "total_s": 61.65
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 94629,
+    "cache_read_input_tokens": 104446,
+    "output_tokens": 10204
+   }
+  },
+  {
+   "commit": "18b80a293bd932169f217db988b6326ed21fa235",
+   "date": "2026-06-17",
+   "title": "Chore(deps): Bump aiohttp from 3.14.0 to 3.14.1 in /warehouse (#5450)",
+   "in_window": true,
+   "week": [
+    2026,
+    25
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 39,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.19,
+    "passes_s": 63.19,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 7.53,
+    "total_s": 70.91
+   },
+   "usage": {
+    "input_tokens": 29,
+    "cache_creation_input_tokens": 83853,
+    "cache_read_input_tokens": 188885,
+    "output_tokens": 10551
+   }
+  },
+  {
+   "commit": "d7d76c3e015fbd1422feb5d13081051d331dca85",
+   "date": "2026-06-22",
+   "title": "Remove old elavon infra (#5068)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "iac/cal-itp-data-infra/gcs/us/outputs.tf",
+     "line": 1810,
+     "title": "Production Composer still reads the output this change deletes",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.36,
+    "passes_s": 133.6,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.36,
+    "total_s": 150.32
+   },
+   "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 172589,
+    "cache_read_input_tokens": 380968,
+    "output_tokens": 29464
+   }
+  },
+  {
+   "commit": "70262509ff6aef4bd4ee3feb2ab9d113e1f51d36",
+   "date": "2026-06-22",
+   "title": "feat!: De-Duplicate Enghouse Settlements Table (#5397) (#5426)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/_payments.yml",
+     "line": 945,
+     "title": "Mart amount is documented as the plain transaction amount but refunds are negated",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/_payments.yml",
+     "line": 961,
+     "title": "New not_null test on rrn in the mart will fail for rows whose rrn is not numeric",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/enghouse/stg_enghouse__deduped_transactions.sql",
+     "line": 49,
+     "title": "Kept row per payment_reference is not deterministic when timestamps and dt tie",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.13,
+    "passes_s": 96.46,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.58,
+    "total_s": 113.17
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 126921,
+    "cache_read_input_tokens": 207656,
+    "output_tokens": 20984
+   }
+  },
+  {
+   "commit": "506bdd0507b7f9863492fb42eac9c3ec6b60f624",
+   "date": "2026-06-22",
+   "title": "Add authentication fields to GTFS models  (#5461)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.69,
+    "passes_s": 78.76,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.6,
+    "total_s": 93.05
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 87807,
+    "cache_read_input_tokens": 121941,
+    "output_tokens": 15622
+   }
+  },
+  {
+   "commit": "15414b015e046a31a72f06da5e8301f0dce81327",
+   "date": "2026-06-24",
+   "title": "Consolidate NTD annual funding and expenses dbt models into 1 (#5487)",
+   "in_window": true,
+   "week": [
+    2026,
+    26
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_funding_and_expenses/fct_service_data_and_operating_expenses_time_series_by_mode.sql",
+     "line": 120,
+     "title": "Base table is int_upt with LEFT JOINs, so keys missing from int_upt are dropped",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.53,
+    "passes_s": 65.71,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 17.47,
+    "total_s": 83.71
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 78539,
+    "cache_read_input_tokens": 112249,
+    "output_tokens": 15409
+   }
+  },
+  {
+   "commit": "0750c53fe1d511057c89829ee06a1ebb48b00864",
+   "date": "2026-06-29",
+   "title": "Move authentication fields to correct model in transit_database_latest YAML (#5469)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 34.77,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 8.7,
+    "total_s": 43.9
+   },
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 40716,
+    "cache_read_input_tokens": 36405,
+    "output_tokens": 6392
+   }
+  },
+  {
+   "commit": "a0849f40150ed01ab72ee18e6f7f16ecf9b9a621",
+   "date": "2026-07-01",
+   "title": "feat(airtable): add loader config for payment device mapping table (#5492)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.25,
+    "passes_s": 87.38,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.41,
+    "total_s": 102.05
+   },
+   "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 68410,
+    "cache_read_input_tokens": 107186,
+    "output_tokens": 18535
+   }
+  },
+  {
+   "commit": "7e99651568f9882b24366c16f04bdfbbe54d2e8d",
+   "date": "2026-07-01",
+   "title": "chore(Payments): Service accounts, Download/Parse for Santa Cruz Metro and Roseville Transit (#5508)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/download_and_parse_littlepay.py",
+     "line": 55,
+     "title": "Roseville bucket is set to an s3:// URI, so its download and parse tasks cannot work",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 60.86,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.59,
+    "total_s": 72.63
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 91317,
+    "cache_read_input_tokens": 138327,
+    "output_tokens": 11610
+   }
+  },
+  {
+   "commit": "1b89e916fc6d35041adc403333065495beb60b83",
+   "date": "2026-07-01",
+   "title": "feat(payments): expose dt and line_number in enghouse to mart to match lpay (#4912) (#5460)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/staging/payments/enghouse/_enghouse.yml",
+     "line": 110,
+     "title": "2 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/enghouse/stg_enghouse__transactions.sql",
+     "line": 28,
+     "title": "_line_number is not a stable key when the same id appears twice in one file",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_payments_aggregations_enghouse",
+      "node:model:int_payments__settlements_to_aggregations_enghouse",
+      "node:model:int_payments__transactions_deduped_enghouse"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 2.19,
+    "passes_s": 91.72,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 19.71,
+    "total_s": 113.63
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 115357,
+    "cache_read_input_tokens": 211875,
+    "output_tokens": 19784
+   }
+  },
+  {
+   "commit": "01d59fc110229941d1c256793251bcf9918f302a",
+   "date": "2026-07-01",
+   "title": "Reduce TIDES exclusion to only Anaheim Transportation Network (#5503)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.28,
+    "passes_s": 39.78,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 40.06
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 44630,
+    "cache_read_input_tokens": 79560,
+    "output_tokens": 6802
+   }
+  },
+  {
+   "commit": "78821f091d3fac2cf84a6fa7e17622a7007b3e55",
+   "date": "2026-07-02",
+   "title": "fix(payments): fix aws buckets (#5444, 5384) (#5510)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.15,
+    "passes_s": 26.5,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 26.65
+   },
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 27571,
+    "cache_read_input_tokens": 28661,
+    "output_tokens": 4582
+   }
+  },
+  {
+   "commit": "91b02d1d935ad5c643f637c431f143554d8ea4f5",
+   "date": "2026-07-03",
+   "title": "feat(airtable): add agency name to payment device mapping (#5517)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.24,
+    "passes_s": 62.6,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 62.84
+   },
+   "usage": {
+    "input_tokens": 21,
+    "cache_creation_input_tokens": 61287,
+    "cache_read_input_tokens": 129613,
+    "output_tokens": 10489
+   }
+  },
+  {
+   "commit": "ecfb7977e78fc4d95afc7feb04de6323f2504b6f",
+   "date": "2026-07-03",
+   "title": "feat(dbt): add payment device mapping models (#5518)",
+   "in_window": true,
+   "week": [
+    2026,
+    27
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/transit_database/base/base_tts_payment_device_mapping_idmap.sql",
+     "line": 16,
+     "title": "Agency array order is not defined, so the first agency can change between runs",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/transit_database/stg_transit_database__payment_device_mapping.sql",
+     "line": 13,
+     "title": "First agency name and first agency id can come from different agencies",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.71,
+    "passes_s": 104.02,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.84,
+    "total_s": 116.57
+   },
+   "usage": {
+    "input_tokens": 25,
+    "cache_creation_input_tokens": 81731,
+    "cache_read_input_tokens": 168744,
+    "output_tokens": 16695
+   }
+  },
+  {
+   "commit": "5a920d71bbb1ccb3449cc069e99641e26fe38619",
+   "date": "2026-07-07",
+   "title": "Expire partitions where service_date is older than 15 days (#5502)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.75,
+    "passes_s": 80.62,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.33,
+    "total_s": 92.7
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 84743,
+    "cache_read_input_tokens": 156752,
+    "output_tokens": 14986
+   }
+  },
+  {
+   "commit": "382c32b2cf2dedb3dfc469159778ce5461516840",
+   "date": "2026-07-09",
+   "title": "Refactor ntd monthly models (#5523)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql",
+     "line": 39,
+     "title": "\"1-year\" change columns actually compare to the previous month",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql",
+     "line": 49,
+     "title": "Mode filter removed, so rows with other mode codes now reach the table",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.18,
+    "passes_s": 83.03,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.66,
+    "total_s": 99.87
+   },
+   "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 83562,
+    "cache_read_input_tokens": 85335,
+    "output_tokens": 19172
+   }
+  },
+  {
+   "commit": "ff02c783d285f5f4f5e2444f83c4568dab4533c5",
+   "date": "2026-07-09",
+   "title": "Deprecate old NTD models, remove from yaml (#5525)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/ntd_funding_and_expenses/fct_capital_expenditures_time_series_facilities.sql",
+     "line": 0,
+     "title": "28 changed paths are not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml",
+     "line": 4,
+     "title": "Bad-row exclusions for two agencies may have been dropped in the consolidated models",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.05,
+    "passes_s": 155.99,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.37,
+    "total_s": 169.41
+   },
+   "usage": {
+    "input_tokens": 45,
+    "cache_creation_input_tokens": 201381,
+    "cache_read_input_tokens": 394066,
+    "output_tokens": 29645
+   }
+  },
+  {
+   "commit": "04734927ce903502381597f4e3f0d3225facc8a4",
+   "date": "2026-07-09",
+   "title": "add trip modifications feed type to dbt (#5528)",
+   "in_window": true,
+   "week": [
+    2026,
+    28
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/transit_database/stg_transit_database__gtfs_datasets.sql",
+     "line": 103,
+     "title": "Downstream provider pivot does not include the new trip_modifications type",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:int_gtfs_datasets",
+      "node:model:int_transit_database__gtfs_datasets_dim",
+      "node:model:bridge_organizations_x_gtfs_datasets_produced",
+      "commit:50d27b758173"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 2.2,
+    "passes_s": 47.24,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.66,
+    "total_s": 61.1
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 67402,
+    "cache_read_input_tokens": 105179,
+    "output_tokens": 9056
+   }
+  },
+  {
+   "commit": "36e10062c6d45ff574f15ad57c4bdc54af40fd51",
+   "date": "2026-07-14",
+   "title": "Feat/airtable loader v2 add programs table (#5537)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/dags/create_external_tables/airtable/external_airtable_california_transit_transportation_programs.yml",
+     "line": 17,
+     "title": "Schema omits the Airtable record id that the loader writes",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.15,
+    "passes_s": 81.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 4.53,
+    "total_s": 85.73
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 72046,
+    "cache_read_input_tokens": 123923,
+    "output_tokens": 15376
+   }
+  },
+  {
+   "commit": "90e6ffa2fe413393c12eeb35a6f34dc0401ea42b",
+   "date": "2026-07-14",
+   "title": "Provide `organization_id` in Littlepay Tables to Disambiguate Regional Agencies (#5538)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__agency_joined_device_transactions.sql",
+     "line": 70,
+     "title": "Taps with no resolvable agency produce NULL, failing the declared not_null test",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__agency_joined_device_transactions.sql",
+     "line": 78,
+     "title": "Open-ended device mapping windows never match",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__regional_agencies_first_tap_by_aggregation.sql",
+     "line": 29,
+     "title": "First-tap agency is NULL when the earliest tap is unmapped",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.85,
+    "passes_s": 85.68,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.46,
+    "total_s": 103.98
+   },
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 94537,
+    "cache_read_input_tokens": 115743,
+    "output_tokens": 18325
+   }
+  },
+  {
+   "commit": "2917fcea011002bdd61e3fb17f1e533a9868ad33",
+   "date": "2026-07-15",
+   "title": "Fix NTD unnamed columns, add month-over-month change in monthly ridership (#5539)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql",
+     "line": 52,
+     "title": "upt_pct_change_1yr divides by the prior-month UPT, not the prior-year UPT",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.69,
+    "passes_s": 87.86,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.16,
+    "total_s": 102.71
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 31551,
+    "cache_read_input_tokens": 119231,
+    "output_tokens": 14303
+   }
+  },
+  {
+   "commit": "54ffad28a75c60881af5ea0d9cfe07f6e9c126ff",
+   "date": "2026-07-17",
+   "title": "Fill out `mart_ntd_funding_and_expenses` YAML (#5541)",
+   "in_window": true,
+   "week": [
+    2026,
+    29
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml",
+     "line": 130,
+     "title": "Operating funding docs list columns the model does not output",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.38,
+    "passes_s": 121.84,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.46,
+    "total_s": 139.67
+   },
+   "usage": {
+    "input_tokens": 23,
+    "cache_creation_input_tokens": 67489,
+    "cache_read_input_tokens": 353806,
+    "output_tokens": 19170
+   }
+  },
+  {
+   "commit": "22c8a93fed7683a9e98c3d21ee7d2ed8d1366739",
+   "date": "2026-07-23",
+   "title": "Devcontainer (#5519)",
+   "in_window": true,
+   "week": [
+    2026,
+    30
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/.dockerignore",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": ".devcontainer/devcontainer.json",
+     "line": 17,
+     "title": "New dev containers no longer install git hooks or set up dbt and gcloud credentials",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.46,
+    "passes_s": 115.73,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 5.64,
+    "total_s": 122.83
+   },
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 62817,
+    "cache_read_input_tokens": 108701,
+    "output_tokens": 18085
+   }
+  },
+  {
+   "commit": "0c73919523f019ae9bf67ab7094637d4fad675f7",
+   "date": "2026-07-23",
+   "title": "chore(payments): Payments Entity Mapping and Row Level Permissions for SCMTD and Roseville Transit (#5516)",
+   "in_window": true,
+   "week": [
+    2026,
+    30
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.04,
+    "passes_s": 105.4,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 106.44
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 85899,
+    "cache_read_input_tokens": 207510,
+    "output_tokens": 15858
+   }
+  },
+  {
+   "commit": "2eff9b4627a3bf8d232a1fb80393c792a59d17f7",
+   "date": "2026-07-27",
+   "title": "fix(payments): De-duplicate `fct_payments_settlements` Rows (#5884) (#5586)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__settlements_deduped.sql",
+     "line": 15,
+     "title": "Partition on settlement_id alone merges rows with a NULL settlement_id",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [
+      "node:model:int_payments__authorisations_deduped",
+      "node:model:int_payments__customers_vaults_to_aggregations",
+      "node:model:int_payments__settlements_to_aggregations"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 0.96,
+    "passes_s": 63.32,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.9,
+    "total_s": 78.18
+   },
+   "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 61130,
+    "cache_read_input_tokens": 158801,
+    "output_tokens": 12264
+   }
+  },
+  {
+   "commit": "e636f6e2491797c773753b1999e32ddb9687349c",
+   "date": "2026-07-27",
+   "title": "fix(payments): all datetimes  in fct_payments_aggregations are typed as datetimes (#5582) (#5583)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.38,
+    "passes_s": 65.54,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 65.92
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 72085,
+    "cache_read_input_tokens": 111867,
+    "output_tokens": 12039
+   }
+  },
+  {
+   "commit": "b35c8ffbb4ae75a99b9a0ff11bc89eb0249b810d",
+   "date": "2026-07-27",
+   "title": "chore(payments): onboard Simi Valley, Thousand Oaks, Moorpark, and Gold Coast to Enghouse (#5587)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.45,
+    "passes_s": 103.26,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.35,
+    "total_s": 116.06
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 97836,
+    "cache_read_input_tokens": 145384,
+    "output_tokens": 21151
+   }
+  },
+  {
+   "commit": "cd9fb106357bb04e6d391d962390c1d2fd2b1e0f",
+   "date": "2026-07-30",
+   "title": "Add columns to external_airtable.california_transit__services (#5599)",
+   "in_window": true,
+   "week": [
+    2026,
+    31
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.8,
+    "passes_s": 50.91,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.48,
+    "total_s": 67.18
+   },
+   "usage": {
+    "input_tokens": 17,
+    "cache_creation_input_tokens": 45882,
+    "cache_read_input_tokens": 72410,
+    "output_tokens": 9681
+   }
+  },
+  {
+   "commit": "846a62bc9b404e4220325307f8779d3dde0027e8",
+   "date": "2026-08-05",
+   "title": "feat(payments): add settled and unsettled credit amoutn columns (#5597) (#5629)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.4,
+    "passes_s": 53.56,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 9.74,
+    "total_s": 64.7
+   },
+   "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 63507,
+    "cache_read_input_tokens": 68291,
+    "output_tokens": 11417
+   }
+  },
+  {
+   "commit": "00dfc5548c327ae92ce10c3b6f98fac3a93227ed",
+   "date": "2026-08-07",
+   "title": "Add Reconciliation Category and Update Tests for Duplicate RRNs (#5459, #5278) (#5631)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/_payments.yml",
+     "line": 359,
+     "title": "Documented 'Declined Sales' label does not match the emitted 'Declined sales'",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.13,
+    "passes_s": 58.29,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 20.28,
+    "total_s": 79.71
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 44889,
+    "cache_read_input_tokens": 111823,
+    "output_tokens": 13482
+   }
+  },
+  {
+   "commit": "2e7c8211d0b1a52b6e76f0b44d909ab6191cce8f",
+   "date": "2026-08-07",
+   "title": "refactor(gtfs): microbatch daily RT validation notices (#5636)",
+   "in_window": true,
+   "week": [
+    2026,
+    32
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql",
+     "line": 14,
+     "title": "Existing non-partitioned table is switched to microbatch with full_refresh=false",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:int_gtfs_quality__no_rt_validation_errors",
+      "node:model:int_gtfs_quality__trip_id_alignment",
+      "node:model:int_gtfs_quality__guideline_checks_long"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 83.74,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.02,
+    "total_s": 100.19
+   },
+   "usage": {
+    "input_tokens": 25,
+    "cache_creation_input_tokens": 68399,
+    "cache_read_input_tokens": 130943,
+    "output_tokens": 17383
+   }
+  },
+  {
+   "commit": "287244333faad146cc1fc93c796f60893471090b",
+   "date": "2026-08-11",
+   "title": "refactor(gtfs): incrementally build daily service alerts (#5643)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.37,
+    "passes_s": 40.96,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 8.3,
+    "total_s": 49.62
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 33636,
+    "cache_read_input_tokens": 55776,
+    "output_tokens": 8228
+   }
+  },
+  {
+   "commit": "5b9885a025930f53ba9a2310bae51faa09d562e5",
+   "date": "2026-08-11",
+   "title": "refactor(gtfs): incrementally build vehicle position trip summaries (#5642)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.6,
+    "passes_s": 61.87,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.11,
+    "total_s": 72.59
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 44087,
+    "cache_read_input_tokens": 68330,
+    "output_tokens": 12492
+   }
+  },
+  {
+   "commit": "008d78a8b3332fc6a14317e3a2c960f31dd93e45",
+   "date": "2026-08-13",
+   "title": "feat(payments)!: Remove non-RBAP Payments Tables (#5600) (#5651)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/payments/elavon_littlepay__daily_history_transactions_deposits_billing.sql",
+     "line": 0,
+     "title": "8 changed paths are not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "runbooks/workflow/payments/how-to/onboard-elavon-agency.md",
+     "line": 216,
+     "title": "Troubleshooting step now points to a table that may not hold the Elavon-to-Littlepay match",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.62,
+    "passes_s": 76.84,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.78,
+    "total_s": 90.24
+   },
+   "usage": {
+    "input_tokens": 21,
+    "cache_creation_input_tokens": 80532,
+    "cache_read_input_tokens": 139922,
+    "output_tokens": 17207
+   }
+  },
+  {
+   "commit": "3127f5747e2a5d532e89b390a0b77ec092f5748f",
+   "date": "2026-08-13",
+   "title": "Add `_feed_valid_from`  to multiple daily GTFS summary tables (#5656)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 87,
+     "title": "NULL shape_id can be chosen as the common shape",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 96,
+     "title": "QUALIFY picks the common shape with no tie-breaker, so shape_id can change between runs",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 191,
+     "title": "Routes with NULL direction_id are dropped by the new common_shape inner join",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.74,
+    "passes_s": 110.73,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.79,
+    "total_s": 126.26
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 135293,
+    "cache_read_input_tokens": 193820,
+    "output_tokens": 24902
+   }
+  },
+  {
+   "commit": "a61247bd6658a1db552623b903926610e1a78e36",
+   "date": "2026-08-13",
+   "title": "Add demand response service fields and update the paratransit bridge table (#5657)",
+   "in_window": true,
+   "week": [
+    2026,
+    33
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/transit_database/bridge_paratransit_services.sql",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/transit_database/bridge_services_x_paratransit.sql",
+     "line": 26,
+     "title": "Dangling complementary id yields NULL key and NULL validity bounds",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.31,
+    "passes_s": 50.53,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.96,
+    "total_s": 65.81
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 48297,
+    "cache_read_input_tokens": 55045,
+    "output_tokens": 11543
+   }
+  },
+  {
+   "commit": "b6a4ba5a4f5b1b4b5892735014417ca5c39a6d20",
+   "date": "2026-08-18",
+   "title": "Add Rider Requirements Dimension Tables and Bridge Table (#5667)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.48,
+    "passes_s": 61.84,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 15.14,
+    "total_s": 78.47
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 60682,
+    "cache_read_input_tokens": 86730,
+    "output_tokens": 11774
+   }
+  },
+  {
+   "commit": "fbe45897de83b0137a1db9b73e301c1426a4bf3d",
+   "date": "2026-08-18",
+   "title": "Remove legacy stg_rt models that read the deleted rt-parsed bucket (#5633)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/dbt_project.yml",
+     "line": 98,
+     "title": "6 changed paths are not mapped to any asset",
+     "verdict": "noise",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.54,
+    "passes_s": 54.43,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 54.96
+   },
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 40828,
+    "cache_read_input_tokens": 58933,
+    "output_tokens": 9927
+   }
+  },
+  {
+   "commit": "49a39e77d9c5554b48f162efee67e966748138df",
+   "date": "2026-08-19",
+   "title": "Add Public/Conditional Currently Operating col to external airtable (#5668)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.09,
+    "passes_s": 26.0,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.38,
+    "total_s": 38.47
+   },
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 38779,
+    "cache_read_input_tokens": 62899,
+    "output_tokens": 5057
+   }
+  },
+  {
+   "commit": "f20856f3f4cfe37f9e36f42bfe3ea22f6d4a2cfa",
+   "date": "2026-08-21",
+   "title": "fix: roll up GTFS download failure alerts (#5672)",
+   "in_window": true,
+   "week": [
+    2026,
+    34
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 54.35,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 11.77,
+    "total_s": 66.3
+   },
+   "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 47393,
+    "cache_read_input_tokens": 90249,
+    "output_tokens": 10636
+   }
+  },
+  {
+   "commit": "6a6df64e2d54f1d72a69332fb094b6fa9c09f186",
+   "date": "2026-08-25",
+   "title": "Add Public/Conditional Operating Column to Dim Tables (#5674)",
+   "in_window": true,
+   "week": [
+    2026,
+    35
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 5.48,
+    "passes_s": 76.88,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 82.36
+   },
+   "usage": {
+    "input_tokens": 19,
+    "cache_creation_input_tokens": 71715,
+    "cache_read_input_tokens": 140568,
+    "output_tokens": 13638
+   }
+  },
+  {
+   "commit": "6d8033ef1d7f4e2f214d9ec7471e1940242ccbaf",
+   "date": "2026-08-28",
+   "title": "Upgrade Schedule Validator to v8.0.01 (#5331) (#5677)",
+   "in_window": true,
+   "week": [
+    2026,
+    35
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.43,
+    "passes_s": 67.52,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 18.12,
+    "total_s": 87.07
+   },
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 103239,
+    "cache_read_input_tokens": 72174,
+    "output_tokens": 15235
+   }
+  },
+  {
+   "commit": "2f53a705c891dc9ffba7893be3551a65c7b4e5a7",
+   "date": "2026-08-31",
+   "title": "Use SUM instead of COUNT to fix total arrivals per route type and time of day (#5679)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_scheduled_stops.sql",
+     "line": 91,
+     "title": "Route-type totals are summed across the whole incremental window and copied onto every service_date",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_feed_scheduled_service_summary",
+      "node:model:fct_monthly_scheduled_stops",
+      "node:model:int_gtfs_rt__vehicle_positions_trip_stop_day_map_grouping"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 0.56,
+    "passes_s": 77.49,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 13.95,
+    "total_s": 92.0
+   },
+   "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 60868,
+    "cache_read_input_tokens": 60256,
+    "output_tokens": 18040
+   }
+  },
+  {
+   "commit": "be8ceca2f45e198baa11910cc7ed30bcc6886233",
+   "date": "2026-09-02",
+   "title": "Daily and Monthly Scheduled Stop review (#5684)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs_rollup/fct_monthly_scheduled_stops.sql",
+     "line": 68,
+     "title": "Current, incomplete month is now included in the monthly table",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.93,
+    "passes_s": 70.61,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.5,
+    "total_s": 84.05
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 154055,
+    "cache_read_input_tokens": 173530,
+    "output_tokens": 14411
+   }
+  },
+  {
+   "commit": "c3ca6038834dc7dbda0cae3ed8af1220d4fd24a0",
+   "date": "2026-09-02",
+   "title": "Publish TIDES reference data in the TIDES bucket (#5561)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 2.47,
+    "passes_s": 147.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 25.73,
+    "total_s": 175.24
+   },
+   "usage": {
+    "input_tokens": 38,
+    "cache_creation_input_tokens": 249607,
+    "cache_read_input_tokens": 445433,
+    "output_tokens": 31312
+   }
+  },
+  {
+   "commit": "e34fe9ecb1cb258d54e6aa5d158fc06d30ef9f26",
+   "date": "2026-09-03",
+   "title": "Staging/airflow alerts payments (#5686)",
+   "in_window": true,
+   "week": [
+    2026,
+    36
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 76.69,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 10.1,
+    "total_s": 86.96
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 73825,
+    "cache_read_input_tokens": 119243,
+    "output_tokens": 14323
+   }
+  },
+  {
+   "commit": "0eaf78eb78357fb71bed2ffdccccaedfd3fc52d1",
+   "date": "2026-09-10",
+   "title": "(bridge): add org_name to partition (#5709)",
+   "in_window": true,
+   "week": [
+    2026,
+    37
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.33,
+    "passes_s": 61.94,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.66,
+    "total_s": 74.93
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 47199,
+    "cache_read_input_tokens": 68174,
+    "output_tokens": 13346
+   }
+  },
+  {
+   "commit": "e5c0eedf04d8cd21536a0651d5e8461e2299aca1",
+   "date": "2026-09-15",
+   "title": "Increase GTFS-RT parse and validate retries (#5716)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.18,
+    "passes_s": 67.16,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 9.31,
+    "total_s": 76.64
+   },
+   "usage": {
+    "input_tokens": 27,
+    "cache_creation_input_tokens": 67739,
+    "cache_read_input_tokens": 138343,
+    "output_tokens": 11693
+   }
+  },
+  {
+   "commit": "248a326fb8e75dc6930815cc11aab29fd16fad84",
+   "date": "2026-09-17",
+   "title": "Feat: Payments analysts have draft Enghouse Aggregation Table (#5713)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__settlements_to_aggregations_enghouse.sql",
+     "line": 14,
+     "title": "Settled flags ignore a NULL response, so an unknown response reads as settled",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/payments/_payments.yml",
+     "line": 1047,
+     "title": "Documented column debt_settled does not exist; the model outputs debt_settled_amount_dollars",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/enghouse/_enghouse.yml",
+     "line": 32,
+     "title": "tap_id is tested unique, but the tap dedupe is keyed on tap_id plus operator_id",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.55,
+    "passes_s": 273.45,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 35.33,
+    "total_s": 311.34
+   },
+   "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 267518,
+    "cache_read_input_tokens": 323782,
+    "output_tokens": 65199
+   }
+  },
+  {
+   "commit": "a2968577f1f07530c666a82b202d0474fd08423b",
+   "date": "2026-09-18",
+   "title": "Fix Airflow failure Slack log link for Caltrans SSO users (#5708)",
+   "in_window": true,
+   "week": [
+    2026,
+    38
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.17,
+    "passes_s": 63.64,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 8.93,
+    "total_s": 72.73
+   },
+   "usage": {
+    "input_tokens": 17,
+    "cache_creation_input_tokens": 48370,
+    "cache_read_input_tokens": 70788,
+    "output_tokens": 12523
+   }
+  },
+  {
+   "commit": "1269de75eec07a734958401c85a1a9f543f8bca1",
+   "date": "2026-09-21",
+   "title": "chore: remaining yolobus onboard steps (#5521) (#5729)",
+   "in_window": true,
+   "week": [
+    2026,
+    39
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.39,
+    "passes_s": 71.78,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.12,
+    "total_s": 86.3
+   },
+   "usage": {
+    "input_tokens": 32,
+    "cache_creation_input_tokens": 100938,
+    "cache_read_input_tokens": 232307,
+    "output_tokens": 13826
+   }
+  },
+  {
+   "commit": "ada5891daac5906ea7ed4f189331d1dc01e2ceca",
+   "date": "2026-09-29",
+   "title": "Fix: Enghouse Null Timestamps (#5694) (#5736)",
+   "in_window": true,
+   "week": [
+    2026,
+    40
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.15,
+    "passes_s": 59.38,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 60.53
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 56899,
+    "cache_read_input_tokens": 84325,
+    "output_tokens": 11193
+   }
+  },
+  {
+   "commit": "9d3363b179d2893baa0becd056c633b50b6701b8",
+   "date": "2026-10-07",
+   "title": "Publish TIDES reference history to stable paths (#5733)",
+   "in_window": true,
+   "week": [
+    2026,
+    41
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.25,
+    "passes_s": 38.44,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 38.69
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 46496,
+    "cache_read_input_tokens": 72565,
+    "output_tokens": 6116
+   }
+  },
+  {
+   "commit": "93b311985176024afd1ab167cda36942e030f483",
+   "date": "2026-10-08",
+   "title": "test: make taps test updates (#5397 #5738) (#5759)",
+   "in_window": true,
+   "week": [
+    2026,
+    41
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/enghouse/_enghouse.yml",
+     "line": 39,
+     "title": "Relationships test silently skips taps whose tx_status is NULL",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.35,
+    "passes_s": 33.71,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 12.12,
+    "total_s": 46.17
+   },
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 33514,
+    "cache_read_input_tokens": 49341,
+    "output_tokens": 6556
+   }
+  },
+  {
+   "commit": "34716dcc275e96b201cc36aa514fa9c76f973a8f",
+   "date": "2026-10-12",
+   "title": "Fix daily schedule+RT route-direction summary trip counting (#5767)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+     "line": 5,
+     "title": "Datasets read from a hardcoded production table instead of the dbt ref",
+     "verdict": "confirmed",
+     "escalation": [],
+     "backing": [
+      "node:model:bridge_gtfs_analysis_name_x_ntd",
+      "node:model:dim_mobility_mart_providers",
+      "node:model:dim_provider_gtfs_data_latest"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 20,
+     "title": "MAX over RT keys collapses several RT feeds for one schedule into one quartet",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_rt_service_summary",
+      "node:model:fct_monthly_schedule_rt_route_direction_summary",
+      "node:model:fct_daily_schedule_rt_operator_summary"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql",
+     "line": 213,
+     "title": "Dedupe partition omits route_id and feed_key, so distinct routes can collapse",
+     "verdict": "noise",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_rt_service_summary",
+      "node:model:fct_monthly_schedule_rt_route_direction_summary",
+      "node:model:fct_daily_schedule_rt_operator_summary"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 0.75,
+    "passes_s": 95.25,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 31.3,
+    "total_s": 127.3
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 102006,
+    "cache_read_input_tokens": 125999,
+    "output_tokens": 21949
+   },
+   "bug": "caught",
+   "bug_detected": true,
+   "bug_by_policy": {
+    "evidence": "caught",
+    "platform": "caught"
+   }
+  },
+  {
+   "commit": "b0b73b32bb8a09ce0eaecda4a98362d0781e26fa",
+   "date": "2026-10-12",
+   "title": "fix refs (#5768)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.6,
+    "passes_s": 90.98,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 91.58
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 86017,
+    "cache_read_input_tokens": 139763,
+    "output_tokens": 18186
+   }
+  },
+  {
+   "commit": "ad497afc69caf377f6746014172189a19ca6d88e",
+   "date": "2026-10-14",
+   "title": "fix: De-duplicate Littlepay Customers and Rides (#5761)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__customer_funding_source_vaults.sql",
+     "line": 10,
+     "title": "Vault dropped when its newest row belongs to a funding source whose latest row is elsewhere",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:int_payments__customers_vaults_to_aggregations",
+      "node:model:int_payments__regional_agencies_first_tap_by_aggregation",
+      "node:model:payments_tests_weekly_date_spine"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/intermediate/payments/int_payments__deduped_customer_funding_sources.sql",
+     "line": 20,
+     "title": "Ties in the funding-source rank can keep two rows per funding source",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 3.9,
+    "passes_s": 196.85,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.46,
+    "total_s": 217.21
+   },
+   "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 165285,
+    "cache_read_input_tokens": 287270,
+    "output_tokens": 41811
+   }
+  },
+  {
+   "commit": "e8e60ae831ff6e6881ca001e3c2bf436efaef6c4",
+   "date": "2026-10-15",
+   "title": "chore: update payments_entity_mapping for scmetro (#5778) (#5786)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "block",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/seeds/payments_entity_mapping.csv",
+     "line": 26,
+     "title": "Windows for scmetro leave all of 2026-09-04 unmapped",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_elavon__transactions",
+      "node:model:fct_payments_adjustment_transactions",
+      "node:model:fct_payments_aggregations"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 0.29,
+    "passes_s": 45.22,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 16.69,
+    "total_s": 62.2
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 48684,
+    "cache_read_input_tokens": 43622,
+    "output_tokens": 10353
+   }
+  },
+  {
+   "commit": "eaac643232282c110288ad4d41c48be2d903adf9",
+   "date": "2026-10-15",
+   "title": "Remove deprecated GTFS Schedule DAGs and associated code (issue #4814) (#5777)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "airflow/dags/unzip_and_validate_gtfs_schedule_hourly/convert_to_json/METADATA.yml",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 2.62,
+    "passes_s": 272.24,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 274.87
+   },
+   "usage": {
+    "input_tokens": 60,
+    "cache_creation_input_tokens": 507775,
+    "cache_read_input_tokens": 904849,
+    "output_tokens": 50169
+   }
+  },
+  {
+   "commit": "6f1cc4b76ca1ed764ce8a9f92f6852c691737a05",
+   "date": "2026-10-15",
+   "title": "chore: Enghouse Transactions Cleanup (#5712) (#5763)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 1.47,
+    "passes_s": 78.95,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.7,
+    "total_s": 95.12
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 74203,
+    "cache_read_input_tokens": 106171,
+    "output_tokens": 16786
+   }
+  },
+  {
+   "commit": "8af13f105cb1e5b3eed049748b0977e3f504681c",
+   "date": "2026-10-16",
+   "title": "feat: enghouse parse job writes audit table (#5766) (#5788)",
+   "in_window": true,
+   "week": [
+    2026,
+    42
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py",
+     "line": 30,
+     "title": "Undated filenames get a run-date partition, so the daily scan reprocesses them and adds new audit rows",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py",
+     "line": 142,
+     "title": "Audit object path omits the entity, so same-named files under different entities overwrite each other's audit row",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py",
+     "line": 199,
+     "title": "Audit write failure after the data upload leaves the file permanently without an audit row",
+     "verdict": "plausible",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.43,
+    "passes_s": 132.65,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.73,
+    "total_s": 147.8
+   },
+   "usage": {
+    "input_tokens": 31,
+    "cache_creation_input_tokens": 207186,
+    "cache_read_input_tokens": 312336,
+    "output_tokens": 26362
+   }
+  },
+  {
+   "commit": "8799510bb66f4305b319a10ad76b3c49ac738da3",
+   "date": "2026-10-21",
+   "title": "feat: handle passes and revenue-inspection-outcomes changes (#5793) (#5802)",
+   "in_window": true,
+   "week": [
+    2026,
+    43
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 0.31,
+    "passes_s": 47.31,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 47.62
+   },
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 43723,
+    "cache_read_input_tokens": 66073,
+    "output_tokens": 8992
+   }
+  },
+  {
+   "commit": "4de38421e89e93da98c4df016677f2fbf98324fc",
+   "date": "2026-10-22",
+   "title": "Remove deprecated PodOperator and GTFS Schedule configuration (#5796)",
+   "in_window": true,
+   "week": [
+    2026,
+    43
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/Dockerfile",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "setup",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 0.23,
+    "passes_s": 62.04,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 0.0,
+    "total_s": 62.27
+   },
+   "usage": {
+    "input_tokens": 15,
+    "cache_creation_input_tokens": 78494,
+    "cache_read_input_tokens": 148156,
+    "output_tokens": 11333
+   }
+  },
+  {
+   "commit": "b111f6f57016282d0e334012d932160f50846baa",
+   "date": "2026-01-06",
+   "title": "payments: warehouse staging and source tables for enghouse data (#4122)",
+   "in_window": false,
+   "week": [
+    2026,
+    2
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "warehouse/models/staging/payments/enghouse/stg_enghouse__transactions.sql",
+     "line": 22,
+     "title": "rrn cast to INT64 drops leading zeros and nulls non-numeric references",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    }
+   ],
+   "timing": {
+    "gather_s": 1.75,
+    "passes_s": 105.8,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 18.17,
+    "total_s": 125.73
+   },
+   "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 95083,
+    "cache_read_input_tokens": 107316,
+    "output_tokens": 23050
+   },
+   "bug": "in_file",
+   "bug_detected": false,
+   "bug_by_policy": {
+    "evidence": "missed",
+    "platform": "missed"
+   }
+  },
+  {
+   "commit": "f26b2970ab23f00bdd6c2dcad1cd50374e5c6a9f",
+   "date": "2026-02-06",
+   "title": "Dedupe payments settlements (#4755)",
+   "in_window": false,
+   "week": [
+    2026,
+    6
+   ],
+   "severity": "inform",
+   "error": null,
+   "warns": [],
+   "timing": {
+    "gather_s": 3.09,
+    "passes_s": 120.22,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 14.71,
+    "total_s": 138.02
+   },
+   "usage": {
+    "input_tokens": 27,
+    "cache_creation_input_tokens": 144865,
+    "cache_read_input_tokens": 309818,
+    "output_tokens": 24942
+   },
+   "bug": "missed",
+   "bug_detected": false,
+   "bug_by_policy": {
+    "evidence": "missed",
+    "platform": "missed"
+   }
+  },
+  {
+   "commit": "6a9eae65a22e7aa30e65ed2b80d57713f5cb9c54",
+   "date": "2025-12-29",
+   "title": "Refactor stop time update related models (#4627)",
+   "in_window": false,
+   "week": [
+    2026,
+    1
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "deterministic",
+     "path": "warehouse/models/mart/gtfs/fct_stop_time_updates_sample.sql",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "verdict": "unjudged",
+     "escalation": [],
+     "lowered_by": [
+      "evidence",
+      "platform"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_stop_time_metrics.sql",
+     "line": 104,
+     "title": "EXTRACT(DAY) yields day of month, so arrival_time_seconds is not monotonic across month boundaries",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_schedule_rt_operator_summary",
+      "node:model:fct_monthly_operator_summary"
+     ],
+     "lowered_by": []
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs/fct_stop_time_metrics.sql",
+     "line": 175,
+     "title": "LAG ordered by averaged minutes is nondeterministic on ties and can yield negative spread",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [
+      "node:model:fct_daily_schedule_rt_operator_summary",
+      "node:model:fct_monthly_operator_summary"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 2.21,
+    "passes_s": 177.08,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 22.47,
+    "total_s": 201.76
+   },
+   "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 156851,
+    "cache_read_input_tokens": 261876,
+    "output_tokens": 40593
+   },
+   "bug": "in_file",
+   "bug_detected": false,
+   "bug_by_policy": {
+    "evidence": "in_file",
+    "platform": "in_file"
+   }
+  },
+  {
+   "commit": "0dfe3b65e7912a37b0be77ff8f4ad02610085963",
+   "date": "2024-11-26",
+   "title": "Scrape geoportal for shn, add SHN flag on stops table (#3529)",
+   "in_window": false,
+   "week": [
+    2024,
+    48
+   ],
+   "severity": "warn",
+   "error": null,
+   "warns": [
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/scrape_state_geoportal.py",
+     "line": 89,
+     "title": "requests.get has no timeout",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/scrape_state_geoportal.py",
+     "line": 94,
+     "title": "An error body with HTTP 200 ends pagination early and a partial extract is saved",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/scrape_state_geoportal.py",
+     "line": 101,
+     "title": "Offset advances by the requested page size, so a lower server cap skips rows",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/scrape_state_geoportal.py",
+     "line": 108,
+     "title": "Zero features returns None, which execute then passes to json_normalize",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "airflow/plugins/operators/scrape_state_geoportal.py",
+     "line": 144,
+     "title": "Templated fields are declared but the extract is built from unrendered values",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [],
+     "lowered_by": [
+      "evidence"
+     ]
+    },
+    {
+     "source": "model",
+     "path": "warehouse/models/mart/gtfs_schedule_latest/dim_stops_latest.sql",
+     "line": 35,
+     "title": "A stop within the buffer of two SHN features is duplicated in dim_stops_latest",
+     "verdict": "unjudged",
+     "escalation": [],
+     "backing": [
+      "node:report:california_open_data"
+     ],
+     "lowered_by": []
+    }
+   ],
+   "timing": {
+    "gather_s": 1.58,
+    "passes_s": 121.46,
+    "confirm_and_gate_s": 0.0,
+    "second_reading_s": 20.31,
+    "total_s": 143.35
+   },
+   "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 91372,
+    "cache_read_input_tokens": 129172,
+    "output_tokens": 26806
+   },
+   "bug": "caught",
+   "bug_detected": true,
+   "bug_by_policy": {
+    "evidence": "caught",
+    "platform": "caught"
+   }
+  }
+ ],
+ "bugs_outside_window": [],
+ "summary": {
+  "commits": 116,
+  "errors": 0,
+  "weeks": 26,
+  "commits_warned": 59,
+  "warns": 96,
+  "warns_per_week": 3.69,
+  "deterministic_warns": 32,
+  "model_warns": 77,
+  "confirmed": 6,
+  "plausible": 58,
+  "noise": 32,
+  "unjudged": 0,
+  "setup": 13,
+  "false_alarms_per_week": 1.23,
+  "bugs_flagged": "3/6",
+  "bugs_surfaced_any_severity": "3/6",
+  "median_review_s": 84.11,
+  "p90_review_s": 147.73,
+  "policies": {
+   "model": {
+    "warns": 96,
+    "warns_per_week": 3.69,
+    "noise": 32,
+    "unjudged": 0,
+    "false_alarms_per_week": 1.23,
+    "bugs_flagged": "3/6"
+   },
+   "evidence": {
+    "warns": 19,
+    "warns_per_week": 0.73,
+    "noise": 3,
+    "unjudged": 0,
+    "false_alarms_per_week": 0.12,
+    "bugs_flagged": "2/6"
+   },
+   "platform": {
+    "warns": 34,
+    "warns_per_week": 1.31,
+    "noise": 9,
+    "unjudged": 0,
+    "false_alarms_per_week": 0.35,
+    "bugs_flagged": "2/6"
+   }
+  },
+  "tokens_in": 29612515,
+  "tokens_out": 1936170
+ },
+ "window": {
+  "since": "2026-04-23",
+  "until": null,
+  "paths": [
+   "warehouse",
+   "airflow/dags"
+  ]
+ }
+}

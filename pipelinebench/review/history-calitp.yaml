@@ -74,6 +74,10 @@ warnings:
       line: 76
       verdict: noise
       note: "only fails if someone later changes chunks()"
+    - path: airflow/tests/hooks/test_gtfs_csv_converter_hook.py
+      line: 128
+      verdict: noise
+      note: "pins current behaviour; only fails if chunks() changes (as the lens run's test warning)"
 
   # Model replay of 2026-10-24 (Haiku 5.5 lenses, Sonnet 5.5 second reading, --escalation model). Read by hand against
   # the diff and the later upstream history: confirmed = a later commit fixes exactly this; plausible = specific and true
@@ -128,6 +132,10 @@ warnings:
       line: 41
       verdict: plausible
       note: "feed-version join can duplicate issues"
+    - path: warehouse/models/mart/transit_database/fct_close_rt_completeness_issues.sql
+      line: 76
+      verdict: plausible
+      note: "many-to-many feed links can yield two candidates per issue"
   "2832a657":
     - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
       line: 36
@@ -141,6 +149,10 @@ warnings:
       line: 110
       verdict: noise
       note: "needs an invalid calendar date in a filename"
+    - path: airflow/dags/README.md
+      line: 14
+      verdict: noise
+      note: "README scheduling note, not code"
   "2152177b":
     - path: warehouse/models/mart/payments/fct_elavon__transactions.sql
       line: 62
@@ -160,6 +172,10 @@ warnings:
       line: 37
       verdict: plausible
       note: "entity join fan-out once the Enghouse mapping is unioned"
+    - path: warehouse/models/mart/payments/_payments.yml
+      line: 602
+      verdict: plausible
+      note: "documented column the SQL does not select"
   "d40bdf16":
     - path: warehouse/package-lock.yml
       line: 8
@@ -175,6 +191,10 @@ warnings:
       line: 32
       verdict: noise
       note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: warehouse/models/mart/gtfs/fct_stop_time_metrics.sql
+      line: 19
+      verdict: plausible
+      note: "dt window edge can drop a service_date's early rows"
   "83c7da30":
     - path: airflow/dags/parse_enghouse/README.md
       line: 5
@@ -250,6 +270,10 @@ warnings:
       line: 125
       verdict: plausible
       note: "vehicle lookup ignores feed"
+    - path: warehouse/models/mart/tides/fct_tides_trips_performed.sql
+      line: 54
+      verdict: noise
+      note: "hedge: may not compile"
   "05bf2c4d":
     - path: warehouse/dbt_project.yml
       line: 29
@@ -293,6 +317,10 @@ warnings:
       line: 507
       verdict: plausible
       note: "malformed YAML merges description into the column name"
+    - path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml
+      line: 2876
+      verdict: noise
+      note: "doc wording"
   "6db8c535":
     - path: warehouse/models/mart/tides/tides_publication_feeds.sql
       line: 32
@@ -311,6 +339,10 @@ warnings:
       line: 103
       verdict: plausible
       note: "export query not scoped by organization"
+    - path: iac/cal-itp-data-infra-staging/composer/us/environment.tf
+      line: 93
+      verdict: plausible
+      note: "bucket variable on one of two staging environments"
   "2a5459b1":
     - path: warehouse/pyproject.toml
       line: 28
@@ -361,6 +393,10 @@ warnings:
       line: 47
       verdict: plausible
       note: "out-of-range values now published"
+    - path: warehouse/models/mart/tides/tides_publication_feeds.sql
+      line: 29
+      verdict: plausible
+      note: "URL change within a day duplicates the feed-day"
   "13db6b79":
     - path: warehouse/dbt_project.yml
       line: 29
@@ -427,6 +463,10 @@ warnings:
       line: 24
       verdict: plausible
       note: "removing the release leaves the server and volume running"
+    - path: iac/cal-itp-data-infra/gcs/us/outputs.tf
+      line: 1810
+      verdict: plausible
+      note: "composer stack still reads the removed output"
   "70262509":
     - path: warehouse/models/mart/payments/_payments.yml
       line: 946
@@ -480,6 +520,10 @@ warnings:
       line: 110
       verdict: noise
       note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+    - path: warehouse/models/staging/payments/enghouse/stg_enghouse__transactions.sql
+      line: 28
+      verdict: plausible
+      note: "duplicate ids in one file make the pick unstable"
   "ecfb7977":
     - path: warehouse/models/staging/transit_database/base/base_tts_payment_device_mapping_idmap.sql
       line: 16
@@ -503,6 +547,10 @@ warnings:
       line: 0
       verdict: setup
       note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml
+      line: 4
+      verdict: noise
+      note: "hedge: may have been dropped"
   "90e6ffa2":
     - path: warehouse/models/intermediate/payments/int_payments__agency_joined_device_transactions.sql
       line: 75
@@ -512,6 +560,10 @@ warnings:
       line: 78
       verdict: plausible
       note: "open-ended windows never match"
+    - path: warehouse/models/intermediate/payments/int_payments__regional_agencies_first_tap_by_aggregation.sql
+      line: 29
+      verdict: noise
+      note: "unusual input: unmapped earliest tap"
   "2917fcea":
     - path: warehouse/models/mart/ntd_ridership/fct_complete_monthly_ridership_with_adjustments_and_estimates.sql
       line: 50
@@ -534,6 +586,10 @@ warnings:
       line: 341
       verdict: plausible
       note: "docs name columns the model does not emit"
+    - path: warehouse/models/mart/ntd_funding_and_expenses/_mart_ntd_funding_and_expenses.yml
+      line: 130
+      verdict: plausible
+      note: "documented columns the model does not output"
   "22c8a93f":
     - path: warehouse/.dockerignore
       line: 0
@@ -547,6 +603,10 @@ warnings:
       line: 37
       verdict: noise
       note: "vague README gap"
+    - path: .devcontainer/devcontainer.json
+      line: 17
+      verdict: noise
+      note: "intended devcontainer change"
   "00dfc554":
     - path: warehouse/models/intermediate/payments/_int_payments.yml
       line: 75
@@ -571,6 +631,10 @@ warnings:
       line: 0
       verdict: setup
       note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+    - path: runbooks/workflow/payments/how-to/onboard-elavon-agency.md
+      line: 216
+      verdict: noise
+      note: "runbook wording"
   "3127f574":
     - path: warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql
       line: 96
@@ -669,6 +733,10 @@ warnings:
       line: 118
       verdict: noise
       note: "needs a padded operator_id"
+    - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
+      line: 32
+      verdict: plausible
+      note: "unique test on tap_id but dedupe keyed on tap_id and operator_id"
   "93b31198":
     - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
       line: 39
@@ -700,6 +768,10 @@ warnings:
       line: 54
       verdict: plausible
       note: "adds a not_null test the intent says to revoke"
+    - path: warehouse/models/intermediate/payments/int_payments__deduped_customer_funding_sources.sql
+      line: 20
+      verdict: plausible
+      note: "rank ties keep two rows"
   "eaac6432":
     - path: airflow/dags/unzip_and_validate_gtfs_schedule_hourly/convert_to_json/METADATA.yml
       line: 0
@@ -714,8 +786,43 @@ warnings:
       line: 146
       verdict: plausible
       note: "audit row never written after a failed audit upload"
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 30
+      verdict: plausible
+      note: "undated files reparsed each day"
+    - path: airflow/plugins/operators/enghouse_csv_to_jsonl_operator.py
+      line: 199
+      verdict: plausible
+      note: "audit row never written after a failed audit upload (as the lens run's line 146)"
   "4de38421":
     - path: warehouse/Dockerfile
       line: 0
       verdict: setup
       note: "deleted path the replay graph (synced after the change) no longer has; CI syncs from the base branch"
+
+  # --agent replay of 2026-10-24 (Haiku 5.5 sweep agent, Sonnet 5.5 second reading): warnings no earlier run raised, read the same way.
+  "9035bbc6":
+    - path: warehouse/models/staging/payments/littlepay/stg_littlepay__settlements.sql
+      line: 47
+      verdict: plausible
+      note: "status in the key splits one settlement"
+  "04734927":
+    - path: warehouse/models/staging/transit_database/stg_transit_database__gtfs_datasets.sql
+      line: 103
+      verdict: plausible
+      note: "provider pivot misses the new feed type"
+  "36e10062":
+    - path: airflow/dags/create_external_tables/airtable/external_airtable_california_transit_transportation_programs.yml
+      line: 17
+      verdict: plausible
+      note: "external schema drops the record id"
+  "2eff9b46":
+    - path: warehouse/models/intermediate/payments/int_payments__settlements_deduped.sql
+      line: 15
+      verdict: noise
+      note: "unusual input: NULL settlement_id"
+  "e8e60ae8":
+    - path: warehouse/seeds/payments_entity_mapping.csv
+      line: 26
+      verdict: plausible
+      note: "seed windows leave a day unmapped"
