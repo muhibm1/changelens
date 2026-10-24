@@ -4,46 +4,49 @@
 
 | config | recall@1 | recall@5 | recall@10 | MRR | faithfulness | tamper caught | p50 ms | p95 ms | cold build s |
 |---|---|---|---|---|---|---|---|---|---|
-| bm25 | 0.417 | 0.607 | 0.675 | 0.520 | 1.000 | 1.000 | 21 | 28 | 3.9 |
-| dense-hash | 0.214 | 0.369 | 0.464 | 0.300 | 1.000 | 1.000 | 11 | 17 | 2.5 |
-| hybrid-hash | 0.357 | 0.532 | 0.615 | 0.464 | 1.000 | 1.000 | 27 | 35 | 2.0 |
-| hybrid-hash+graph | 0.345 | 0.611 | 0.714 | 0.499 | 1.000 | 1.000 | 28 | 76 | 2.3 |
-| dense-bge-small | 0.484 | 0.726 | 0.786 | 0.618 | 1.000 | 1.000 | 36 | 48 | 173.3 |
-| hybrid-bge-small | 0.440 | 0.742 | 0.802 | 0.575 | 1.000 | 1.000 | 54 | 71 | 2.0 |
-| hybrid-bge-small+graph | 0.452 | 0.837 | 0.853 | 0.625 | 1.000 | 1.000 | 64 | 131 | 2.3 |
-| hybrid-bge-small+graph+rerank | 0.452 | 0.706 | 0.813 | 0.605 | 1.000 | 1.000 | 1821 | 2062 | 2.1 |
+| bm25 | 0.417 | 0.631 | 0.698 | 0.520 | 1.000 | 1.000 | 23 | 33 | 5.3 |
+| dense-hash | 0.238 | 0.444 | 0.500 | 0.334 | 1.000 | 1.000 | 19 | 24 | 2.8 |
+| hybrid-hash | 0.417 | 0.563 | 0.607 | 0.506 | 1.000 | 1.000 | 36 | 45 | 3.4 |
+| hybrid-hash+graph | 0.393 | 0.647 | 0.722 | 0.530 | 1.000 | 1.000 | 38 | 103 | 3.3 |
+| dense-bge-small | 0.508 | 0.734 | 0.806 | 0.645 | 1.000 | 1.000 | 50 | 66 | 220.7 |
+| hybrid-bge-small | 0.464 | 0.778 | 0.837 | 0.613 | 1.000 | 1.000 | 73 | 99 | 3.1 |
+| hybrid-bge-small+graph | 0.476 | 0.873 | 0.889 | 0.656 | 1.000 | 1.000 | 70 | 154 | 2.6 |
+| hybrid-bge-small+graph+rerank | 0.452 | 0.706 | 0.813 | 0.611 | 1.000 | 1.000 | 2021 | 2241 | 2.7 |
 
 ## MRR by query family
 
 | config | exact names | paraphrase | decisions and incidents | about a code change | about a data change | dev | heldout |
 |---|---|---|---|---|---|---|---|
 | bm25 | 1.000 | 0.345 | 0.750 | 0.520 | 0.000 | 0.495 | 0.545 |
-| dense-hash | 0.875 | 0.154 | 0.368 | 0.078 | 0.036 | 0.267 | 0.333 |
-| hybrid-hash | 1.000 | 0.218 | 0.657 | 0.583 | 0.031 | 0.426 | 0.502 |
-| hybrid-hash+graph | 1.000 | 0.218 | 0.657 | 0.639 | 0.319 | 0.431 | 0.567 |
-| dense-bge-small | 1.000 | 0.469 | 0.625 | 0.486 | 0.708 | 0.641 | 0.594 |
-| hybrid-bge-small | 1.000 | 0.468 | 0.722 | 0.497 | 0.100 | 0.558 | 0.591 |
-| hybrid-bge-small+graph | 1.000 | 0.468 | 0.722 | 0.542 | 0.562 | 0.615 | 0.635 |
-| hybrid-bge-small+graph+rerank | 0.854 | 0.458 | 0.917 | 0.524 | 0.425 | 0.573 | 0.638 |
+| dense-hash | 1.000 | 0.185 | 0.389 | 0.037 | 0.031 | 0.290 | 0.378 |
+| hybrid-hash | 1.000 | 0.338 | 0.764 | 0.413 | 0.031 | 0.496 | 0.517 |
+| hybrid-hash+graph | 1.000 | 0.338 | 0.764 | 0.389 | 0.319 | 0.493 | 0.567 |
+| dense-bge-small | 1.000 | 0.453 | 0.833 | 0.514 | 0.708 | 0.695 | 0.594 |
+| hybrid-bge-small | 1.000 | 0.465 | 0.917 | 0.569 | 0.113 | 0.628 | 0.598 |
+| hybrid-bge-small+graph | 1.000 | 0.465 | 0.917 | 0.569 | 0.562 | 0.683 | 0.629 |
+| hybrid-bge-small+graph+rerank | 0.854 | 0.458 | 0.917 | 0.552 | 0.438 | 0.575 | 0.646 |
 
 ## Misses (no relevant hit in the top 10, first run)
 
-- bm25: S2, S3, S5, S6, S7, S12, S16, D5, G1, G2, G3, G4
-- dense-hash: L2, S1, S2, S3, S4, S5, S7, S9, S11, S12, S15, S16, S18, D5, C1, C3, C6, G1, G2, G3
+- bm25: S2, S3, S5, S6, S7, S12, S16, G1, G2, G3, G4
+- dense-hash: S1, S2, S3, S5, S7, S9, S11, S12, S15, S16, S18, D3, C1, C3, C5, C6, G1, G2, G3
 - hybrid-hash: S2, S3, S5, S7, S9, S11, S12, S15, S16, S18, G1, G2, G3
 - hybrid-hash+graph: S2, S3, S5, S7, S9, S11, S12, S15, S16, S18
-- dense-bge-small: S2, S7, S9, S14, D5, C4
-- hybrid-bge-small: S2, S3, S7, S9, D5, G3
-- hybrid-bge-small+graph: S2, S3, S7, S9, D5
+- dense-bge-small: S2, S7, S8, S14, S17
+- hybrid-bge-small: S2, S3, S7, G3
+- hybrid-bge-small+graph: S2, S3, S7
 - hybrid-bge-small+graph+rerank: S2, S3, S7, S9, S12, S14
 
 ## Reading
 
-- **Default: hybrid with local bge-small embeddings and the graph** (`hybrid-bge-small+graph`). It has the best recall@5 (0.837), recall@10 (0.853) and MRR (0.625), and the best held-out MRR of the configurations without a reranker (0.635). Weights were chosen on the dev split only (lexical and graph weight 1.0 each; 0.3 to 2.0 were tried); the held-out split was run once, here.
-- **The graph is what answers questions about a change.** For a data change, plain retrieval with the changed path in the query finds the right incident or constraint at MRR 0.100 (hybrid); with the asset graph's blast radius as a ranking it is 0.562. For code changes the import edges lift MRR from 0.497 to 0.542.
-- **Local embeddings beat BM25 on paraphrase** (0.468 against 0.345 MRR) and BM25 keeps exact names perfect, which is why the default fuses both. The dependency-free hashed embedder is worse than BM25 alone and stays only as the no-install fallback.
-- **The cross-encoder is not on by default.** It helps decisions and incidents (0.917) but loses exact names and costs about 1.8 s per search against 64 ms; `ORION_RAG_RERANKER=ce:<model>` turns it on.
-- **Runs agree exactly.** Ranking is deterministic, so the three shuffled-ingestion runs give the same numbers and the table shows no min-max ranges.
-- **Faithfulness here is a check of the checker.** The answers are extractive, so they score 1.0; every answer whose citations were rotated to another query's chunks was caught. Agent-written answers are checked the same way with `orion.rag.cite.check`.
-- **Still missed by the default:** S2 (credential redaction phrased as "hide API keys"), S3 (rate-limit wait), S7 (receiver type), S9 (same-problem findings) and D5 (running the tests: the README heading is found at rank 11). These are paraphrases of short helpers whose names and docstrings share no words with the question.
-- **Latency:** p50 64 ms and p95 131 ms per search on the warm in-process index (about 1,000 chunks) in this run; an earlier run of the same ranking on a quieter machine measured 42 ms and 98 ms, so read these as tens of milliseconds; a repeated search is about 1 ms from the cache, and refreshing an unchanged checkout is two git calls (about 15 ms). A cold build of this repository with bge-small on CPU is about 100 s, once; later builds re-embed only changed chunks.
+- **Default: hybrid with local bge-small embeddings and the graph** (`hybrid-bge-small+graph`): recall@5 0.873, recall@10 0.889, MRR 0.656. The previous round (PR #46) had 0.837, 0.853 and 0.625. Fusion weights are unchanged (lexical and graph weight 1.0, RRF k 60). RRF k from 10 to 60 and lexical weight from 0.5 to 1.0 were tried on the dev split only, and none beat the current setting there. The held-out split was run once, here.
+- **The gain is on the dev split** (MRR 0.615 to 0.683). **Held-out MRR is 0.629, against 0.635 before**, so the changes do not generalise to it beyond noise; held-out recall@10 did not drop (the only misses are S2, S3 and S7, as before minus S9 and D5).
+- **What changed: views.** Each chunk also carries extra embedded texts that are never shown: every definition's signature with the first sentence of its docstring or leading comment (or, for small neighbours merged into one chunk, the definition's own code), and each prose section's heading path. A chunk scores its best vector. This finds S9 (two findings are the same problem, merged with `_words` and `_jaccard`).
+- **What changed: one chunk per prose section.** Short sibling sections are no longer merged; only a short title or preamble stays with its first subsection. This keeps ids stable and moved D5 (running the tests) from rank 11 to the top; decisions-and-incidents MRR is 0.917, from 0.722.
+- **Still missed:** S2 (held-out, not examined), S3 (rate-limit wait: `_retry_after` is dense rank 5 but shares no word with the query, so fusion with BM25 leaves it below chunks that match both; its test and its caller `_post` are the top two hits) and S7 (receiver type: dense rank 14).
+- **The hashed fallback lost on code-change questions** (hybrid-hash+graph code-change MRR 0.639 to 0.389): hashed vectors of short views match on shared tokens rather than meaning. It is the no-install fallback only.
+- **The graph is what answers questions about a change**: data-change MRR is 0.113 with the changed path in the query text and 0.562 with the asset graph's blast radius as a ranking.
+- **The cross-encoder stays off**: it loses exact names and costs about 2 s per search.
+- **Citations survive re-indexing.** Prose chunk ids are the heading path (`md:orion:README.md#orion/running-the-tests`), not the section's position, so adding or editing a section leaves other sections' citations valid. The exceptions: a repeated heading is numbered by order (`~2`), so a new same-named section above it renumbers it, and renaming a parent heading renames its subsections. Diff chunks are named by the file from the patch's `+++` line. Code chunk ids stay line spans.
+- **Latency:** p50 70 ms, p95 154 ms on this run; the machine was busier than the previous round's (BM25 alone went from 19 to 23 ms), so read these as tens of milliseconds. The views add about 60% more vectors to scan. A cold build with bge-small on CPU is about 3 to 4 minutes, once; later builds embed only changed chunks and views.
+- **Faithfulness** is a check of the checker: the extractive answers score 1.0 and every answer with rotated citations was caught.

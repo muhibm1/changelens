@@ -2,7 +2,9 @@
 
 A search runs in five steps, each visible in a hit's ``signals``:
 
-1. **Candidates.** BM25 over the postings table and cosine over the vectors, each the top
+1. **Candidates.** BM25 over the postings table and cosine over the vectors (a chunk scores its
+   best vector: its own text, or a view of it such as one definition's signature and doc
+   sentence, or a section's heading path), each the top
    ``CANDIDATES`` over the whole index and again inside the graph scope, so a relevant chunk in
    the blast radius is never crowded out by a better-worded one elsewhere.
 2. **Fusion.** Reciprocal rank fusion of the lexical and dense rankings. Rank fusion needs no
@@ -61,7 +63,7 @@ SYMBOL_BOOST = 0.5
 RERANK_DEPTH = 30
 PER_DOC = 2
 SCHEMA_VERSION = "1"
-CHUNKER_VERSION = "2"  # bump when chunking, terms or posting weights change
+CHUNKER_VERSION = "3"  # bump when chunking, terms or posting weights change
 CACHE_SIZE = 512
 
 SCHEMA = """
@@ -75,6 +77,7 @@ CREATE TABLE IF NOT EXISTS rag_chunks (
     url VARCHAR, date VARCHAR, symbol VARCHAR, start_line INTEGER, end_line INTEGER, header VARCHAR, text VARCHAR,
     text_hash VARCHAR, n_terms INTEGER, refs VARCHAR[], asset_ids VARCHAR[]
 );
+CREATE TABLE IF NOT EXISTS rag_views (chunk_id VARCHAR, text_hash VARCHAR, text VARCHAR);
 CREATE TABLE IF NOT EXISTS rag_postings (term VARCHAR, chunk_id VARCHAR, tf INTEGER);
 CREATE TABLE IF NOT EXISTS rag_vectors (text_hash VARCHAR, model VARCHAR, vec FLOAT[], PRIMARY KEY (text_hash, model));
 CREATE TABLE IF NOT EXISTS rag_edges (repo VARCHAR, src VARCHAR, dst VARCHAR);
@@ -196,7 +199,7 @@ class RagIndex:
         return self._reranker
 
     def stats(self) -> dict[str, Any]:
-        out: dict[str, Any] = {t: self.con.execute(f"SELECT count(*) FROM {t}").fetchone()[0] for t in ("rag_docs", "rag_chunks", "rag_vectors", "rag_edges")}
+        out: dict[str, Any] = {t: self.con.execute(f"SELECT count(*) FROM {t}").fetchone()[0] for t in ("rag_docs", "rag_chunks", "rag_views", "rag_vectors", "rag_edges")}
         out["embedder"] = self.embedder_name
         out["reranker"] = self.reranker_name
         out["by_kind"] = dict(self.con.execute("SELECT kind, count(*) FROM rag_chunks GROUP BY kind ORDER BY kind").fetchall())
@@ -223,7 +226,8 @@ class RagIndex:
             return 0
         self._bump()
         self.con.execute("CREATE OR REPLACE TEMP TABLE _gone AS SELECT unnest(?::VARCHAR[]) AS doc_id", [ids])
-        self.con.execute("DELETE FROM rag_postings WHERE chunk_id IN (SELECT chunk_id FROM rag_chunks WHERE doc_id IN (SELECT doc_id FROM _gone))")
+        for table in ("rag_postings", "rag_views"):
+            self.con.execute(f"DELETE FROM {table} WHERE chunk_id IN (SELECT chunk_id FROM rag_chunks WHERE doc_id IN (SELECT doc_id FROM _gone))")
         self.con.execute("DELETE FROM rag_chunks WHERE doc_id IN (SELECT doc_id FROM _gone)")
         self.con.execute("DELETE FROM rag_docs WHERE doc_id IN (SELECT doc_id FROM _gone)")
         return len(ids)
@@ -238,7 +242,7 @@ class RagIndex:
             return {"docs": 0, "chunks": 0, "embedded": self.embed_missing() if embed else 0}
         self.remove([d.id for d in fresh if d.id in held])
         self._bump()
-        doc_rows, chunk_rows, posting_rows = [], [], []
+        doc_rows, chunk_rows, posting_rows, view_rows = [], [], [], []
         for d in fresh:
             doc_rows.append((d.id, d.kind, d.repo, d.path, d.title, d.url, d.date, d.content_hash, d.refs, d.asset_ids))
             for c in chunk(d):
@@ -248,17 +252,20 @@ class RagIndex:
                 th = hashlib.sha1(c.indexed_text.encode("utf-8", errors="replace")).hexdigest()
                 chunk_rows.append((c.id, d.id, d.kind, d.repo, d.path, d.title, d.url, d.date, c.symbol, c.start_line, c.end_line, c.header, c.text, th, sum(counts.values()), d.refs, d.asset_ids))
                 posting_rows.extend((t, c.id, n) for t, n in counts.items())
+                view_rows.extend((c.id, hashlib.sha1(v.encode("utf-8", errors="replace")).hexdigest(), v) for v in c.views)
         self._bulk("rag_docs", doc_rows, "VARCHAR VARCHAR VARCHAR VARCHAR VARCHAR VARCHAR VARCHAR VARCHAR VARCHAR[] VARCHAR[]")
         self._bulk("rag_chunks", chunk_rows, "VARCHAR " * 9 + "INTEGER INTEGER VARCHAR VARCHAR VARCHAR INTEGER VARCHAR[] VARCHAR[]")
         self._bulk("rag_postings", posting_rows, "VARCHAR VARCHAR INTEGER")
+        self._bulk("rag_views", view_rows, "VARCHAR VARCHAR VARCHAR")
         embedded = self.embed_missing() if embed else 0
         return {"docs": len(doc_rows), "chunks": len(chunk_rows), "embedded": embedded}
 
     def embed_missing(self, batch: int = 256) -> int:
-        """Embed every chunk text the current embedder has no vector for; vectors are keyed by text, so a re-chunk reuses them."""
+        """Embed every chunk text and view the current embedder has no vector for; vectors are keyed by text, so a re-chunk reuses them."""
         rows = self.con.execute(
-            "SELECT DISTINCT c.text_hash, c.header || chr(10) || c.text FROM rag_chunks c"
-            " LEFT JOIN rag_vectors v ON v.text_hash = c.text_hash AND v.model = ? WHERE v.text_hash IS NULL",
+            "SELECT DISTINCT ON (t.text_hash) t.text_hash, t.text"
+            " FROM (SELECT text_hash, header || chr(10) || text AS text FROM rag_chunks UNION ALL SELECT text_hash, text FROM rag_views) t"
+            " LEFT JOIN rag_vectors v ON v.text_hash = t.text_hash AND v.model = ? WHERE v.text_hash IS NULL",
             [self.embedder_name],
         ).fetchall()
         for i in range(0, len(rows), batch):
@@ -276,7 +283,7 @@ class RagIndex:
         cols = list(zip(*rows, strict=True))
         kinds = types.split()
         select = ", ".join(f"unnest(?::{t}[])" for t in kinds)
-        self.con.execute(f"INSERT OR REPLACE INTO {table} SELECT {select}" if table != "rag_postings" else f"INSERT INTO {table} SELECT {select}", [list(c) for c in cols])
+        self.con.execute(f"INSERT OR REPLACE INTO {table} SELECT {select}" if table not in ("rag_postings", "rag_views") else f"INSERT INTO {table} SELECT {select}", [list(c) for c in cols])
 
     def index_checkout(self, root: Path | str, repo: str | None = None, *, force: bool = False) -> dict[str, Any]:
         """Index a checkout's tracked files incrementally: unchanged files (same blob) are skipped, deleted ones dropped.
@@ -455,11 +462,14 @@ class RagIndex:
 
     def _dense(self, qv: list[float], where: str, args: list[Any], within: list[str] | None, limit: int) -> dict[str, float]:
         scoped = " AND list_contains(?, c.chunk_id)" if within is not None else ""
+        # A chunk scores its best vector: its own text or any of its views (a definition's signature and doc, a heading).
         sql = f"""
-            SELECT c.chunk_id, list_cosine_similarity(v.vec, ?::FLOAT[]) AS s
-            FROM rag_chunks c JOIN rag_vectors v ON v.text_hash = c.text_hash AND v.model = ?
+            SELECT c.chunk_id, max(list_cosine_similarity(v.vec, ?::FLOAT[])) AS s
+            FROM rag_chunks c
+            JOIN (SELECT chunk_id, text_hash FROM rag_chunks UNION ALL SELECT chunk_id, text_hash FROM rag_views) t ON t.chunk_id = c.chunk_id
+            JOIN rag_vectors v ON v.text_hash = t.text_hash AND v.model = ?
             WHERE TRUE {where}{scoped}
-            ORDER BY s DESC, c.chunk_id LIMIT ?"""
+            GROUP BY c.chunk_id ORDER BY s DESC, c.chunk_id LIMIT ?"""
         params = [qv, self.embedder_name, *args, *([within] if within is not None else []), limit]
         return {cid: s for cid, s in self.con.execute(sql, params).fetchall() if s is not None and s > 0}
 

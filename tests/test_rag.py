@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from orion.rag import RagIndex, Scope, SourceDoc
-from orion.rag.chunking import chunk, terms
+from orion.rag.chunking import _diff_name, _slug, _unquote, chunk, markdown_spans, summary, terms
 from orion.rag.cite import check, extractive_answer
 from orion.rag.code import import_edges, resolve_import
 from orion.syntax import available
@@ -102,11 +102,68 @@ def test_markdown_is_cut_at_headings_and_long_runs_are_split():
     assert sum("Changes" in h for h in heads) >= 2  # a bullet run with no blank line is still split
 
 
+def test_prose_chunk_ids_are_heading_paths_that_survive_edits_elsewhere():
+    para = " ".join(["word"] * 80)
+    text = f"# App\n\n## Running the tests\n\n{para}\n\n## Decisions\n\n{para}\n\n## Decisions\n\n{para}\n"
+    doc = lambda t: SourceDoc(id="md:app:README.md", text=t, kind="doc", repo="app", path="README.md", language="markdown")  # noqa: E731
+    before = {c.symbol: c.id for c in chunk(doc(text))}
+    ids = [c.id for c in chunk(doc(text))]
+    assert "md:app:README.md#app/running-the-tests" in ids
+    assert "md:app:README.md#app/decisions" in ids and "md:app:README.md#app/decisions~2" in ids  # a repeated heading stays unique
+    assert len(set(ids)) == len(ids)
+    edited = text.replace("## Running the tests", f"## Install\n\n{para}\n\n## Running the tests").replace(para + "\n\n## Decisions", "changed " + para + "\n\n## Decisions", 1)
+    after = {c.symbol: c.id for c in chunk(doc(edited))}
+    assert all(after[s] == cid for s, cid in before.items())  # a section added above and one edited leave every citation valid
+    views = {c.id: c.views for c in chunk(doc(text))}
+    assert views["md:app:README.md#app/running-the-tests"] == ["App > Running the tests"]
+
+
+@needs_syntax
+def test_each_definition_gets_a_view_of_its_signature_and_doc():
+    text = (
+        'def _retry_after(value):\n    """Seconds from a Retry-After header, capped. None for anything else."""\n    return float(value)\n\n\n'
+        "# Whether two findings are the same problem: same file, near lines.\ndef _same(a, b):\n    return a == b\n\n\n"
+        "def _plain(x):\n    return x + 1\n"
+    )
+    chunks = chunk(SourceDoc(id="code:app/p.py", text=text, kind="code", repo="app", path="p.py"))
+    assert len(chunks) == 1  # three small helpers merged into one chunk
+    views = chunks[0].views
+    assert "app/p.py _retry_after\ndef _retry_after(value):\nSeconds from a Retry-After header, capped." in views  # the summary sentence only
+    assert any(v.startswith("app/p.py _same\n") and "Whether two findings are the same problem:" in v for v in views)
+    assert any(v.startswith("app/p.py _plain\n") and "return x + 1" in v for v in views)  # no doc: its own code, apart from its neighbours
+    assert summary(["# noqa: E731", "def f(x):", "    return x"]) is None  # a lint directive is not a doc
+    assert summary(["def walk(self):  # pragma: no cover", '    """Walk the store."""', "    return 1"]).endswith("\nWalk the store.")
+    assert summary(["def f():", '    r"""Walk the store."""']).endswith("\nWalk the store.")  # no stray prefix letter
+    assert _unquote('"b/x\\"') == "b/x\\"  # a malformed escape keeps the name instead of raising
+    assert [h for _, _, h in markdown_spans("### Notes\n\nshort\n\n## Setup\n\n" + "w " * 60 + "\n")][-1] == "Setup"  # a deeper heading above is not a parent
+    assert _slug("C++ setup") != _slug("C# setup") and "#" not in _slug("C# setup")  # an id holds one '#'
+    assert summary(["def f():", '    """Parse the header, e.g. the version. More."""']).endswith("e.g. the version.")  # an abbreviation is not an end
+    assert summary(["def f():", '    """Pragmatic defaults. More."""']).endswith("\nPragmatic defaults.")  # prose, not a pragma; short first sentence kept alone
+    assert summary(["// Clamp to range", "function clamp(x) { return Math.min(x, 1); }", "function other(y) {"]) == "function clamp(x) { return Math.min(x, 1); }\nClamp to range"
+    assert chunk(SourceDoc(id="md:a:R.md", text="# 安装\n\nwords\n", kind="doc", repo="a", path="R.md", language="markdown"))[0].id == "md:a:R.md#安装"
+
+
+def test_a_view_is_searchable_and_removed_with_its_chunk(tmp_path):
+    idx = RagIndex(tmp_path / "rag.duckdb", embedder="hash")
+    para = " ".join(["alpha"] * 80)
+    idx.add([SourceDoc(id="md:app:README.md", text=f"# App\n\n## Running the tests\n\n{para}\n", kind="doc", repo="app", path="README.md", language="markdown")])
+    assert idx.stats()["rag_views"] == 1
+    hits = idx.search("running tests", mode="dense")
+    assert hits and hits[0].chunk_id == "md:app:README.md#app/running-the-tests"
+    idx.remove(["md:app:README.md"])
+    assert idx.stats()["rag_views"] == 0
+
+
 def test_diff_is_cut_per_file():
     text = "Fix the walk\n\nLonger message.\n\ndiff --git a/a.py b/a.py\n+x\ndiff --git a/b.py b/b.py\n+y\n"
     doc = SourceDoc(id="git:app@abc", text=text, kind="commit", repo="app", language="diff")
     syms = [c.symbol for c in chunk(doc)]
     assert "a.py" in syms and "b.py" in syms
+    quoted = 'Msg\n\ndiff --git "a/caf\\303\\251.py" "b/caf\\303\\251.py"\n+x\ndiff --git a/my notes.md b/my notes.md\n+y\n'
+    ids = [c.id for c in chunk(SourceDoc(id="git:app@abc", text=quoted, kind="commit", repo="app", language="diff"))]
+    assert "git:app@abc#my-notes-md" in ids and "git:app@abc#café-py" in ids  # quoted names are unescaped; names with spaces kept
+    assert _diff_name("diff --git a/docs/a b/notes.md b/docs/a b/notes.md") == "docs/a b/notes.md"
+    assert _slug("Cafe\u0301 setup") == _slug("Café setup") == "café-setup"  # one id whatever the Unicode form
 
 
 @needs_syntax
