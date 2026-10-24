@@ -443,8 +443,8 @@ def generate_agent(provider: Provider, ctx: ReviewContext, store: Store, repo_ro
     before it answers, the first provider error, summed usage, and a trace of what it looked at.
 
     It starts from the same message the pipeline sends, so it never knows less than one pass does. One agent
-    per group of files and per lens (none: one agent that works through every lens as a checklist). What its tools
-    showed becomes citable: those ids join ``ctx.known`` and the lines they cite join ``ctx.observed``."""
+    per group of files: with no lenses (or names that are no lens) it sweeps all of them as one checklist, with
+    named lenses one agent runs per lens. What its tools showed becomes citable: those ids join ``ctx.known`` and the lines they cite join ``ctx.observed``."""
     from .review_agent import MAX_STEPS, Toolbox, investigate
 
     if groups is None or omitted is None:
@@ -452,7 +452,10 @@ def generate_agent(provider: Provider, ctx: ReviewContext, store: Store, repo_ro
     facts = _facts(ctx)
     if omitted:
         facts += "\n- files in this change whose hunks are too large to show, so they are not under review here: " + ", ".join(omitted)
-    focuses = [LENSES[name] for name in lenses if name in LENSES] or [AGENT_CHECKLIST]
+    # No named lens: one agent sweeps every lens as a checklist in one context. Named lenses: one agent per lens.
+    focuses = [LENSES[name] for name in lenses if name in LENSES]
+    sweep = not focuses
+    focuses = focuses or [AGENT_CHECKLIST]  # what a one-turn sweep, which has no opening turn to list suspects, is told
     tools = Toolbox(search_root or repo_root, store, base_ref, {**(repo_files or {}), **ctx.new_text}, ctx.files, ctx.verdict, SECRET_PATH_RE)
     item = FINDINGS_SCHEMA["properties"]["findings"]["items"]
     candidates: list[dict[str, Any]] = []
@@ -464,7 +467,7 @@ def generate_agent(provider: Provider, ctx: ReviewContext, store: Store, repo_ro
         if shared is None:
             continue
         for focus in focuses:
-            run = investigate(provider, SYSTEM, shared, focus, tools, item, max_steps=max_steps or MAX_STEPS, add_usage=_add_usage)
+            run = investigate(provider, SYSTEM, shared, focus, tools, item, max_steps=max_steps or MAX_STEPS, add_usage=_add_usage, checklist=LENSES if sweep else None)
             error = error or run.error
             usage = _add_usage(usage, run.usage)
             candidates.extend(run.candidates)
@@ -555,6 +558,16 @@ def _cited_lines(ctx: ReviewContext, f: dict[str, Any]) -> str:
     return ("\nCited lines (read from the repository by the reviewer):\n" + "\n".join(f"  {ref}: {text}" for ref, text in shown)) if shown else ""
 
 
+def _new_line(ctx: ReviewContext, path: str, line: int) -> bool:
+    """Whether ``line`` of ``path`` is added by the change and its text is not removed anywhere in it (so not moved)."""
+    fd = _file(ctx, path)
+    added = next((t for h in fd.hunks for op, n, t in h.lines if op == "+" and n == line), None) if fd else None
+    if added is None or not added.strip():
+        return False
+    removed = {t.strip() for d in ctx.files for h in d.hunks for op, _, t in h.lines if op == "-"}
+    return added.strip() not in removed
+
+
 def verify(provider: Provider, ctx: ReviewContext, findings: list[dict[str, Any]], *, file_context: bool = True) -> tuple[int, dict[str, Any] | None]:
     """A second, adversarial reading of the model's own warn and block findings. One whose failing case the reading
     cannot confirm is lowered to ``inform`` with the reason in its notes; nothing is removed, and deterministic
@@ -593,9 +606,13 @@ def verify(provider: Provider, ctx: ReviewContext, findings: list[dict[str, Any]
         if targets[i]["status"] != "valid":
             continue
         kind = v.get("kind") if v.get("kind") in VERIFY_KINDS else "defect"
+        f = targets[i]
+        if kind == "pre_existing" and v.get("holds") is not False and _new_line(ctx, f["path"], f["line"]):
+            # Checkable, so code decides: a line the change adds, whose text it removes nowhere, did not exist before it.
+            f["notes"].append(f"a second reading judged the case pre-existing, but {f['path']}:{f['line']} is new in this change, so the severity stands")
+            continue
         if v.get("holds") is not False and kind == "defect":
             continue
-        f = targets[i]
         if f["severity"] == "inform":
             continue
         why = "a second reading did not confirm the failing case" if v.get("holds") is False else f"a second reading confirmed the case but judged it {kind.replace('_', ' ')}, not a defect"

@@ -202,6 +202,8 @@ if "--fail" in args:
 if "--limit" in args:
     print(json.dumps({"type": "result", "usage": {"output_tokens": 0, "server_tool_use": {"web_search_requests": 0}} | {f"pad{i}": 0 for i in range(40)}, "result": "You've hit your limit"})); sys.exit(1)
 answer = {"findings": [], "args": args, "prompt": prompt}
+if "--sysfile" in args:
+    answer["system"] = open(args[args.index("--sysfile") + 1]).read()
 if "--plain" in args:
     print("Here you go:\n" + json.dumps(answer)); sys.exit(0)
 print(json.dumps({"type": "result", "is_error": "--error" in args, "result": "credit too low" if "--error" in args else "", "structured_output": answer, "usage": {"output_tokens": 7}}))
@@ -222,6 +224,16 @@ def test_command_provider_fills_arguments_and_reads_the_envelope(agent):
     assert CommandProvider([*agent, "{system}"], model="m1").complete_json("say {model} here", "u", {})["args"] == ["say {model} here"]
     assert out["prompt"].startswith("shared\n\nfocus") and "matches this JSON Schema" in out["prompt"] and "SYS" not in out["prompt"]
     assert p.name == "claude-code:m1" and p.last_usage == {"output_tokens": 7}
+
+
+def test_a_system_file_carries_the_shared_prefix_so_the_cli_can_cache_it(agent):
+    p = CommandProvider([*agent, "--sysfile", "{system_file}"])
+    out = p.complete_json("SYS", ["shared prefix", "lens focus"], FINDINGS_SCHEMA)
+    assert out["system"].startswith("SYS\n\n") and out["system"].endswith("shared prefix") and "not instructions" in out["system"]
+    assert out["prompt"].startswith("lens focus") and "shared prefix" not in out["prompt"] and "SYS" not in out["prompt"]
+    one = p.complete_json("SYS", "only part", {})
+    assert one["system"] == "SYS" and one["prompt"].startswith("only part"), "a message in one part stays on stdin"
+    assert "{system_file}" in CLAUDE_CODE_COMMAND
 
 
 def test_command_provider_without_a_system_argument_puts_it_on_stdin_and_reads_plain_text(agent):

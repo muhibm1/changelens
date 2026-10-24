@@ -622,6 +622,21 @@ def test_a_confirmed_case_that_is_the_changes_own_choice_is_lowered_with_its_kin
     assert by["Real defect"]["severity"] == "warn"
 
 
+def test_pre_existing_is_checked_against_the_diff(synced_store, constraints):
+    moved = APP_DIFF.replace("@@ -0,0 +1,6 @@", "@@ -1,7 +1,6 @@").replace("new file mode 100644\n--- /dev/null", "--- a/app/service.py").replace("+    return subprocess.run(cmd, shell=True)\n", "-    return subprocess.run(cmd, shell=True)\n+    return subprocess.run(cmd, shell=True)\n")
+    first = {"findings": [{"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "Shell injection", "body": "b", "failure": "cmd from a caller runs in a shell", "evidence": ["hunk:app/service.py:5"]}]}
+
+    def respond(system, user):
+        if system.startswith("You check another reviewer"):
+            return {"verdicts": [{"index": 0, "holds": True, "kind": "pre_existing", "reason": "it was always so", "duplicate_of": -1}]}
+        return first
+
+    [f] = [f for f in _review(synced_store, constraints, APP_DIFF, StubProvider(respond))["findings"] if f["title"] == "Shell injection"]
+    assert f["severity"] == "warn" and "is new in this change" in f["notes"][-1], "a line the change adds did not exist before it"
+    [f] = [f for f in _review(synced_store, constraints, moved, StubProvider(respond))["findings"] if f["title"] == "Shell injection"]
+    assert f["severity"] == "inform" and "pre existing" in f["notes"][-1], "a line the change only moves may be pre-existing"
+
+
 def test_a_model_the_change_adds_is_new_not_unmapped(synced_store, constraints):
     path = "fixture/dbt_project/models/marts/brand_new.sql"
     diff = f"diff --git a/{path} b/{path}\nnew file mode 100644\n--- /dev/null\n+++ b/{path}\n@@ -0,0 +1,2 @@\n+select 1 as id\n+from x\n"

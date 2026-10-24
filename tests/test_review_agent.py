@@ -172,7 +172,34 @@ def test_the_last_turn_must_answer(repo: Path):
     assert run["stopped"] == "budget" and len(run["turns"]) == 3 and r["findings"][0]["title"] == "empty amount now raises"
     assert "This is the last turn" in p.seen[-1][1][-1]
     assert "calls" not in p.schemas[-1]["properties"] and "calls" in p.schemas[1]["properties"]
-    assert set(p.schemas[0]["properties"]) == {"notes", "calls"}  # the opening turn investigates, it cannot report
+    assert set(p.schemas[0]["properties"]) == {"notes", "suspects", "calls"}  # the opening turn investigates, it cannot report
+
+
+def test_a_sweep_lists_suspects_from_every_lens_then_settles_them(repo: Path):
+    suspect = {"item": "inputs", "path": "lib.py", "line": 2, "case": "an empty amount string reaches int()"}
+    p = Scripted([
+        {"notes": "", "suspects": [suspect], "calls": [{"tool": "references", "args": {"name": "total"}}]},
+        {"notes": "", "done": True, "calls": [], "findings": [_finding(["hunk:lib.py:2"])]},
+    ])
+    r = _review(repo, p)
+    opening = p.seen[0][1][-1]
+    assert all(f"- {name}:" in opening for name in ("inputs", "semantics", "flow", "contracts")), "every lens is an item of one checklist"
+    assert len(p.seen) == 2 and r["agent"]["runs"][0]["turns"][0]["suspects"] == 1, "one agent, not one per lens"
+    later = p.seen[1][1][-1]
+    assert "1. [inputs] lib.py:2 an empty amount string reaches int()" in later and "not ruled out" in later
+    assert r["findings"][0]["severity"] == "warn"
+
+
+def test_named_lenses_still_run_one_agent_each_and_one_turn_keeps_the_checklist_focus(repo: Path):
+    answer = {"notes": "", "done": True, "calls": [], "findings": []}
+    call = {"notes": "", "calls": [{"tool": "grep", "args": {"pattern": "int"}}]}
+    p = Scripted([call, answer, call, answer])
+    r = _review(repo, p, lenses=["inputs", "flow"])
+    assert r["passes"] == ["agent:inputs", "agent:flow"] and len(r["agent"]["runs"]) == 2
+    assert "suspects" not in p.schemas[0]["properties"]
+    p = Scripted([answer])
+    _review(repo, p, agent_steps=1)
+    assert "Work through the four passes" in p.seen[0][1][-1] and "suspects" not in p.seen[0][1][-1]
 
 
 def test_a_provider_error_keeps_the_deterministic_review(repo: Path):

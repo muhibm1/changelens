@@ -1,0 +1,2756 @@
+{
+ "provider": "claude-code",
+ "model": "claude-sonnet-5-5",
+ "args": [
+  "--agent"
+ ],
+ "cases": [
+  {
+   "repo": "httpx",
+   "commit": "1805ee0d22",
+   "title": "Graceful upgrade path for 0.28. (#3394)",
+   "bug": "verify=False returns before the client certificate is loaded, so cert= is ignored",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_config.py:33 Unsupported verify values (str path, None) are returned unvalidated as an SSL context"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 112155,
+    "cache_read_input_tokens": 71394,
+    "output_tokens": 3839
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1781,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 120,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1781,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 120,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1781,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1781
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "fd3b69d2aa",
+   "title": "Add DigestAuth middleware (#332)",
+   "bug": "RFC 2069 digest (no qop) hashes HA1 twice: response = H(HA1:HA1:nonce:HA2)",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 12,
+   "warn_titles": [
+    "tests/client/test_auth.py:210 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:234 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:260 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:286 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:294 Possible credential assigned to a literal committed",
+    "tests/client/test_auth.py:303 Possible credential assigned to a literal committed"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 87068,
+    "cache_read_input_tokens": 29971,
+    "output_tokens": 5668
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "httpx",
+   "commit": "15d09a3bbc",
+   "title": "fix: NO_PROXY should support IPv4, IPv6 and localhost (#2659)",
+   "bug": "a NO_PROXY entry with a scheme (http://host) is treated as a hostname and never matches",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_utils.py:266 CIDR entries in NO_PROXY are mounted but never match addresses in the range"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 45222,
+    "cache_read_input_tokens": 34878,
+    "output_tokens": 4158
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1757,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 148,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1757,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 148,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1757,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1757
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "27df5e49c7",
+   "title": "Support for `chunk_size` (#1277)",
+   "bug": "TextChunker.decode returns [''] for empty content, so iter_text yields an empty string",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 2,
+   "warn_titles": [
+    "httpx/_models.py:1173 iter_bytes() on a response with empty cached content raises ValueError",
+    "httpx/_models.py:1174 chunk_size 0 or negative is not validated in cached-content path"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 86068,
+    "cache_read_input_tokens": 61693,
+    "output_tokens": 4593
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "httpx",
+   "commit": "b481166481",
+   "title": "Refactor ASGITransport.request() (#1021)",
+   "bug": "with raise_app_exceptions=False an exception before the response completes is still raised",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "httpx/_transports/asgi.py",
+     "line": 151,
+     "title": "Refactor silently changes exception behaviour when raise_app_exceptions=False",
+     "failure": "With raise_app_exceptions=False, an app that raises before sending a complete response used to surface as AssertionError. It now surfaces as the app's own exception. Callers that caught AssertionError would now miss it.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 23091,
+    "cache_read_input_tokens": 14397,
+    "output_tokens": 1615
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1814,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 197,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1814,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 197,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1814,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1814
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "59914c7690",
+   "title": "Add `NetRCAuth()` class. (#2535)",
+   "bug": "NetRCAuth(file: Optional[str]) has no default, so NetRCAuth() is a TypeError",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "httpx/_auth.py",
+     "line": 150,
+     "title": "NetRCAuth() requires `file` but docs show it called with no arguments",
+     "failure": "A user following docs/advanced.md runs `auth = httpx.NetRCAuth()` and gets `TypeError: __init__() missing 1 required positional argument: 'file'`.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_auth.py:150 NetRCAuth() requires `file` but docs show it called with no arguments"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 86518,
+    "cache_read_input_tokens": 62880,
+    "output_tokens": 3208
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2031,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 130,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2031,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 130,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2031,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2031
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "c725387b2d",
+   "title": "Preserve header casing (#1338)",
+   "bug": "Headers.update assigns each raw pair, so a repeated header in the update keeps only its last value",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "httpx/_models.py",
+     "line": 662,
+     "title": "Headers.update drops repeated headers from the argument",
+     "failure": "client.headers.update(Headers([('Accept','a'),('Accept','b')])) or an update with a list of tuples that repeats a key now yields Accept: b. It used to yield 'a, b'. Repeated Set-Cookie or Accept entries are silently lost.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "httpx/_models.py:662 Headers.update drops repeated headers from the argument"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 63905,
+    "cache_read_input_tokens": 48902,
+    "output_tokens": 3622
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1749,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 145,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1749,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 145,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1749,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1749
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "httpx",
+   "commit": "6f5865f860",
+   "title": "Read upload files using `read(CHUNK_SIZE)` rather than `iter()`. (#1948)",
+   "bug": "hasattr(stream, 'read') also matches SyncByteStream subclasses, whose read() takes no size argument",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "httpx/_content.py",
+     "line": 53,
+     "title": "Any iterable with a read attribute now bypasses iteration and gets read(65536)",
+     "failure": "A custom Iterable[bytes] class that defines read(self) with no size argument and a meaningful __iter__ was previously sent by iteration; now the first chunk call raises TypeError mid-request.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 35143,
+    "cache_read_input_tokens": 1870,
+    "output_tokens": 1791
+   },
+   "judge_usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 1962,
+    "cache_read_input_tokens": 7979,
+    "output_tokens": 345,
+    "output_tokens_details": {
+     "thinking_tokens": 84
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1962,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 4,
+      "output_tokens": 160,
+      "cache_read_input_tokens": 4858,
+      "cache_creation_input_tokens": 225,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 225
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "bfc190f725",
+   "title": "feat(css): add CSP nonce to hono/css related style and script tags (#3685)",
+   "bug": "the style replacement regex has no s flag, so multiline CSS is not matched",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 57002,
+    "cache_read_input_tokens": 1870,
+    "output_tokens": 2204
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "09a81e4f01",
+   "title": "fix(jsx): cloneElement didn't copy children (#4257)",
+   "bug": "undefined children become [undefined], so a void element is cloned with a child",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/jsx/base.ts",
+     "line": 431,
+     "title": "Childless element is cloned with a single undefined child",
+     "failure": "cloneElement(<br />, {}) gives a node whose children list is [undefined] instead of [], and whose props has an own `children` key. Code that checks children.length, or compares props with shallowEqual, behaves differently on the clone.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/jsx/base.ts:431 cloneElement ignores a props.children override when no children arguments are given"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 27287,
+    "cache_read_input_tokens": 24648,
+    "output_tokens": 2587
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1964,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 145,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1964,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 145,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1964,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1964
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9a6e52d734",
+   "title": "feat(middleware/combine): Introduce combine middleware (#2941)",
+   "bug": "some() drops a Response returned by a short-circuiting middleware, so the context is never finalized",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/combine/index.ts:87 every(): condition functions never call next, so the chain stops"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 77442,
+    "cache_read_input_tokens": 56265,
+    "output_tokens": 5374
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1912,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 173,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1912,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 173,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1912,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1912
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "f356702efc",
+   "title": "fix(etag): support multi-value If-None-Match (#1199)",
+   "bug": "retainedHeaders are compared lower-cased against the option's values as given, so a mixed-case option never matches",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/etag/index.ts",
+     "line": 24,
+     "title": "retainedHeaders compared case-sensitively against lowercased keys",
+     "failure": "etag({ retainedHeaders: ['ETag', 'Cache-Control'] }) gives a 304 with no ETag and no Cache-Control, because 'etag' is not found in the list.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/middleware/etag/index.ts:24 retainedHeaders compared case-sensitively against lowercased keys",
+    "src/middleware/etag/index.ts:51 Deleting headers during Headers.forEach and stripping everything not in the list"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 58335,
+    "cache_read_input_tokens": 82071,
+    "output_tokens": 5939
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2237,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 161,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2237,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 161,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2237,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2237
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b0f189a3f",
+   "title": "refactor(json-pretty): don't use `c.pretty()` (#1288)",
+   "bug": "c.res.json() on an empty or invalid JSON body throws, turning the response into a 500",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/pretty-json/index.ts",
+     "line": 12,
+     "title": "Re-parsing the response body can throw for empty or non-document JSON bodies",
+     "failure": "A handler returns c.body(null, 204, {'content-type':'application/json'}) (or a HEAD or NDJSON response with a JSON-prefixed content-type); a request with ?pretty makes c.res.json() throw a SyntaxError and the request fails with a 500.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/middleware/pretty-json/index.ts:12 Re-parsing the response body can throw for empty or non-document JSON bodies",
+    "src/middleware/pretty-json/index.ts:13 Rebuilt response keeps stale headers and can lose multiple Set-Cookie values"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 51652,
+    "cache_read_input_tokens": 40474,
+    "output_tokens": 4390
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2057,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 153,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2057,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 153,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2057,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2057
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1a1de75296",
+   "title": "feat: Introduce LinearRouter. (#1043)",
+   "bug": "an empty path segment in the middle of a path (/u//posts) matches a :param with an empty value",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/router/linear-router/router.ts:42 Trailing-star route has no segment boundary, matches sibling prefixes"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 81003,
+    "cache_read_input_tokens": 57427,
+    "output_tokens": 6008
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1748,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 130,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1748,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 130,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1748,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1748
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "28a9c12891",
+   "title": "fix(accepts): support wildcard media types and specificity ordering in defaultMatch (#5255)",
+   "bug": "media types and language tags are compared case-sensitively",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/helper/accepts/accepts.ts",
+     "line": 22,
+     "title": "Media type comparison is case-sensitive",
+     "failure": "Accept: 'APPLICATION/*' with supports ['application/json'] does not match and returns the default.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 41094,
+    "cache_read_input_tokens": 68108,
+    "output_tokens": 2764
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1650,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 155,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1650,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 155,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1650,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1650
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "32ba5ba836",
+   "title": "refactor(request): shorten `parseBody` and remove unnecessary check (#2947)",
+   "bug": "rebuilding a cached body with new Response(body) loses the Content-Type, so formData() after text() throws",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/request.ts:216 cachedBody can pick parsedBody as the cached raw body and crash"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 26683,
+    "cache_read_input_tokens": 24520,
+    "output_tokens": 3035
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1853,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 176,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1853,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 176,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1853,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1853
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8b4392fa36",
+   "title": "feat(adaptor): Support AWS Function URL Streaming (#1625)",
+   "bug": "streamToNodeStream ignores write() backpressure and resolves before the writable finishes",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/adapter/aws-lambda/handler.ts",
+     "line": 73,
+     "title": "Write return value ignored, no backpressure; reader not cancelled on failure",
+     "failure": "A large streamed body to a slow consumer buffers fully in memory.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "runtime_tests/lambda/index.test.ts:487 Test reads the input stream, not the handler output",
+    "src/adapter/aws-lambda/handler.ts:98 Lambda context passed under a different binding key than handle",
+    "src/adapter/aws-lambda/handler.ts:107 streamHandle drops response status and headers"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 77752,
+    "cache_read_input_tokens": 30075,
+    "output_tokens": 3429
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1674,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 168,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1674,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 168,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1674,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1674
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "2d3bc55954",
+   "title": "fix(streaming): call stream.abort() explicitly when request is aborted (#3042)",
+   "bug": "abort subscribers are called bare, so a throwing or rejecting listener stops the rest or is unhandled",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/utils/stream.ts",
+     "line": 88,
+     "title": "Subscriber errors are not isolated in abort()",
+     "failure": "A user onAbort callback throws. The remaining callbacks never run, and the first subscriber, which cancels the reader, may be skipped depending on order.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/streaming/stream.ts:14 Abort listener on request signal is never removed"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 82702,
+    "cache_read_input_tokens": 28086,
+    "output_tokens": 2917
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1724,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 162,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1724,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 162,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1724,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1724
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "d7964503c9",
+   "title": "fix(request): fix multipart boundary mismatch in `cloneRawRequest` (#5133)",
+   "bug": "content-type is dropped for a re-serialized FormData but the stale content-length is kept",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9,
+    "cache_creation_input_tokens": 30586,
+    "cache_read_input_tokens": 36443,
+    "output_tokens": 1706
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "350d904ad0",
+   "title": "feat: introduce Accepts Helper (#2001)",
+   "bug": "defaultMatch only accepts exact type matches, so */* and type/* never match",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/helper/accept/accept.ts:33 q parsing ignores whitespace after ';' and accepts NaN",
+    "src/helper/accept/accept.ts:38 Parameter without '=' crashes parseAccept",
+    "src/helper/accept/accept.ts:47 defaultMatch selects q=0 entries, mutates input, matches exactly only"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 52532,
+    "cache_read_input_tokens": 40937,
+    "output_tokens": 3684
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "366f760a30",
+   "title": "fix(client): allow multiple files on the same key in form (#2791)",
+   "bug": "an undefined entry in a form array is appended as the string 'undefined'",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 91164,
+    "cache_read_input_tokens": 48303,
+    "output_tokens": 1648
+   },
+   "judge_usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 2758,
+    "cache_read_input_tokens": 7212,
+    "output_tokens": 269,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2758,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 4,
+      "output_tokens": 164,
+      "cache_read_input_tokens": 4091,
+      "cache_creation_input_tokens": 966,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 966
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "091ecb7e86",
+   "title": "fix(middleware/etag): should return 304 when weak etag is passed in  'If-None-Match' (#4171)",
+   "bug": "If-None-Match is split on /,\\s*/, so whitespace before a comma leaves a trailing space on the tag",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/middleware/etag/index.ts",
+     "line": 34,
+     "title": "Whitespace before a comma in If-None-Match prevents a match",
+     "failure": "If-None-Match: '\"abc\" , \"def\"' with ETag '\"abc\"': token is '\"abc\" ', not equal, so 200 instead of 304.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 33784,
+    "cache_read_input_tokens": 19151,
+    "output_tokens": 1985
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2007,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 186,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2007,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 186,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2007,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2007
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "b143c4ed8b",
+   "title": "feat(middleware/csrf): Introduce CSRF middleware (#1823)",
+   "bug": "OPTIONS is not a safe method, so CORS preflights are rejected by the CSRF check",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/csrf/index.ts:12 Content-Type check is case-sensitive, allowing CSRF bypass"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 58624,
+    "cache_read_input_tokens": 44452,
+    "output_tokens": 3437
+   },
+   "judge_usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 2902,
+    "cache_read_input_tokens": 7336,
+    "output_tokens": 293,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2902,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 4,
+      "output_tokens": 176,
+      "cache_read_input_tokens": 4215,
+      "cache_creation_input_tokens": 982,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 982
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "d9b8b4b73b",
+   "title": "Merge commit from fork",
+   "bug": "Vary is set rather than appended on OPTIONS, overwriting a Vary another middleware set",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/middleware/cors/index.ts",
+     "line": 119,
+     "title": "Preflight overwrites Vary instead of appending",
+     "failure": "An earlier middleware sets Vary: Accept-Encoding. An OPTIONS preflight then returns only 'Origin' (plus Access-Control-Request-Headers when that is appended), and Accept-Encoding is lost.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 7,
+    "cache_creation_input_tokens": 40645,
+    "cache_read_input_tokens": 42747,
+    "output_tokens": 3130
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1739,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 167,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1739,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 167,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1739,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1739
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "331b3d8a96",
+   "title": "fix(client): replace optional params to url correctly (#3304)",
+   "bug": "String.replace with a string replacement expands $ tokens in the param value",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/client/utils.ts",
+     "line": 13,
+     "title": "Replacement string special patterns are expanded",
+     "failure": "A param value of 'a$&b' inserts the matched '/:id' text into the URL.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/client/utils.ts:13 Empty-string param value now drops the path segment"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 38689,
+    "cache_read_input_tokens": 32099,
+    "output_tokens": 3219
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2009,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 174,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2009,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 174,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2009,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2009
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "ff34b1ba9a",
+   "title": "feat: support multiple optinal parameters (#1940)",
+   "bug": "/\\?/ matches a ? inside a regex quantifier, so :p{\\d+?} is read as optional",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 138,
+     "title": "Any '?' in a param segment is treated as the optional marker and stripped",
+     "failure": "The path '/a/:x{\\d?}/:y?' passes the guard. The ':x{\\d?}' segment is treated as optional, its '?' is removed, and the registered paths become '/a', '/a/:x{\\d}', and so on. The route then matches different URLs than the author wrote.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/utils/url.ts:128 Loose guard returns an empty list, so the route may not be registered",
+    "src/utils/url.ts:138 Any '?' in a param segment is treated as the optional marker and stripped"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 65547,
+    "cache_read_input_tokens": 73929,
+    "output_tokens": 5223
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2305,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 225,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2305,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 225,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2305,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2305
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cdb36b80af",
+   "title": "feat(client) add cookie type validate (#1476)",
+   "bug": "request cookies are joined with ',' and serialized with path=/; a Cookie header is '; '-joined name=value pairs",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/client/client.ts",
+     "line": 98,
+     "title": "Request Cookie header built with Set-Cookie serialization and ',' separator",
+     "failure": "cookie {a:'1', b:'2'} yields 'a=1; Path=/,b=2; Path=/'. The server's parse() splits on ';', so it sees a='1', a bogus cookie 'Path'='/,b=2' (overwritten/garbled), and b is lost or merged. Even a single cookie sends an extra 'Path' cookie.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/client/client.ts:98 Request Cookie header built with Set-Cookie serialization and ',' separator",
+    "src/client/client.ts:91 Client-level headers override per-call header",
+    "src/client/client.ts:100 args.cookie overwrites an existing Cookie header"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 81131,
+    "cache_read_input_tokens": 107348,
+    "output_tokens": 4092
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2080,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 166,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2080,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 166,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2080,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2080
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "31f0605209",
+   "title": "feat: Add `c.stream()` (#1437)",
+   "bug": "pipe() releases the writer lock and re-acquires it only after pipeTo succeeds, so a throw leaves no writer",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/stream.ts",
+     "line": 34,
+     "title": "pipe leaves writer released on error and conflicts with concurrent write",
+     "failure": "The piped source errors: pipeTo rejects, this.writer is a released writer, and close() throws TypeError. The response stream is never closed cleanly.",
+     "notes": []
+    }
+   ],
+   "warns": 4,
+   "warn_titles": [
+    "src/context.ts:380 streamText mutates caller's headers object",
+    "src/context.ts:385 streamText headers lost when arg is a ResponseInit",
+    "src/context.ts:395 Callback errors are unhandled and stream is closed as if complete",
+    "src/utils/stream.ts:34 pipe leaves writer released on error and conflicts with concurrent write"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 65449,
+    "cache_read_input_tokens": 49260,
+    "output_tokens": 3854
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1747,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 156,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1747,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 156,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1747,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1747
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7ce0ddd350",
+   "title": "feat(router): support greedy matches with subsequent static components. (#3888)",
+   "bug": "m[0].match(/\\//) without the g flag counts at most one slash",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/router/trie-router/node.ts",
+     "line": 180,
+     "title": "Slash count uses non-global match, so it is at most 1",
+     "failure": "Route `/:first{.+}/middle-b/:digest` with request `/a/b/c/middle-b/latest`: the capture is `a/b/c` (2 slashes) but the count is 1. The child is resumed one step too early, at `c`, so `middle-b` is not matched and the route returns no handler.",
+     "notes": []
+    }
+   ],
+   "warns": 2,
+   "warn_titles": [
+    "src/router/trie-router/node.ts:180 Slash count uses non-global match, so it is at most 1",
+    "src/utils/url.ts:67 Next static segment is interpolated into a RegExp unescaped"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 78955,
+    "cache_read_input_tokens": 58365,
+    "output_tokens": 5495
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1794,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 149,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1794,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 149,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1794,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1794
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "cd35af7655",
+   "title": "feat(jsx/dom): support getServerSnapshot in useSyncExternalStore (#2646)",
+   "bug": "the subscription effect has no deps, so a changed subscribe or store is never picked up",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 50176,
+    "cache_read_input_tokens": 39483,
+    "output_tokens": 2581
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1748,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 156,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1748,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 156,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1748,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1748
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "8130a67da1",
+   "title": "feat(secureHeader): add CSP Report-Only mode support (#3413)",
+   "bug": "CSP callbacks run for both Content-Security-Policy and its Report-Only header",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/middleware/secure-headers/secure-headers.ts",
+     "line": 271,
+     "title": "CSP nonce callbacks are applied to both CSP and Report-Only headers, crashing or corrupting them",
+     "failure": "secureHeaders({contentSecurityPolicy:{scriptSrc:[\"'self'\",NONCE]}, contentSecurityPolicyReportOnly:{defaultSrc:[\"'self'\"]}}): on each request the callback reaches the Report-Only header whose value is a string, assigning values[index] on a string throws, and the request fails with a 500. With NONCE in both policies the second reduce pass fails the same way.",
+     "notes": [
+      "removed evidence that does not resolve: hunk:src/middleware/secure-headers/secure-headers.ts:219"
+     ]
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/secure-headers/secure-headers.ts:271 CSP nonce callbacks are applied to both CSP and Report-Only headers, crashing or corrupting them"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 91748,
+    "cache_read_input_tokens": 68273,
+    "output_tokens": 4336
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1986,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 173,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1986,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 173,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1986,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1986
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1ce18c26dc",
+   "title": "feat(sse): Allow sending retry for SSE connection (#2188)",
+   "bug": "truthiness checks drop retry: 0 and id: ''",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/helper/streaming/sse.ts",
+     "line": 29,
+     "title": "retry: 0 is silently dropped by the truthiness check",
+     "failure": "writeSSE({data:'x', retry: 0}) emits only 'data: x'. The client keeps its previous or default reconnect delay instead of reconnecting immediately.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/streaming/sse.ts:29 retry: 0 is silently dropped by the truthiness check"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 9,
+    "cache_creation_input_tokens": 32405,
+    "cache_read_input_tokens": 31817,
+    "output_tokens": 4169
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2196,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 156,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2196,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 156,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2196,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2196
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "12806614b9",
+   "title": "feat(request): add cloneRawRequest utility for request cloning (#4382)",
+   "bug": "a FormData body is re-serialized with a new boundary while the old Content-Type header is kept",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/request.ts",
+     "line": 472,
+     "title": "Rebuilt multipart/form body keeps original Content-Type and Content-Length",
+     "failure": "A multipart/form-data POST is validated with the form validator, then cloneRawRequest(c.req) is called. The clone's Content-Type carries the old boundary while the body uses a new one. Forwarding it with fetch, or parsing it with better-auth, fails or yields an empty or garbled form.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/request.ts:472 Rebuilt multipart/form body keeps original Content-Type and Content-Length"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 63482,
+    "cache_read_input_tokens": 73166,
+    "output_tokens": 3468
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2012,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 156,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2012,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 156,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2012,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2012
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "9822548bf7",
+   "title": "feat: introduce Method Override Middleware (#2420)",
+   "bug": "new Request with a stream body needs duplex: 'half'",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/method-override/index.ts",
+     "line": 116,
+     "title": "Query path passes a stream body without duplex option",
+     "failure": "POST /posts?_method=delete with a non-empty body on Node throws 'duplex option is required' and returns a 500.",
+     "notes": [
+      "removed evidence that does not resolve: hunk:src/middleware/method-override/index.ts:161"
+     ]
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/method-override/index.ts:74 Override method value is passed to Request unvalidated (form, header, query)",
+    "src/middleware/method-override/index.ts:80 Urlencoded detection uses strict equality on Content-Type",
+    "src/middleware/method-override/index.ts:116 Query path passes a stream body without duplex option"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 68080,
+    "cache_read_input_tokens": 49725,
+    "output_tokens": 5637
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1689,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 141,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1689,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 141,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1689,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1689
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "6fe828ca0f",
+   "title": "fix(cache): Allow composing cache control directives (#1922)",
+   "bug": "existing Cache-Control directive names are compared case-sensitively",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/middleware/cache/index.ts",
+     "line": 21,
+     "title": "Existing directive names are not lowercased before the duplicate check",
+     "failure": "A handler sets Cache-Control: 'Max-Age=5' and the middleware is configured with 'max-age=10'. existingDirectives is ['Max-Age'], so includes('max-age') is false. The header becomes 'Max-Age=5, max-age=10', and that conflicting value is stored in the cache.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/middleware/cache/index.ts:21 Existing directive names are not lowercased before the duplicate check"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 13,
+    "cache_creation_input_tokens": 34661,
+    "cache_read_input_tokens": 44649,
+    "output_tokens": 3279
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1997,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 171,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1997,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 171,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1997,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1997
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "0edb243a74",
+   "title": "perf(serve-static): performance optimization for precompressed feature (#3414)",
+   "bug": "if (content) treats an empty file as not found",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 41289,
+    "cache_read_input_tokens": 23052,
+    "output_tokens": 2056
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "71cdcf40d8",
+   "title": "feat: Introduce IP Restriction Middleware (#2813)",
+   "bug": "expandIPv6('::') removes one empty section, so a second empty slot is expanded again",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "src/middleware/ip-restriction/index.ts:92 Remote IPv6 address is not normalized, so static deny rules can be bypassed",
+    "src/middleware/ip-restriction/index.ts:155 Non-IP remote address causes a thrown RangeError (500) when CIDR rules exist",
+    "src/utils/ipaddr.ts:13 expandIPv6 mishandles embedded IPv4 notation"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 86262,
+    "cache_read_input_tokens": 62671,
+    "output_tokens": 5421
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1746,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 159,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1746,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 159,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1746,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1746
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "48dc87dfd5",
+   "title": "fix(utils/filepath): filepath supports Windows (#1642)",
+   "bug": "replace(/\\\\/, '/') converts only the first backslash",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/filepath.ts",
+     "line": 26,
+     "title": "Backslash replacement lacks the global flag, so only the first backslash is converted",
+     "failure": "filename 'foo\\bar\\baz.txt' becomes 'foo/bar\\baz.txt'. On Linux, Bun, Deno or Workers, the static file lookup then fails or hits the wrong path. The Windows fix does not work for nested directories.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/filepath.ts:26 Backslash replacement lacks the global flag, so only the first backslash is converted"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 30025,
+    "cache_read_input_tokens": 14546,
+    "output_tokens": 2720
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1917,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 147,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1917,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 147,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1917,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1917
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "e9830c6ba1",
+   "title": "perf(utils): use `| 0` instead of `Math.floor` (#3605)",
+   "bug": "(Date.now() / 1000) | 0 truncates to 32 bits, so timestamps past 2038 wrap",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "src/utils/jwt/jwt.ts",
+     "line": 77,
+     "title": "`| 0` truncates to int32 and wraps negative after 2038-01-19 in JWT time checks",
+     "failure": "After 2038-01-19T03:14:08Z, `now` is negative. An expired token with exp=2000000000 passes `payload.exp <= now` as false, so verify accepts it. Tokens with a valid nbf are rejected with JwtTokenNotBefore. `iat` checks also fail.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "src/utils/jwt/jwt.ts:77 `| 0` truncates to int32 and wraps negative after 2038-01-19 in JWT time checks"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 38134,
+    "cache_read_input_tokens": 33048,
+    "output_tokens": 1966
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1825,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 139,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1825,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 139,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1825,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1825
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "1854e24145",
+   "title": "perf(jsx/dom): improve performance (#3288)",
+   "bug": "after splicing an array child in place the index still advances, skipping the next child",
+   "outcome": "in_file",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/jsx/dom/render.ts:267 Deleting vR after apply breaks buildNode's 'already used' detection"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 106104,
+    "cache_read_input_tokens": 103753,
+    "output_tokens": 6306
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "778ac10e84",
+   "title": "feat: decode percent-encoded path in getPath (#2714)",
+   "bug": "getPath stops at ? but not #, so a fragment ends up in the path",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5,
+    "cache_creation_input_tokens": 55639,
+    "cache_read_input_tokens": 27963,
+    "output_tokens": 4208
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "66fc63d134",
+   "title": "feat(bearer-auth): Allow empty bearer-auth middleware prefixes (#3161)",
+   "bug": "the Bearer prefix is matched case-sensitively",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 33145,
+    "cache_read_input_tokens": 1870,
+    "output_tokens": 1779
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1947,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 157,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1947,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 157,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1947,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1947
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "7768865e7a",
+   "title": "fix: move `c.stream*` to helper (#1846)",
+   "bug": "SSE data is split on \\n only, so \\r and \\r\\n line endings are not framed",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 1,
+   "warn_titles": [
+    "src/helper/streaming/index.ts:11 `streamSSE` removed but still referenced at runtime_tests/lambda/index.test.ts:10, runtime_tests/lambda/index.test.ts:553"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 7,
+    "cache_creation_input_tokens": 51630,
+    "cache_read_input_tokens": 52661,
+    "output_tokens": 2848
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "hono",
+   "commit": "6d18f17e58",
+   "title": "fix(service-worker): pass `FetchEvent` as second argument to `app.fetch` (#4328)",
+   "bug": "app.fetch(request, evt) passes the FetchEvent as Env instead of as the execution context",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "src/adapter/service-worker/handler.ts",
+     "line": 27,
+     "title": "FetchEvent is passed as Env, so c.env is untyped and executionCtx is still unset",
+     "failure": "A Hono<{Bindings: {KV: KVNamespace}}> app passed to handle() compiles. At runtime c.env.KV is undefined because c.env is the FetchEvent.",
+     "notes": []
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 23909,
+    "cache_read_input_tokens": 25963,
+    "output_tokens": 2953
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1821,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 170,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1821,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 170,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1821,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1821
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "acb94b15fa",
+   "title": "fix(context): encode the redirect location (#4297)",
+   "bug": "safeEncodeURI decides by decodeURI(str) === str, which mis-handles a literal % and some encoded input",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "src/utils/url.ts",
+     "line": 323,
+     "title": "safeEncodeURI double-encodes already-encoded reserved characters",
+     "failure": "c.redirect('/login?next=%2Fdashboard') sends Location '/login?next=%252Fdashboard'. The target page reads next as '%2Fdashboard' instead of '/dashboard'. '/search?q=a%26b' becomes '%2526' in the same way.",
+     "notes": []
+    }
+   ],
+   "warns": 3,
+   "warn_titles": [
+    "src/utils/url.ts:323 safeEncodeURI double-encodes already-encoded reserved characters",
+    "src/context.ts:750 Redirect location is passed through encodeURI unconditionally, which escapes [ and ]",
+    "src/utils/url.ts:326 Lone surrogate in input makes safeEncodeURI throw out of c.redirect"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 63156,
+    "cache_read_input_tokens": 29485,
+    "output_tokens": 3905
+   },
+   "judge_usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 3236,
+    "cache_read_input_tokens": 7625,
+    "output_tokens": 397,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 3236,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 4,
+      "output_tokens": 227,
+      "cache_read_input_tokens": 4504,
+      "cache_creation_input_tokens": 1031,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1031
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "hono",
+   "commit": "a16bcda120",
+   "title": "perf(utils/url): improve performance of url utility (#3593)",
+   "bug": "decodeURIComponent on an invalid query value throws instead of returning the raw value",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 5,
+    "cache_creation_input_tokens": 26054,
+    "cache_read_input_tokens": 15441,
+    "output_tokens": 397
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "cobra",
+   "commit": "b80aeb17fc",
+   "title": "Add support for custom completions in Go (#1035)",
+   "bug": "append on a sub-slice of args writes into the caller's backing array (os.Args)",
+   "outcome": "missed",
+   "judge": "model",
+   "matched": [],
+   "warns": 3,
+   "warn_titles": [
+    "bash_completions.go:85 Typed words are joined into a string and eval'd",
+    "bash_completions.go:90 Colon in a completion truncates results and corrupts the directive parse",
+    "bash_completions.go:554 has_completion_function leaks into subcommands and suppresses subcommand-name completion"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 116913,
+    "cache_read_input_tokens": 31159,
+    "output_tokens": 7055
+   },
+   "judge_usage": {}
+  },
+  {
+   "repo": "cobra",
+   "commit": "36aee64abe",
+   "title": "prevent removal of valid arguments",
+   "bug": "argsMinusFirstX removes the first arg equal to the subcommand name even when it is a flag's value",
+   "outcome": "inform_only",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "inform",
+     "source": "model",
+     "path": "command.go",
+     "line": 335,
+     "title": "First-match removal can delete a flag value instead of the command token",
+     "failure": "Args `-s first -b first` where -s takes a value, -b is boolean, and `first` is a subcommand. stripFlags returns [first] (the second one). argsMinusFirstX deletes index 1, the value of -s, leaving `-s -b first`. -s now takes `-b` as its value and the `first` token is left in the args.",
+     "notes": [
+      "severity lowered from warn to inform: a second reading confirmed the case but judged it pre existing, not a defect (The trace is right: stripFlags skips the `-s` value, so the later `first` is picked, but argsMinusFirstX deletes the earlier `first`, the flag value. The old argsMinusX deleted both occurrences, so this input was already mis-parsed before the change, and the change doesn't introduce or newly expose )"
+     ]
+    }
+   ],
+   "warns": 0,
+   "warn_titles": [],
+   "severity": "inform",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 11,
+    "cache_creation_input_tokens": 32142,
+    "cache_read_input_tokens": 28146,
+    "output_tokens": 3282
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1808,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 153,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 1808,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 153,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 1808,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 1808
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "21f39ca07e",
+   "title": "bash: fix shellcheck errors (#889)",
+   "bug": "the read loop reuses $c, clobbering the global $c that *_custom_func reads",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "warn",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 75,
+     "title": "read loop overwrites the shared completion word index `c`",
+     "failure": "A user-defined `__custom_func` or `__<name>_custom_func` runs right after the loops (line 140/143) and reads `$c` or `${words[c]}`. It now sees an empty or garbage index instead of the word position. The debug output also prints a wrong `c`.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "bash_completions.go:75 read loop overwrites the shared completion word index `c`"
+   ],
+   "severity": "warn",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 34745,
+    "cache_read_input_tokens": 42756,
+    "output_tokens": 4382
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2019,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 168,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2019,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 168,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2019,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2019
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  },
+  {
+   "repo": "cobra",
+   "commit": "6fd8e29b07",
+   "title": "Qualify custom bash func name (#730)",
+   "bug": "declare -F ___custom_func has three underscores, so the fallback to __custom_func never runs",
+   "outcome": "caught",
+   "judge": "model",
+   "matched": [
+    {
+     "severity": "block",
+     "source": "model",
+     "path": "bash_completions.go",
+     "line": 137,
+     "title": "Compatibility fallback checks for ___custom_func (three underscores)",
+     "failure": "An existing app defines `__custom_func` in BashCompletionFunction, which the old code called. After this change the qualified `__<name>_custom_func` is not defined, and `declare -F ___custom_func` returns false, so the custom completion is silently skipped and users get no completions from it. The updated test only counts substrings, so it cannot catch this: the `___custom_func` text still contains `__custom_func` and the count stays at 2.",
+     "notes": []
+    }
+   ],
+   "warns": 1,
+   "warn_titles": [
+    "bash_completions.go:137 Compatibility fallback checks for ___custom_func (three underscores)"
+   ],
+   "severity": "block",
+   "error": null,
+   "provider_error": null,
+   "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 54201,
+    "cache_read_input_tokens": 25969,
+    "output_tokens": 2718
+   },
+   "judge_usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2041,
+    "cache_read_input_tokens": 3121,
+    "output_tokens": 154,
+    "output_tokens_details": {
+     "thinking_tokens": 0
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 2041,
+     "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 154,
+      "cache_read_input_tokens": 3121,
+      "cache_creation_input_tokens": 2041,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 0,
+       "ephemeral_1h_input_tokens": 2041
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   }
+  }
+ ],
+ "skipped": [],
+ "summary": {
+  "cases": 50,
+  "errors": 0,
+  "caught": 18,
+  "in_file": 12,
+  "inform_only": 8,
+  "missed": 12,
+  "recall": 0.36,
+  "recall_in_file": 0.6,
+  "warns_per_case": 1.36,
+  "tokens_in": 501,
+  "tokens_cache_write": 2891128,
+  "tokens_cache_read": 2118159,
+  "tokens_out": 180080
+ },
+ "judge_model": "claude-sonnet-5-5"
+}

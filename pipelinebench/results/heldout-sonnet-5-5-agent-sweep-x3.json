@@ -1,0 +1,194 @@
+{
+ "runs": 3,
+ "provider": "claude-code",
+ "model": "claude-sonnet-5-5",
+ "cases": 45,
+ "metrics": {
+  "detection_recall": {
+   "mean": 0.763,
+   "min": 0.711,
+   "max": 0.8,
+   "runs": [
+    0.778,
+    0.8,
+    0.711
+   ]
+  },
+  "escalation_recall": {
+   "mean": 0.637,
+   "min": 0.622,
+   "max": 0.644,
+   "runs": [
+    0.644,
+    0.622,
+    0.644
+   ]
+  },
+  "recall_in_file": {
+   "mean": 0.771,
+   "min": 0.756,
+   "max": 0.778,
+   "runs": [
+    0.778,
+    0.756,
+    0.778
+   ]
+  },
+  "inform_only": {
+   "mean": 4.333,
+   "min": 3,
+   "max": 5,
+   "runs": [
+    5,
+    5,
+    3
+   ]
+  },
+  "missed": {
+   "mean": 6.0,
+   "min": 5,
+   "max": 7,
+   "runs": [
+    5,
+    6,
+    7
+   ]
+  },
+  "warns_per_case": {
+   "mean": 1.71,
+   "min": 1.69,
+   "max": 1.73,
+   "runs": [
+    1.73,
+    1.71,
+    1.69
+   ]
+  },
+  "other_warns_per_case": {
+   "mean": 1.067,
+   "min": 1.04,
+   "max": 1.09,
+   "runs": [
+    1.07,
+    1.09,
+    1.04
+   ]
+  },
+  "errors": {
+   "mean": 0.0,
+   "min": 0,
+   "max": 0,
+   "runs": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "unstable_cases": [
+  {
+   "repo": "starlette",
+   "commit": "94a22b865e",
+   "outcomes": [
+    "caught",
+    "inform_only",
+    "caught"
+   ]
+  },
+  {
+   "repo": "starlette",
+   "commit": "0aef1724cf",
+   "outcomes": [
+    "caught",
+    "missed",
+    "caught"
+   ]
+  },
+  {
+   "repo": "gin",
+   "commit": "32065bbd42",
+   "outcomes": [
+    "inform_only",
+    "inform_only",
+    "missed"
+   ]
+  },
+  {
+   "repo": "gin",
+   "commit": "2ae8a25fc9",
+   "outcomes": [
+    "in_file",
+    "in_file",
+    "caught"
+   ]
+  },
+  {
+   "repo": "echo",
+   "commit": "c3887ebb13",
+   "outcomes": [
+    "inform_only",
+    "in_file",
+    "in_file"
+   ]
+  },
+  {
+   "repo": "echo",
+   "commit": "124825ee62",
+   "outcomes": [
+    "caught",
+    "caught",
+    "missed"
+   ]
+  },
+  {
+   "repo": "echo",
+   "commit": "626f13e338",
+   "outcomes": [
+    "inform_only",
+    "caught",
+    "inform_only"
+   ]
+  },
+  {
+   "repo": "ky",
+   "commit": "2b0a10071d",
+   "outcomes": [
+    "caught",
+    "inform_only",
+    "caught"
+   ]
+  },
+  {
+   "repo": "h3",
+   "commit": "080bf53d69",
+   "outcomes": [
+    "in_file",
+    "caught",
+    "in_file"
+   ]
+  },
+  {
+   "repo": "h3",
+   "commit": "61b395e31b",
+   "outcomes": [
+    "in_file",
+    "in_file",
+    "caught"
+   ]
+  },
+  {
+   "repo": "express",
+   "commit": "18e5985b8a",
+   "outcomes": [
+    "caught",
+    "caught",
+    "in_file"
+   ]
+  }
+ ],
+ "files": [
+  "heldout-sonnet-5-5-agent-sweep-1.json",
+  "heldout-sonnet-5-5-agent-sweep-2.json",
+  "heldout-sonnet-5-5-agent-sweep-3.json"
+ ]
+}
