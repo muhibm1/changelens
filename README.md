@@ -236,6 +236,14 @@ All five are deterministic (no model call), cite an id for every item, and pack 
 tree and the graph (`cached: true`). On the fixture, uncached calls take 5 to 400 ms. `preflight`, `explain`,
 `history`, `ask`, `review`, `record_decision`, `propose_constraint`, `search_record` and `read_record` are unchanged.
 
+Without an `orion.yaml`, `impact` and `read` use the code graph `orion codegraph sync --repo .` writes to
+`.orion/graph.duckdb` (callers and importers in every indexed repository, from parsed calls rather than a text match).
+The server opens that file and the retrieval index only while it answers (the index stays open for 5 s after the
+last call), so `orion rag index` and `orion codegraph sync` can run while sessions are open. `tests/test_e2e.py`
+runs the whole path on two small repositories: ingest the record, sync the code graph, index, then every tool over
+MCP on a sample change, checking that cited ids read back, the blast radius crosses repositories, answers fit their
+budgets and repeated calls are cached.
+
 **Every the harness session on a machine:** `orion setup claude-code` registers the server at user scope (`claude mcp
 add`) and a SessionStart hook that tells each session Orion is there and when to call it. `--scope project` writes
 the repository's `.mcp.json` and `.claude/settings.json` instead, which cloud sessions of that repository pick up.

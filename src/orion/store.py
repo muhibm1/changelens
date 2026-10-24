@@ -7,6 +7,7 @@ share it later.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from collections import deque
 from collections.abc import Iterable
@@ -106,6 +107,11 @@ class Store:
         self.path = Path(path)
         if str(self.path) != ":memory:":
             self.path.parent.mkdir(parents=True, exist_ok=True)
+            # Orion's own folder in a checkout is never part of a change (`orion codegraph sync --repo` makes it there).
+            ignore = self.path.parent / ".gitignore"
+            if self.path.parent.name == ".orion" and not ignore.exists():
+                with contextlib.suppress(OSError):
+                    ignore.write_text("*\n")
         self.con = duckdb.connect(str(self.path))
         self.con.execute(SCHEMA)
 
