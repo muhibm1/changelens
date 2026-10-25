@@ -32,7 +32,7 @@ Ground truth lives in `src/pipelinebench/generate.py` and is derived by hand fro
 | agent | how |
 | --- | --- |
 | `scripted` | deterministic: follows a verdict when given one, otherwise keyword-matches constraints and incidents that mention the changed assets. The floor, and the proof the harness measures the context rather than the model. |
-| `claude[:model]` | the Anthropic Messages API through Orion's own provider (no SDK; `ORION_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`) |
+| `claude[:model]` | the Anthropic Messages API through Orion's own provider (no SDK; `ORION_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`, and a dollar cap in `ORION_API_CAP`) |
 | `command:<exe>` | any executable that reads the prompt JSON on stdin and writes a decision JSON on stdout, so an OpenHands, Codex or in-house agent sits in the same harness |
 
 ## Running it
@@ -97,8 +97,8 @@ src/pipelinebench/
 `pipelinebench review-eval` scores `orion review` itself, not the pre-flight verdict. `review/cases.yaml` holds 57 changes written by hand: 40 with a planted bug (Python, TypeScript, Go, SQL migrations, dbt models, an Airflow DAG) and 17 correct changes. The eight `ctx-` cases are ones where the bug, or the reason a change is fine, sits outside the hunk's context lines. The six `xf-` cases change two files, and the bug in one only shows against the change to the other. The two `hidden-` cases change one dbt model while a model outside the diff still reads what was removed or renamed; only the lineage in Orion's system facts shows that. The `hidden-py-` cases rename or re-sign a Python function while a file outside the diff (`repo_files`) still calls it; only a repository search shows that. The 13 `hard-` and `clean-hard-` cases are described in the last section. Each bug is located by a marker string in a new file, with `also` naming any other line where the same bug may fairly be raised (a wrong return value and the caller that acts on it). A bug counts as caught when a shown finding of severity `warn` or `block` lands on the bug's file within three lines of it. A `warn` or `block` finding anywhere else is a false alarm.
 
 ```bash
-.venv/bin/pipelinebench review-eval --provider anthropic            # one pass
-.venv/bin/pipelinebench review-eval --provider anthropic --repeat 3 # variance
+ORION_API_CAP=2 .venv/bin/pipelinebench review-eval --provider anthropic  # one pass, under a $2 cap on the API ledger
+.venv/bin/pipelinebench review-eval --provider claude-code --repeat 3   # variance, on a Claude subscription
 .venv/bin/pipelinebench review-eval --case py-sql-injection         # one case
 .venv/bin/pipelinebench review-eval --no-file-context              # hunks only, no whole files
 ```

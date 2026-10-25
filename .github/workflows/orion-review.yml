@@ -79,6 +79,8 @@ jobs:
         continue-on-error: true
         env:
           ORION_ANTHROPIC_API_KEY: ${{ secrets.ORION_ANTHROPIC_API_KEY }}
+          # Dollars one review may spend; a review on Haiku has cost about 5.5 cents.
+          ORION_API_CAP: "0.25"
           BASE_REF: ${{ steps.pr.outputs.base }}
           HEAD_SHA: ${{ steps.pr.outputs.head }}
         run: |
@@ -89,6 +91,8 @@ jobs:
             --intent="$(cat "$RUNNER_TEMP/intent.txt")" \
             --post-github "$REPO#$PR" --head-sha "$HEAD_SHA" \
             || echo "::error::Orion review did not complete; see this step's log."
+          # What this review spent, from the API ledger; nothing when the stub provider ran.
+          if [ -f "$HOME/.orion/api-ledger.jsonl" ]; then .venv/bin/flywheel spend "$HOME/.orion/api-ledger.jsonl" || true; fi
       - name: Remove the label so it can ask for the next review
         if: always() && github.event_name == 'pull_request'
         run: gh pr edit "$PR" --repo "$REPO" --remove-label orion-review || true

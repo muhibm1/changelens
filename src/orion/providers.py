@@ -7,7 +7,8 @@ timeout and retries on rate limits and server errors. HTTP is plain
 
 * ``stub``: offline and deterministic; tests and demos.
 * ``anthropic``: the Messages API, structured output via ``output_config.format``
-  (forced tool use is rejected by the current Claude models).
+  (forced tool use is rejected by the current Claude models). It spends API credit, so it
+  refuses to start without a dollar cap (``ORION_API_CAP``) and adds every call to a ledger.
 * ``openai``: any OpenAI-compatible ``/chat/completions`` endpoint (OpenAI,
   Azure, vLLM, Ollama, LM Studio), structured output via ``response_format``.
 * ``command``: any local command that reads a prompt on stdin and prints the
@@ -27,13 +28,21 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
+
+from flywheel import spend
+
+from .usage import home
 
 
 class ProviderError(RuntimeError):
     pass
+
+
+class SpendCapError(ProviderError):
+    """A paid call refused: no API cap is set, the model has no listed price, or the cap is spent."""
 
 
 class Provider(Protocol):
@@ -49,6 +58,17 @@ def join_user(user: str | list[str]) -> str:
 
 # Orion's own name first so a key scoped to Orion wins over a general one.
 ANTHROPIC_KEY_ENVS = ("ORION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
+# Paid calls are off until this names a dollar cap. It holds across runs: every call is added to the ledger, and once
+# the ledger's total reaches the cap, every later call is refused.
+API_CAP_ENV = "ORION_API_CAP"
+API_LEDGER_ENV = "ORION_API_LEDGER"
+
+
+def api_guard() -> spend.Guard:
+    """The dollar cap on Anthropic API calls, kept in a ledger every Orion process on this machine shares:
+    ``ORION_API_LEDGER``, else ``~/.orion/api-ledger.jsonl``. ``flywheel spend`` totals it."""
+    return spend.Guard.from_env(project="orion", cap_variable=API_CAP_ENV, ledger_variable=API_LEDGER_ENV, default_ledger=str(home() / "api-ledger.jsonl"))
+
 
 RETRY_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
 
@@ -111,12 +131,20 @@ class AnthropicProvider:
     timeout: float = 600.0
     retries: int = 3
     last_usage: dict[str, Any] | None = None
+    guard: spend.Guard | None = field(default=None, repr=False)  # copies made for parallel passes share it
 
     def __post_init__(self) -> None:
         self.api_key = self.api_key or next((os.environ[k] for k in ANTHROPIC_KEY_ENVS if os.environ.get(k)), None)
         if not self.api_key:
             raise ProviderError(f"no Anthropic API key; set {' or '.join(ANTHROPIC_KEY_ENVS)}")
         self.name = f"anthropic:{self.model}"
+        self.guard = self.guard or api_guard()
+        if self.guard.cap <= 0:
+            raise SpendCapError(f"the anthropic provider spends API credit, and paid calls are off: set {API_CAP_ENV} to a dollar cap, or use the claude-code provider to answer on a Claude subscription")
+        try:  # refused before any call: an unpriced model no cap can hold, or a cap an earlier run spent
+            self.guard.require(f"a call to {self.model}", model=self.model)
+        except spend.SpendRefused as e:
+            raise SpendCapError(str(e)) from e
 
     def complete_json(self, system: str, user: str | list[str], schema: dict[str, Any], *, schema_name: str = "result") -> dict[str, Any]:
         """``user`` in parts marks every part but the last for prompt caching, so calls that share the system
@@ -132,7 +160,11 @@ class AnthropicProvider:
             "output_config": output_config,
         }
         headers = {"x-api-key": self.api_key or "", "anthropic-version": "2023-06-01"}
-        resp = _post(f"{self.base_url.rstrip('/')}/v1/messages", headers, body, timeout=self.timeout, retries=self.retries)
+        url = f"{self.base_url.rstrip('/')}/v1/messages"
+        try:  # the guard checks the cap before the call and adds its tokens and dollars to the ledger after it
+            resp = spend.call(body, lambda b: _post(url, headers, dict(b), timeout=self.timeout, retries=self.retries), guard=self.guard, label=f"orion {schema_name}")
+        except spend.SpendRefused as e:
+            raise SpendCapError(str(e)) from e
         self.last_usage = resp.get("usage")
         stop = resp.get("stop_reason")
         if stop == "refusal":

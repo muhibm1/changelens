@@ -13,6 +13,8 @@ dependencies = [
   "rich>=13",
   "pydantic>=2",
   "mcp>=2",
+  # The budget guard and price list every Anthropic API call goes through (providers.py); standard library only.
+  "langsmith-flywheel @ git+https://github.com/muhibm1/flywheel@2d45d8e81d446257b71254f6e057c5259b54cdba",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +31,10 @@ pipelinebench = "pipelinebench.cli:app"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+# Flywheel is pinned to a commit on GitHub, not a package index.
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/orion", "src/pipelinebench"]
