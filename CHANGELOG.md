@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### A dollar cap on API calls
+
+- The `anthropic` provider refuses to start unless `ORION_API_CAP` names a dollar cap, and refuses an unpriced model. Every call goes through Flywheel's budget guard (`flywheel.spend`, pinned by commit): it is added to `~/.orion/api-ledger.jsonl` (`ORION_API_LEDGER`) with its uncached input, cache writes, cache reads, output and list price, and once the ledger's total reaches the cap every later call is refused, in that run and the next. A refusal is a provider error, so a review still returns its deterministic findings. `flywheel spend` totals the ledger.
+- The reviewer workflow runs each review under a 25-cent cap and prints what it spent.
+- Tests can no longer reach a real key: the suite removes the key variables and runs its faked calls under a one-dollar cap in a temporary ledger.
+
 ### Lessons from Auspex cases
 
 - Auspex cases (`~/.auspex/cases.jsonl`, `auspex.case/1`) are ingested as record documents `case:<session>:<turn>:<kind>`; a later line with the same id replaces the earlier one, and a line that is not a case is reported with its line number. The daemon reads them with the sessions job.

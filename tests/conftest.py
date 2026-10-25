@@ -39,6 +39,16 @@ def _no_background_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _no_paid_calls(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
+    """No test can spend API credit: real keys are removed, and the faked Anthropic calls tests make run under a
+    one-dollar cap kept in a temporary ledger, never the user's."""
+    for name in ("ANTHROPIC_API_KEY", "ORION_ANTHROPIC_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("ORION_API_CAP", "1")
+    monkeypatch.setenv("ORION_API_LEDGER", str(tmp_path_factory.mktemp("orion-api") / "api-ledger.jsonl"))
+
+
+@pytest.fixture(autouse=True)
 def _usage_log_in_tmp(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """Hooks and tools log to the usage log; in tests that log is a temporary file, never the user's."""
     home = tmp_path_factory.mktemp("orion-home")

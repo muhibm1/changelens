@@ -99,12 +99,12 @@ def test_the_model_agent_goes_through_the_provider_and_counts_tokens(monkeypatch
     monkeypatch.setattr(providers, "_post", post)
     monkeypatch.setenv("ORION_ANTHROPIC_API_KEY", "k")
     scenarios = load_scenarios(SCENARIOS)[:2]
-    res = run(scenarios, [ClaudeAgent("m")], ["none"], repo_root=ROOT, store=synced_store)
+    res = run(scenarios, [ClaudeAgent("claude-haiku-5-5")], ["none"], repo_root=ROOT, store=synced_store)  # a priced model: an unpriced one is refused
     assert sent[0]["output_config"]["format"]["schema"]["required"]
     first, second = [d for d in res["details"]]
     assert first["decided"] == "escalate" and second["decided"] == "proceed" and "provider error" in second["rationale"]
-    assert res["usage"] == {"claude:m": {"input_tokens": 10, "output_tokens": 3, "errors": 1}}
-    assert "claude:m: 10 tokens in, 3 out, 1 provider errors (each graded as proceed)" in report(res)
+    assert res["usage"] == {"claude:claude-haiku-5-5": {"input_tokens": 10, "output_tokens": 3, "errors": 1}}
+    assert "claude:claude-haiku-5-5: 10 tokens in, 3 out, 1 provider errors (each graded as proceed)" in report(res)
 
 
 def test_run_refuses_an_empty_graph_for_conditions_that_read_it(tmp_path):
