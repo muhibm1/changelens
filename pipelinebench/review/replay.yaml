@@ -1,6 +1,6 @@
-# Merged changes from public repositories, replayed through `orion review --git <commit>^`.
+# Merged changes from public repositories, replayed through `fathom review --git <commit>^`.
 # Labels are judged by hand against each project's later history (see pipelinebench/results/partner-*.md);
-# never derive them from Orion's output. A warning that matches no label is reported as unjudged.
+# never derive them from Fathom's output. A warning that matches no label is reported as unjudged.
 repos:
   httpx:
     url: https://github.com/encode/httpx
@@ -10,11 +10,11 @@ repos:
     url: https://github.com/spf13/cobra
   calitp:
     url: https://github.com/cal-itp/data-infra
-    # A dbt and Airflow platform: the clone needs a compiled manifest and `orion sync` before replay
+    # A dbt and Airflow platform: the clone needs a compiled manifest and `fathom sync` before replay
     # (pipelinebench/results/partner-calitp-dbt.md). The graph used for the labels was synced at 8af13f10.
     needs_sync: true
     config: |
-      db: .orion/graph.duckdb
+      db: .fathom/graph.duckdb
       adapters:
         dbt:
           project: warehouse

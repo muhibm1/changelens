@@ -1,4 +1,4 @@
-# Agentic review (`orion review --agent`), first measurements
+# Agentic review (`fathom review --agent`), first measurements
 
 These runs were made on 2026-10-23 with Sonnet 5.5 through the `claude-code` provider, and a Sonnet 5.5 judge reading each hand label. Each set was run once. Held-out was run first, and that run's traces showed the agent was not calling tools. That observation led to the opening-turn change. The change was checked on the tuning set only, and no prompt or budget was tuned on held-out outcomes.
 

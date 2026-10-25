@@ -13,7 +13,7 @@ DECISIONS: tuple[str, ...] = ("proceed", "proceed_with_checks", "escalate")
 
 
 class Change(BaseModel):
-    """What the agent is asked to do, in a form Orion and the file-based conditions can both read."""
+    """What the agent is asked to do, in a form Fathom and the file-based conditions can both read."""
 
     ops: list[dict[str, Any]] = Field(default_factory=list)
     intent: str | None = None
@@ -52,8 +52,8 @@ def load_scenarios(directory: Path) -> list[Scenario]:
 def known_ids(fixture_root: Path) -> set[str]:
     """Every constraint and incident id that exists; anything else an agent cites is fabricated."""
     ids: set[str] = set()
-    for p in (fixture_root / "orion" / "constraints").glob("*.yaml"):
+    for p in (fixture_root / "fathom" / "constraints").glob("*.yaml"):
         ids.add(p.stem)
-    for p in (fixture_root / "orion" / "incidents").glob("*.md"):
+    for p in (fixture_root / "fathom" / "incidents").glob("*.md"):
         ids.add(p.stem)
     return ids

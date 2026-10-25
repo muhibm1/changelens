@@ -1,11 +1,11 @@
-# Orion for dbt teams
+# Fathom for dbt teams
 
-This is the release for data teams: what Orion does on a dbt project, how to run it for two weeks without it blocking anything, and what it measured on a real warehouse's history. Every number below links to the result file it comes from.
+This is the release for data teams: what Fathom does on a dbt project, how to run it for two weeks without it blocking anything, and what it measured on a real warehouse's history. Every number below links to the result file it comes from.
 
 ## What it does on a pull request
 
-1. **Pre-flight (no model).** `orion preflight` and `orion gate` resolve the diff into typed changes, such as a dropped column, a changed filter or a changed partition. They then walk column-level lineage to every downstream model, exposure and DAG task, and evaluate the team's constraints. The result is one verdict where every claim cites an id from the graph. If Orion cannot map a path, it lists the path under `unresolved` instead of guessing.
-2. **Review (optional model).** `orion review` adds a model's reading of the diff. A model warning on a dbt or Airflow file stays at warn only when something recorded backs it (the `platform` escalation policy, the default):
+1. **Pre-flight (no model).** `fathom preflight` and `fathom gate` resolve the diff into typed changes, such as a dropped column, a changed filter or a changed partition. They then walk column-level lineage to every downstream model, exposure and DAG task, and evaluate the team's constraints. The result is one verdict where every claim cites an id from the graph. If Fathom cannot map a path, it lists the path under `unresolved` instead of guessing.
+2. **Review (optional model).** `fathom review` adds a model's reading of the diff. A model warning on a dbt or Airflow file stays at warn only when something recorded backs it (the `platform` escalation policy, the default):
    - a firing constraint,
    - a downstream reader of a column the hunk names,
    - consumers of the file's own model when the change touches its rows or values,
@@ -13,43 +13,43 @@ This is the release for data teams: what Orion does on a dbt project, how to run
    - a failing case confirmed against the warehouse.
 
    Any other model warning is lowered to inform, with a note.
-3. **Gate (opt in).** `orion gate --fail-on block` fails CI. Until a team turns that on, Orion only advises.
+3. **Gate (opt in).** `fathom gate --fail-on block` fails CI. Until a team turns that on, Fathom only advises.
 
-Orion never writes to the warehouse or the orchestrator. Warehouse confirmation runs one read-only `SELECT` per finding, and only when `review.warehouse` is configured.
+Fathom never writes to the warehouse or the orchestrator. Warehouse confirmation runs one read-only `SELECT` per finding, and only when `review.warehouse` is configured.
 
 ## Setup
 
 ```bash
-uv pip install "orion @ git+https://github.com/muhibm1/orion"
+uv pip install "fathom @ git+https://github.com/muhibm1/fathom"
 ```
 
 ```yaml
-# orion.yaml at the repository root
-db: .orion/graph.duckdb
+# fathom.yaml at the repository root
+db: .fathom/graph.duckdb
 adapters:
   dbt:
-    project: warehouse            # the folder with dbt_project.yml; Orion reads target/manifest.json, and catalog.json when present
+    project: warehouse            # the folder with dbt_project.yml; Fathom reads target/manifest.json, and catalog.json when present
   airflow:
     dags: airflow/dags            # optional
   git:
     paths: [warehouse, airflow]
-constraints: orion/constraints    # optional: YAML, merged by pull request
+constraints: fathom/constraints    # optional: YAML, merged by pull request
 review:
   provider: anthropic             # or openai (any compatible endpoint), command, claude-code
   model: claude-haiku-5-5
 ```
 
-The `anthropic` provider spends API credit and refuses to start without a dollar cap: set `ORION_API_CAP` (the reviewer workflow sets 25 cents a run). `claude-code` answers on a Claude subscription instead and needs neither a key nor a cap.
+The `anthropic` provider spends API credit and refuses to start without a dollar cap: set `FATHOM_API_CAP` (the reviewer workflow sets 25 cents a run). `claude-code` answers on a Claude subscription instead and needs neither a key nor a cap.
 
-Run `dbt parse` so `target/manifest.json` exists, then `orion sync`. On cal-itp/data-infra (625 models), the first sync takes 2 minutes 9 seconds and a re-sync takes 13 seconds (`pipelinebench/results/partner-calitp-dbt.md`).
+Run `dbt parse` so `target/manifest.json` exists, then `fathom sync`. On cal-itp/data-infra (625 models), the first sync takes 2 minutes 9 seconds and a re-sync takes 13 seconds (`pipelinebench/results/partner-calitp-dbt.md`).
 
 ## Two weeks in shadow mode
 
-Copy `.github/workflows/orion-review.yml` and change the paths. Orion's own repository runs it on demand (the `orion-review` label); for shadow mode set its trigger to `pull_request: types: [opened, ready_for_review]` so every pull request gets a review. It posts one summary comment per pull request, updated when it runs again, plus inline comments on new findings, and it never fails the build. After two weeks:
+Copy `.github/workflows/fathom-review.yml` and change the paths. Fathom's own repository runs it on demand (the `fathom-review` label); for shadow mode set its trigger to `pull_request: types: [opened, ready_for_review]` so every pull request gets a review. It posts one summary comment per pull request, updated when it runs again, plus inline comments on new findings, and it never fails the build. After two weeks:
 
 - Count the warnings per week and label each one confirmed, plausible or noise. This is the same scoring `pipelinebench history-replay` uses.
-- Run `orion postflight --summary` to set each verdict's predicted severity against what the next three runs did.
-- Turn on `orion gate` only if the false alarms are low enough for the team.
+- Run `fathom postflight --summary` to set each verdict's predicted severity against what the next three runs did.
+- Turn on `fathom gate` only if the false alarms are low enough for the team.
 
 ## Measured
 

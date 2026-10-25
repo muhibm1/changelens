@@ -3,10 +3,10 @@
 import json
 from pathlib import Path
 
-from orion.constraints import load_constraints
-from orion.explain import explain
-from orion.model import EdgeKind
-from orion.resolver import PathResolver, resolve_ref
+from fathom.constraints import load_constraints
+from fathom.explain import explain
+from fathom.model import EdgeKind
+from fathom.resolver import PathResolver, resolve_ref
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -68,7 +68,7 @@ def test_incidents_reach_the_assets_they_name(synced_store):
 
 
 def test_constraints_load_and_scope(synced_store):
-    constraints, problems = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    constraints, problems = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     assert problems == []
     assert {c.id for c in constraints} == {"CON-014", "CON-022", "CON-031", "CON-040", "CON-050", "CON-061"}
     out = explain(synced_store, "fct_revenue", constraints)
@@ -87,7 +87,7 @@ def test_tier_inference_fills_gaps_upstream_of_tier_one(synced_store):
 
 
 def test_column_lineage_is_cached_between_syncs(tmp_path):
-    from orion.adapters import dbt as dbt_adapter
+    from fathom.adapters import dbt as dbt_adapter
 
     project = ROOT / "fixture" / "dbt_project"
     cache = tmp_path / "lineage-cache.json"

@@ -1,0 +1,52 @@
+# Weekly (Mondays), or by hand: ingest run history, watch landed changes, draft constraints from
+# ledger patterns and open a pull request. A human merges it; Fathom never does.
+name: fathom-propose
+
+on:
+  schedule:
+    # Weekly rather than nightly to save Actions minutes; ledger patterns move slowly.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install
+        run: |
+          uv venv .venv
+          uv pip install -e ".[fixture]"
+      - name: Parse the dbt project
+        working-directory: fixture/dbt_project
+        env:
+          PIPELINEBENCH_DB: warehouse.duckdb
+        run: ../../.venv/bin/dbt parse --profiles-dir . -q
+      - name: Sync, watch, propose
+        run: |
+          .venv/bin/fathom sync
+          .venv/bin/fathom postflight --summary
+          .venv/bin/fathom propose --write
+      - name: Open a pull request with the proposals
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: fathom/proposals
+          title: "Fathom: proposed constraints from ledger evidence"
+          commit-message: "Propose constraints from ledger patterns"
+          body: |
+            Fathom drafted these constraints from the ledger (SLA misses, failures after changes, postmortems without a matching constraint, verdicts that under-called). Each file cites the events it was drawn from.
+
+            Merging a file is the approval. Edit the severity or scope first if the default is wrong; delete the file to reject it.
+          add-paths: fixture/fathom/constraints/proposed/*.yaml
+          delete-branch: true

@@ -1,18 +1,18 @@
 # Recall eval: real bugs at the commit that introduced them
 
 2026-10-19. The 61 planted-bug cases (`review-eval`) have recall 1.0 and the replay eval measures only
-noise on correct changes, so neither said how often `orion review` catches a real bug on the day it is
+noise on correct changes, so neither said how often `fathom review` catches a real bug on the day it is
 written. `pipelinebench recall-eval` measures that. `pipelinebench mine-introducers` blames the lines each
 fix commit in a repository changed and keeps the fixes where one earlier, small enough commit wrote most of
 those lines. Fifty of those introducing commits (8 from httpx, 38 from hono, 4 from cobra) were then read
 and labelled by hand in `pipelinebench/review/recall.yaml`: what the bug was, where it sits in the
-introducing commit, and a few `must_mention` words a finding about that bug would use. Orion reviews each
+introducing commit, and a few `must_mention` words a finding about that bug would use. Fathom reviews each
 introducing commit against its parent with the commit message as intent, as the team saw it.
 
 A case is **caught** when a `warn` or `block` finding sits on the expected file within twelve lines of the
 expected span and mentions the bug; **in file** when a warning is on that file but elsewhere;
 **inform only** when a finding within the window stopped at `inform`; otherwise **missed**. The labels come
-from the upstream history alone, never from Orion's output.
+from the upstream history alone, never from Fathom's output.
 
 ## Results
 
@@ -77,6 +77,6 @@ bug until a rerun that keeps the raw reviews says otherwise. The 61 planted-bug 
 
 ```
 pipelinebench recall-eval --workdir <folder> --provider anthropic --raw-dir <folder>/raw
-pipelinebench recall-eval --workdir <folder> --orion /path/to/other/.venv/bin/orion   # another build
+pipelinebench recall-eval --workdir <folder> --fathom /path/to/other/.venv/bin/fathom   # another build
 pipelinebench mine-introducers <clone> --repo hono --limit 600 --out candidates.yaml   # more cases to label
 ```

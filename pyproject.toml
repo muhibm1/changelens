@@ -1,7 +1,7 @@
 [project]
-name = "orion"
+name = "fathom"
 version = "0.1.0"
-description = "Pre-flight checks for agents touching data pipelines: lineage, SLAs, incident history and locked decisions, surfaced at the moment of change, over MCP."
+description = "The context layer for AI agents on data platforms: column-level lineage, constraints-as-code, ownership and incident history, checked before a change lands."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
@@ -20,12 +20,12 @@ dependencies = [
 [project.optional-dependencies]
 fixture = ["dbt-core>=1.8", "dbt-duckdb>=1.8"]
 dev = ["pytest>=8", "ruff>=0.6"]
-bench = []  # kept so `.[bench]` installs still work; the benchmark agent uses Orion's provider
+bench = []  # kept so `.[bench]` installs still work; the benchmark agent uses Fathom's provider
 embed = ["sentence-transformers>=3"]
 syntax = ["tree-sitter>=0.23", "tree-sitter-language-pack>=1.22"]
 
 [project.scripts]
-orion = "orion.cli:app"
+fathom = "fathom.cli:app"
 pipelinebench = "pipelinebench.cli:app"
 
 [build-system]
@@ -37,7 +37,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/orion", "src/pipelinebench"]
+packages = ["src/fathom", "src/pipelinebench"]
 
 [tool.ruff]
 line-length = 120

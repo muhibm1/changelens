@@ -10,7 +10,7 @@
   destructive change or a backfill reaches a tier-1 consumer; otherwise proceed. "Reaches" follows column lineage for column
   changes and asset lineage otherwise; an exposure that reads a whole model is reached by any column change on it.
 
-Nothing here runs Orion. ``pipelinebench check-ground-truth`` compares the two afterwards.
+Nothing here runs Fathom. ``pipelinebench check-ground-truth`` compares the two afterwards.
 """
 
 from __future__ import annotations

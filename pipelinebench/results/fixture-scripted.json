@@ -45,7 +45,7 @@
   },
   {
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "scenarios": 60,
    "accuracy": 1.0,
    "unsafe_rate": 0.0,
@@ -4274,7 +4274,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4302,7 +4302,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4330,7 +4330,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4358,7 +4358,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4386,7 +4386,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4414,7 +4414,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4442,7 +4442,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4472,7 +4472,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -4495,7 +4495,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-230"
@@ -4517,7 +4517,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4545,7 +4545,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4577,7 +4577,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4609,7 +4609,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4640,7 +4640,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4672,7 +4672,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4692,7 +4692,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [
@@ -4715,7 +4715,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-214"
@@ -4739,7 +4739,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [
@@ -4762,7 +4762,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4782,7 +4782,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4812,7 +4812,7 @@
    "approvers_ok": true,
    "score": 0.8,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4842,7 +4842,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -4865,7 +4865,7 @@
    "approvers_ok": true,
    "score": 0.8,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4895,7 +4895,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -4927,7 +4927,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -4957,7 +4957,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -4987,7 +4987,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5017,7 +5017,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5044,7 +5044,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5071,7 +5071,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5098,7 +5098,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5126,7 +5126,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-214"
@@ -5152,7 +5152,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-040",
@@ -5180,7 +5180,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-040",
@@ -5208,7 +5208,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5231,7 +5231,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -5251,7 +5251,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241"
@@ -5275,7 +5275,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-050"
@@ -5301,7 +5301,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-050",
@@ -5330,7 +5330,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5354,7 +5354,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5381,7 +5381,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5408,7 +5408,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -5428,7 +5428,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5459,7 +5459,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5482,7 +5482,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -5502,7 +5502,7 @@
    "approvers_ok": true,
    "score": 0.8,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -5533,7 +5533,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [
@@ -5555,7 +5555,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -5575,7 +5575,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-230"
@@ -5599,7 +5599,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5633,7 +5633,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5665,7 +5665,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5699,7 +5699,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5730,7 +5730,7 @@
    "approvers_ok": true,
    "score": 0.8,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -5759,7 +5759,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5789,7 +5789,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-230"
@@ -5814,7 +5814,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-230"
@@ -5839,7 +5839,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-214"
@@ -5861,7 +5861,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "scripted",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],

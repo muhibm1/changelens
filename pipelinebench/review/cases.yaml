@@ -1,4 +1,4 @@
-# Review eval cases. Ground truth is written by hand and never derived from Orion.
+# Review eval cases. Ground truth is written by hand and never derived from Fathom.
 # A case changes one file (`file` plus its fields) or several (`files`, a list of
 # the same fields). `before`/`after` give a file; `before_from_repo` reads the
 # current file and `edits` rewrites it. `expect` lists the bugs a reviewer must
@@ -874,7 +874,7 @@
       category: data_contract
 
 # Hidden callers (`hidden-py-`): a file outside the diff still calls what the diff
-# renamed or re-signed. The repository search in Orion's system facts shows it.
+# renamed or re-signed. The repository search in Fathom's system facts shows it.
 
 - id: hidden-py-renamed-fn-still-called
   files:

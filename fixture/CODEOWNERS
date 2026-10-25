@@ -1,4 +1,4 @@
-# Orion fixture platform ownership
+# Fathom fixture platform ownership
 /dbt_project/models/staging/        @team/data-platform
 /dbt_project/models/intermediate/   @team/data-platform
 /dbt_project/models/marts/fct_orders.sql       @team/data-platform
@@ -13,4 +13,4 @@
 /dags/orders_pipeline.py   @team/data-platform
 /dags/events_pipeline.py   @team/data-platform
 /dags/finance_close.py     @team/finance-data
-/orion/constraints/        @team/data-platform
+/fathom/constraints/        @team/data-platform

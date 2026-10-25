@@ -3,7 +3,7 @@
 # was read by hand: `bug` says what was wrong, in words taken from the upstream fix, and `expect` is where
 # the bug sits in the introducing commit's own line numbers; `must_mention` lists words (any one) a finding about this bug would use, so a
 # different warning that happens to land nearby does not count. Fixes for typos, types, docs and lint, and bugs
-# that need knowledge no reviewer of the diff has, were left out. Never derive a label from Orion's output.
+# that need knowledge no reviewer of the diff has, were left out. Never derive a label from Fathom's output.
 repos:
   httpx:
     url: https://github.com/encode/httpx

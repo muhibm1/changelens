@@ -1,0 +1,1563 @@
+{
+ "benchmark": "PipelineBench",
+ "version": "0.1.0",
+ "ran_at": "2026-10-18T16:54:22.277083+00:00",
+ "seconds": 174.9,
+ "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+ "scenarios": 50,
+ "seeds": 1,
+ "cells": [
+  {
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "scenarios": 50,
+   "accuracy": 0.6,
+   "unsafe_rate": 0.0,
+   "cite_recall": 1.0,
+   "name_recall": 1.0,
+   "approvers_ok": 1.0,
+   "fabrication_rate": 0.0,
+   "score": 0.84
+  }
+ ],
+ "usage": {
+  "claude:claude-haiku-5-5": {
+   "input_tokens": 297726,
+   "output_tokens": 30238,
+   "errors": 0
+  }
+ },
+ "details": [
+  {
+   "scenario": "PB-001",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "orders_pipeline.dbt_test",
+    "fct_revenue"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight verdict pf_e962f19a51cfa4d1 is BLOCK (risk 87/100): dropping fct_orders.discount_pct fires the block-severity columns_locked constraint CON-031, which protects fct_revenue as a public finance-close contract, and the same kind of drop caused INC-230 on 2026-08-18 that broke the tier "
+  },
+  {
+   "scenario": "PB-002",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "orders_pipeline.dbt_test",
+    "fct_revenue"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returned BLOCK (risk 87) because dropping fct_orders.status fires CON-031, a block-severity columns_locked constraint on fct_revenue, a public contract read by finance close. The same kind of change caused INC-230, and it reaches tier-1 dashboard dash_revenue_weekly, so the change s"
+  },
+  {
+   "scenario": "PB-003",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returned a block-severity verdict (pf_568ed4437e930a0f, risk 87/100): CON-031 columns_locked fires because fct_revenue is a public finance-close contract fed by fct_orders, and the same kind of change caused INC-230. The rename must not proceed without team/finance-data sign-off, an"
+  },
+  {
+   "scenario": "PB-004",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight verdict pf_f9cc7597550e01b4 returns block severity (risk 87/100) because the type change on fct_revenue.gross_revenue fires CON-031, a columns_locked block constraint, and reaches two tier-1 consumers. Given the INC-230 history on this path, the change should go to a human for sign-"
+  },
+  {
+   "scenario": "PB-005",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returns a block verdict (risk 87): dropping fct_revenue.order_count fires CON-031, a columns_locked block constraint on a public contract read by finance close, and reaches two tier-1 consumers. The same kind of change caused INC-230, so a human must review and approve it, after run"
+  },
+  {
+   "scenario": "PB-006",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returned a block-severity verdict (pf_e68c480cb6beaf44, risk 87/100) because CON-031 fires on fct_revenue.collected_revenue, a locked column that finance close reads directly, and this path has INC-230 history. The change should not proceed without human review and finance-data sign"
+  },
+  {
+   "scenario": "PB-007",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Pre-flight verdict pf_c600407df267258a is BLOCK (risk 89) and CON-031 (columns_locked, block) fires because fct_revenue still reads fct_orders.paid_amount, so the drop cannot proceed without finance-data sign-off and fct_revenue being updated first. INC-230 was a same-kind drop_column on fct_orders "
+  },
+  {
+   "scenario": "PB-008",
+   "family": "locked_add",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Fathom pre-flight (verdict pf_487f102d12e3a662, severity inform, risk 15/100) found no downstream assets reached by adding currency_rate and no violated constraints; CON-031 (columns_locked, owned by team/finance-data) is in scope but satisfied, so no sign-off is required. Proceed with the requested "
+  },
+  {
+   "scenario": "PB-009",
+   "family": "locked_add",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom reports no downstream assets reached and CON-031 (columns_locked, block severity) is satisfied because no op violates it, but fct_revenue is a finance-close public contract with INC-230 history, so run the fct_revenue+ tests and get finance-data sign-off before merging."
+  },
+  {
+   "scenario": "PB-010",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returns BLOCK (risk 87/100): CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close, and the same kind of change caused INC-230 on 2026-08-18. Escalate to a human and obtain team/finance-data sign-off, then run tests for fct_rev"
+  },
+  {
+   "scenario": "PB-011",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight verdict pf_755f809834d1c5da returns a block severity: CON-031 (columns_locked) fires because the drop reaches the locked public contract fct_revenue via fct_orders, and INC-230 was caused by the same kind of change. The change must not proceed without finance-data sign-off after int"
+  },
+  {
+   "scenario": "PB-012",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight returned a block verdict (risk 90): dropping stg_orders.currency reaches the locked fct_revenue contract via fct_orders under CON-031, and the same kind of change caused INC-230, so a human must approve before any merge. Before escalating, int_order_payments still selects stg_orders"
+  },
+  {
+   "scenario": "PB-013",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The Fathom pre-flight returned a block-severity verdict: the type change on int_order_payments.amount reaches locked contract columns on fct_revenue through fct_orders, which fires CON-031 and requires team/finance-data sign-off, and it touches four tier-1 consumers with incident history (INC-241, IN"
+  },
+  {
+   "scenario": "PB-014",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The fathom pre-flight verdict is BLOCK: CON-031 (columns_locked, block) fires because the drop reaches the locked public contract fct_revenue through fct_orders, and the same kind of change caused INC-230. Escalate to team/finance-data for approval, and only proceed after int_order_payments is update"
+  },
+  {
+   "scenario": "PB-015",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The Fathom pre-flight (pf_b5f69063b612e9a2, severity inform) found no downstream assets, readers, or constraints, and no CON or INC ids were provided, so cited and approvers are empty. I'd still run the recommended tests for stg_payments+ before the drop, since a column drop is irreversible."
+  },
+  {
+   "scenario": "PB-016",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "model:int_customer_orders",
+    "model:dim_customers",
+    "dashboard:dash_customer_health",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:ml_churn_training"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Dropping stg_customers.region is destructive and int_customer_orders still reads that column, so it must be updated and stg_customers+ tests run before merging; CON-061 requires growth-analytics sign-off because mart_churn_scores feeds the churn model, and it is satisfied for this change. No INC- in"
+  },
+  {
+   "scenario": "PB-017",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-050",
+    "INC-214"
+   ],
+   "affected": [
+    "model:int_sessions",
+    "model:fct_sessions",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [
+    "team/product-analytics"
+   ],
+   "rationale": "Fathom severity is inform with no blocking constraint, and both CON-014 and CON-050 are satisfied by this op. The change is proceedable only after int_sessions, which still selects stg_events.session_id, is updated and stg_events+ tests pass, given the prior INC-214 history on this asset (though that"
+  },
+  {
+   "scenario": "PB-018",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "model:dim_customers",
+    "dashboard:dash_customer_health",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:ml_churn_training"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "The drop is not blocked (pre-flight severity inform, risk 19, no tier-1 consumers), but model:dim_customers still selects int_customer_orders.order_count, so its readers must be updated and int_customer_orders+ tests run before merging. CON-061 requires growth-analytics sign-off because mart_churn_s"
+  },
+  {
+   "scenario": "PB-019",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The Fathom pre-flight (verdict pf_c151fbc0184a671f) rates this add_column change at risk 0 with severity inform, and it lists no constraints, incidents, readers, or affected assets. The only requirement is the routine check to run tests for stg_orders+ before proceeding."
+  },
+  {
+   "scenario": "PB-020",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight verdict pf_8d4fc62778ed11ec is BLOCK (risk 88): dropping stg_orders.status reaches locked asset fct_revenue via fct_orders under CON-031, and the same kind of change caused INC-230. int_order_payments still selects the column and must be updated first, and finance-data sign-off is r"
+  },
+  {
+   "scenario": "PB-021",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The change repartitions raw_events by ingest_ts, which fires blocking constraint CON-014 (it double-counts late arrivals) and repeats the change behind INC-214, a six-hour outage. Pre-flight verdict pf_5d7633924e6da73d is BLOCK, so a human owner from team/data-platform must approve before any action"
+  },
+  {
+   "scenario": "PB-022",
+   "family": "partition",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-022",
+    "CON-050",
+    "CON-061",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The change declares the partition as event_date both from and to, so it should be a no-op, and CON-014 (no ingest_ts partitioning) is satisfied; INC-214 came from repartitioning by ingest_ts, so proceed only after confirming the actual current partition is event_date and that the change does not alt"
+  },
+  {
+   "scenario": "PB-023",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-014 (block) fires because repartitioning raw.raw_events by ingest_ts requires event_date, and the same change caused INC-214's six-hour outage; the change also reaches 10 downstream assets, including ones with no owner or tier, and the verdict notes the ops were inferred from intent, so the asse"
+  },
+  {
+   "scenario": "PB-024",
+   "family": "partition",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "CON-061",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "model:stg_orders",
+    "task:orders_pipeline.load_orders",
+    "model:int_customer_orders",
+    "model:int_order_payments",
+    "task:orders_pipeline.dbt_staging",
+    "model:dim_customers",
+    "model:fct_orders",
+    "task:orders_pipeline.dbt_marts",
+    "dashboard:dash_customer_health",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_refunds",
+    "model:fct_revenue",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "report:ml_churn_training",
+    "task:finance_close.export_close",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/growth-analytics",
+    "team/data-platform"
+   ],
+   "rationale": "Fathom pre-flight is WARN (risk 66) with no block constraint: CON-031 and CON-061 are in scope but satisfied by this op, so the change can go ahead once the required checks are done. Notify team/finance-data before merging, because the change reaches six tier-1 consumers and the path has INC-241 and "
+  },
+  {
+   "scenario": "PB-025",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The requested 09:00 UTC start falls inside CON-022's blocked 06:00-20:00 UTC window, and the pre-flight verdict is block, with INC-241 showing that a daytime raw_events backfill starved the orders pipeline. The backfill should not proceed as requested; it needs data-platform sign-off and reschedulin"
+  },
+  {
+   "scenario": "PB-026",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The requested 13:30 UTC backfill falls inside CON-022's blocked 06:00-20:00 UTC window, and the same kind of daytime backfill of raw_events caused INC-241, so it cannot proceed as requested. It should go to a human to get team/data-platform sign-off or reschedule the backfill off-hours."
+  },
+  {
+   "scenario": "PB-027",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The proposed 19:45 UTC backfill falls inside the blocked 06:00-20:00 UTC window of block-severity CON-022, and the same kind of daytime raw_events backfill caused INC-241 on 2026-09-03. It should not proceed as proposed; it needs team/data-platform approval and rescheduling to an off-hours window be"
+  },
+  {
+   "scenario": "PB-028",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-022 is a block-severity no-backfill-window constraint, and INC-241 was caused by a daytime raw_events backfill that starved the hourly orders pipeline; the proposed 22:00 UTC start appears off-hours, but the constraint's window definition is not in the material, so the window and the orders_pipe"
+  },
+  {
+   "scenario": "PB-029",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-022 blocks daytime raw_events backfills because they starve the hourly orders pipeline, which caused INC-241; the verdict marks it satisfied only if the run stays off-hours, and a 7-day backfill can run long, so the backfill must be scheduled off-hours with data-platform sign-off before merging."
+  },
+  {
+   "scenario": "PB-030",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-022 blocks daytime raw_events backfills because they starved the hourly orders pipeline in INC-241, and this backfill is the same kind of change on the same asset. The verdict marks CON-022 as satisfied and recommends scheduling off-hours, so proceed only after confirming the full 7-day run stay"
+  },
+  {
+   "scenario": "PB-031",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_refunds",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom pre-flight is WARN (risk 50/100, not blocking) and CON-031 is satisfied by this change, so it can go ahead only after running tests for fct_orders+, notifying team/finance-data, and rescheduling the backfill off-hours instead of the requested 12:00 UTC daytime slot, since a similar daytime bac"
+  },
+  {
+   "scenario": "PB-032",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-050",
+    "CON-061",
+    "INC-214"
+   ],
+   "affected": [
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/data-platform",
+    "team/product-analytics",
+    "team/growth-analytics"
+   ],
+   "rationale": "Fathom pre-flight is severity inform (risk 13/100) with no block constraint violated and no tier-1 consumers, so the backfill can proceed once the recommended checks pass: run tests for stg_events+ and schedule the backfill off-hours, given INC-214 on the same asset. CON-014 is a block-severity const"
+  },
+  {
+   "scenario": "PB-033",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Fathom pre-flight returned WARN (risk 16/100) with no block constraint: CON-040 fires because finance_close waits on orders_pipeline and the 06:00 close would move, and INC-241 plus several same-kind sla_missed events make this path risky. Proceed only after getting sign-off from team/finance-data an"
+  },
+  {
+   "scenario": "PB-034",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Fathom pre-flight returned warn (risk 16/100): CON-040 schedule_locked fires because finance_close waits on orders_pipeline and the 06:00 close would move, with INC-241 and recent sla_missed history on this path. Proceed only after sign-off from team/finance-data and team/data-platform and after conf"
+  },
+  {
+   "scenario": "PB-035",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "dag:events_pipeline"
+   ],
+   "approvers": [],
+   "rationale": "Fathom rates the schedule change INFORM with no downstream assets and no block constraints, but INC-241 (daytime raw_events backfill starved orders_pipeline and fct_orders) and INC-214 (repartitioning took events_pipeline down, with runs failing at 02:30 and 03:11 on 2026-07-01) are relevant, so veri"
+  },
+  {
+   "scenario": "PB-036",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "ev_f292cc60c6c1",
+    "ev_78dbc605c406",
+    "ev_4aa204646376"
+   ],
+   "affected": [
+    "dag:finance_close",
+    "task:finance_close.dbt_finance",
+    "model:fct_refunds",
+    "model:fct_revenue"
+   ],
+   "approvers": [
+    "finance_close owning team",
+    "ops"
+   ],
+   "rationale": "Fathom reports zero risk, no constraints, and no downstream reach, but its graph does not model the orders_pipeline dependency the change is meant to help. Two prior sla_missed events on finance_close, both same-kind schedule changes around 06:55, suggest the DAG is already at its SLA edge, so run th"
+  },
+  {
+   "scenario": "PB-037",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Setting retries=3 is an ops modify that reaches one downstream DAG (dag:finance_close, owned by team/finance-data), and CON-040 is satisfied because no op violates the schedule lock. Because orders_pipeline has recent SLA misses tied to INC-241, retries could lengthen runs and starve or delay the 06"
+  },
+  {
+   "scenario": "PB-038",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-050"
+   ],
+   "affected": [
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [
+    "team/product-analytics"
+   ],
+   "rationale": "Fathom pre-flight returned WARN (not block) with risk 2/100. The change adds a dependency on deprecated fct_sessions, which fires CON-050, and reaches one tier-2 dashboard owned by team/product-analytics. Proceed only after running tests for fct_product_engagement+ and getting product-analytics sign-"
+  },
+  {
+   "scenario": "PB-039",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-050",
+    "CON-061",
+    "INC-214"
+   ],
+   "affected": [
+    "dashboard:dash_product_analytics",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/product-analytics",
+    "team/growth-analytics"
+   ],
+   "rationale": "Fathom pre-flight returned warn (risk 13/100, no blocking constraint, no tier-1 consumers), so the change can proceed once fct_sessions+ tests pass and product-analytics signs off on CON-050 (deprecated asset). Growth-analytics is included because CON-061 is in scope via mart_churn_scores, and INC-21"
+  },
+  {
+   "scenario": "PB-040",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Fathom pre-flight is WARN with risk 0 and no downstream assets reached, but CON-061 (warn) requires growth-analytics sign-off because mart_churn_scores trains the churn model, and no approval is recorded. Run tests for mart_churn_scores+ and obtain that approval before merging; the history contains o"
+  },
+  {
+   "scenario": "PB-041",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Fathom pre-flight is WARN (risk 4/100, none tier 1) and CON-061 fires because no growth-analytics approval is recorded for this feature change, so proceed only after team/growth-analytics signs off and run_tests for mart_churn_scores+ passes. No INC- incident ids were provided; the history entries ar"
+  },
+  {
+   "scenario": "PB-042",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Fathom pre-flight is WARN (risk 18/100) with no tier 1 consumers and no block constraint, but CON-061 fires because no growth-analytics approval is recorded for dropping a feature that the churn model trains on. Run tests for mart_churn_scores+ and obtain growth-analytics sign-off before merging. The"
+  },
+  {
+   "scenario": "PB-043",
+   "family": "additive",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Fathom pre-flight (verdict pf_21d908979ef80bc9) rates the add_column on dim_customers.tenure as inform with risk 0, no affected downstream assets, and no constraints; the only requirement is running tests for dim_customers+. The material contains no CON- or INC- ids, so none are cited, though same-as"
+  },
+  {
+   "scenario": "PB-044",
+   "family": "multi",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "CON-040",
+    "INC-230",
+    "INC-241",
+    "pf_7c7bd73954c3ce4e"
+   ],
+   "affected": [
+    "dag:finance_close",
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test",
+    "model:fct_revenue",
+    "model:fct_orders"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Fathom pre-flight verdict is BLOCK (risk 88) because dropping fct_orders.discount_pct hits the locked fct_revenue contract (CON-031) and repeats INC-230, which broke dash_revenue_weekly, while the schedule change moves the finance_close 06:00 window (CON-040) amid prior SLA misses. Since the change i"
+  },
+  {
+   "scenario": "PB-045",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "fct_revenue"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 is a block-severity columns_locked constraint on fct_revenue, which finance close reads as a public contract, so adding refund_total there needs finance-data sign-off and a check that the lock permits additive columns even though the verdict marks it satisfied. The graph reports no downstrea"
+  },
+  {
+   "scenario": "PB-046",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:stg_payments"
+   ],
+   "approvers": [],
+   "rationale": "Fathom pre-flight (pf_265ba790c4df9149) is severity inform with risk 15/100, no constraints, no incidents, and no downstream readers, so no CON or INC ids apply and no team sign-off is named beyond normal review. The change is a destructive drop_column on stg_payments.payment_method, so it should pro"
+  },
+  {
+   "scenario": "PB-047",
+   "family": "multi",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-022",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Fathom pre-flight returned BLOCK (verdict pf_e13c3bd16c4ffbbf) because CON-014 (ingest_ts partitioning requires event_date) and CON-022 (no backfill 06:00-20:00 UTC, and 10:00 falls in that window) both fire, and the same kind of change caused INC-241 and INC-214. The change must not proceed without "
+  },
+  {
+   "scenario": "PB-048",
+   "family": "distractor",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:dim_products",
+    "model:fct_product_engagement",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "The pre-flight verdict pf_5edb0ca350925791 is INFORM with risk 3/100, no tier-1 consumers, no block constraints, and no CON- or INC- ids in the material, so the change needs only normal review plus the requested run_tests on stg_products+ before proceeding. The one history event (ev_ceeb3ef05446, a "
+  },
+  {
+   "scenario": "PB-049",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The fathom pre-flight (verdict pf_9a7550f748c51788, severity inform) lists no constraints, incidents, readers, or affected assets, so no CON or INC ids apply and none are cited. The drop is destructive, so run the requested dim_products+ tests before applying it, and confirm the pricing service alrea"
+  },
+  {
+   "scenario": "PB-050",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude:claude-haiku-5-5",
+   "condition": "fathom",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Fathom returned WARN with no blocking constraints (constraints list is empty, so no CON- ids apply) and no unresolved items, but the rename reaches tier-1 finance_close_job and INC-230 involved a similar change, so run the fct_refunds+ tests and get finance-data sign-off before proceeding."
+  }
+ ],
+ "regraded": "fabricated ids re-checked against the context shown to the agent (Fathom event and verdict ids are real)"
+}

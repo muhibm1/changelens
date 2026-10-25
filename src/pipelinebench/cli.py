@@ -10,8 +10,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from orion.config import load_config
-from orion.store import Store
+from fathom.config import load_config
+from fathom.store import Store
 
 from .agents import make_agent
 from .conditions import CONDITIONS
@@ -28,12 +28,12 @@ REVIEW_CASES = ROOT / "pipelinebench" / "review" / "cases.yaml"
 
 
 def _store(config: Path | None, need_graph: bool = True) -> tuple[Path, Store]:
-    """The platform's root and store. The rag and orion conditions and the ground-truth check read the graph, so an
+    """The platform's root and store. The rag and fathom conditions and the ground-truth check read the graph, so an
     unsynced store is refused rather than letting them run on nothing (which looks like a result)."""
     cfg = load_config(config, cwd=ROOT)
     store = Store(cfg.path(cfg.db))
     if need_graph and not store.counts()["nodes"]:
-        console.print(f"[red]the graph at {cfg.path(cfg.db)} is empty; run `orion sync -c {cfg.root / 'orion.yaml'}` first[/red]")
+        console.print(f"[red]the graph at {cfg.path(cfg.db)} is empty; run `fathom sync -c {cfg.root / 'fathom.yaml'}` first[/red]")
         raise typer.Exit(2)
     return cfg.root, store
 
@@ -55,7 +55,7 @@ def list_cmd(directory: Path = typer.Option(SCENARIOS, "--dir")):
 
 @app.command("check-ground-truth")
 def check(directory: Path = typer.Option(SCENARIOS, "--dir"), config: Path | None = typer.Option(None, "--config", "-c"), as_json: bool = typer.Option(False, "--json")):
-    """Compare Orion's verdicts to the hand-written expectations; list every disagreement."""
+    """Compare Fathom's verdicts to the hand-written expectations; list every disagreement."""
     root, store = _store(config)
     rows = check_ground_truth(load_scenarios(directory), repo_root=root, store=store)
     if as_json:
@@ -64,14 +64,14 @@ def check(directory: Path = typer.Option(SCENARIOS, "--dir"), config: Path | Non
     agree = sum(r["agree"] for r in rows)
     for r in rows:
         if not r["agree"]:
-            console.print(f"[yellow]{r['scenario']}[/yellow] {r['title']}: expected {r['expected']}, orion {r['orion']}; fired {r['fired']}; missing cites {r['missing_cites']}; missing names {r['missing_names']}; unresolved {r['unresolved']}")
-    console.print(f"{agree}/{len(rows)} scenarios agree with Orion")
+            console.print(f"[yellow]{r['scenario']}[/yellow] {r['title']}: expected {r['expected']}, fathom {r['fathom']}; fired {r['fired']}; missing cites {r['missing_cites']}; missing names {r['missing_names']}; unresolved {r['unresolved']}")
+    console.print(f"{agree}/{len(rows)} scenarios agree with Fathom")
 
 
 @app.command("run")
 def run_cmd(
     agent: list[str] = typer.Option(["scripted"], "--agent", help="scripted | claude[:model] | command:<exe>"),
-    condition: list[str] = typer.Option(["all"], "--condition", help="none | repo | rag | orion | all"),
+    condition: list[str] = typer.Option(["all"], "--condition", help="none | repo | rag | fathom | all"),
     seeds: int = typer.Option(1, "--seeds"),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     directory: Path = typer.Option(SCENARIOS, "--dir"),
@@ -84,7 +84,7 @@ def run_cmd(
         console.print(f"[red]unknown condition {', '.join(unknown)}; use one of {', '.join(CONDITIONS)} or all[/red]")
         raise typer.Exit(2)
     conds = list(CONDITIONS) if "all" in condition else list(dict.fromkeys(condition))
-    root, store = _store(config, need_graph=bool({"rag", "orion"} & set(conds)))
+    root, store = _store(config, need_graph=bool({"rag", "fathom"} & set(conds)))
     agents = [make_agent(a) for a in agent]
     scenarios = load_scenarios(directory)
     with console.status("running") as status:
@@ -96,7 +96,7 @@ def run_cmd(
 
 @app.command("review-eval")
 def review_eval_cmd(
-    provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai (default from orion.yaml)."),
+    provider: str | None = typer.Option(None, "--provider", help="stub | anthropic | openai (default from fathom.yaml)."),
     model: str | None = typer.Option(None, "--model"),
     repeat: int = typer.Option(1, "--repeat", help="Run every case this many times."),
     file_context: bool = typer.Option(True, "--file-context/--no-file-context", help="Send whole changed files to the model, not just the hunks."),
@@ -111,13 +111,13 @@ def review_eval_cmd(
     out: Path = typer.Option(RESULTS, "--out"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
-    """Score `orion review` on hand-labelled diffs: bugs caught, false alarms, tokens."""
+    """Score `fathom review` on hand-labelled diffs: bugs caught, false alarms, tokens."""
     from datetime import UTC, datetime
 
-    from orion.cli import _ignore, _scope
-    from orion.constraints import load_constraints
-    from orion.providers import make_provider
-    from orion.verdict import load_risk
+    from fathom.cli import _ignore, _scope
+    from fathom.constraints import load_constraints
+    from fathom.providers import make_provider
+    from fathom.verdict import load_risk
 
     from .review_eval import load_cases, run_eval
     from .review_eval import to_markdown as eval_md
@@ -147,11 +147,11 @@ def replay_eval_cmd(
     model: str | None = typer.Option(None, "--model"),
     repo: list[str] = typer.Option([], "--repo", help="Only these repositories."),
     cases_file: Path = typer.Option(REVIEW_CASES.parent / "replay.yaml", "--cases"),
-    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `fathom review` (repeatable)."),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     out: Path = typer.Option(RESULTS, "--out"),
 ):
-    """Replay merged commits from public repositories through `orion review` and count what it warns about."""
+    """Replay merged commits from public repositories through `fathom review` and count what it warns about."""
     import shutil
     from datetime import UTC, datetime
 
@@ -165,10 +165,10 @@ def replay_eval_cmd(
         console.print(f"[red]unknown repository {', '.join(unknown)}; use one of {', '.join(sorted(repos))}[/red]")
         raise typer.Exit(2)
     cases = [c for c in cases if not repo or c.repo in repo]
-    orion = shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
+    fathom = shutil.which("fathom") or str(Path(sys.executable).with_name("fathom"))
     workdir.mkdir(parents=True, exist_ok=True)
     with console.status("replaying") as status:
-        res = run_replay(cases, repos, workdir.resolve(), orion=orion, provider=provider, model=model, extra_args=review_arg, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {len(r['warns'])} warnings"))
+        res = run_replay(cases, repos, workdir.resolve(), fathom=fathom, provider=provider, model=model, extra_args=review_arg, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {len(r['warns'])} warnings"))
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "replay-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     (out / f"{stem}.json").write_text(json.dumps(res, indent=1, default=str))
@@ -183,11 +183,11 @@ def recall_eval_cmd(
     workdir: Path = typer.Option(..., "--workdir", help="Where the repositories are cloned (reused between runs)."),
     provider: str = typer.Option("stub", "--provider"),
     model: str | None = typer.Option(None, "--model"),
-    orion: str | None = typer.Option(None, "--orion", help="The `orion` executable to run (default: this environment's), so an older build can be measured."),
+    fathom: str | None = typer.Option(None, "--fathom", help="The `fathom` executable to run (default: this environment's), so an older build can be measured."),
     repo: list[str] = typer.Option([], "--repo", help="Only these repositories."),
     case: list[str] = typer.Option([], "--case", help="Only these introducing commits."),
     cases_file: Path = typer.Option(REVIEW_CASES.parent / "recall.yaml", "--cases"),
-    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `fathom review` (repeatable)."),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     out: Path = typer.Option(RESULTS, "--out"),
     raw_dir: Path | None = typer.Option(None, "--raw-dir", help="Keep each case's full review JSON here (not committed), to read a miss without another model run."),
@@ -209,8 +209,8 @@ def recall_eval_cmd(
         raise typer.BadParameter("--gate and --reuse-judged only apply with --rejudge")
     repos, cases = load_recall(cases_file)
     cases = [c for c in cases if (not repo or c.repo in repo) and (not case or any(c.commit.startswith(x) for x in case))]
-    exe = orion or shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
-    from orion.providers import make_provider
+    exe = fathom or shutil.which("fathom") or str(Path(sys.executable).with_name("fathom"))
+    from fathom.providers import make_provider
 
     judge_provider = make_provider(provider, model=judge_model, effort="medium") if judge_model else None
     if rejudge_dir:
@@ -221,7 +221,7 @@ def recall_eval_cmd(
     else:
         workdir.mkdir(parents=True, exist_ok=True)
         with console.status("reviewing") as status:
-            res = run_recall(cases, repos, workdir.resolve(), orion=exe, provider=provider, model=model, extra_args=review_arg, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {r['outcome']}"))
+            res = run_recall(cases, repos, workdir.resolve(), fathom=exe, provider=provider, model=model, extra_args=review_arg, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['repo']} {r['commit']}: {r['outcome']}"))
         res["judge_model"] = judge_model
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "recall-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
@@ -257,14 +257,14 @@ def recall_spread_cmd(
 
 @app.command("history-replay")
 def history_replay_cmd(
-    clone: Path = typer.Argument(..., help="A synced clone of the repository (orion.yaml and .orion/ in place)."),
+    clone: Path = typer.Argument(..., help="A synced clone of the repository (fathom.yaml and .fathom/ in place)."),
     since: str = typer.Option(..., "--since", help="Start of the window (a date git understands)."),
     until: str | None = typer.Option(None, "--until"),
     path: list[str] = typer.Option([], "--path", help="Only commits touching these paths (repeatable)."),
     labels: Path | None = typer.Option(None, "--labels", help="Hand-written labels: bugs (introducing commits) and verdicts for warnings."),
     provider: str = typer.Option("stub", "--provider"),
     model: str | None = typer.Option(None, "--model"),
-    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `orion review` (repeatable)."),
+    review_arg: list[str] = typer.Option([], "--review-arg", help="Extra argument passed to `fathom review` (repeatable)."),
     jobs: int = typer.Option(1, "--jobs", help="Commits reviewed at once, each in its own worktree with its own copy of the graph."),
     judge_model: str | None = typer.Option(None, "--judge-model", help="Judge 'about the bug' with this model (same provider) reading each bug's label."),
     raw_dir: Path | None = typer.Option(None, "--raw-dir"),
@@ -276,15 +276,15 @@ def history_replay_cmd(
     import shutil
     from datetime import UTC, datetime
 
-    from orion.providers import make_provider
+    from fathom.providers import make_provider
 
     from .history_replay import commits, run, to_markdown, with_bugs
 
     picked = with_bugs(clone, commits(clone, since, until, path)[:limit], labels)
-    exe = shutil.which("orion") or str(Path(sys.executable).with_name("orion"))
+    exe = shutil.which("fathom") or str(Path(sys.executable).with_name("fathom"))
     judge_provider = make_provider(provider, model=judge_model, effort="medium") if judge_model else None
     with console.status(f"reviewing {len(picked)} commits") as status:
-        res = run(clone.resolve(), picked, orion=exe, provider=provider, model=model, extra_args=review_arg, labels=labels, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['date']} {r['commit'][:8]}: {len(r['warns'])} warns"))
+        res = run(clone.resolve(), picked, fathom=exe, provider=provider, model=model, extra_args=review_arg, labels=labels, raw_dir=raw_dir, jobs=jobs, judge_provider=judge_provider, progress=lambda r: status.update(f"{r['date']} {r['commit'][:8]}: {len(r['warns'])} warns"))
     res["window"] = {"since": since, "until": until, "paths": path}
     out.mkdir(parents=True, exist_ok=True)
     stem = name or "history-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
@@ -316,7 +316,7 @@ def retrieval_eval_cmd(
     only: list[str] = typer.Option([], "--only", help="Only these configurations, by name."),
     runs: int = typer.Option(3, "--runs", help="Runs per configuration, each on a fresh index with a different ingestion order."),
     split: str | None = typer.Option(None, "--split", help="dev or heldout (default: both)."),
-    config: Path | None = typer.Option(None, "--config", "-c", help="orion.yaml whose fixture graph the data-change queries use."),
+    config: Path | None = typer.Option(None, "--config", "-c", help="fathom.yaml whose fixture graph the data-change queries use."),
     name: str = typer.Option("retrieval", "--name"),
     out: Path = typer.Option(RESULTS, "--out"),
 ):

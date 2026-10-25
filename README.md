@@ -1,77 +1,46 @@
-# Orion
+# Fathom
 
-**Provider-agnostic code review and change intelligence for developers and coding agents.** General review of any diff is the baseline; what the change could affect in production, and why, is the difference.
+**The context layer for AI agents working on data platforms.** Before a coding agent or an engineer changes a dbt model or an Airflow DAG, Fathom tells it what depends on that change (column-level lineage), which rules apply (constraints written as code), who owns the affected assets, and what has broken there before. Then it checks the change against all of that and returns one cited verdict.
 
-Orion started as **the pre-flight check for agents touching data pipelines**, and that remains its deepest system context: Lineage, SLAs, incident history and locked decisions, surfaced at the moment of change, over MCP, for any agent.
+Code-context tools index what the repository says. Fathom indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. Every claim in a verdict carries an evidence id, the checks run in code that a model cannot override, and anything Fathom does not know is reported as "not recorded" rather than guessed.
 
-Code-context tools index what the repository says. Orion indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. It fuses that into one cited verdict an agent reads *before* it writes.
-
-> Status: 0.1.0, the first release (see `CHANGELOG.md`). Review works on any repository. System context has been tested on the bundled fixture, on cal-itp/data-infra (625 dbt models, 21 gusty Airflow DAGs), and on real dbt builds for post-flight. On PipelineBench, language-model agents given Orion's verdict made no forbidden decision and got every escalation right (`pipelinebench/results/llm-agents.md`).
+> Status: 0.1.0. Tested on the bundled fixture platform and on [cal-itp/data-infra](https://github.com/cal-itp/data-infra), a public warehouse with 625 dbt models and 21 Airflow DAGs. On PipelineBench, Fathom's own benchmark, language-model agents given Fathom's verdict made no forbidden call and got every escalation right (`pipelinebench/results/llm-agents.md`).
+>
+> Fathom was originally part of Orion, a personal context layer, and was split out on 2026-10-25; the history before that date is Orion's.
 
 ## What is in the box
 
 | Piece | What it does |
 | --- | --- |
-| `orion review` | Reviews any diff in four stages: gather (parse hunks, run the deterministic pre-flight), generate (one provider call returns candidate findings), validate (code rejects findings outside the diff, strips evidence that does not resolve, marks unsupported findings uncertain, and keeps a finding that cites a firing constraint at least as severe as that constraint), format. Deterministic findings always come first and never depend on a model. Providers: `stub` (offline), `anthropic`, `openai` (any OpenAI-compatible endpoint, including local models), `command` (any local command that reads the prompt on stdin and prints the answer) and `claude-code` (`claude -p` with no tools, on the plan the CLI is signed in to; no API key). For `openai`, set `review.base_url` and `review.api_key_env` (the name of the variable holding the key) in `orion.yaml`; schemas are sent in strict form, which strict endpoints require (live check: `pipelinebench/results/openai-compatible.md`). |
-| `orion sync` | Pulls a typed asset graph and an append-only ledger from dbt, Airflow, Git and postmortems-as-code into one DuckDB file. Every node, edge and event carries provenance; the store refuses facts without it. |
-| `orion explain <asset>` | Owner, tier, upstream and downstream, tier-1 consumers within the full blast radius, which DAG task builds it, column-level lineage, constraints in scope, and recent incidents, all with ids. |
-| `orion history <asset>` | Ledger events for an asset, newest first. |
-| `orion preflight` | The verdict. Give it `--git <base>` (diff of the working tree), `--path`, `--intent "<sentence>"` or `--ops <json>`; get back typed change ops, the column-level blast radius, the constraints that fire, the incidents on the same path, a transparent risk score, recommended checks and a summary, every claim with evidence ids. `--format markdown` is what the PR comment uses. |
-| `orion gate` | CI entry point: pre-flight the diff and exit non-zero at `--fail-on warn|block`. The verdict is advisory until a team wires this in. |
-| `orion serve` | The MCP server. Nine tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask`, `review` (the same review as the CLI, on a base ref or a diff), and the record's `search_record` and `read_record`. No write path into the platform. Without an `orion.yaml` it serves the two record tools only. |
-| `orion record` | Search and read the projects' written record: design notes, decision records, plans, retros, and my build pipeline's lessons, ledger and run folders, across every repository `record.toml` names. Standard library only, no model call; see [The record](#the-record). |
-| `orion ask` | Graph-scoped retrieval over postmortems, descriptions and constraint reasons. Every sentence cites a chunk; unknown returns "not recorded". |
-| `orion record-decision` | Writes a human's approve / waive / reject on a verdict to the ledger. |
-| `orion postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
-| `orion propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A weekly workflow opens them as a pull request; merging is the approval. |
-| `orion propose --lessons` | Drafts lessons from repeated Auspex cases (graded failures in the harness sessions) into `lessons/proposed/`, each with the case ids behind it, a scope and a rung. `orion lessons accept` moves one into `lessons/`; merging that is the approval. `orion lint-guide` lists CLAUDE.md rules that cite no incident, record id or lesson. |
-| `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, orion), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Orion and the ground truth honest with each other. |
+| `fathom review` | Reviews any diff in four stages: gather (parse hunks, run the deterministic pre-flight), generate (one provider call returns candidate findings), validate (code rejects findings outside the diff, strips evidence that does not resolve, marks unsupported findings uncertain, and keeps a finding that cites a firing constraint at least as severe as that constraint), format. Deterministic findings always come first and never depend on a model. Providers: `stub` (offline), `anthropic`, `openai` (any OpenAI-compatible endpoint, including local models), `command` (any local command that reads the prompt on stdin and prints the answer) and `claude-code` (`claude -p` with no tools, on the plan the CLI is signed in to; no API key). For `openai`, set `review.base_url` and `review.api_key_env` (the name of the variable holding the key) in `fathom.yaml`; schemas are sent in strict form, which strict endpoints require (live check: `pipelinebench/results/openai-compatible.md`). |
+| `fathom sync` | Pulls a typed asset graph and an append-only ledger from dbt, Airflow, Git and postmortems-as-code into one DuckDB file. Every node, edge and event carries provenance; the store refuses facts without it. |
+| `fathom explain <asset>` | Owner, tier, upstream and downstream, tier-1 consumers within the full blast radius, which DAG task builds it, column-level lineage, constraints in scope, and recent incidents, all with ids. |
+| `fathom history <asset>` | Ledger events for an asset, newest first. |
+| `fathom preflight` | The verdict. Give it `--git <base>` (diff of the working tree), `--path`, `--intent "<sentence>"` or `--ops <json>`; get back typed change ops, the column-level blast radius, the constraints that fire, the incidents on the same path, a transparent risk score, recommended checks and a summary, every claim with evidence ids. `--format markdown` is what the PR comment uses. |
+| `fathom gate` | CI entry point: pre-flight the diff and exit non-zero at `--fail-on warn|block`. The verdict is advisory until a team wires this in. |
+| `fathom serve` | The MCP server. Seven tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask` and `review` (the same review as the CLI, on a base ref or a diff). No write path into the platform. |
+| `fathom ask` | Graph-scoped retrieval over postmortems, descriptions and constraint reasons. Every sentence cites a chunk; unknown returns "not recorded". |
+| `fathom postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
+| `fathom propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A weekly workflow opens them as a pull request; merging is the approval. |
+| `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, fathom), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Fathom and the ground truth honest with each other. |
 | `fixture/` | PipelineBench's fixture platform: a dbt project over DuckDB, three Airflow DAGs, CODEOWNERS, three postmortems, four constraints, and run history (an Airflow task-instance export, dbt `run_results.json` files, Iceberg table metadata with snapshots, a schema change and a partition-spec change). Realistic enough that the questions a verdict asks have non-trivial answers. |
-
-## The record
-
-Orion also holds what the projects wrote down about themselves, so one place answers both "what does this change touch?" and "why was it built this way?". `record.toml` lists the repositories (siblings of this checkout; all but my build pipeline's and Orion's are optional) and which of their files count. Markdown is cut at its `##` and `###` headings; my build pipeline's notes become one section per labelled lesson, its ledger one per run, and its run folders one per page part, decision and review. Ranking is BM25 with headings weighted three times.
-
-```bash
-PYTHONPATH=src python3 -m orion.record search "web app ship route cloud merge" --json   # nothing to install
-PYTHONPATH=src python3 -m orion.record read "pipeline:notes/playbooks/webapp.md#W2"
-orion record index                                                                    # once installed
-```
-
-Every section has a stable id: `repo:path#N` for Markdown, `#LABEL` for a lesson (`pipeline:notes/rulebook.md#R5`), `#TG-NN` for a ledger row, `#parts.N`, `#detail.N` and `decisions.json#N` for a run. `read` of an id the record does not hold prints an error and exits 1, so a citation that does not read back is not recorded. Every search checks whether a covered file was added, removed or changed and rebuilds the index if so, so a running server sees a new lesson on its next search. The index is cached in the user cache folder (`~/.cache/orion/record/`, or `ORION_RECORD_CACHE`), never inside a repository, and a cache that cannot be written is skipped. `ORION_RECORD` points at a different corpus file (needed when Orion is installed outside a checkout). A required repository that is missing makes search and read return `record unavailable` rather than a partial answer.
-
-### Ingesting the engineering record
-
-`orion record ingest` reads the whole engineering record into one document store, so retrieval and the agent context tools have everything to search and cite: every commit of each `record.toml` checkout (message, files touched, a patch capped at 8,000 characters), the checkouts' GitHub pull requests, reviews, review comments, issues and their comments, the harness session transcripts (`~/.claude/projects/**/*.jsonl`, subagents included, thinking and harness reminders dropped, tool output cut to a budget), and the Markdown files `record.toml` already covers. Standard library only, no model call.
-
-```bash
-PYTHONPATH=src python3 -m orion.record ingest            # all connectors; --only git,github,sessions,markdown
-PYTHONPATH=src python3 -m orion.record docs              # counts per source
-PYTHONPATH=src python3 -m orion.record docs "gh:muhibm1/orion#pr/40"
-```
-
-Each item becomes one document with a stable id (`git:<repo>@<sha>`, `gh:<owner>/<repo>#pr/<n>` with `/review/<id>` and `/comment/<id>` children, `gh:...#issue/<n>`, `session:<id>`, `md:<repo>:<path>`), refs to the files it touches (`path:<repo>/<file>`) and the items it links, and provenance (connector, where exactly it was read, when). `<repo>` is the GitHub repository's name from `origin`, lower-cased, so ids match between the Mac and a cloud clone. Credentials are scrubbed before anything is stored: the token shapes and assignments review redacts, plus bearer and api-key headers, unquoted `.env` and shell assignments, `--token` flags and passwords in URLs. The allowlist pragma is ignored, since the record is kept.
-
-Every run is incremental: a stored commit is never read again, a Markdown file or transcript is re-read only when its size or change time moved, and GitHub is asked only for items updated since the last cursor (eight items fetched at once). A document whose text did not change is not rewritten, so its sequence number stays and nothing downstream re-chunks or re-embeds it. On Orion itself the first run stores about 1,300 documents in 16 seconds, almost all of it GitHub round trips, and a run with nothing new takes half a second. A Markdown file that disappears becomes a tombstone; a transcript that the harness cleans up is kept. The same file in two clones, or the same commit in a fork, is stored once and the copy marked `duplicate_of`; comments are never merged, since two people saying "Fixed." are two events.
-
-The store is SQLite at `~/.cache/orion/record/docs.sqlite` (`ORION_DOCS`, or `ORION_RECORD_CACHE`). Consumers read `DocStore.changed_since(seq)` for what was added, changed or deleted after the last sequence number they saw. Transcript folders and GitHub repositories default to `~/.claude/projects` and each checkout's GitHub origin; an `[ingest]` table in `record.toml` sets `sessions`, `github` and `max_commits`. A cloud session's transcripts live in its container and vanish with it, so `orion record export-sessions --to <shared folder>` copies them out, scrubbed, under `<folder>/<host>/` (only what changed since the last export); run it from a harness `Stop` hook and list the folder under `[ingest] sessions` wherever ingest runs. When one session is found in two places, the longer copy wins. A source that cannot be read (no checkout, no token, an API error, a malformed transcript) is a note in the run's report and the other sources still run. When the scrubbing rules change, the next full run re-reads every source, so a new rule also cleans what is already stored.
 
 ## Quickstart
 
-On a dbt project, start with [Orion for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
+On a dbt project, start with [Fathom for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
 
 Review a change in any git repository, with no setup beyond an API key:
 
 ```bash
-pip install "git+https://github.com/muhibm1/orion"
-export ORION_ANTHROPIC_API_KEY=...        # or ANTHROPIC_API_KEY
-export ORION_API_CAP=1                    # dollars this machine may spend on the API, in total
-orion review --git main --provider anthropic
+pip install "git+https://github.com/muhibm1/fathom"
+export FATHOM_ANTHROPIC_API_KEY=...        # or ANTHROPIC_API_KEY
+export FATHOM_API_CAP=1                    # dollars this machine may spend on the API, in total
+fathom review --git main --provider anthropic
 ```
 
-The Anthropic provider spends API credit, so it refuses to start without `ORION_API_CAP`. Every call is added to `~/.orion/api-ledger.jsonl` (`ORION_API_LEDGER`) with its tokens, cache reads and dollars, and once the total reaches the cap every later call is refused, in this run and the next. `flywheel spend ~/.orion/api-ledger.jsonl` totals it. On a Claude subscription, `--provider claude-code` needs no key and no cap.
+The Anthropic provider spends API credit, so it refuses to start without `FATHOM_API_CAP`. Every call is added to `~/.fathom/api-ledger.jsonl` (`FATHOM_API_LEDGER`) with its tokens, cache reads and dollars, and once the total reaches the cap every later call is refused, in this run and the next. `flywheel spend ~/.fathom/api-ledger.jsonl` totals it. On a Claude subscription, `--provider claude-code` needs no key and no cap.
 
-With no `orion.yaml`, this is a general code review. The credential scan, symbol references and the model's findings are all included, each with evidence, but there is no system context. Add an `orion.yaml` that points at your dbt project, DAGs and constraints to get blast radius, constraints and incident history in the same review.
+With no `fathom.yaml`, this is a general code review. The credential scan, symbol references and the model's findings are all included, each with evidence, but there is no system context. Add an `fathom.yaml` that points at your dbt project, DAGs and constraints to get blast radius, constraints and incident history in the same review.
 
 The full tour, on the bundled fixture platform:
 
@@ -81,16 +50,16 @@ uv venv .venv && uv pip install -e ".[fixture,dev,syntax]"
 # build the fixture warehouse so dbt writes manifest.json and catalog.json
 (cd fixture/dbt_project && export PIPELINEBENCH_DB=warehouse.duckdb && ../../.venv/bin/dbt seed --profiles-dir . && ../../.venv/bin/dbt build --profiles-dir . && ../../.venv/bin/dbt docs generate --profiles-dir .)
 
-.venv/bin/orion sync
-.venv/bin/orion explain fct_orders
-.venv/bin/orion explain raw_events
-.venv/bin/orion explain fct_revenue --column gross_revenue --json
-.venv/bin/orion preflight --intent "drop the discount_pct column from fct_orders"
-.venv/bin/orion postflight --summary
-.venv/bin/orion propose
+.venv/bin/fathom sync
+.venv/bin/fathom explain fct_orders
+.venv/bin/fathom explain raw_events
+.venv/bin/fathom explain fct_revenue --column gross_revenue --json
+.venv/bin/fathom preflight --intent "drop the discount_pct column from fct_orders"
+.venv/bin/fathom postflight --summary
+.venv/bin/fathom propose
 ```
 
-`orion explain fct_orders` answers, from the fixture:
+`fathom explain fct_orders` answers, from the fixture:
 
 - it is tier 1, owned by `team/data-platform`, built by `orders_pipeline.dbt_marts`;
 - four tier-1 consumers sit in its blast radius, including `finance_close_job` two hops away;
@@ -100,7 +69,7 @@ uv venv .venv && uv pip install -e ".[fixture,dev,syntax]"
 ## A review
 
 ```
-$ orion review --git HEAD
+$ fathom review --git HEAD
 BLOCK  1 findings  provider stub  rv_bd3f176d8a96c958
   block  fixture/dbt_project/models/marts/fct_orders.sql:8  CON-031 columns_locked fires  deterministic
          drop_column on fct_orders.discount_pct reaches a locked asset directly. fct_revenue columns are a
@@ -109,7 +78,7 @@ BLOCK  1 findings  provider stub  rv_bd3f176d8a96c958
          constraint:CON-031, incident:INC-230
 ```
 
-The model is told what the change is meant to do: `--intent` (the workflow passes the pull request's title and body), or by default with `--git` the commit messages since the base. An announced behaviour change is then not reported as a bug, while a change the intent does not cover still is; the intent is quoted to the model as data, never read by a deterministic check, and the review JSON says where it came from (`intent_source`). With `--provider anthropic` (or `openai`, or `review.provider` in `orion.yaml`), model findings join the list for any file in the diff, platform or not, each with a `path:line` and evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference the facts listed, or an id from the store. A cited id that does not exist is removed and noted; a finding with no valid evidence moves to `uncertain`; one pointing outside the diff moves to `rejected`. If the provider fails, the review still returns its deterministic findings and says the model review was unavailable. `--format json|markdown`, `--diff-file <path|->` for a diff from elsewhere. `--format agent` is for a build pipeline or a coding agent: `{head, verdict, findings, uncertain, unresolved}`, where `verdict` is `pass` or `fail`, each finding is `blocking` (a warn or block) or `minor` (an inform) with `where`, `detail`, `proof` (the failing case), `plain` (one sentence for someone who does not read code) and its evidence, and a review whose model call failed is a `fail`, never a pass.
+The model is told what the change is meant to do: `--intent` (the workflow passes the pull request's title and body), or by default with `--git` the commit messages since the base. An announced behaviour change is then not reported as a bug, while a change the intent does not cover still is; the intent is quoted to the model as data, never read by a deterministic check, and the review JSON says where it came from (`intent_source`). With `--provider anthropic` (or `openai`, or `review.provider` in `fathom.yaml`), model findings join the list for any file in the diff, platform or not, each with a `path:line` and evidence: `hunk:<path>:<line>` for a line in the diff, `ref:<path>:<line>` for a reference the facts listed, or an id from the store. A cited id that does not exist is removed and noted; a finding with no valid evidence moves to `uncertain`; one pointing outside the diff moves to `rejected`. If the provider fails, the review still returns its deterministic findings and says the model review was unavailable. `--format json|markdown`, `--diff-file <path|->` for a diff from elsewhere. `--format agent` is for a build pipeline or a coding agent: `{head, verdict, findings, uncertain, unresolved}`, where `verdict` is `pass` or `fail`, each finding is `blocking` (a warn or block) or `minor` (an inform) with `where`, `detail`, `proof` (the failing case), `plain` (one sentence for someone who does not read code) and its evidence, and a review whose model call failed is a `fail`, never a pass.
 
 Four more things come from code, not the model, on any diff:
 
@@ -119,18 +88,18 @@ Four more things come from code, not the model, on any diff:
 - **Credentials.** An added line that looks like an AWS, GitHub, Slack, Google, Anthropic, OpenAI or Stripe key, a private key, a JWT, a password in a database URL, or a long literal assigned to a name like `password`, is a `block` finding. The value is redacted before the diff leaves the machine; a line ending in `pragma: allowlist secret` is skipped.
 - **Nothing dropped quietly.** A diff too large for one model call is reviewed in several, one group of files per call. A changed file too long for even its windows to fit is named as not shown. A file whose hunks alone exceed the hard cap is named as not reviewed, to the model and in the output.
 
-On request, `.github/workflows/orion-review.yml` runs `orion review --post-github OWNER/REPO#N` on a pull request (add the `orion-review` label, or run the workflow by hand with the number; it no longer runs on every push, to save Actions minutes and tokens): one inline comment per new finding on the diff line it points at, one summary comment updated in place, and a reply on a finding a push has made go away. The summary remembers the previous findings, so a finding reworded on the same file and category within three lines is the same finding and gets no second comment. Orion only ever posts a `COMMENT` review. Add the `ORION_ANTHROPIC_API_KEY` repository secret for model findings; without it the comments carry the deterministic findings only. Each run may spend at most 25 cents (`ORION_API_CAP` in the workflow), and its log ends with what it spent. The workflow is advisory and never fails the pull request; `orion-gate` is the binding check.
+On request, `.github/workflows/fathom-review.yml` runs `fathom review --post-github OWNER/REPO#N` on a pull request (add the `fathom-review` label, or run the workflow by hand with the number; it no longer runs on every push, to save Actions minutes and tokens): one inline comment per new finding on the diff line it points at, one summary comment updated in place, and a reply on a finding a push has made go away. The summary remembers the previous findings, so a finding reworded on the same file and category within three lines is the same finding and gets no second comment. Fathom only ever posts a `COMMENT` review. Add the `FATHOM_ANTHROPIC_API_KEY` repository secret for model findings; without it the comments carry the deterministic findings only. Each run may spend at most 25 cents (`FATHOM_API_CAP` in the workflow), and its log ends with what it spent. The workflow is advisory and never fails the pull request; `fathom-gate` is the binding check.
 
-Provider settings live in `orion.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors. Every model `warn` or `block` must name the concrete case that fails (`failure`), or it is lowered to `inform`. A second reading then re-checks each remaining warning against the whole change and lowers the ones it cannot confirm; turn it off with `review.second_reading: false` or `--no-second-reading`, and set `review.verify_model` to have a stronger model check a cheaper one ([results](pipelinebench/results/second-reading.md)).
+Provider settings live in `fathom.yaml` under `review:` (`provider`, `model`, `base_url`, `api_key_env`, the name of the environment variable that holds the key). No vendor SDK is a dependency; requests are plain HTTPS with retries on rate limits and server errors. Every model `warn` or `block` must name the concrete case that fails (`failure`), or it is lowered to `inform`. A second reading then re-checks each remaining warning against the whole change and lowers the ones it cannot confirm; turn it off with `review.second_reading: false` or `--no-second-reading`, and set `review.verify_model` to have a stronger model check a cheaper one ([results](pipelinebench/results/second-reading.md)).
 
-`review.provider: command` runs `review.command`, an argument list (no shell). Because a branch under review can edit `orion.yaml`, it runs only when `ORION_ALLOW_COMMAND=1` is set where that file is trusted. In the list, `{schema}`, `{system}`, `{model}` and `{effort}` are filled per call; an empty `{model}` or `{effort}` drops the flag before it. The command runs in the current folder and may print the JSON answer, text holding it, or a harness `--output-format json` result. `--provider claude-code` is that provider with `claude -p --tools "" --setting-sources "" --strict-mcp-config --no-session-persistence`, run in an empty folder, so a coding agent's own subscription answers the review and no repository's instructions, hooks or tools reach it. Each pass is one CLI call, so a review takes minutes rather than seconds.
+`review.provider: command` runs `review.command`, an argument list (no shell). Because a branch under review can edit `fathom.yaml`, it runs only when `FATHOM_ALLOW_COMMAND=1` is set where that file is trusted. In the list, `{schema}`, `{system}`, `{model}` and `{effort}` are filled per call; an empty `{model}` or `{effort}` drops the flag before it. The command runs in the current folder and may print the JSON answer, text holding it, or a harness `--output-format json` result. `--provider claude-code` is that provider with `claude -p --tools "" --setting-sources "" --strict-mcp-config --no-session-persistence`, run in an empty folder, so a coding agent's own subscription answers the review and no repository's instructions, hooks or tools reach it. Each pass is one CLI call, so a review takes minutes rather than seconds.
 
 ### Context for code that is not a data platform
 
 Without a dbt project or DAGs, a review still knows three things about the files it changes, all read and none guessed:
 
 - **Owners** from `CODEOWNERS` (at the root, `.github/` or `docs/`; the last matching rule wins, as on GitHub). A file no rule covers is "not recorded".
-- **Sensitive areas** from a file the team writes: `--areas <file>` or `review.areas`. YAML or JSON; a list of areas, `{areas: [...]}`, or a mapping from project name to a list, read as `file#project` (so my build pipeline's `notes/risky-areas.json#payments` works as it is). Each area has `pattern` (a regular expression over the path) or `paths` (globs from the repository root, where `*` stays inside one folder and `**` crosses folders), `why` or `reason`, and optionally `id`, `severity` (default `inform`) and `approvers`. A change in an area gets a deterministic finding at that severity, and the model is told why the area is sensitive.
+- **Sensitive areas** from a file the team writes: `--areas <file>` or `review.areas`. YAML or JSON; a list of areas, `{areas: [...]}`, or a mapping from project name to a list, read as `file#project`. Each area has `pattern` (a regular expression over the path) or `paths` (globs from the repository root, where `*` stays inside one folder and `**` crosses folders), `why` or `reason`, and optionally `id`, `severity` (default `inform`) and `approvers`. A change in an area gets a deterministic finding at that severity, and the model is told why the area is sensitive.
 - **History**: the fixes, reverts and incident commits that touched the changed files before the base (`--no-history` turns it off).
 
 The model may cite them as `area:<id>`, `commit:<sha>` and `ref:CODEOWNERS:<line>`; anything else is removed as evidence that does not resolve. The review JSON carries them under `context`.
@@ -138,7 +107,7 @@ The model may cite them as `area:<id>`, `commit:<sha>` and `ref:CODEOWNERS:<line
 ## A verdict
 
 ```
-$ orion preflight --intent "drop the discount_pct column from fct_orders"
+$ fathom preflight --intent "drop the discount_pct column from fct_orders"
 BLOCK  risk 88/100  pf_bca3c7c9eaea4621  graph as of 2026-10-16 19:10:10+00:00
 Drop column on fct_orders.discount_pct reaches 2 downstream assets, 1 of them tier 1
 (dash_revenue_weekly). Fires CON-031 (block). The same kind of change caused INC-230 on
@@ -162,7 +131,7 @@ risk: tier1_consumers=1 (+30); block_constraint=1 (+25); incident_recency=59 (+1
 
 Adding a column to the same model is `INFORM`, risk 15, and reaches nothing: column-level lineage is what separates a check an agent reads from one it learns to ignore.
 
-The same change as a diff (`orion preflight --git main`) resolves through the model's SQL: old and new output columns are compared with sqlglot, so a dropped, added, renamed, retyped or redefined column is a typed op with the file as evidence. DAG diffs are parsed the same way (schedule, SLA, pool, `>>` dependencies, `--partition-by` and dbt selectors in commands). Intent is parsed by a keyword grammar in this slice; an LLM extractor can replace it behind the same function, and ops resolved from intent are marked `from_intent` so the agent confirms them.
+The same change as a diff (`fathom preflight --git main`) resolves through the model's SQL: old and new output columns are compared with sqlglot, so a dropped, added, renamed, retyped or redefined column is a typed op with the file as evidence. DAG diffs are parsed the same way (schedule, SLA, pool, `>>` dependencies, `--partition-by` and dbt selectors in commands). Intent is parsed by a keyword grammar in this slice; an LLM extractor can replace it behind the same function, and ops resolved from intent are marked `from_intent` so the agent confirms them.
 
 ### The closed predicate set
 
@@ -178,7 +147,7 @@ The same change as a diff (`orion preflight --git main`) resolves through the mo
 
 ### Risk
 
-A weighted sum, not a model. Weights live in `orion/risk.yaml` (optional; defaults below) and the verdict lists every factor's contribution.
+A weighted sum, not a model. Weights live in `fathom/risk.yaml` (optional; defaults below) and the verdict lists every factor's contribution.
 
 | Factor | Weight |
 | --- | --- |
@@ -188,134 +157,69 @@ A weighted sum, not a model. Weights live in `orion/risk.yaml` (optional; defaul
 | Destructive op (`drop_column`, `change_partition`, `change_type`, `change_expression`, `rename_column`) | 15 |
 | Blast radius size, log scale | 10 |
 
-Severity: `inform` under 30, `warn` from 30, `block` from 70, or whatever the strictest firing constraint says. Orion never blocks on its own; `orion gate` is how CI makes it binding.
+Severity: `inform` under 30, `warn` from 30, `block` from 70, or whatever the strictest firing constraint says. Fathom never blocks on its own; `fathom gate` is how CI makes it binding.
 
 ## What production did
 
-`orion sync` also reads run history, so a verdict's `history` section carries operational facts next to incidents: the three 71-minute `dbt_marts` runs on the afternoon of INC-241, the two October mornings `finance_close.dbt_finance` blew its 30-minute SLA, the failed `not_null` test on `fct_refunds`, the day `raw_events` was repartitioned by `ingest_ts` and reverted six hours later. Sources are files in the shape their systems export them (`fixture/runs/`): an Airflow task-instance export (JSONL, as the REST API returns `taskInstances`), dbt `run_results.json`, and Iceberg table metadata. A task that has a declared `sla` and ran longer than it gets an `sla_missed` event without anyone configuring anything.
+`fathom sync` also reads run history, so a verdict's `history` section carries operational facts next to incidents: the three 71-minute `dbt_marts` runs on the afternoon of INC-241, the two October mornings `finance_close.dbt_finance` blew its 30-minute SLA, the failed `not_null` test on `fct_refunds`, the day `raw_events` was repartitioned by `ingest_ts` and reverted six hours later. Sources are files in the shape their systems export them (`fixture/runs/`): an Airflow task-instance export (JSONL, as the REST API returns `taskInstances`), dbt `run_results.json`, and Iceberg table metadata. A task that has a declared `sla` and ran longer than it gets an `sla_missed` event without anyone configuring anything.
 
 ### Post-flight
 
 ```
-$ orion postflight
+$ fathom postflight
  verdict               predicted  risk  status      landed            outcome  runs
  pf_2c46bd2be8becd…    inform     15    observed    2026-10-16 20:02  clean    3
  pf_bca3c7c9eaea46…    block      88    not landed
 calibration: 1 observed; 0 under-called (inform/warn then failed); 0 blocked then clean
 ```
 
-A verdict that said `inform` and was followed by a failed run is an under-call. Those rows are the evidence for tuning `orion/risk.yaml`, and the benchmark's ground truth.
+A verdict that said `inform` and was followed by a failed run is an under-call. Those rows are the evidence for tuning `fathom/risk.yaml`, and the benchmark's ground truth.
 
 ### Proposals
 
 ```
-$ orion propose
+$ fathom propose
 CON-P31abc2 freshness_sla (warn) on model:fct_refunds, model:fct_revenue
   task:finance_close.dbt_finance missed its SLA 2 times since 2026-10-10; it builds model:fct_refunds, model:fct_revenue
   evidence: event:ev_78dbc605c406, event:ev_f292cc60c6c1
 ```
 
-`orion propose --write` puts each as `constraints/proposed/<id>.yaml` with its evidence, and `.github/workflows/orion-propose.yml` opens the pull request weekly. The three fixture postmortems propose nothing because CON-014, CON-022 and CON-031 already cover them; remove one and the matching proposal appears.
-
-### Lessons from Auspex cases
-
-Auspex, the monitoring layer, grades finished the harness turns with fixed checks and writes each failure as a case to `~/.auspex/cases.jsonl` (`AUSPEX_CASES` moves it): a turn that ended with edits but no test or build after the last one (`unverified-finish`), the same failing command run again and again (`retry-loop`), one file edited over and over (`edit-churn`), a long permission wait (`long-wait`), or context past 80% (`context-high`). Orion turns repeated cases into lessons an agent reads before it works in the same place. Everything on this path is code; no model writes or judges a lesson.
-
-- **Cases are record documents.** `orion record ingest` (and the daemon's sessions job) stores each as `case:<session>:<turn>:<kind>`, linked to its session and files. A later line with the same id replaces the earlier one. `read` on the MCP server returns any case.
-- **A lesson needs two cases of one kind in one place.** Two `edit-churn` cases on `src/orion/daemon.py` give a lesson scoped to that file; two `unverified-finish` cases on different files of one repository give a lesson for that repository. The scope is the narrowest the cases share, never wider. A case with no repository is reported and not used.
-- **Each lesson has a rung**: `explain` (what went wrong and what to do), `checklist` (steps to tick before finishing), `check` (a hook or alert to build), `enforce` (the same check, blocking). A new lesson starts at `explain`. When a case of its kind happens inside its scope after Orion served it (the usage log records every id Orion returned, so "served" is a fact, not a guess), `orion propose --lessons` drafts the same lesson one rung down. Orion never builds the check itself: the rung says what to build, and a person decides.
-- **Approval is a merge.** Proposals go to `lessons/proposed/` and are never served. `orion lessons accept <id>` moves one into `lessons/`; the pull request that carries the move is the approval. `orion lessons list` shows which are served.
-- **Served only in scope.** The `context` tool lists accepted lessons first when the checkout's GitHub repository and the task's paths fall inside a lesson's scope. The prompt hook adds a repository-scoped lesson to the first prompt of a session in that checkout, and a path-scoped one only when the prompt names a path it covers. Each is cited as `lesson:<id>`.
-
-```
-$ orion propose --lessons --write      # on a hand-made case file
-5 case(s) in the record (cases.jsonl: +5 ~0)
-LES-94c4c9 edit-churn (explain) for src/orion/daemon.py in muhibm1/orion
-  2 edit-churn cases on src/orion/daemon.py in muhibm1/orion: case:sess3:3:edit-churn, case:sess4:4:edit-churn
-```
-
-`orion lint-guide` reads every `CLAUDE.md` in the checkout and lists rule lines (those that say never, always, must, avoid, only and the like) that cite nothing: no incident label (`INC-214`), record id (`git:`, `gh:`, `case:`, `lesson:`), pull request, issue or commit. It only reports. A rule with no source may still be right, but nobody can check why it is there or when it can go. Orion's own guide has 11 such lines today, all design principles and working conventions rather than lessons from incidents.
+`fathom propose --write` puts each as `constraints/proposed/<id>.yaml` with its evidence, and `.github/workflows/fathom-propose.yml` opens the pull request weekly. The three fixture postmortems propose nothing because CON-014, CON-022 and CON-031 already cover them; remove one and the matching proposal appears.
 
 ### Retrieval
 
-`orion ask` ranks with BM25 by default. `retrieval.ranker: hybrid` in `orion.yaml` fuses it with cosine over dense vectors (reciprocal rank fusion); `embedding` uses the vectors alone. Vectors come from a dependency-free hashed embedder unless `retrieval.model` names a sentence-transformers model (`pip install -e ".[embed]"`), and are cached per model in the `chunk_vectors` table. The sentence-transformers path is wired but not exercised by the test suite.
+`fathom ask` ranks with BM25 by default. `retrieval.ranker: hybrid` in `fathom.yaml` fuses it with cosine over dense vectors (reciprocal rank fusion); `embedding` uses the vectors alone. Vectors come from a dependency-free hashed embedder unless `retrieval.model` names a sentence-transformers model (`pip install -e ".[embed]"`), and are cached per model in the `chunk_vectors` table. The sentence-transformers path is wired but not exercised by the test suite.
 
-`orion rag` is the retrieval core for code and the whole engineering record (`src/orion/rag/`). `orion rag index` cuts each tracked file of a checkout by syntax (tree-sitter: one chunk per definition, long classes split into methods; markdown at its headings; commit patches per file), stores chunks, BM25 postings, local vectors and file-level import edges in one DuckDB file (`~/.cache/orion/rag.duckdb`, `ORION_RAG`), and syncs the ingested record (`--docs`) and the platform's graph prose (`--graph`). `orion rag search` fuses BM25 and dense rankings by reciprocal rank and adds the graph as a third ranking: with `--changed`, the changed files, their importers and imports, the records that touched them and the data assets in their blast radius rank first, nearest first. Every hit cites a chunk id and a line span; `orion rag read <id>` returns the chunk or "not recorded", and `orion.rag.cite.check` scores an answer's citations against the index. Embeddings are local: hashed vectors, `st:<model>` (the `embed` extra; the default when installed is `BAAI/bge-small-en-v1.5`) or `ollama:<model>`. A refresh of an unchanged checkout costs two quick git calls, vectors are keyed by chunk text so nothing is embedded twice, and repeated searches are served from an in-process cache until the index changes. `pipelinebench retrieval-eval` measures recall@k, MRR, citation faithfulness and latency on 42 hand-labelled queries (`pipelinebench/results/retrieval.md`).
+`fathom rag` is the retrieval core for code and the platform's prose (`src/fathom/rag/`); the review agent's code search runs on it. `fathom rag index` cuts each tracked file of a checkout by syntax (tree-sitter: one chunk per definition, long classes split into methods; markdown at its headings; commit patches per file), stores chunks, BM25 postings, local vectors and file-level import edges in one DuckDB file (`~/.cache/fathom/rag.duckdb`, `FATHOM_RAG`), and syncs the platform's graph prose (`--graph`). `fathom rag search` fuses BM25 and dense rankings by reciprocal rank and adds the graph as a third ranking: with `--changed`, the changed files, their importers and imports, the data assets in their blast radius rank first, nearest first. Every hit cites a chunk id and a line span; `fathom rag read <id>` returns the chunk or "not recorded", and `fathom.rag.cite.check` scores an answer's citations against the index. Embeddings are local: hashed vectors, `st:<model>` (the `embed` extra; the default when installed is `BAAI/bge-small-en-v1.5`) or `ollama:<model>`. A refresh of an unchanged checkout costs two quick git calls, vectors are keyed by chunk text so nothing is embedded twice, and repeated searches are served from an in-process cache until the index changes. `pipelinebench retrieval-eval` measures recall@k, MRR, citation faithfulness and latency on 42 hand-labelled queries (`pipelinebench/results/retrieval.md`).
 
 ## Using it from an agent
 
-Orion is the context layer agents call while they change code, in any repository. Five tools work in any git
-checkout; where an `orion.yaml` is, they add the platform graph, verdicts and the ledger:
+`fathom serve` runs the MCP server in a checkout with a `fathom.yaml`. Seven tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask` and `review`. None of them writes to the platform; the server writes only the ledger and draft constraint files.
 
-| Tool | When | What comes back |
-| --- | --- | --- |
-| `context(task, paths)` | starting a task | constraints and sensitive areas in scope, owners, platform assets, related record passages, recent fixes |
-| `impact(base_ref \| diff \| paths, intent)` | before committing | callers of changed definitions, importers, owners, sensitive areas, past fixes and reverts, related record passages; on a platform, the pre-flight verdict and its blast radius |
-| `search(query)` | any time | one ranked list over the engineering record, the retrieval index and the platform's prose |
-| `read(id)` | to follow a citation | the full text behind any id Orion returned, or `not recorded` |
-| `file_history(path)` | before rewriting a file | owners, fix/revert commits first, ledger events, record passages |
-
-All five are deterministic (no model call), cite an id for every item, and pack their answer to `budget_tokens`
-(defaults 1,500 to 3,000); items that did not fit are listed by id under `omitted`. Each response reports
-`elapsed_ms`; a repeated call on an unchanged checkout is served from an in-process cache keyed by HEAD, the working
-tree and the graph (`cached: true`). On the fixture, uncached calls take 5 to 400 ms. `preflight`, `explain`,
-`history`, `ask`, `review`, `record_decision`, `propose_constraint`, `search_record` and `read_record` are unchanged.
-
-Without an `orion.yaml`, `impact` and `read` use the code graph `orion codegraph sync --repo .` writes to
-`.orion/graph.duckdb` (callers and importers in every indexed repository, from parsed calls rather than a text match).
-The server opens that file and the retrieval index only while it answers (the index stays open for 5 s after the
-last call), so `orion rag index` and `orion codegraph sync` can run while sessions are open. Nobody has to run them
-by hand after the first time: when a call finds the checkout changed (HEAD, changed files, their mtimes), the server
-refreshes the index, the record's new documents and the code graph incrementally in a background thread, and answers
-given meanwhile say so under `unresolved`. It only refreshes what was indexed before (`ORION_REFRESH=all` also indexes
-new checkouts, `off` stops it); `orion refresh` does the same in the foreground for a git hook or cron job. `tests/test_e2e.py`
-runs the whole path on two small repositories: ingest the record, sync the code graph, index, then every tool over
-MCP on a sample change, checking that cited ids read back, the blast radius crosses repositories, answers fit their
-budgets and repeated calls are cached.
-
-**Every the harness session on a machine:** `orion setup claude-code` registers the server at user scope (`claude mcp
-add`) and a SessionStart hook that tells each session Orion is there and when to call it. `--scope project` writes
-the repository's `.mcp.json` and `.claude/settings.json` instead, which cloud sessions of that repository pick up.
-Those files are committed, so they call `orion` by name rather than this machine's Python; `orion` must be on `PATH`.
-
-**Hands-free on a Mac:** `bash scripts/mac-setup.sh` installs Orion, registers it with the harness (MCP server,
-SessionStart hook and a UserPromptSubmit hook that adds the record's most relevant passages to a prompt, or nothing,
-in well under a second) and starts `orion daemon` as a launch agent that ingests, indexes, fetches and fast-forwards
-clean checkouts on its own. Every call is logged to `~/.orion/usage.jsonl` for `orion usage stats` and for Auspex.
-See [docs/hands-free.md](docs/hands-free.md).
-
-**Cloud environments:** add `scripts/cloud-setup.sh` to the environment's setup script; it clones and installs Orion,
-links `orion` onto `PATH` and runs `orion setup claude-code`. **As a plugin (local):** `/plugin marketplace add muhibm1/orion`, then
-`/plugin install orion@orion`; it needs `uv`. Plugins are not installed in cloud sessions, so use the setup script
-there. Use the plugin or `orion setup`, not both: each registers the `orion` server and the start-up hook, so with
-both a session gets the start-up note twice and two `orion` servers (the harness keeps one per scope).
-
-By hand:
+To add it to the harness (or any MCP client):
 
 ```json
-{ "mcpServers": { "orion": { "command": "orion", "args": ["serve", "--project-dir", "/path/to/repo"] } } }
+{ "mcpServers": { "fathom": { "command": "fathom", "args": ["serve", "--project-dir", "/path/to/repo"] } } }
 ```
 
-The server's instructions tell the agent to call `context` at the start of a task, `impact` before committing,
-`preflight` before writing a platform change, to cite ids rather than paraphrase, and that `block` means a human
-decides.
+The server's instructions tell the agent to call `preflight` before writing a platform change and again before opening a pull request, to cite ids rather than paraphrase, and that `block` means a human decides.
 
 ## How it is put together
 
 ```
-orion.yaml            where the sources live, relative to the repo root
-src/orion/
+fathom.yaml            where the sources live, relative to the repo root
+src/fathom/
   model.py            Node, Edge, Event, Provenance; node ids are readable (model:fct_orders)
   store.py            DuckDB tables: nodes, edges, provenance, events; walk() with tier-1 carry-through
   adapters/
     dbt.py            manifest + catalog -> assets, exposures, owners, columns, column lineage (sqlglot)
     airflow.py        static AST parse of DAG files -> dags, tasks, >> chains, sensors, dbt selectors
     git.py            commits touching mapped paths -> change_landed events
-    incidents.py      orion/incidents/*.md front matter -> incident_opened, postmortem_filed events
+    incidents.py      fathom/incidents/*.md front matter -> incident_opened, postmortem_filed events
     runs.py           Airflow task-instance export, dbt run_results.json, Iceberg metadata -> run, SLA, snapshot and schema events
   lineage.py          Jinja to SQL, output columns, leaf-column lineage
   resolver.py         refs (source:, exposure:, short names) and repo paths -> node ids
-  constraints.py      orion/constraints/*.yaml, a closed predicate set, validated with pydantic
+  constraints.py      fathom/constraints/*.yaml, a closed predicate set, validated with pydantic
   tiers.py            declared tiers win; gaps upstream of tier 1 are filled and marked inferred
   explain.py          the explain answer, every section carrying ids
   changes.py          diff / paths / intent / ops -> typed ChangeOps, with unresolved kept visible
@@ -325,15 +229,12 @@ src/orion/
   retrieval.py        graph-scoped retrieval (BM25, hybrid, embedding) over postmortems, descriptions and constraint reasons
   postflight.py       verdict -> landing commit -> next N runs -> outcome_observed; calibration table
   proposals.py        ledger patterns -> draft constraints with evidence, written under proposed/
-  lessons.py          repeated Auspex cases -> scoped lessons with a rung, written under lessons/proposed/; scoped serving
-  guidelint.py        CLAUDE.md rule lines that cite no incident, record id or lesson
-  server.py           the MCP server (nine tools)
+  server.py           the MCP server (seven tools)
   diffparse.py        unified diffs to files, hunks and new-side line numbers; both sides of a file from a diff
   providers.py        Provider interface; stub, Anthropic, OpenAI-compatible, local command (claude-code preset); retries and timeouts
   codectx.py          context for any codebase: CODEOWNERS owners, sensitive areas, fix and revert history from git
   review.py           gather, generate, validate, format; deterministic findings first
   symbols.py, syntax.py  definitions a diff removes or re-signs and their references, classified by parsing (tree-sitter, optional)
-  codegraph/           the code graph across repositories: symbols, imports, calls, packages, HTTP routes and clients, env, services (tree-sitter, cached per file); impact and describe queries (docs/codegraph.md)
   sync.py, cli.py     orchestration and the command
 src/pipelinebench/    the benchmark (see pipelinebench/README.md)
 ```
@@ -358,7 +259,7 @@ source: INC-230
 approvers: [team/finance-data]
 ```
 
-A postmortem is Markdown with front matter naming `assets`, `started_at`, `resolved_at`, `cause`, `trigger_change` and `constraints_proposed`; the body is the narrative. See `fixture/orion/`.
+A postmortem is Markdown with front matter naming `assets`, `started_at`, `resolved_at`, `cause`, `trigger_change` and `constraints_proposed`; the body is the narrative. See `fixture/fathom/`.
 
 ## Running the tests
 
@@ -374,7 +275,7 @@ The end-to-end tests parse the fixture dbt project on the fly, so they need no w
 2. **Pre-flight** (done): typed change ops, blast-radius walk, predicates, risk, the verdict, `gate`, the MCP server, graph-scoped `ask`.
 3. **Ledger and post-flight** (done): run history and Iceberg snapshot ingestion, the post-flight watcher that writes `outcome_observed`, constraint proposals from ledger patterns and the nightly proposal PR, hybrid and embedding rankers behind `ask`.
 4. **PipelineBench** (done): sixty scenarios (fifty in the first agent runs), four conditions, scripted / Claude / command agents, mechanical graders, and runs with language-model agents (`pipelinebench/results/`).
-5. **Review loop** (done): `orion review` on any diff, with or without platform config. Behind it: a provider interface (Anthropic, any OpenAI-compatible endpoint), the `review` MCP tool, and inline pull-request comments with memory across pushes. It parses symbol references, typing receivers by annotation, construction, field or declared return type. It also scans for credentials, reads the stated intent, and requires a concrete failing case for every warning, with a second reading. Evidence: the review eval, and design-partner runs on httpx, hono, cobra and cal-itp.
+5. **Review loop** (done): `fathom review` on any diff, with or without platform config. Behind it: a provider interface (Anthropic, any OpenAI-compatible endpoint), the `review` MCP tool, and inline pull-request comments with memory across pushes. It parses symbol references, typing receivers by annotation, construction, field or declared return type. It also scans for credentials, reads the stated intent, and requires a concrete failing case for every warning, with a second reading. Evidence: the review eval, and design-partner runs on httpx, hono, cobra and cal-itp.
 6. **Real platforms** (done for dbt and Airflow): dbt at the scale of 625 models with column lineage, gusty YAML DAGs, and post-flight on real `dbt build` results.
 
 Next: more platform adapters (Dagster, Snowflake query history), Postgres as a shared team store, an LLM intent extractor behind `ops_from_intent`, and more seeds and a larger fixture for PipelineBench.

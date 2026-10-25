@@ -10,14 +10,14 @@ from pathlib import Path
 
 import pytest
 
-from orion import providers, syntax
-from orion.constraints import load_constraints
-from orion.credscan import find_secrets, redact
-from orion.diffparse import batches, parse, render_with_omitted
-from orion.providers import OpenAICompatibleProvider, ProviderError, StubProvider
-from orion.review import FINDINGS_SCHEMA, LENSES, review
-from orion.risk import RiskModel
-from orion.symbols import MAX_REFS, changed_definitions, references, search, symbol_changes
+from fathom import providers, syntax
+from fathom.constraints import load_constraints
+from fathom.credscan import find_secrets, redact
+from fathom.diffparse import batches, parse, render_with_omitted
+from fathom.providers import OpenAICompatibleProvider, ProviderError, StubProvider
+from fathom.review import FINDINGS_SCHEMA, LENSES, review
+from fathom.risk import RiskModel
+from fathom.symbols import MAX_REFS, changed_definitions, references, search, symbol_changes
 from pipelinebench.review_eval import Change
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(scope="module")
 def constraints():
-    cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    cs, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     return cs
 
 
@@ -119,7 +119,7 @@ def test_search_reports_a_failed_repository_search_and_truncation(tmp_path):
 
 
 def test_symbol_facts_say_when_the_search_was_incomplete(synced_store, constraints, tmp_path):
-    from orion.review import _symbol_facts, gather
+    from fathom.review import _symbol_facts, gather
 
     plain = tmp_path / "plain"
     plain.mkdir()
@@ -193,7 +193,7 @@ def test_credentials_are_found_redacted_and_blocked(synced_store, constraints, e
     aws = "AKIA" + "IOSFODNN7ABCDEFG"  # pragma: allowlist secret
     assert find_secrets(f"key = '{aws}'")[0][0] == "AWS access key"
     assert find_secrets("key = 'AKIAIOSFODNN7EXAMPLE'") == [], "the documented example key is a placeholder"
-    assert find_secrets(f"key = '{aws}'  # pragma: allowlist secret") == [] and find_secrets(f"key = '{aws}'  // orion: allow-secret") == []
+    assert find_secrets(f"key = '{aws}'  # pragma: allowlist secret") == [] and find_secrets(f"key = '{aws}'  // fathom: allow-secret") == []
     assert redact(f"key = '{aws}'  # pragma: allowlist secret\n") == "key = '[redacted]'  # pragma: allowlist secret\n", "the pragma silences the finding, never the redaction"
     pw = "hunter2" * 2  # pragma: allowlist secret
     assert find_secrets(f'password = "{pw}"') == [("credential assigned to a literal", pw)]
@@ -246,7 +246,7 @@ def test_long_and_over_budget_files_are_named_not_dropped(synced_store, constrai
 
 
 def test_a_large_diff_is_reviewed_in_several_calls_and_findings_pool(synced_store, constraints, empty_repo, monkeypatch):
-    import orion.review as rv
+    import fathom.review as rv
 
     monkeypatch.setattr(rv, "batches", lambda files, *a, **k: rv_batches(files))
     texts = {f"app/m{i}.py": f"def f{i}():\n    return {i}\n" for i in range(3)}
@@ -474,7 +474,7 @@ def test_a_reference_on_the_line_where_the_removed_definition_stood_is_kept(tmp_
 
 @needs_parser
 def test_facts_say_which_references_are_text_matches_when_only_some_files_parse(synced_store, constraints, tmp_path):
-    from orion.review import _symbol_facts, code_findings, gather
+    from fathom.review import _symbol_facts, code_findings, gather
 
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     (tmp_path / "app").mkdir()
@@ -682,7 +682,7 @@ def test_receivers_typed_by_a_field_or_a_declared_return_are_linked(tmp_path):
 
 
 def test_a_bare_call_is_typed_only_by_a_free_function():
-    from orion.symbols import _receiver_type
+    from fathom.symbols import _receiver_type
 
     py = "class Other:\n    def make(self) -> Client:\n        return Client()\n\n\ndef run():\n    c = make()\n    c.fetch()\n"
     assert _receiver_type(py.splitlines(), "c", 8, "py") is None, "make() with no receiver is not Other.make"
@@ -697,7 +697,7 @@ def test_a_bare_call_is_typed_only_by_a_free_function():
 
 
 def test_a_self_member_is_typed_by_its_own_class_only():
-    from orion.symbols import _lang, _receiver_type
+    from fathom.symbols import _lang, _receiver_type
 
     lines = (
         "class A:\n"

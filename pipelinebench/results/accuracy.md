@@ -10,9 +10,9 @@ on a subscription, also reached 60% on the held-out set, with more context in it
 
 ## What changed in the review
 
-- **Four focused passes instead of one.** `orion review` now reads each change four times. Each pass has one
+- **Four focused passes instead of one.** `fathom review` now reads each change four times. Each pass has one
   focus: unusual but legal inputs, what the code's calls really do (language, library and protocol semantics),
-  control flow and state, and contracts with callers and callees (`LENSES` in `src/orion/review.py`).
+  control flow and state, and contracts with callers and callees (`LENSES` in `src/fathom/review.py`).
   One pass asked to find everything stops at the first plausible problems. Four passes, each told to be
   exhaustive about one kind of failure, find what a single read skips. `--lens general` restores the
   single pass.

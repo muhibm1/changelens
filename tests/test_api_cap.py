@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 from flywheel import spend
 
-from orion import providers, review
-from orion.providers import AnthropicProvider, ProviderError, SpendCapError, make_provider
+from fathom import providers, review
+from fathom.providers import AnthropicProvider, ProviderError, SpendCapError, make_provider
 
 SCHEMA = {"type": "object", "properties": {"findings": {"type": "array"}}, "required": ["findings"]}
 
@@ -16,9 +16,9 @@ def answer(usage: dict) -> dict:
 
 
 def test_no_cap_means_the_anthropic_provider_refuses_to_start(monkeypatch):
-    monkeypatch.delenv("ORION_API_CAP")
-    monkeypatch.setenv("ORION_ANTHROPIC_API_KEY", "k")
-    with pytest.raises(SpendCapError, match="set ORION_API_CAP") as refused:
+    monkeypatch.delenv("FATHOM_API_CAP")
+    monkeypatch.setenv("FATHOM_ANTHROPIC_API_KEY", "k")
+    with pytest.raises(SpendCapError, match="set FATHOM_API_CAP") as refused:
         make_provider("anthropic")
     assert isinstance(refused.value, ProviderError), "the CLI and the review treat it like any provider failure"
     assert make_provider("claude-code").name == "claude-code", "the subscription route needs no cap"
@@ -26,7 +26,7 @@ def test_no_cap_means_the_anthropic_provider_refuses_to_start(monkeypatch):
 
 def test_each_call_is_priced_and_added_to_the_ledger(monkeypatch, tmp_path):
     ledger = tmp_path / "ledger.jsonl"
-    monkeypatch.setenv("ORION_API_LEDGER", str(ledger))
+    monkeypatch.setenv("FATHOM_API_LEDGER", str(ledger))
     sent = []
 
     def post(url, headers, body, **kw):
@@ -38,15 +38,15 @@ def test_each_call_is_priced_and_added_to_the_ledger(monkeypatch, tmp_path):
     assert p.complete_json("sys", ["shared change", "focus"], SCHEMA, schema_name="report_findings") == {"findings": []}
     assert sent[0]["system"][0]["cache_control"] == {"type": "ephemeral"}, "the request is sent as built, cache markers and all"
     [row] = spend.read_ledger([ledger])
-    assert (row["project"], row["model"], row["route"], row["label"]) == ("orion", "claude-haiku-5-5", "api", "orion report_findings")
+    assert (row["project"], row["model"], row["route"], row["label"]) == ("fathom", "claude-haiku-5-5", "api", "fathom report_findings")
     assert (row["input"], row["cache_read"], row["output"]) == (1000, 4000, 200)
     assert row["billed"] == pytest.approx((1000 * 0.10 + 4000 * 0.01 + 200 * 0.50) / 1e6)
     assert p.last_usage == {"input_tokens": 1000, "cache_read_input_tokens": 4000, "output_tokens": 200}
 
 
 def test_a_spent_cap_refuses_the_next_call_and_the_next_run(monkeypatch, tmp_path):
-    monkeypatch.setenv("ORION_API_LEDGER", str(tmp_path / "ledger.jsonl"))
-    monkeypatch.setenv("ORION_API_CAP", "0.001")
+    monkeypatch.setenv("FATHOM_API_LEDGER", str(tmp_path / "ledger.jsonl"))
+    monkeypatch.setenv("FATHOM_API_CAP", "0.001")
     calls = []
 
     def post(url, headers, body, **kw):

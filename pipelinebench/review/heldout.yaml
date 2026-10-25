@@ -1,6 +1,6 @@
 # HELD-OUT recall set for `pipelinebench recall-eval`: real bugs at the commit that introduced them.
 # Mined with `pipelinebench mine-introducers` from repositories NOT in the tuning set (recall.yaml), and
-# labelled by hand from the upstream git history only (fix commit + introducing commit); no Orion review
+# labelled by hand from the upstream git history only (fix commit + introducing commit); no Fathom review
 # output was looked at. Candidates were taken in mined order; fixes for typos, types, docs, lint, tests,
 # refactors and features, bugs that predate the blamed commit, and bugs that need knowledge no reviewer of
 # the diff has, were left out. `expect` uses the introducing commit's new-side line numbers.

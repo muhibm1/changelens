@@ -2,14 +2,14 @@
 
 from pathlib import Path
 
-from orion.constraints import load_constraints
-from orion.proposals import propose, write
+from fathom.constraints import load_constraints
+from fathom.proposals import propose, write
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_fixture_proposals_cover_sla_misses_but_not_filed_incidents(synced_store):
-    constraints, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    constraints, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     props = propose(synced_store, constraints)
     patterns = {p.pattern for p in props}
     assert "postmortem_without_constraint" not in patterns, "all three postmortems already have constraints"
@@ -24,7 +24,7 @@ def test_fixture_proposals_cover_sla_misses_but_not_filed_incidents(synced_store
 
 
 def test_postmortem_without_matching_constraint_is_proposed(synced_store):
-    constraints, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    constraints, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     without_partition = [c for c in constraints if c.rule.kind != "partition_key"]
     props = propose(synced_store, without_partition)
     pk = [p for p in props if p.constraint["rule"]["kind"] == "partition_key"]
@@ -35,7 +35,7 @@ def test_postmortem_without_matching_constraint_is_proposed(synced_store):
 
 
 def test_write_proposals_is_idempotent_and_loadable(synced_store, tmp_path):
-    constraints, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    constraints, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     props = propose(synced_store, constraints)
     paths = write(synced_store, props, tmp_path, tmp_path)
     assert len(paths) == len(props)

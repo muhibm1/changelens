@@ -1,4 +1,4 @@
-"""Recall eval: would ``orion review`` have caught real bugs when they were introduced?
+"""Recall eval: would ``fathom review`` have caught real bugs when they were introduced?
 
 The replay eval (``replay_eval.py``) measures noise on correct changes. This one measures the other
 side. ``pipelinebench/review/recall.yaml`` lists commits from public repositories that introduced a bug
@@ -6,7 +6,7 @@ a later fix commit removed, found by blaming the fixed lines (``introducers.py``
 labelled by hand. Each case names the introducing commit, the fix, and where in the introducing commit
 the bug sits (``expect``: the lines the fix later touched, in the introducing commit's numbering).
 
-Orion reviews the introducing commit against its parent with the commit message as intent, as a team
+Fathom reviews the introducing commit against its parent with the commit message as intent, as a team
 would have seen it. A case is **caught** when a valid ``warn`` or ``block`` finding sits on the expected
 path within ``WINDOW`` lines of the expected span and uses one of the case's ``must_mention`` words
 (so a different warning that lands nearby does not count); **in file** when a warning is on the path but further
@@ -17,7 +17,7 @@ the lines, warn or inform); **escalation recall** counts it only at the severity
 A gap between them is a severity problem, not a finding problem. ``spread`` reads several runs of the same build
 and reports each metric's mean and range, because one run of 45 bugs moves by a few cases on its own.
 
-Labels are written by hand from the upstream history and must never be derived from Orion's output.
+Labels are written by hand from the upstream history and must never be derived from Fathom's output.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ from typing import Any
 
 import yaml
 
-from orion.providers import ProviderError
+from fathom.providers import ProviderError
 
 from .replay_eval import _head, prepare, review_commit
 
@@ -94,7 +94,7 @@ JUDGE_SCHEMA: dict[str, Any] = {
 
 def model_about(case: Case, result: dict[str, Any], provider: Any) -> tuple[set[int], dict[str, Any] | None]:
     """Which findings near the expected span describe the labelled bug, by a model reading the hand-written label;
-    the ids of the matching findings and the judge's token usage. The label, not Orion's output, is the reference."""
+    the ids of the matching findings and the judge's token usage. The label, not Fathom's output, is the reference."""
     near = [f for f in result.get("findings", []) if f.get("path") and any(s.near(f["path"], f.get("line")) for s in case.expect)]
     if not near:
         return set(), None
@@ -151,13 +151,13 @@ def _slots(clone: Path, jobs: int) -> list[Path]:
         wt = clone.with_name(f"{clone.name}.wt{i}")
         if not (wt / ".git").exists():
             subprocess.run(["git", "-C", str(clone), "worktree", "add", "-q", "--detach", "-f", str(wt)], check=True, capture_output=True)
-        if (clone / "orion.yaml").exists() and not (wt / "orion.yaml").exists():
-            shutil.copy(clone / "orion.yaml", wt / "orion.yaml")
+        if (clone / "fathom.yaml").exists() and not (wt / "fathom.yaml").exists():
+            shutil.copy(clone / "fathom.yaml", wt / "fathom.yaml")
         out.append(wt)
     return out
 
 
-def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, orion: str, provider: str, model: str | None, progress=None, extra_args: list[str] | None = None, raw_dir: Path | None = None, jobs: int = 1, judge_provider: Any = None) -> dict[str, Any]:
+def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, fathom: str, provider: str, model: str | None, progress=None, extra_args: list[str] | None = None, raw_dir: Path | None = None, jobs: int = 1, judge_provider: Any = None) -> dict[str, Any]:
     """``raw_dir``: where each case's full review JSON is kept, so a miss can be read without another model run.
     ``jobs``: cases reviewed at once, each in its own checkout (worktrees of the clone)."""
     todo = [c for c in cases if not c.skip]
@@ -172,7 +172,7 @@ def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, o
     def one(c: Case) -> dict[str, Any]:
         slot = free[c.repo].get()
         try:
-            result = review_commit(orion, slot, c.commit, provider, model, extra_args=extra_args)
+            result = review_commit(fathom, slot, c.commit, provider, model, extra_args=extra_args)
         finally:
             free[c.repo].put(slot)
         if raw_dir is not None:
@@ -216,9 +216,9 @@ def regate(result: dict[str, Any]) -> dict[str, Any]:
     fix and revert history), and it only ever lowers, so applying it after the second reading leaves the same
     warnings as applying it before. It cannot see a data platform's verdict (readers, constraints, incidents), which
     the JSON does not keep, so use it on code-only reviews such as the recall sets."""
-    from orion.codectx import Area, CodeContext
-    from orion.review import ReviewContext, gate_severity
-    from orion.symbols import SymbolChange
+    from fathom.codectx import Area, CodeContext
+    from fathom.review import ReviewContext, gate_severity
+    from fathom.symbols import SymbolChange
 
     out = json.loads(json.dumps(result))
     c = out.get("context") or {}

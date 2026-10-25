@@ -48,7 +48,7 @@ def test_parse_decision_tolerates_prose():
     assert parse_decision('{"decision": "yolo"}').decision == "proceed"
 
 
-def test_orion_agrees_with_every_scenario(synced_store):
+def test_fathom_agrees_with_every_scenario(synced_store):
     rows = check_ground_truth(load_scenarios(SCENARIOS), repo_root=ROOT, store=synced_store)
     disagreements = [r for r in rows if not r["agree"]]
     assert disagreements == [], disagreements
@@ -60,32 +60,32 @@ def test_conditions_carry_different_material(synced_store):
     none = build_context("none", s, repo_root=ROOT, store=synced_store)
     repo = build_context("repo", s, repo_root=ROOT, store=synced_store)
     rag = build_context("rag", s, repo_root=ROOT, store=synced_store)
-    orion = build_context("orion", s, repo_root=ROOT, store=synced_store, constraints=constraints, risk=risk)
+    fathom = build_context("fathom", s, repo_root=ROOT, store=synced_store, constraints=constraints, risk=risk)
     assert none["text"] == ""
-    assert "### file: fixture/orion/constraints/CON-031.yaml" in repo["text"]
+    assert "### file: fixture/fathom/constraints/CON-031.yaml" in repo["text"]
     assert rag["chunks"] and "### chunk:" in rag["text"]
-    assert orion["verdict"]["severity"] == "block" and "CON-031" in orion["text"]
+    assert fathom["verdict"]["severity"] == "block" and "CON-031" in fathom["text"]
 
 
 def test_scripted_baseline_shows_the_gradient(synced_store):
     scenarios = load_scenarios(SCENARIOS)
-    res = run(scenarios, [ScriptedAgent()], ["none", "repo", "rag", "orion"], repo_root=ROOT, store=synced_store)
+    res = run(scenarios, [ScriptedAgent()], ["none", "repo", "rag", "fathom"], repo_root=ROOT, store=synced_store)
     cells = {c["condition"]: c for c in res["cells"]}
-    assert cells["orion"]["accuracy"] >= 0.95 and cells["orion"]["unsafe_rate"] == 0.0
+    assert cells["fathom"]["accuracy"] >= 0.95 and cells["fathom"]["unsafe_rate"] == 0.0
     assert cells["none"]["unsafe_rate"] > 0.3
-    assert cells["repo"]["accuracy"] < cells["orion"]["accuracy"]
-    assert cells["rag"]["accuracy"] < cells["orion"]["accuracy"]
+    assert cells["repo"]["accuracy"] < cells["fathom"]["accuracy"]
+    assert cells["rag"]["accuracy"] < cells["fathom"]["accuracy"]
     lineage = [d for d in res["details"] if d["family"] == "locked_via_lineage"]
     by_cond = {}
     for d in lineage:
         by_cond.setdefault(d["condition"], []).append(d["decision_correct"])
-    assert all(by_cond["orion"]) and not any(by_cond["repo"]) and not any(by_cond["rag"]), "only lineage catches upstream column changes"
+    assert all(by_cond["fathom"]) and not any(by_cond["repo"]) and not any(by_cond["rag"]), "only lineage catches upstream column changes"
     md = report(res)
-    assert "| scripted | orion |" in md
+    assert "| scripted | fathom |" in md
 
 
 def test_the_model_agent_goes_through_the_provider_and_counts_tokens(monkeypatch, synced_store):
-    from orion import providers
+    from fathom import providers
     from pipelinebench.agents import ClaudeAgent
 
     sent = []
@@ -97,7 +97,7 @@ def test_the_model_agent_goes_through_the_provider_and_counts_tokens(monkeypatch
         return {"content": [{"type": "text", "text": '{"decision": "escalate", "cited": ["CON-031"], "affected": [], "approvers": [], "rationale": "r"}'}], "usage": {"input_tokens": 10, "output_tokens": 3}, "stop_reason": "end_turn"}
 
     monkeypatch.setattr(providers, "_post", post)
-    monkeypatch.setenv("ORION_ANTHROPIC_API_KEY", "k")
+    monkeypatch.setenv("FATHOM_ANTHROPIC_API_KEY", "k")
     scenarios = load_scenarios(SCENARIOS)[:2]
     res = run(scenarios, [ClaudeAgent("claude-haiku-5-5")], ["none"], repo_root=ROOT, store=synced_store)  # a priced model: an unpriced one is refused
     assert sent[0]["output_config"]["format"]["schema"]["required"]
@@ -112,13 +112,13 @@ def test_run_refuses_an_empty_graph_for_conditions_that_read_it(tmp_path):
 
     from pipelinebench.cli import app
 
-    (tmp_path / "orion.yaml").write_text("db: empty.duckdb\n")
-    cfg = str(tmp_path / "orion.yaml")
-    res = CliRunner().invoke(app, ["run", "--condition", "orion", "-c", cfg, "--out", str(tmp_path)])
+    (tmp_path / "fathom.yaml").write_text("db: empty.duckdb\n")
+    cfg = str(tmp_path / "fathom.yaml")
+    res = CliRunner().invoke(app, ["run", "--condition", "fathom", "-c", cfg, "--out", str(tmp_path)])
     assert res.exit_code == 2 and "empty; run" in " ".join(res.output.split())
     res = CliRunner().invoke(app, ["run", "--condition", "none", "-c", cfg, "--out", str(tmp_path), "--name", "x"])
     assert res.exit_code == 0, res.output
     res = CliRunner().invoke(app, ["run", "--condition", "all", "--condition", "none", "-c", cfg, "--out", str(tmp_path)])
     assert res.exit_code == 2 and "empty; run" in " ".join(res.output.split())
-    res = CliRunner().invoke(app, ["run", "--condition", "Orion", "-c", cfg, "--out", str(tmp_path)])
-    assert res.exit_code == 2 and "unknown condition Orion" in " ".join(res.output.split())
+    res = CliRunner().invoke(app, ["run", "--condition", "Fathom", "-c", cfg, "--out", str(tmp_path)])
+    assert res.exit_code == 2 and "unknown condition Fathom" in " ".join(res.output.split())

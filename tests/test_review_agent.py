@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from orion.providers import ProviderError, StubProvider
-from orion.review import SECRET_PATH_RE, review
-from orion.review_agent import Toolbox, investigate
-from orion.risk import RiskModel
-from orion.store import Store
+from fathom.providers import ProviderError, StubProvider
+from fathom.review import SECRET_PATH_RE, review
+from fathom.review_agent import Toolbox, investigate
+from fathom.risk import RiskModel
+from fathom.store import Store
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -238,12 +238,12 @@ def test_cli_agent_flag(synced_store, tmp_path):
     from test_review import DROP_DIFF
     from typer.testing import CliRunner
 
-    from orion.cli import app
+    from fathom.cli import app
 
-    cfg = ROOT / f".orion-test-{tmp_path.name}.yaml"
-    text = (ROOT / "orion.yaml").read_text()
-    assert "db: .orion/graph.duckdb" in text  # the test must point the CLI at the synced store, not the repository's graph
-    cfg.write_text(text.replace("db: .orion/graph.duckdb", f"db: {synced_store.path}"))
+    cfg = ROOT / f".fathom-test-{tmp_path.name}.yaml"
+    text = (ROOT / "fathom.yaml").read_text()
+    assert "db: .fathom/graph.duckdb" in text  # the test must point the CLI at the synced store, not the repository's graph
+    cfg.write_text(text.replace("db: .fathom/graph.duckdb", f"db: {synced_store.path}"))
     d = tmp_path / "change.diff"
     d.write_text(DROP_DIFF)
     synced_store.con.close()
@@ -280,7 +280,7 @@ def test_a_repeated_tool_call_runs_once(repo: Path):
 def test_agent_steps_in_config_are_bounded():
     from pydantic import ValidationError
 
-    from orion.config import ReviewConfig
+    from fathom.config import ReviewConfig
 
     assert ReviewConfig(agent_steps=6).agent_steps == 6
     with pytest.raises(ValidationError):
@@ -336,8 +336,8 @@ def test_one_turn_is_not_told_about_tools(repo: Path):
 
 
 def test_code_search_finds_code_by_words_and_makes_its_lines_citable(repo: Path, tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     t = Toolbox(repo)
     out = t.run("code_search", {"query": "sum the amounts of items"})
     assert "lib.py:" in out and "def total" in out and any(r.startswith("lib.py:") for r in t.observed["ref"])
@@ -345,10 +345,10 @@ def test_code_search_finds_code_by_words_and_makes_its_lines_citable(repo: Path,
 
 
 def test_code_search_uses_its_own_index_when_the_shared_one_is_held(repo: Path, tmp_path: Path, monkeypatch):
-    from orion.rag.index import RagIndex
+    from fathom.rag.index import RagIndex
 
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "held.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "held.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     real = RagIndex.open
 
     def held(path=None, **kw):
@@ -362,10 +362,10 @@ def test_code_search_uses_its_own_index_when_the_shared_one_is_held(repo: Path, 
 
 
 def test_code_search_skips_a_hit_past_the_end_of_the_file(repo: Path, tmp_path: Path, monkeypatch):
-    from orion.rag.index import Hit, RagIndex
+    from fathom.rag.index import Hit, RagIndex
 
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     stale = Hit("c", "d", "code", "r", "lib.py", 500, 520, "", "", "", "", None, 1.0)
     monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [stale])
     out = Toolbox(repo).run("code_search", {"query": "parse an amount"})
@@ -373,10 +373,10 @@ def test_code_search_skips_a_hit_past_the_end_of_the_file(repo: Path, tmp_path: 
 
 
 def test_code_search_says_when_it_cuts_a_long_block(repo: Path, tmp_path: Path, monkeypatch):
-    from orion.rag.index import Hit, RagIndex
+    from fathom.rag.index import Hit, RagIndex
 
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     (repo / "long.py").write_text("".join(f"x{i} = {i}\n" for i in range(100)))
     long = Hit("c", "d", "code", "r", "long.py", 1, 100, "", "", "", "", None, 1.0)
     monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [long])
@@ -385,10 +385,10 @@ def test_code_search_says_when_it_cuts_a_long_block(repo: Path, tmp_path: Path, 
 
 
 def test_code_search_numbers_lines_as_the_indexer_does(repo: Path, tmp_path: Path, monkeypatch):
-    from orion.rag.index import Hit, RagIndex
+    from fathom.rag.index import Hit, RagIndex
 
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     (repo / "ff.py").write_text("a = 1  # \x0c form feed\nb = 2\nc = 3\n")
     hit = Hit("c", "d", "code", "r", "ff.py", 3, 3, "", "", "", "", None, 1.0)
     monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: [hit])
@@ -397,10 +397,10 @@ def test_code_search_numbers_lines_as_the_indexer_does(repo: Path, tmp_path: Pat
 
 
 def test_code_search_says_how_many_hits_the_output_limit_left_out(repo: Path, tmp_path: Path, monkeypatch):
-    from orion.rag.index import Hit, RagIndex
+    from fathom.rag.index import Hit, RagIndex
 
-    monkeypatch.setenv("ORION_RAG", str(tmp_path / "rag.duckdb"))
-    monkeypatch.setenv("ORION_RAG_EMBEDDER", "hash")
+    monkeypatch.setenv("FATHOM_RAG", str(tmp_path / "rag.duckdb"))
+    monkeypatch.setenv("FATHOM_RAG_EMBEDDER", "hash")
     (repo / "wide.py").write_text("".join(f"x{i} = '{'y' * 150}'\n" for i in range(40)))
     hits = [Hit("c", "d", "code", "r", "wide.py", 1, 40, "", "", "", "", None, 1.0) for _ in range(3)]
     monkeypatch.setattr(RagIndex, "search", lambda self, *a, **kw: hits)

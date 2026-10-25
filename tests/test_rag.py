@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from orion.rag import RagIndex, Scope, SourceDoc
-from orion.rag.chunking import _diff_name, _slug, _unquote, chunk, markdown_spans, summary, terms
-from orion.rag.cite import check, extractive_answer
-from orion.rag.code import import_edges, resolve_import
-from orion.syntax import available
+from fathom.rag import RagIndex, Scope, SourceDoc
+from fathom.rag.chunking import _diff_name, _slug, _unquote, chunk, markdown_spans, summary, terms
+from fathom.rag.cite import check, extractive_answer
+from fathom.rag.code import import_edges, resolve_import
+from fathom.syntax import available
 
 needs_syntax = pytest.mark.skipif(not available(), reason="tree-sitter (the syntax extra) is not installed")
 
@@ -267,7 +267,7 @@ def test_read_and_citation_check(index):
 def test_from_record_skips_deleted_and_duplicates():
     from types import SimpleNamespace
 
-    from orion.rag import from_record
+    from fathom.rag import from_record
 
     base = dict(id="gh:o/r#pr/1", text="body", kind="pr", repo="r", path="", title="PR", url="u", created_at="2026-01-01", updated_at=None, refs=["path:r/a.py"], meta={}, content_hash="h")
     assert from_record(SimpleNamespace(**base)).refs == ["path:r/a.py"]
@@ -287,8 +287,8 @@ def test_record_refs_put_history_in_scope(tmp_path: Path):
 
 def test_data_graph_scope_reaches_incidents(synced_store, tmp_path: Path):
     idx = RagIndex(tmp_path / "rag.duckdb", embedder="hash")
-    idx.sync_store(synced_store, root=Path(__file__).resolve().parents[1], repo="orion")
-    scope = Scope.from_change(synced_store, ["fixture/dbt_project/models/marts/fct_orders.sql"], repo="orion")
+    idx.sync_store(synced_store, root=Path(__file__).resolve().parents[1], repo="fathom")
+    scope = Scope.from_change(synced_store, ["fixture/dbt_project/models/marts/fct_orders.sql"], repo="fathom")
     assert "model:fct_orders" in scope.asset_hops
     hits = idx.search("past incidents", k=5, scope=scope)
     assert any("INC-230" in h.path and h.in_scope for h in hits)

@@ -1,4 +1,4 @@
-from orion.lineage import column_lineage, dejinja
+from fathom.lineage import column_lineage, dejinja
 
 SQL = """
 {{ config(materialized='table') }}

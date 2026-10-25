@@ -2,8 +2,8 @@
 
 Eight merged changes from [honojs/hono](https://github.com/honojs/hono) and eight from
 [spf13/cobra](https://github.com/spf13/cobra), chosen as in the httpx run (`partner-httpx-sonnet-5-5.md`): each
-removes, moves or re-signs definitions. Each was reviewed with `orion review --git <commit>^` on a checkout of the
-commit, with an `orion.yaml` that names only a database. With `--git`, the commit messages are the stated intent.
+removes, moves or re-signs definitions. Each was reviewed with `fathom review --git <commit>^` on a checkout of the
+commit, with an `fathom.yaml` that names only a database. With `--git`, the commit messages are the stated intent.
 All sixteen were merged by the maintainers.
 
 | commit | change | changed definitions | deterministic warn | model warn | model inform |

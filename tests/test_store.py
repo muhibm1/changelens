@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from orion.model import Confidence, Edge, EdgeKind, Event, EventKind, Node, NodeKind, Provenance
-from orion.store import ProvenanceRequired, Store
+from fathom.model import Confidence, Edge, EdgeKind, Event, EventKind, Node, NodeKind, Provenance
+from fathom.store import ProvenanceRequired, Store
 
 
 def prov() -> Provenance:

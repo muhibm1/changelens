@@ -17,11 +17,11 @@ Every push to an open, non-draft pull request runs CI. Agents and people alike:
 | Workflow | Runs on | Skips |
 |---|---|---|
 | `ci` | pull requests (non-draft), every push to `main`, by hand | changes to top-level `*.md` and `docs/` only |
-| `orion-gate` | pull requests touching `fixture/` (non-draft) | drafts |
-| `orion-review` | the `orion-review` label, or by hand with a PR number | everything else; it never runs on a push |
-| `orion-propose` | Mondays 03:17 UTC, or by hand | |
+| `fathom-gate` | pull requests touching `fixture/` (non-draft) | drafts |
+| `fathom-review` | the `fathom-review` label, or by hand with a PR number | everything else; it never runs on a push |
+| `fathom-propose` | Mondays 03:17 UTC, or by hand | |
 
-A newer push cancels a pull request's older run, and each job has a short timeout. Ask for Orion's self-review once, when the pull request is ready, by adding the `orion-review` label; the label comes off after the run, so add it again for a second look after a substantial change.
+A newer push cancels a pull request's older run, and each job has a short timeout. Ask for Fathom's self-review once, when the pull request is ready, by adding the `fathom-review` label; the label comes off after the run, so add it again for a second look after a substantial change.
 
 ## When Actions is out of minutes
 

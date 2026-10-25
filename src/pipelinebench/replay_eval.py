@@ -1,10 +1,10 @@
-"""Replay eval: what does ``orion review`` say about changes that real maintainers merged?
+"""Replay eval: what does ``fathom review`` say about changes that real maintainers merged?
 
 The review eval (``review_eval.py``) plants bugs in small hand-written diffs. This one replays merged
 commits from public repositories, where nearly every change is correct, so it measures what a team
 would actually see: how many warnings per change, and how many of them hold up.
 
-``pipelinebench/review/replay.yaml`` names each repository (URL, an ``orion.yaml`` to write into the
+``pipelinebench/review/replay.yaml`` names each repository (URL, an ``fathom.yaml`` to write into the
 clone) and each commit, with hand labels for warnings already judged against the upstream history:
 
 - ``confirmed``: upstream fixed exactly this later. A run that misses it loses recall.
@@ -14,7 +14,7 @@ clone) and each commit, with hand labels for warnings already judged against the
   is already gone from it). Counted apart, neither as signal nor as noise.
 
 A warning that matches no label is ``unjudged`` and listed for a person to label. Labels are written by
-hand from the upstream history and must never be derived from Orion's output.
+hand from the upstream history and must never be derived from Fathom's output.
 """
 
 from __future__ import annotations
@@ -64,29 +64,29 @@ def load(path: Path) -> tuple[dict[str, dict[str, Any]], list[Case]]:
 
 
 def prepare(name: str, spec: dict[str, Any], workdir: Path) -> Path:
-    """Clone once, write the repository's orion.yaml (untracked), and sync when the config has a platform."""
+    """Clone once, write the repository's fathom.yaml (untracked), and sync when the config has a platform."""
     clone = workdir / name
     if not (clone / ".git").exists():
         subprocess.run(["git", "clone", "-q", "--filter=blob:none", spec["url"], str(clone)], check=True)
-    cfg = clone / "orion.yaml"
+    cfg = clone / "fathom.yaml"
     if not cfg.exists():
-        cfg.write_text(spec.get("config") or "db: .orion/graph.duckdb\n")
-    # Keep the config and the graph out of the diff under review: `orion review --git` adds untracked files.
+        cfg.write_text(spec.get("config") or "db: .fathom/graph.duckdb\n")
+    # Keep the config and the graph out of the diff under review: `fathom review --git` adds untracked files.
     exclude = clone / ".git" / "info" / "exclude"
     if exclude.parent.is_dir():
         have = {ln.strip() for ln in (exclude.read_text().splitlines() if exclude.exists() else [])}
-        missing = [p for p in ("orion.yaml", ".orion/") if p not in have]
+        missing = [p for p in ("fathom.yaml", ".fathom/") if p not in have]
         if missing:
             with exclude.open("a") as fh:
                 fh.write("".join(f"\n{p}" for p in missing) + "\n")
     return clone
 
 
-def review_commit(orion: str, clone: Path, commit: str, provider: str, model: str | None, extra_args: list[str] | None = None) -> dict[str, Any]:
+def review_commit(fathom: str, clone: Path, commit: str, provider: str, model: str | None, extra_args: list[str] | None = None) -> dict[str, Any]:
     subprocess.run(["git", "-C", str(clone), "checkout", "-q", "-f", commit], check=True)
-    cmd = [orion, "review", "--git", f"{commit}^", "--provider", provider, "--format", "json"] + (["--model", model] if model else []) + list(extra_args or [])
+    cmd = [fathom, "review", "--git", f"{commit}^", "--provider", provider, "--format", "json"] + (["--model", model] if model else []) + list(extra_args or [])
     # Every eval review is a fresh sample: a cached answer would freeze one run's result into the next.
-    p = subprocess.run(cmd, cwd=clone, capture_output=True, text=True, env={**os.environ, "ORION_REVIEW_CACHE": "0"})
+    p = subprocess.run(cmd, cwd=clone, capture_output=True, text=True, env={**os.environ, "FATHOM_REVIEW_CACHE": "0"})
     if p.returncode not in (0, 1):  # 1 is a block verdict
         return {"error": (p.stderr or p.stdout)[-2000:]}
     return json.loads(p.stdout)
@@ -127,16 +127,16 @@ def _head(clone: Path) -> str:
     return subprocess.run(["git", "-C", str(clone), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
 
 
-def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, orion: str, provider: str, model: str | None, extra_args: list[str] | None = None, progress=None) -> dict[str, Any]:
+def run(cases: list[Case], repos: dict[str, dict[str, Any]], workdir: Path, *, fathom: str, provider: str, model: str | None, extra_args: list[str] | None = None, progress=None) -> dict[str, Any]:
     clones = {name: prepare(name, repos[name], workdir) for name in sorted({c.repo for c in cases})}
     heads = {name: _head(clone) for name, clone in clones.items()}
-    unsynced = {n for n, clone in clones.items() if repos[n].get("needs_sync") and not (clone / ".orion" / "graph.duckdb").exists()}
+    unsynced = {n for n, clone in clones.items() if repos[n].get("needs_sync") and not (clone / ".fathom" / "graph.duckdb").exists()}
     rows = []
     for c in cases:
         if c.repo in unsynced:
-            result = {"error": f"{c.repo} needs a compiled manifest and `orion sync` in {clones[c.repo]} first"}
+            result = {"error": f"{c.repo} needs a compiled manifest and `fathom sync` in {clones[c.repo]} first"}
         else:
-            result = review_commit(orion, clones[c.repo], c.commit, provider, model, extra_args)
+            result = review_commit(fathom, clones[c.repo], c.commit, provider, model, extra_args)
         row = judge(c, result)
         rows.append(row)
         if progress:

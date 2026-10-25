@@ -1,13 +1,13 @@
 """Find the commits that introduced bugs which later fix commits removed.
 
-A real-world recall test for ``orion review``: would the reviewer have caught the bug when it was
+A real-world recall test for ``fathom review``: would the reviewer have caught the bug when it was
 introduced? For each fix commit in a repository, the lines the fix removed (or, for a pure addition,
 the lines around it) are blamed at the fix's parent. When one earlier commit wrote most of those lines
 and that commit is small enough to review, it is a candidate case: review the introducing commit, and
 expect a warning at the lines the fix later touched, in the introducing commit's own numbering.
 
 The output is a list of candidates for a person to read and label (``pipelinebench/review/recall.yaml``).
-Nothing here reads Orion's output; the cases come from the upstream history alone.
+Nothing here reads Fathom's output; the cases come from the upstream history alone.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from orion.diffparse import parse
+from fathom.diffparse import parse
 
 SOURCE_RE = re.compile(r"\.(py|ts|tsx|js|jsx|go|rs|rb|java|kt|cs|c|cc|cpp|h|hpp|sql)$")
 TEST_RE = re.compile(r"(^|/)(tests?|__tests__|spec|testdata)(/|$)|_test\.|\.test\.|\.spec\.|test_", re.I)

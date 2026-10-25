@@ -2,7 +2,7 @@
  "format-version": 2,
  "table-uuid": "5c0e8b7a-raw-events",
  "location": "s3://lake/raw/raw_events",
- "orion-asset": "source:raw.raw_events",
+ "fathom-asset": "source:raw.raw_events",
  "current-schema-id": 1,
  "schemas": [
   {

@@ -3,8 +3,8 @@
 * ``scripted``: a deterministic reader. With a verdict it follows the verdict; with files or chunks it
   keyword-matches constraints and incidents that mention the changed assets. It is the floor, and the
   proof that the harness measures the context rather than the model.
-* ``claude``: the Anthropic Messages API through Orion's provider interface (``ORION_ANTHROPIC_API_KEY`` or ``ANTHROPIC_API_KEY``),
-  under the dollar cap in ``ORION_API_CAP``.
+* ``claude``: the Anthropic Messages API through Fathom's provider interface (``FATHOM_ANTHROPIC_API_KEY`` or ``ANTHROPIC_API_KEY``),
+  under the dollar cap in ``FATHOM_API_CAP``.
 * ``command``: any executable that reads the prompt JSON on stdin and writes a Decision JSON on stdout,
   so an OpenHands, Codex or in-house agent can sit in the same harness.
 """
@@ -78,7 +78,7 @@ class ScriptedAgent:
     name = "scripted"
 
     def decide(self, prompt: Prompt) -> Decision:
-        if prompt.condition == "orion" and prompt.extra.get("verdict"):
+        if prompt.condition == "fathom" and prompt.extra.get("verdict"):
             v = prompt.extra["verdict"]
             cited = [c["id"] for c in v["constraints"] if c["status"] == "fires"]
             cited += [h["ref"] for h in v["history"] if h["kind"] in ("postmortem_filed", "incident_opened") and h["ref"]]
@@ -126,10 +126,10 @@ DECISION_SCHEMA = {
 
 
 class ClaudeAgent:
-    """A model behind Orion's provider interface (no vendor SDK); token use is summed in ``usage``."""
+    """A model behind Fathom's provider interface (no vendor SDK); token use is summed in ``usage``."""
 
     def __init__(self, model: str = "claude-sonnet-5-5", max_tokens: int = 2000):
-        from orion.providers import AnthropicProvider
+        from fathom.providers import AnthropicProvider
 
         self.name = f"claude:{model}"
         self.model = model
@@ -137,7 +137,7 @@ class ClaudeAgent:
         self.usage = {"input_tokens": 0, "output_tokens": 0, "errors": 0}
 
     def decide(self, prompt: Prompt) -> Decision:
-        from orion.providers import ProviderError
+        from fathom.providers import ProviderError
 
         self.provider.last_usage = None  # a failed call must not count the previous call's tokens again
         try:

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from orion.adapters.airflow import parse_bash_command, parse_dag_file
+from fathom.adapters.airflow import parse_bash_command, parse_dag_file
 
 DAGS = Path(__file__).resolve().parents[1] / "fixture" / "dags"
 
@@ -28,7 +28,7 @@ def test_parse_bash_command_flags():
 
 
 def test_gusty_folders_are_dags_and_their_files_are_tasks(tmp_path):
-    from orion.adapters.airflow import dag_files, load
+    from fathom.adapters.airflow import dag_files, load
 
     dags = tmp_path / "dags"
     ext = dags / "create_external_tables"
@@ -63,7 +63,7 @@ def test_gusty_folders_are_dags_and_their_files_are_tasks(tmp_path):
 
 
 def test_a_dag_file_that_does_not_parse_is_noted_and_skipped(tmp_path):
-    from orion.adapters.airflow import load
+    from fathom.adapters.airflow import load
 
     dags = tmp_path / "dags"
     dags.mkdir()
@@ -133,7 +133,7 @@ def test_taskflow_dags_read_tasks_groups_commands_and_dependencies(tmp_path):
 
 
 def test_taskflow_dbt_task_builds_what_a_source_tag_selects(tmp_path):
-    from orion.adapters.airflow import load
+    from fathom.adapters.airflow import load
 
     dags = tmp_path / "dags"
     dags.mkdir()

@@ -1,6 +1,6 @@
 # Replay eval: merged changes from public repositories
 
-2026-10-18. `pipelinebench replay-eval` runs `orion review --git <commit>^` on 38 changes that maintainers
+2026-10-18. `pipelinebench replay-eval` runs `fathom review --git <commit>^` on 38 changes that maintainers
 merged: 10 from httpx, 8 from hono, 8 from cobra and 12 from the cal-itp dbt warehouse. The commit message is
 the stated intent. Each warning is matched to a hand label in `pipelinebench/review/replay.yaml`, judged
 against the project's later history:
@@ -74,15 +74,15 @@ otherwise; the recall eval on real bugs (`recall.md`) is the measurement that sa
 ## Limits
 
 - One run per condition. A difference of one or two warnings is within run-to-run variance.
-- The labels were written by the same project that builds Orion, from the upstream history. They are not
-  derived from Orion's output.
+- The labels were written by the same project that builds Fathom, from the upstream history. They are not
+  derived from Fathom's output.
 - cal-itp replays against a graph synced at `8af13f10`, after these changes. Models a change deletes are
   already gone, which is what the two `setup` warnings are.
 - About 0.5M input tokens per run, roughly $0.8 with Haiku.
 
 ## Rerun
 
-Clone the four repositories into one folder. cal-itp also needs a compiled manifest and `orion sync`
+Clone the four repositories into one folder. cal-itp also needs a compiled manifest and `fathom sync`
 (`partner-calitp-dbt.md`). Then run:
 
 ```

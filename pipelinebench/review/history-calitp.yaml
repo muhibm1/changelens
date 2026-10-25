@@ -2,7 +2,7 @@
 # Written by hand from the upstream history: each bug is a commit that introduced a problem a later commit fixed,
 # found with `pipelinebench mine-introducers` and then read; candidates whose fix needs knowledge no reviewer of the
 # diff has (an upstream app's version strings, a CSV consumer's format), or whose fix gives no reason, are left out.
-# Never derive these from Orion's output.
+# Never derive these from Fathom's output.
 repo: calitp
 bugs:
   - commit: 34716dcc27
@@ -86,7 +86,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 26
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "531cd123":
     - path: .github/workflows/deploy-dbt.yml
       line: 421
@@ -162,7 +162,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 30
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: .github/workflows/deploy-dbt.yml
       line: 142
       verdict: confirmed
@@ -180,17 +180,17 @@ warnings:
     - path: warehouse/package-lock.yml
       line: 8
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "db679552":
     - path: warehouse/pyproject.toml
       line: 62
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "e4b26f26":
     - path: warehouse/dbt_project.yml
       line: 32
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: warehouse/models/mart/gtfs/fct_stop_time_metrics.sql
       line: 19
       verdict: plausible
@@ -232,7 +232,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 227
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: warehouse/models/mart/tides/_mart_tides.yml
       line: 4
       verdict: plausible
@@ -278,7 +278,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 29
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: warehouse/models/mart/tides/fct_tides_vehicle_locations.sql
       line: 44
       verdict: plausible
@@ -330,7 +330,7 @@ warnings:
     - path: airflow/dags/create_external_tables/tides/vehicle_location_outcomes.yml
       line: 1
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: airflow/dags/README.md
       line: 213
       verdict: plausible
@@ -356,12 +356,12 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 233
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "e38f68ed":
     - path: warehouse/uv.lock
       line: 1089
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "0ce7a9f6":
     - path: airflow/dags/parse_elavon/elavon_to_gcs_jsonl.py
       line: 65
@@ -371,7 +371,7 @@ warnings:
     - path: warehouse/models/staging/tides/_src_tides.yaml
       line: 9
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: airflow/dags/create_external_tables/tides/vehicle_locations_outcomes.yml
       line: 4
       verdict: plausible
@@ -401,7 +401,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 29
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "14ec630f":
     - path: airflow/dags/generate_tides.py
       line: 77
@@ -425,7 +425,7 @@ warnings:
     - path: warehouse/pyproject.toml
       line: 14
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: airflow/Makefile
       line: 47
       verdict: noise
@@ -438,7 +438,7 @@ warnings:
     - path: warehouse/pyproject.toml
       line: 28
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: warehouse/pyproject.toml
       line: 36
       verdict: noise
@@ -447,7 +447,7 @@ warnings:
     - path: warehouse/pyproject.toml
       line: 24
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "a172b0ea":
     - path: warehouse/models/mart/payments/fct_payments_settlements_enghouse.sql
       line: 111
@@ -457,7 +457,7 @@ warnings:
     - path: warehouse/uv.lock
       line: 39
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "d7d76c3e":
     - path: ci/kubernetes-workloads.yaml
       line: 24
@@ -519,7 +519,7 @@ warnings:
     - path: warehouse/models/staging/payments/enghouse/_enghouse.yml
       line: 110
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
     - path: warehouse/models/staging/payments/enghouse/stg_enghouse__transactions.sql
       line: 28
       verdict: plausible
@@ -657,7 +657,7 @@ warnings:
     - path: warehouse/dbt_project.yml
       line: 98
       verdict: noise
-      note: "unmapped config or lock file: a gap in what Orion maps, not evidence the change is wrong"
+      note: "unmapped config or lock file: a gap in what Fathom maps, not evidence the change is wrong"
   "6a6df64e":
     - path: warehouse/models/staging/transit_database/stg_transit_database__organizations.sql
       line: 48

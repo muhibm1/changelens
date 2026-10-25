@@ -5,7 +5,7 @@
   the files the change touches, dbt schema and source yml, the DAGs, CODEOWNERS, the constraint files and
   the postmortems. Everything is there; nothing is connected.
 * ``rag``: the task plus the top-k chunks of the same corpus by lexical similarity, with no graph scoping.
-* ``orion``: the task plus Orion's verdict for the change.
+* ``fathom``: the task plus Fathom's verdict for the change.
 """
 
 from __future__ import annotations
@@ -15,16 +15,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from orion.changes import collect_changes
-from orion.constraints import load_constraints
-from orion.retrieval import ask as ask_corpus
-from orion.risk import RiskModel
-from orion.store import Store
-from orion.verdict import preflight, to_markdown
+from fathom.changes import collect_changes
+from fathom.constraints import load_constraints
+from fathom.retrieval import ask as ask_corpus
+from fathom.risk import RiskModel
+from fathom.store import Store
+from fathom.verdict import preflight, to_markdown
 
 from .scenarios import Scenario
 
-CONDITIONS = ("none", "repo", "rag", "orion")
+CONDITIONS = ("none", "repo", "rag", "fathom")
 REPO_CAP = 60_000
 
 
@@ -38,8 +38,8 @@ def repo_files(repo_root: Path, scenario: Scenario) -> list[Path]:
     files += sorted((fx / "dbt_project" / "models").rglob("*.yml"))
     files += sorted((fx / "dags").glob("*.py"))
     files += [fx / "CODEOWNERS"]
-    files += sorted((fx / "orion" / "constraints").glob("*.yaml"))
-    files += sorted((fx / "orion" / "incidents").glob("*.md"))
+    files += sorted((fx / "fathom" / "constraints").glob("*.yaml"))
+    files += sorted((fx / "fathom" / "incidents").glob("*.md"))
     seen: list[Path] = []
     for f in files:
         if f.exists() and f not in seen:
@@ -48,7 +48,7 @@ def repo_files(repo_root: Path, scenario: Scenario) -> list[Path]:
 
 
 def build_context(condition: str, scenario: Scenario, *, repo_root: Path, store: Store | None, constraints=None, risk: RiskModel | None = None, rag_k: int = 8) -> dict[str, Any]:
-    """Returns {"text": ..., "verdict": ... (orion only), "files": [...] (repo only)}."""
+    """Returns {"text": ..., "verdict": ... (fathom only), "files": [...] (repo only)}."""
     if condition == "none":
         return {"text": ""}
     if condition == "repo":
@@ -65,19 +65,19 @@ def build_context(condition: str, scenario: Scenario, *, repo_root: Path, store:
             used += len(chunk)
         return {"text": "\n".join(parts), "files": [str(f.relative_to(repo_root)) for f in files]}
     if store is None:
-        raise ValueError(f"condition {condition} needs a synced Orion store")
+        raise ValueError(f"condition {condition} needs a synced Fathom store")
     if condition == "rag":
         question = scenario.task + " " + " ".join(f"{o.get('asset')} {o.get('column') or ''}" for o in scenario.change.ops)
         out = ask_corpus(store, question, scope=[], limit=rag_k)
         parts = [f"### chunk: {c['chunk']} (source {c['source']})\n{c['text']}\n" for c in out["chunks"]]
         return {"text": "\n".join(parts), "chunks": [c["chunk"] for c in out["chunks"]]}
-    if condition == "orion":
-        cs = collect_changes(store, repo_root, ops=scenario.change.ops or None, intent=scenario.change.intent, scope=["fixture"], ignore=["fixture/orion"])
+    if condition == "fathom":
+        cs = collect_changes(store, repo_root, ops=scenario.change.ops or None, intent=scenario.change.intent, scope=["fixture"], ignore=["fixture/fathom"])
         v = preflight(store, cs, constraints or [], risk or RiskModel.load(None), record=False)
         return {"text": to_markdown(v) + "\n\n```json\n" + json.dumps(_jsonable(v), indent=1) + "\n```", "verdict": _jsonable(v)}
     raise ValueError(f"unknown condition {condition}")
 
 
 def load_platform(repo_root: Path, store: Store):
-    constraints, _ = load_constraints(repo_root / "fixture" / "orion" / "constraints")
+    constraints, _ = load_constraints(repo_root / "fixture" / "fathom" / "constraints")
     return constraints, RiskModel.load(None)

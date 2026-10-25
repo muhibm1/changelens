@@ -1,6 +1,6 @@
 """History replay: every change a team merged over a window, reviewed as it landed.
 
-This is the evidence a design partner asks for: "over the last six months, Orion would have flagged N of the M bugs
+This is the evidence a design partner asks for: "over the last six months, Fathom would have flagged N of the M bugs
 you later fixed, with about K false alarms a week". ``replay_eval.py`` replays a hand-picked set of commits; this
 replays all of them. Each first-parent commit in the window that touches the given paths is reviewed against its
 parent, as CI would have seen it. A labels file, written by hand from the upstream history, says
@@ -10,7 +10,7 @@ parent, as CI would have seen it. A labels file, written by hand from the upstre
 - ``warnings``: verdicts for warnings already read (``replay_eval.Label`` fields, keyed by commit): confirmed,
   plausible, noise, setup. Noise is a false alarm. A warning with no label is ``unjudged`` and listed for a person.
 
-Labels must never be derived from Orion's output.
+Labels must never be derived from Fathom's output.
 """
 
 from __future__ import annotations
@@ -89,16 +89,16 @@ def _slots(clone: Path, jobs: int) -> list[Path]:
         wt = clone.with_name(f"{clone.name}.wt{i}")
         if not (wt / ".git").exists():
             subprocess.run(["git", "-C", str(clone), "worktree", "add", "-q", "--detach", "-f", str(wt)], check=True, capture_output=True)
-        for name in ("orion.yaml",):
+        for name in ("fathom.yaml",):
             if (clone / name).exists():
                 shutil.copy(clone / name, wt / name)
-        if (clone / ".orion").is_dir() and not (wt / ".orion").exists():
-            shutil.copytree(clone / ".orion", wt / ".orion")
+        if (clone / ".fathom").is_dir() and not (wt / ".fathom").exists():
+            shutil.copytree(clone / ".fathom", wt / ".fathom")
         out.append(wt)
     return out
 
 
-def run(clone: Path, picked: list[dict[str, str]], *, orion: str, provider: str, model: str | None, extra_args: list[str] | None = None, labels: Path | None = None, raw_dir: Path | None = None, jobs: int = 1, judge_provider: Any = None, progress=None) -> dict[str, Any]:
+def run(clone: Path, picked: list[dict[str, str]], *, fathom: str, provider: str, model: str | None, extra_args: list[str] | None = None, labels: Path | None = None, raw_dir: Path | None = None, jobs: int = 1, judge_provider: Any = None, progress=None) -> dict[str, Any]:
     bugs, warn_labels = load_labels(labels)
     by_commit = {b.commit: b for b in bugs}
     free: queue.Queue[Path] = queue.Queue()
@@ -110,7 +110,7 @@ def run(clone: Path, picked: list[dict[str, str]], *, orion: str, provider: str,
     def one(c: dict[str, str]) -> dict[str, Any]:
         slot = free.get()
         try:
-            result = review_commit(orion, slot, c["commit"], provider, model, extra_args=extra_args)
+            result = review_commit(fathom, slot, c["commit"], provider, model, extra_args=extra_args)
         except Exception as e:  # noqa: BLE001 - one commit that cannot be checked out or read is an error row, not the end of the run
             result = {"error": f"{type(e).__name__}: {e}"[:2000]}
         finally:

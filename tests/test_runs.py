@@ -1,6 +1,6 @@
 """Slice 3: run history from Airflow, dbt and Iceberg becomes ledger events."""
 
-from orion.adapters.runs import parse_timedelta
+from fathom.adapters.runs import parse_timedelta
 
 
 def _kinds(store, asset, kind):
@@ -59,8 +59,8 @@ def test_resync_does_not_duplicate_provenance(synced_store):
     before = synced_store.counts()["provenance"]
     from pathlib import Path
 
-    from orion.config import load_config
-    from orion.sync import run_sync
+    from fathom.config import load_config
+    from fathom.sync import run_sync
 
-    run_sync(load_config(Path(__file__).resolve().parents[1] / "orion.yaml"), synced_store, only=["runs"], force=True)
+    run_sync(load_config(Path(__file__).resolve().parents[1] / "fathom.yaml"), synced_store, only=["runs"], force=True)
     assert synced_store.counts()["provenance"] == before

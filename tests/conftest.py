@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from orion.config import load_config
-from orion.store import Store
-from orion.sync import run_sync
+from fathom.config import load_config
+from fathom.store import Store
+from fathom.sync import run_sync
 
 ROOT = Path(__file__).resolve().parents[1]
 DBT_PROJECT = ROOT / "fixture" / "dbt_project"
@@ -26,8 +26,8 @@ def manifest() -> Path:
 
 @pytest.fixture(scope="session")
 def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> Store:
-    cfg = load_config(ROOT / "orion.yaml")
-    store = Store(tmp_path_factory.mktemp("orion") / "graph.duckdb")
+    cfg = load_config(ROOT / "fathom.yaml")
+    store = Store(tmp_path_factory.mktemp("fathom") / "graph.duckdb")
     run_sync(cfg, store)
     return store
 
@@ -35,23 +35,23 @@ def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> St
 @pytest.fixture(autouse=True)
 def _no_background_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
     """Servers built in tests do not refresh indexes behind the test's back; tests of the refresh turn it on."""
-    monkeypatch.setenv("ORION_REFRESH", "off")
+    monkeypatch.setenv("FATHOM_REFRESH", "off")
 
 
 @pytest.fixture(autouse=True)
 def _no_paid_calls(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """No test can spend API credit: real keys are removed, and the faked Anthropic calls tests make run under a
     one-dollar cap kept in a temporary ledger, never the user's."""
-    for name in ("ANTHROPIC_API_KEY", "ORION_ANTHROPIC_API_KEY"):
+    for name in ("ANTHROPIC_API_KEY", "FATHOM_ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("ORION_API_CAP", "1")
-    monkeypatch.setenv("ORION_API_LEDGER", str(tmp_path_factory.mktemp("orion-api") / "api-ledger.jsonl"))
+    monkeypatch.setenv("FATHOM_API_CAP", "1")
+    monkeypatch.setenv("FATHOM_API_LEDGER", str(tmp_path_factory.mktemp("fathom-api") / "api-ledger.jsonl"))
 
 
 @pytest.fixture(autouse=True)
 def _usage_log_in_tmp(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """Hooks and tools log to the usage log; in tests that log is a temporary file, never the user's."""
-    home = tmp_path_factory.mktemp("orion-home")
-    monkeypatch.setenv("ORION_HOME", str(home))
-    monkeypatch.setenv("ORION_USAGE", str(home / "usage.jsonl"))
-    monkeypatch.setenv("ORION_SOCKET", str(tmp_path_factory.mktemp("sock") / "d.sock"))
+    home = tmp_path_factory.mktemp("fathom-home")
+    monkeypatch.setenv("FATHOM_HOME", str(home))
+    monkeypatch.setenv("FATHOM_USAGE", str(home / "usage.jsonl"))
+    monkeypatch.setenv("FATHOM_SOCKET", str(tmp_path_factory.mktemp("sock") / "d.sock"))

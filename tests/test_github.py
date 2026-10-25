@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from orion.github import GitHubClient, find_summary, finding_id, match_previous, parse_state, post_review
+from fathom.github import GitHubClient, find_summary, finding_id, match_previous, parse_state, post_review
 
 
 def _f(path, line, title, severity="warn", source="model", category="correctness"):
@@ -45,14 +45,14 @@ REVIEW = {"severity": "warn", "findings": [_f("app/a.py", 10, "Null deref"), _f(
 
 def test_first_push_posts_inline_comments_and_a_summary_with_state():
     gh = FakeGitHub()
-    out = post_review(gh, 1, "abcdef1234", REVIEW, "**Orion review: WARN**\n- stuff\n")
+    out = post_review(gh, 1, "abcdef1234", REVIEW, "**Fathom review: WARN**\n- stuff\n")
     assert out == {"new": 3, "carried": 0, "resolved": 0, "inline_posted": 2, "replies": 0}
     review_call = next(b for m, p, b in gh.calls if p == "pulls/1/reviews")
     assert review_call["event"] == "COMMENT" and review_call["commit_id"] == "abcdef1234"
     assert [(c["path"], c["line"], c["side"]) for c in review_call["comments"]] == [("app/b.py", 3, "RIGHT"), ("app/a.py", 10, "RIGHT")], "block before warn"
-    assert "<!-- orion:" in review_call["comments"][1]["body"] and "`hunk:app/a.py:10`" in review_call["comments"][1]["body"]
+    assert "<!-- fathom:" in review_call["comments"][1]["body"] and "`hunk:app/a.py:10`" in review_call["comments"][1]["body"]
     summary = next(b for m, p, b in gh.calls if m == "POST" and p == "issues/1/comments")["body"]
-    assert summary.startswith("<!-- orion-review -->\n**Orion review: WARN**") and "Reviewed `abcdef1`: 3 new, 0 unchanged since the last push, 0 no longer raised" in summary
+    assert summary.startswith("<!-- fathom-review -->\n**Fathom review: WARN**") and "Reviewed `abcdef1`: 3 new, 0 unchanged since the last push, 0 no longer raised" in summary
     state = parse_state(summary)
     assert [s["title"] for s in state] == ["Null deref", "CON-031 columns_locked fires", "No location"]
     assert state[0]["comment_id"] == 901 and state[1]["comment_id"] == 900 and state[2]["comment_id"] is None
@@ -62,7 +62,7 @@ def test_second_push_keeps_unchanged_findings_quiet_and_replies_on_resolved_ones
     first = FakeGitHub()
     post_review(first, 1, "aaaaaaa", REVIEW, "md")
     sticky = next(b for m, p, b in first.calls if m == "POST" and p == "issues/1/comments")["body"]
-    gh = FakeGitHub(comments=[{"id": 5, "user": {"login": "github-actions[bot]"}, "body": sticky}, {"id": 6, "user": {"login": "someone"}, "body": "<!-- orion-review --> not ours"}])
+    gh = FakeGitHub(comments=[{"id": 5, "user": {"login": "github-actions[bot]"}, "body": sticky}, {"id": 6, "user": {"login": "someone"}, "body": "<!-- fathom-review --> not ours"}])
     # Same bug reworded two lines down, the constraint finding gone, one new finding.
     later = {"severity": "warn", "findings": [_f("app/a.py", 12, "Possible null dereference of user"), _f("app/c.py", 1, "Shell injection", "block", category="security")]}
     out = post_review(gh, 1, "bbbbbbb", later, "md2")
@@ -82,11 +82,11 @@ def test_summary_is_found_by_marker_and_state_whatever_the_login():
     post_review(first, 1, "aaaaaaa", REVIEW, "md")
     sticky = next(b for m, p, b in first.calls if m == "POST" and p == "issues/1/comments")["body"]
     # Posted with a PAT, so the author is a person, and someone else pasted the marker without state.
-    gh = FakeGitHub(comments=[{"id": 6, "user": {"login": "someone"}, "body": "<!-- orion-review --> not ours"}, {"id": 7, "user": {"login": "muhibm1"}, "body": sticky}])
+    gh = FakeGitHub(comments=[{"id": 6, "user": {"login": "someone"}, "body": "<!-- fathom-review --> not ours"}, {"id": 7, "user": {"login": "muhibm1"}, "body": sticky}])
     assert find_summary(gh, 1)["id"] == 7
     out = post_review(gh, 1, "bbbbbbb", REVIEW, "md2")
     assert out["carried"] == 3 and ("PATCH", "issues/comments/7", next(b for m, p, b in gh.calls if m == "PATCH")) in gh.calls
-    assert find_summary(FakeGitHub(comments=[{"id": 6, "user": {"login": "github-actions[bot]"}, "body": "<!-- orion-review --> no state"}]), 1) is None
+    assert find_summary(FakeGitHub(comments=[{"id": 6, "user": {"login": "github-actions[bot]"}, "body": "<!-- fathom-review --> no state"}]), 1) is None
 
 
 def test_match_previous_prefers_exact_id_then_nearby_line():
@@ -101,14 +101,14 @@ def test_match_previous_prefers_exact_id_then_nearby_line():
 def test_omitted_files_are_named_to_the_model(synced_store):
     from pathlib import Path
 
-    from orion.constraints import load_constraints
-    from orion.providers import StubProvider
-    from orion.review import review
-    from orion.risk import RiskModel
+    from fathom.constraints import load_constraints
+    from fathom.providers import StubProvider
+    from fathom.review import review
+    from fathom.risk import RiskModel
     from pipelinebench.review_eval import Change
 
     root = Path(__file__).resolve().parents[1]
-    cs, _ = load_constraints(root / "fixture" / "orion" / "constraints")
+    cs, _ = load_constraints(root / "fixture" / "fathom" / "constraints")
     huge = "".join(f"x{i} = {i}\n" for i in range(20000))
     diff = Change("app/huge.py", "", huge).diff() + Change("app/tiny.py", "", "t = 1\n").diff()
     stub = StubProvider()
@@ -122,7 +122,7 @@ def test_inline_failure_falls_back_to_the_summary():
     out = post_review(gh, 1, "abc", REVIEW, "md")
     assert out["inline_posted"] == 0 and out["new"] == 3
     summary = next(b for m, p, b in gh.calls if m == "POST" and p == "issues/1/comments")["body"]
-    assert "Inline comments could not be posted" in summary and json.loads(summary.split("<!-- orion-state ")[1].rstrip(" ->\n"))
+    assert "Inline comments could not be posted" in summary and json.loads(summary.split("<!-- fathom-state ")[1].rstrip(" ->\n"))
 
 
 def test_a_failed_readback_of_comment_ids_does_not_claim_the_comments_were_not_posted():

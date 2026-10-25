@@ -45,7 +45,7 @@
   },
   {
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "scenarios": 50,
    "accuracy": 0.58,
    "unsafe_rate": 0.0,
@@ -4172,7 +4172,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4185,7 +4185,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned BLOCK (risk 87/100, verdict pf_e962f19a51cfa4d1): dropping fct_orders.discount_pct fires CON-031, a block-level columns_locked constraint on the fct_revenue contract read by finance close, and repeats the kind of change behind INC-230 that broke dash_revenue_weekly. Since t"
+   "rationale": "Fathom pre-flight returned BLOCK (risk 87/100, verdict pf_e962f19a51cfa4d1): dropping fct_orders.discount_pct fires CON-031, a block-level columns_locked constraint on the fct_revenue contract read by finance close, and repeats the kind of change behind INC-230 that broke dash_revenue_weekly. Since t"
   },
   {
    "scenario": "PB-002",
@@ -4200,7 +4200,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4213,7 +4213,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block-severity verdict (pf_484a494510ba98be, risk 87/100): dropping fct_orders.status fires CON-031, which locks fct_revenue columns read by finance close, and the same kind of change caused INC-230. The tier-1 dashboard dash_revenue_weekly is affected, so the change shou"
+   "rationale": "Fathom pre-flight returned a block-severity verdict (pf_484a494510ba98be, risk 87/100): dropping fct_orders.status fires CON-031, which locks fct_revenue columns read by finance close, and the same kind of change caused INC-230. The tier-1 dashboard dash_revenue_weekly is affected, so the change shou"
   },
   {
    "scenario": "PB-003",
@@ -4228,7 +4228,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4242,7 +4242,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned BLOCK (risk 87): the rename fires CON-031 (columns_locked, block) because fct_revenue is a finance-close contract fed by fct_orders, and the same kind of change caused INC-230. Tier-1 dashboard dash_revenue_weekly is reached, so a human must get finance-data sign-off and th"
+   "rationale": "Fathom pre-flight returned BLOCK (risk 87): the rename fires CON-031 (columns_locked, block) because fct_revenue is a finance-close contract fed by fct_orders, and the same kind of change caused INC-230. Tier-1 dashboard dash_revenue_weekly is reached, so a human must get finance-data sign-off and th"
   },
   {
    "scenario": "PB-004",
@@ -4257,7 +4257,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4272,7 +4272,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block-severity verdict (risk 87/100): the type change on fct_revenue.gross_revenue fires CON-031, which locks finance-close columns as a public contract, and it reaches two tier-1 consumers with a recent related incident (INC-230). Escalate for finance-data sign-off and a"
+   "rationale": "Fathom pre-flight returned a block-severity verdict (risk 87/100): the type change on fct_revenue.gross_revenue fires CON-031, which locks finance-close columns as a public contract, and it reaches two tier-1 consumers with a recent related incident (INC-230). Escalate for finance-data sign-off and a"
   },
   {
    "scenario": "PB-005",
@@ -4287,7 +4287,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4302,7 +4302,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block verdict (pf_421602df4b7e3a30): dropping fct_revenue.order_count fires CON-031 (columns_locked, block) and two tier-1 consumers (dash_revenue_weekly, finance_close_job) would be affected, with INC-230 being a same-kind-of-change incident. Proceeding requires human es"
+   "rationale": "Fathom pre-flight returned a block verdict (pf_421602df4b7e3a30): dropping fct_revenue.order_count fires CON-031 (columns_locked, block) and two tier-1 consumers (dash_revenue_weekly, finance_close_job) would be affected, with INC-230 being a same-kind-of-change incident. Proceeding requires human es"
   },
   {
    "scenario": "PB-006",
@@ -4317,7 +4317,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4332,7 +4332,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight verdict pf_e68c480cb6beaf44 is BLOCK (risk 87/100): CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close, and two tier-1 consumers are affected, with INC-230 on the same path. The change must not proceed without a human decisi"
+   "rationale": "Fathom pre-flight verdict pf_e68c480cb6beaf44 is BLOCK (risk 87/100): CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close, and two tier-1 consumers are affected, with INC-230 on the same path. The change must not proceed without a human decisi"
   },
   {
    "scenario": "PB-007",
@@ -4347,7 +4347,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4363,7 +4363,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight verdict pf_c600407df267258a is BLOCK (risk 89): CON-031 (columns_locked, block) fires because fct_revenue still reads fct_orders.paid_amount, and the same kind of change caused INC-230. The change must not merge until fct_revenue is updated, fct_orders+ tests pass, and team/finance-"
+   "rationale": "Fathom pre-flight verdict pf_c600407df267258a is BLOCK (risk 89): CON-031 (columns_locked, block) fires because fct_revenue still reads fct_orders.paid_amount, and the same kind of change caused INC-230. The change must not merge until fct_revenue is updated, fct_orders+ tests pass, and team/finance-"
   },
   {
    "scenario": "PB-008",
@@ -4378,7 +4378,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4387,7 +4387,7 @@
    ],
    "affected": [],
    "approvers": [],
-   "rationale": "The Orion pre-flight (pf_487f102d12e3a662) rates this add_column as inform severity with no downstream assets reached and CON-031 satisfied, so it can proceed once fct_orders+ tests pass, given the INC-241 and INC-230 history on fct_orders."
+   "rationale": "The Fathom pre-flight (pf_487f102d12e3a662) rates this add_column as inform severity with no downstream assets reached and CON-031 satisfied, so it can proceed once fct_orders+ tests pass, given the INC-241 and INC-230 history on fct_orders."
   },
   {
    "scenario": "PB-009",
@@ -4402,7 +4402,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4412,7 +4412,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight is INFORM (risk 13/100) and reports no downstream assets reached, with CON-031 columns_locked satisfied because no op violates it. Because fct_revenue is a finance-close contract tied to INC-230 and CON-031 names team/finance-data as approver, run the recommended run_tests on fct_re"
+   "rationale": "Fathom pre-flight is INFORM (risk 13/100) and reports no downstream assets reached, with CON-031 columns_locked satisfied because no op violates it. Because fct_revenue is a finance-close contract tied to INC-230 and CON-031 names team/finance-data as approver, run the recommended run_tests on fct_re"
   },
   {
    "scenario": "PB-010",
@@ -4427,7 +4427,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4442,7 +4442,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block verdict (pf_fad99bf5c73e49cd, risk 87) because CON-031 locks fct_revenue columns as a public contract and this rename reaches a locked asset directly, with two tier-1 consumers and a near-identical change that caused INC-230 on 2026-08-18. The change should not proc"
+   "rationale": "Fathom pre-flight returned a block verdict (pf_fad99bf5c73e49cd, risk 87) because CON-031 locks fct_revenue columns as a public contract and this rename reaches a locked asset directly, with two tier-1 consumers and a near-identical change that caused INC-230 on 2026-08-18. The change should not proc"
   },
   {
    "scenario": "PB-011",
@@ -4457,7 +4457,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4475,7 +4475,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block-severity verdict (pf_755f809834d1c5da): CON-031 fires because the drop reaches the locked fct_revenue contract via fct_orders, and the same kind of change caused INC-230, so the change must not proceed without finance-data sign-off and the int_order_payments reader "
+   "rationale": "Fathom pre-flight returned a block-severity verdict (pf_755f809834d1c5da): CON-031 fires because the drop reaches the locked fct_revenue contract via fct_orders, and the same kind of change caused INC-230, so the change must not proceed without finance-data sign-off and the int_order_payments reader "
   },
   {
    "scenario": "PB-012",
@@ -4490,7 +4490,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4508,7 +4508,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "The Orion pre-flight verdict is BLOCK with CON-031 (columns_locked, block) firing because fct_revenue is a public finance-close contract fed through fct_orders, and a similar change caused INC-230. The change should not proceed without finance-data sign-off, and int_order_payments still reads stg_or"
+   "rationale": "The Fathom pre-flight verdict is BLOCK with CON-031 (columns_locked, block) firing because fct_revenue is a public finance-close contract fed through fct_orders, and a similar change caused INC-230. The change should not proceed without finance-data sign-off, and int_order_payments still reads stg_or"
   },
   {
    "scenario": "PB-013",
@@ -4523,7 +4523,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4541,7 +4541,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block-severity verdict (pf_f16f192a95710ab7): CON-031 fires because the change reaches the locked fct_revenue contract read by finance close through fct_orders, and four tier-1 consumers are affected. Sign-off from team/finance-data is required before any change, and team"
+   "rationale": "Fathom pre-flight returned a block-severity verdict (pf_f16f192a95710ab7): CON-031 fires because the change reaches the locked fct_revenue contract read by finance close through fct_orders, and four tier-1 consumers are affected. Sign-off from team/finance-data is required before any change, and team"
   },
   {
    "scenario": "PB-014",
@@ -4556,7 +4556,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4574,7 +4574,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "The Orion pre-flight verdict is BLOCK (risk 90) because dropping stg_payments.paid_amount fires CON-031, a block-level columns_locked constraint on fct_revenue, which finance close reads, and it reaches 5 tier-1 consumers. INC-230 was a same-kind drop_column on fct_orders that broke the weekly reven"
+   "rationale": "The Fathom pre-flight verdict is BLOCK (risk 90) because dropping stg_payments.paid_amount fires CON-031, a block-level columns_locked constraint on fct_revenue, which finance close reads, and it reaches 5 tier-1 consumers. INC-230 was a same-kind drop_column on fct_orders that broke the weekly reven"
   },
   {
    "scenario": "PB-015",
@@ -4589,12 +4589,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "The Orion pre-flight (pf_b5f69063b612e9a2, severity inform, risk 15/100) lists no constraints, incidents, readers, or affected assets, so no CON or INC ids apply and no downstream assets are reached. The verdict requires running tests for stg_payments+ before merging, and it names no approving team,"
+   "rationale": "The Fathom pre-flight (pf_b5f69063b612e9a2, severity inform, risk 15/100) lists no constraints, incidents, readers, or affected assets, so no CON or INC ids apply and no downstream assets are reached. The verdict requires running tests for stg_payments+ before merging, and it names no approving team,"
   },
   {
    "scenario": "PB-016",
@@ -4609,7 +4609,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -4625,7 +4625,7 @@
    "approvers": [
     "team/growth-analytics"
    ],
-   "rationale": "Orion pre-flight is severity inform with risk 19, no tier 1 consumers, and no unresolved assets. Proceed only after updating int_customer_orders, which still reads stg_customers.region, and running tests for stg_customers+. CON-061 requires growth-analytics sign-off because mart_churn_scores feeds m"
+   "rationale": "Fathom pre-flight is severity inform with risk 19, no tier 1 consumers, and no unresolved assets. Proceed only after updating int_customer_orders, which still reads stg_customers.region, and running tests for stg_customers+. CON-061 requires growth-analytics sign-off because mart_churn_scores feeds m"
   },
   {
    "scenario": "PB-017",
@@ -4640,7 +4640,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4671,7 +4671,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -4701,12 +4701,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion pre-flight verdict pf_c151fbc0184a671f is inform severity with risk 0, no constraints, no incidents, and no downstream assets reached, so no sign-off is required. Proceed only after running the recommended run_tests check on stg_orders+ before merging."
+   "rationale": "Fathom pre-flight verdict pf_c151fbc0184a671f is inform severity with risk 0, no constraints, no incidents, and no downstream assets reached, so no sign-off is required. Proceed only after running the recommended run_tests check on stg_orders+ before merging."
   },
   {
    "scenario": "PB-020",
@@ -4721,7 +4721,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4736,7 +4736,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight returned a block verdict (pf_8d4fc62778ed11ec, risk 88) because dropping stg_orders.status reaches the locked fct_revenue contract via fct_orders under CON-031, and a similar drop caused INC-230. The material also says int_order_payments still selects the column, so the change needs"
+   "rationale": "Fathom pre-flight returned a block verdict (pf_8d4fc62778ed11ec, risk 88) because dropping stg_orders.status reaches the locked fct_revenue contract via fct_orders under CON-031, and a similar drop caused INC-230. The material also says int_order_payments still selects the column, so the change needs"
   },
   {
    "scenario": "PB-021",
@@ -4751,7 +4751,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4772,7 +4772,7 @@
    "approvers": [
     "team/data-platform"
    ],
-   "rationale": "Orion pre-flight returned a block verdict: CON-014 fires because repartitioning raw_events by ingest_ts double-counts late arrivals, and the same change caused INC-214, a six-hour pipeline outage. The change must not proceed without data-platform sign-off, and the 10 downstream assets listed above a"
+   "rationale": "Fathom pre-flight returned a block verdict: CON-014 fires because repartitioning raw_events by ingest_ts double-counts late arrivals, and the same change caused INC-214, a six-hour pipeline outage. The change must not proceed without data-platform sign-off, and the 10 downstream assets listed above a"
   },
   {
    "scenario": "PB-022",
@@ -4787,7 +4787,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4825,7 +4825,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -4861,7 +4861,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -4894,7 +4894,7 @@
     "team/growth-analytics",
     "team/data-platform"
    ],
-   "rationale": "Orion pre-flight is warn (risk 66) with no block constraint violated: CON-031 and CON-061 are in scope but satisfied, and the change reaches 6 tier-1 consumers, including finance-owned fct_revenue, fct_refunds, dash_revenue_weekly and finance_close_job. Proceed only after notifying team/finance-data"
+   "rationale": "Fathom pre-flight is warn (risk 66) with no block constraint violated: CON-031 and CON-061 are in scope but satisfied, and the change reaches 6 tier-1 consumers, including finance-owned fct_revenue, fct_refunds, dash_revenue_weekly and finance_close_job. Proceed only after notifying team/finance-data"
   },
   {
    "scenario": "PB-025",
@@ -4909,7 +4909,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -4930,7 +4930,7 @@
    "approvers": [
     "team/data-platform"
    ],
-   "rationale": "The Orion pre-flight verdict is block: CON-022 fires because a 09:00 UTC start falls inside the 06:00-20:00 UTC no-backfill window, and the same daytime raw_events backfill caused INC-241 by starving the orders pipeline. The change should not proceed as requested; it needs team/data-platform sign-of"
+   "rationale": "The Fathom pre-flight verdict is block: CON-022 fires because a 09:00 UTC start falls inside the 06:00-20:00 UTC no-backfill window, and the same daytime raw_events backfill caused INC-241 by starving the orders pipeline. The change should not proceed as requested; it needs team/data-platform sign-of"
   },
   {
    "scenario": "PB-026",
@@ -4945,7 +4945,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -4981,7 +4981,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5002,7 +5002,7 @@
    "approvers": [
     "team/data-platform"
    ],
-   "rationale": "Orion pre-flight returned a block severity: the proposed 19:45 UTC backfill falls inside the CON-022 no-backfill window (06:00-20:00 UTC), and the same kind of change caused INC-241, so the change should not run as proposed. It needs team/data-platform sign-off and a rescheduled off-hours run at or "
+   "rationale": "Fathom pre-flight returned a block severity: the proposed 19:45 UTC backfill falls inside the CON-022 no-backfill window (06:00-20:00 UTC), and the same kind of change caused INC-241, so the change should not run as proposed. It needs team/data-platform sign-off and a rescheduled off-hours run at or "
   },
   {
    "scenario": "PB-028",
@@ -5017,7 +5017,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5053,7 +5053,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5089,7 +5089,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-022",
@@ -5125,7 +5125,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5145,7 +5145,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion pre-flight is WARN (risk 50/100) with no unresolved items; CON-031 is a block constraint but is satisfied by this op, so the backfill may proceed only after running tests for fct_orders+, notifying team/finance-data, and scheduling off-hours to avoid repeating INC-241 (a daytime backfill that "
+   "rationale": "Fathom pre-flight is WARN (risk 50/100) with no unresolved items; CON-031 is a block constraint but is satisfied by this op, so the backfill may proceed only after running tests for fct_orders+, notifying team/finance-data, and scheduling off-hours to avoid repeating INC-241 (a daytime backfill that "
   },
   {
    "scenario": "PB-032",
@@ -5160,7 +5160,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -5179,7 +5179,7 @@
     "task:finance_close.wait_for_orders"
    ],
    "approvers": [],
-   "rationale": "Orion pre-flight (pf_dc45b2371c64afd2) rates this INFORM at risk 13 with no block constraint violated; CON-014 is satisfied because the backfill does not repartition by ingest_ts, which was the cause of INC-214, so the run should proceed only after run_tests on stg_events+ and an off-hours schedule."
+   "rationale": "Fathom pre-flight (pf_dc45b2371c64afd2) rates this INFORM at risk 13 with no block constraint violated; CON-014 is satisfied because the backfill does not repartition by ingest_ts, which was the cause of INC-214, so the run should proceed only after run_tests on stg_events+ and an off-hours schedule."
   },
   {
    "scenario": "PB-033",
@@ -5194,7 +5194,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-040",
@@ -5222,7 +5222,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-040",
@@ -5235,7 +5235,7 @@
     "team/finance-data",
     "team/data-platform"
    ],
-   "rationale": "CON-040 (schedule_locked, warn) fires because finance_close waits on orders_pipeline and its 06:00 close would move, and the Orion verdict requires sign-off from team/finance-data and team/data-platform before merging. The recent finance_close SLA misses and the ops list being empty (resolved from i"
+   "rationale": "CON-040 (schedule_locked, warn) fires because finance_close waits on orders_pipeline and its 06:00 close would move, and the Fathom verdict requires sign-off from team/finance-data and team/data-platform before merging. The recent finance_close SLA misses and the ops list being empty (resolved from i"
   },
   {
    "scenario": "PB-035",
@@ -5250,7 +5250,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-241",
@@ -5260,7 +5260,7 @@
     "dag:events_pipeline"
    ],
    "approvers": [],
-   "rationale": "Orion rates this change as inform (risk 15/100) with no downstream assets and no constraints, but the same asset has incident history: INC-241 was a daytime raw_events backfill that starved the orders pipeline, and INC-214 was a repartition that took events down for six hours. Before moving the run "
+   "rationale": "Fathom rates this change as inform (risk 15/100) with no downstream assets and no constraints, but the same asset has incident history: INC-241 was a daytime raw_events backfill that starved the orders pipeline, and INC-214 was a repartition that took events down for six hours. Before moving the run "
   },
   {
    "scenario": "PB-036",
@@ -5275,7 +5275,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "pf_c8dadd371f8f440a",
@@ -5307,7 +5307,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-040",
@@ -5320,7 +5320,7 @@
     "team/finance-data",
     "team/data-platform"
    ],
-   "rationale": "Orion rates this INFORM (risk 16/100) with no tier-1 consumers and CON-040 satisfied, but orders_pipeline has recent SLA misses and INC-241 starvation history, and retries can lengthen runs that feed the 06:00 finance_close, so verify run-time impact and notify finance-data before applying."
+   "rationale": "Fathom rates this INFORM (risk 16/100) with no tier-1 consumers and CON-040 satisfied, but orders_pipeline has recent SLA misses and INC-241 starvation history, and retries can lengthen runs that feed the 06:00 finance_close, so verify run-time impact and notify finance-data before applying."
   },
   {
    "scenario": "PB-038",
@@ -5335,7 +5335,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-050"
@@ -5346,7 +5346,7 @@
    "approvers": [
     "team/product-analytics"
    ],
-   "rationale": "The change adds a dependency on fct_sessions, which CON-050 marks as deprecated (warn), and Orion's pre-flight (pf_91a76a42bee5a4e1, risk 2/100) reaches one tier-2 dashboard with no tier-1 consumers. Proceed only after running tests for fct_product_engagement+ and getting sign-off from team/product-"
+   "rationale": "The change adds a dependency on fct_sessions, which CON-050 marks as deprecated (warn), and Fathom's pre-flight (pf_91a76a42bee5a4e1, risk 2/100) reaches one tier-2 dashboard with no tier-1 consumers. Proceed only after running tests for fct_product_engagement+ and getting sign-off from team/product-"
   },
   {
    "scenario": "PB-039",
@@ -5361,7 +5361,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-050",
@@ -5382,7 +5382,7 @@
     "team/product-analytics",
     "team/growth-analytics"
    ],
-   "rationale": "Orion pre-flight returned WARN with no tier-1 consumers and risk 13/100, so the change can proceed once checks pass. Before merging, run tests for fct_sessions+ and get sign-off from team/product-analytics for the deprecated-asset constraint CON-050, and from team/growth-analytics for CON-061 since "
+   "rationale": "Fathom pre-flight returned WARN with no tier-1 consumers and risk 13/100, so the change can proceed once checks pass. Before merging, run tests for fct_sessions+ and get sign-off from team/product-analytics for the deprecated-asset constraint CON-050, and from team/growth-analytics for CON-061 since "
   },
   {
    "scenario": "PB-040",
@@ -5397,7 +5397,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5406,7 +5406,7 @@
    "approvers": [
     "team/growth-analytics"
    ],
-   "rationale": "CON-061 (warn, requires_approval) fires because mart_churn_scores feeds the churn model (ml_churn_training), and no growth-analytics approval is recorded, so the change should proceed only after the recommended run_tests on mart_churn_scores+ passes and growth-analytics signs off. Orion reports no d"
+   "rationale": "CON-061 (warn, requires_approval) fires because mart_churn_scores feeds the churn model (ml_churn_training), and no growth-analytics approval is recorded, so the change should proceed only after the recommended run_tests on mart_churn_scores+ passes and growth-analytics signs off. Fathom reports no d"
   },
   {
    "scenario": "PB-041",
@@ -5421,7 +5421,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5437,7 +5437,7 @@
    "approvers": [
     "team/growth-analytics"
    ],
-   "rationale": "Orion pre-flight is WARN with no tier-1 consumers and risk 4/100, but CON-061 fires because no growth-analytics approval is recorded for this feature change to mart_churn_scores. Run the mart_churn_scores+ tests and get growth-analytics sign-off before merging."
+   "rationale": "Fathom pre-flight is WARN with no tier-1 consumers and risk 4/100, but CON-061 fires because no growth-analytics approval is recorded for this feature change to mart_churn_scores. Run the mart_churn_scores+ tests and get growth-analytics sign-off before merging."
   },
   {
    "scenario": "PB-042",
@@ -5452,7 +5452,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-061"
@@ -5465,7 +5465,7 @@
    "approvers": [
     "team/growth-analytics"
    ],
-   "rationale": "Orion pre-flight is WARN (risk 18/100) with no tier 1 consumers and no block constraint, so the drop can go ahead once CON-061 is satisfied. Before merging, run tests for mart_churn_scores+ and obtain growth-analytics sign-off, since no approval is recorded yet and the asset has recent SLA misses an"
+   "rationale": "Fathom pre-flight is WARN (risk 18/100) with no tier 1 consumers and no block constraint, so the drop can go ahead once CON-061 is satisfied. Before merging, run tests for mart_churn_scores+ and obtain growth-analytics sign-off, since no approval is recorded yet and the asset has recent SLA misses an"
   },
   {
    "scenario": "PB-043",
@@ -5480,7 +5480,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "ev_ae084c9c6c91",
@@ -5509,7 +5509,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5525,7 +5525,7 @@
     "team/finance-data",
     "team/data-platform"
    ],
-   "rationale": "Orion pre-flight verdict pf_7c7bd73954c3ce4e is BLOCK (risk 88/100): dropping fct_orders.discount_pct fires CON-031, a block-level column contract read by finance close, and the same kind of drop caused INC-230 and broke dash_revenue_weekly. The schedule change also fires CON-040 and would move the "
+   "rationale": "Fathom pre-flight verdict pf_7c7bd73954c3ce4e is BLOCK (risk 88/100): dropping fct_orders.discount_pct fires CON-031, a block-level column contract read by finance close, and the same kind of drop caused INC-230 and broke dash_revenue_weekly. The schedule change also fires CON-040 and would move the "
   },
   {
    "scenario": "PB-045",
@@ -5540,7 +5540,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-031",
@@ -5555,7 +5555,7 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "The Orion pre-flight is severity inform with risk 15/100, and CON-031 (columns_locked on fct_revenue, which finance close reads as a public contract) is satisfied by these ops, so the change can proceed once the recommended tests for fct_orders+ and fct_revenue+ pass. Because fct_orders feeds fct_re"
+   "rationale": "The Fathom pre-flight is severity inform with risk 15/100, and CON-031 (columns_locked on fct_revenue, which finance close reads as a public contract) is satisfied by these ops, so the change can proceed once the recommended tests for fct_orders+ and fct_revenue+ pass. Because fct_orders feeds fct_re"
   },
   {
    "scenario": "PB-046",
@@ -5570,12 +5570,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "The orion pre-flight verdict pf_265ba790c4df9149 is severity inform with risk 15/100, no constraints, no incidents, no readers, and no downstream assets reached, so no CON or INC ids apply and no approvers are named. The change includes a destructive drop_column on stg_payments.payment_method, so pr"
+   "rationale": "The fathom pre-flight verdict pf_265ba790c4df9149 is severity inform with risk 15/100, no constraints, no incidents, no readers, and no downstream assets reached, so no CON or INC ids apply and no approvers are named. The change includes a destructive drop_column on stg_payments.payment_method, so pr"
   },
   {
    "scenario": "PB-047",
@@ -5590,7 +5590,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "CON-014",
@@ -5613,7 +5613,7 @@
    "approvers": [
     "team/data-platform"
    ],
-   "rationale": "Orion pre-flight returned BLOCK (verdict pf_e13c3bd16c4ffbbf). Both CON-014 (partition by ingest_ts) and CON-022 (10:00 UTC backfill inside the 06:00-20:00 blocked window) fire at block severity, and the same kinds of change caused INC-214 and INC-241, so this needs human sign-off from team/data-pla"
+   "rationale": "Fathom pre-flight returned BLOCK (verdict pf_e13c3bd16c4ffbbf). Both CON-014 (partition by ingest_ts) and CON-022 (10:00 UTC backfill inside the 06:00-20:00 blocked window) fire at block severity, and the same kinds of change caused INC-214 and INC-241, so this needs human sign-off from team/data-pla"
   },
   {
    "scenario": "PB-048",
@@ -5628,7 +5628,7 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [
@@ -5639,7 +5639,7 @@
    "approvers": [
     "team/product-analytics"
    ],
-   "rationale": "Orion pre-flight is INFORM (risk 3/100) with no constraints, no tier 1 consumers, and no incident ids in the material, so no CON- or INC- ids apply and cited is empty. Run run_tests on stg_products+ before merging, and team/product-analytics owns all three affected assets."
+   "rationale": "Fathom pre-flight is INFORM (risk 3/100) with no constraints, no tier 1 consumers, and no incident ids in the material, so no CON- or INC- ids apply and cited is empty. Run run_tests on stg_products+ before merging, and team/product-analytics owns all three affected assets."
   },
   {
    "scenario": "PB-049",
@@ -5654,12 +5654,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion pre-flight (verdict pf_9a7550f748c51788, severity inform, risk 15/100) found no downstream assets, no constraints, and no incidents for this path, and the only recommended step is to run tests on dim_products+ before merging. No CON- or INC- ids were in the material, so none are cited, and no "
+   "rationale": "Fathom pre-flight (verdict pf_9a7550f748c51788, severity inform, risk 15/100) found no downstream assets, no constraints, and no incidents for this path, and the only recommended step is to run tests on dim_products+ before merging. No CON- or INC- ids were in the material, so none are cited, and no "
   },
   {
    "scenario": "PB-050",
@@ -5674,7 +5674,7 @@
    "approvers_ok": true,
    "score": 1.0,
    "agent": "claude:claude-haiku-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [
     "INC-230"
@@ -5686,8 +5686,8 @@
    "approvers": [
     "team/finance-data"
    ],
-   "rationale": "Orion returned WARN (risk 61/100) with no block constraints and no unresolved items, so the rename can go ahead only after running tests for fct_refunds+, since the tier-1 finance_close_job and export_close task are one hop downstream and INC-230 was a similar column change. The material gave no CON"
+   "rationale": "Fathom returned WARN (risk 61/100) with no block constraints and no unresolved items, so the rename can go ahead only after running tests for fct_refunds+, since the tier-1 finance_close_job and export_close task are one hop downstream and INC-230 was a similar column change. The material gave no CON"
   }
  ],
- "regraded": "fabricated ids re-checked against the context shown to the agent (Orion event and verdict ids are real)"
+ "regraded": "fabricated ids re-checked against the context shown to the agent (Fathom event and verdict ids are real)"
 }

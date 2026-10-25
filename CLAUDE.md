@@ -1,6 +1,6 @@
-# Working on Orion
+# Working on Fathom
 
-Orion is a provider-agnostic code-review and change-intelligence layer for developers and coding agents. General review is the baseline; system context (blast radius, constraints, ownership, incidents, outcomes) is the differentiator. These rules hold for every change.
+Fathom is the context layer for AI agents on data platforms: column-level lineage, constraints-as-code, ownership and incident history, checked before a change lands. General code review is the baseline; system context (blast radius, constraints, ownership, incidents, outcomes) is the differentiator. These rules hold for every change.
 
 ## Product boundaries
 
@@ -8,7 +8,7 @@ Orion is a provider-agnostic code-review and change-intelligence layer for devel
 - Every finding needs evidence (an id from the store, a file and line, or a diff hunk) and a location where one applies. A finding without valid evidence is rejected or marked uncertain, never shown as fact.
 - Never invent owners, dependencies, lineage, constraints, incidents or approvals. If the store does not know, say "not recorded".
 - Surface uncertainty. Unresolved paths and low-confidence mappings go in the output's `unresolved` list; they are never dropped silently.
-- Orion advises and records. It never writes to a production platform and never approves its own constraint proposals; enforcement belongs to an explicitly configured gate (`orion gate` in CI).
+- Fathom advises and records. It never writes to a production platform and never approves its own constraint proposals; enforcement belongs to an explicitly configured gate (`fathom gate` in CI).
 - No mandatory model vendor. Model calls go through the provider interface, never a vendor SDK called from review logic.
 
 ## How to change the code
@@ -19,10 +19,10 @@ Orion is a provider-agnostic code-review and change-intelligence layer for devel
 - Preserve CLI flags, MCP tool names and argument shapes, and the verdict JSON fields once released.
 - Do not build deferred features (more providers, more platform adapters, hosted services) without an explicit reason recorded in the commit message.
 - Never commit credentials, API keys or `.env` files.
-- Actions minutes are limited: batch commits and push once per ready state, keep work-in-progress PRs as drafts, and ask for Orion's self-review with the `orion-review` label only when ready. See `CONTRIBUTING.md`.
+- Actions minutes are limited: batch commits and push once per ready state, keep work-in-progress PRs as drafts, and ask for Fathom's self-review with the `fathom-review` label only when ready. See `CONTRIBUTING.md`.
 
 ## Layout
 
-- `src/orion/`: change resolution (`changes.py`, `resolver.py`), system context (`store.py`, `adapters/`, `lineage.py`, `constraints.py`), deterministic analysis (`predicates.py`, `risk.py`, `verdict.py`), retrieval, ledger (`postflight.py`, `proposals.py`), interfaces (`cli.py`, `server.py`).
-- `src/pipelinebench/`: the benchmark. Ground truth in `generate.py` is written by hand and must never be derived from Orion.
+- `src/fathom/`: change resolution (`changes.py`, `resolver.py`), system context (`store.py`, `adapters/`, `lineage.py`, `constraints.py`), deterministic analysis (`predicates.py`, `risk.py`, `verdict.py`), retrieval, ledger (`postflight.py`, `proposals.py`), interfaces (`cli.py`, `server.py`).
+- `src/pipelinebench/`: the benchmark. Ground truth in `generate.py` is written by hand and must never be derived from Fathom.
 - `fixture/`: the sample data platform every test runs against.

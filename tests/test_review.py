@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from orion import providers
-from orion.constraints import load_constraints
-from orion.diffparse import parse, render
-from orion.providers import AnthropicProvider, OpenAICompatibleProvider, ProviderError, StubProvider, make_provider
-from orion.review import FINDINGS_SCHEMA, LENSES, merge_candidates, review, to_agent, to_markdown
-from orion.risk import RiskModel
+from fathom import providers
+from fathom.constraints import load_constraints
+from fathom.diffparse import parse, render
+from fathom.providers import AnthropicProvider, OpenAICompatibleProvider, ProviderError, StubProvider, make_provider
+from fathom.review import FINDINGS_SCHEMA, LENSES, merge_candidates, review, to_agent, to_markdown
+from fathom.risk import RiskModel
 
 ROOT = Path(__file__).resolve().parents[1]
 FCT = "fixture/dbt_project/models/marts/fct_orders.sql"
@@ -47,13 +47,13 @@ new file mode 100644
 
 @pytest.fixture(scope="module")
 def constraints():
-    cs, _ = load_constraints(ROOT / "fixture" / "orion" / "constraints")
+    cs, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
     return cs
 
 
 def _review(store, constraints, diff, provider, escalation="model"):
     """``escalation`` defaults to the model's own severity, so tests of validation and the second reading see it unchanged."""
-    return review(store, ROOT, provider, constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/orion"], escalation=escalation)
+    return review(store, ROOT, provider, constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/fathom"], escalation=escalation)
 
 
 def test_parse_diff_line_numbers():
@@ -135,7 +135,7 @@ def test_a_second_reading_lowers_warnings_it_cannot_confirm(synced_store, constr
     assert len(stub.calls) == len(LENSES) + 1, "one call per review pass, then one second reading"
 
     off = StubProvider(respond)
-    r = review(synced_store, ROOT, off, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False)
+    r = review(synced_store, ROOT, off, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/fathom"], second_reading=False)
     assert len(off.calls) == len(LENSES) and r["second_reading"]["lowered"] == 0
 
 
@@ -225,18 +225,18 @@ def test_non_retryable_error_and_unknown_provider(monkeypatch):
     with pytest.raises(ProviderError):
         make_provider("nope")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ORION_ANTHROPIC_API_KEY", raising=False)
-    with pytest.raises(ProviderError, match="ORION_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY"):
+    monkeypatch.delenv("FATHOM_ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(ProviderError, match="FATHOM_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY"):
         make_provider("anthropic")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "general")
     assert make_provider("anthropic").api_key == "general"
-    monkeypatch.setenv("ORION_ANTHROPIC_API_KEY", "orion")
-    assert make_provider("anthropic").api_key == "orion"
+    monkeypatch.setenv("FATHOM_ANTHROPIC_API_KEY", "fathom")
+    assert make_provider("anthropic").api_key == "fathom"
     assert make_provider("stub").name == "stub"
 
 
 def test_both_sides_works_whichever_side_the_file_is_on():
-    from orion.diffparse import both_sides
+    from fathom.diffparse import both_sides
 
     fd = parse(DROP_DIFF)[0]
     current = (ROOT / FCT).read_text()
@@ -250,10 +250,10 @@ def test_both_sides_works_whichever_side_the_file_is_on():
 def test_cli_review_from_diff_file(synced_store, tmp_path):
     from typer.testing import CliRunner
 
-    from orion.cli import app
+    from fathom.cli import app
 
-    cfg = ROOT / f".orion-test-{tmp_path.name}.yaml"  # beside orion.yaml so relative paths resolve the same way
-    cfg.write_text((ROOT / "orion.yaml").read_text().replace("db: .orion/graph.duckdb", f"db: {synced_store.path}"))
+    cfg = ROOT / f".fathom-test-{tmp_path.name}.yaml"  # beside fathom.yaml so relative paths resolve the same way
+    cfg.write_text((ROOT / "fathom.yaml").read_text().replace("db: .fathom/graph.duckdb", f"db: {synced_store.path}"))
     d = tmp_path / "change.diff"
     d.write_text(DROP_DIFF)
     synced_store.con.close()
@@ -314,7 +314,7 @@ def test_whole_file_context_skips_secret_files_and_mismatched_text(synced_store,
 
 
 def test_whole_file_context_never_reads_outside_the_repo(tmp_path):
-    from orion.review import _read_in_repo
+    from fathom.review import _read_in_repo
 
     (tmp_path / "repo").mkdir()
     (tmp_path / "outside.txt").write_text("secret\n")
@@ -389,7 +389,7 @@ def test_a_review_against_a_base_ref_takes_the_commit_messages_as_intent(synced_
 
 
 def test_openai_requests_use_the_strict_schema_form(monkeypatch):
-    from orion.providers import strict_schema
+    from fathom.providers import strict_schema
 
     sent = []
     monkeypatch.setattr(providers.urllib.request, "urlopen", lambda req, timeout: sent.append(json.loads(req.data)) or _Resp(json.dumps({"choices": [{"message": {"content": '{"findings": []}'}}]}).encode()))
@@ -440,12 +440,12 @@ def test_a_second_reading_never_lowers_a_finding_below_its_constraint_floor(sync
     assert f["severity"] == "block" and sent == [], "the firing block constraint sets the floor; there is nothing to second-guess"
 
 
-def test_review_runs_without_orion_yaml_as_a_general_review(tmp_path, monkeypatch):
+def test_review_runs_without_fathom_yaml_as_a_general_review(tmp_path, monkeypatch):
     import subprocess
 
     from typer.testing import CliRunner
 
-    from orion.cli import app
+    from fathom.cli import app
 
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     (tmp_path / "m.py").write_text("def total(xs):\n    return sum(xs)\n")
@@ -461,7 +461,7 @@ def test_review_runs_without_orion_yaml_as_a_general_review(tmp_path, monkeypatc
 
 
 def test_a_model_finding_repeating_the_credential_block_is_dropped():
-    from orion.review import _dedupe
+    from fathom.review import _dedupe
 
     det = [{"path": "m.py", "line": 4, "category": "security", "title": "Possible AWS access key committed", "evidence": ["hunk:m.py:4"]}]
     model = [
@@ -476,7 +476,7 @@ def test_a_model_finding_repeating_the_credential_block_is_dropped():
 def test_a_base_that_moved_on_is_not_shown_as_this_branch_undoing_it(tmp_path):
     import subprocess
 
-    from orion.changes import fork_point, git_changes
+    from fathom.changes import fork_point, git_changes
 
     def git(*a):
         return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
@@ -502,7 +502,7 @@ def test_a_binary_file_in_the_diff_does_not_stop_the_preflight(tmp_path):
     """A changed image beside a code change reads as replaced text, never a decode error (a real change)."""
     import subprocess
 
-    from orion.changes import git_changes
+    from fathom.changes import git_changes
 
     def git(*a):
         return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
@@ -522,7 +522,7 @@ def test_a_binary_file_in_the_diff_does_not_stop_the_preflight(tmp_path):
 
 def test_two_different_binaries_never_read_as_the_same_text():
     """Bytes that differ only where UTF-8 cannot decode them stay different."""
-    from orion.changes import _as_text
+    from fathom.changes import _as_text
 
     assert _as_text(b"\x00\x94\xff") != _as_text(b"\x00\xff\x94")
     assert _as_text(b"\x00\x94\xff") == _as_text(b"\x00\x94\xff")
@@ -530,7 +530,7 @@ def test_two_different_binaries_never_read_as_the_same_text():
 
 def test_a_text_file_the_locale_cannot_decode_still_reads_as_text(tmp_path):
     """A stray undecodable byte in a text file costs one character, not the file's content or the run."""
-    from orion.changes import _as_text
+    from fathom.changes import _as_text
 
     text = _as_text(b"select a,\n    b \xff\nfrom t\n")
     assert text.startswith("select a,\n") and "from t\n" in text
@@ -542,7 +542,7 @@ def test_a_line_ending_only_change_reads_as_no_change(tmp_path):
     """CRLF on the base and LF in the working tree is the same text, as text mode read it before."""
     import subprocess
 
-    from orion.changes import git_changes
+    from fathom.changes import git_changes
 
     def git(*a):
         return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", "-c", "core.autocrlf=false", *a], check=True, capture_output=True, text=True).stdout.strip()
@@ -559,7 +559,7 @@ def test_a_line_ending_only_change_reads_as_no_change(tmp_path):
 def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tmp_path):
     import subprocess
 
-    from orion.changes import ChangeSet, _settle_removed_entries, git_changes
+    from fathom.changes import ChangeSet, _settle_removed_entries, git_changes
 
     def git(*a):
         return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.email=a@b", "-c", "user.name=a", *a], check=True, capture_output=True, text=True).stdout.strip()
@@ -589,7 +589,7 @@ def test_a_renamed_model_is_an_edit_and_its_old_schema_entry_is_accounted_for(tm
 
 
 def test_a_warn_raised_only_for_unmapped_paths_has_a_finding_behind_it(synced_store, constraints):
-    path = "fixture/dbt_project/macros/cents.sql"  # a changed macro: Orion maps no asset to it
+    path = "fixture/dbt_project/macros/cents.sql"  # a changed macro: Fathom maps no asset to it
     diff = f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -1 +1 @@\n-select 1 as id\n+select 2 as id\n"
     r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], escalation="model")
     assert r["severity"] == "warn"
@@ -601,7 +601,7 @@ def test_a_warn_raised_only_for_unmapped_paths_has_a_finding_behind_it(synced_st
     r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"])
     assert r["severity"] == "inform"
     [f] = [f for f in r["findings"] if f["title"] == "1 changed path is not mapped to any asset"]
-    assert f["severity"] == "inform" and "gap in what Orion can see" in f["notes"][-1]
+    assert f["severity"] == "inform" and "gap in what Fathom can see" in f["notes"][-1]
     assert [u["path"] for u in r["unresolved"]] == [path]
 
 
@@ -665,7 +665,7 @@ def test_a_second_reading_rejects_a_repeat_of_an_earlier_finding(synced_store, c
             return {"verdicts": [{"index": 0, "holds": True, "kind": "defect", "reason": "reachable", "duplicate_of": -1}, {"index": 1, "holds": True, "kind": "defect", "reason": "same", "duplicate_of": 0}, {"index": 2, "holds": True, "kind": "defect", "reason": "same again", "duplicate_of": 1}]}
         return first
 
-    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[], escalation="model")
+    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/fathom"], lenses=[], escalation="model")
     assert [f["title"] for f in r["findings"] if f["source"] == "model"] == ["shell=True with caller input"]
     assert [f["title"] for f in r["rejected"]] == ["Command injection through the name argument", "Shell metacharacters in name run commands"], "a repeat of a repeat is a repeat too"
     assert all("shell=True with caller input" in f["notes"][-1] for f in r["rejected"])
@@ -705,7 +705,7 @@ def test_cli_agent_format_and_unknown_formats(tmp_path, monkeypatch):
 
     from typer.testing import CliRunner
 
-    from orion.cli import app
+    from fathom.cli import app
 
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     (tmp_path / "a.py").write_text("x = 1\n")
@@ -716,7 +716,7 @@ def test_cli_agent_format_and_unknown_formats(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     res = CliRunner().invoke(app, ["review", "--git", "HEAD", "--provider", "stub", "--format", "agent"])
     assert res.exit_code == 0, res.output
-    out, _ = json.JSONDecoder().raw_decode(res.output[res.output.index("{"):])  # the "no orion.yaml" note goes to stderr
+    out, _ = json.JSONDecoder().raw_decode(res.output[res.output.index("{"):])  # the "no fathom.yaml" note goes to stderr
     assert out["head"] == head and out["verdict"] == "pass"
     bad = CliRunner().invoke(app, ["review", "--git", "HEAD", "--provider", "stub", "--format", "agnet"])
     assert bad.exit_code != 0
@@ -766,7 +766,7 @@ def test_evidence_gate_lowers_a_warning_nothing_recorded_backs(synced_store, con
 
 
 def test_platform_gate_judges_only_files_mapped_to_an_asset(synced_store, constraints):
-    from orion.review import ReviewContext, gate_severity, mapped_paths
+    from fathom.review import ReviewContext, gate_severity, mapped_paths
 
     verdict = {"change": {"ops": [{"asset": "model.x", "kind": "modify", "evidence": ["diff:models/x.sql"]}]}}
     ctx = ReviewContext([], verdict)
@@ -775,7 +775,7 @@ def test_platform_gate_judges_only_files_mapped_to_an_asset(synced_store, constr
     code = dict(data, path="app/service.py", notes=[])
     assert gate_severity(ctx, [data, code], only=mapped_paths(ctx)) == 1
     assert data["severity"] == "inform", "on a mapped asset, no reader, constraint or incident is a recorded fact"
-    assert code["severity"] == "warn", "on a file Orion has no system context for, the absence of evidence says nothing"
+    assert code["severity"] == "warn", "on a file Fathom has no system context for, the absence of evidence says nothing"
     r = _review(synced_store, constraints, APP_DIFF, _one_warning("app/service.py", 5), escalation="platform")
     assert [f["severity"] for f in r["findings"] if f["source"] == "model"] == ["warn"]
     assert r["escalation"] == {"policy": "platform", "lowered": 0} and r["files"][0]["mapped"] is False
@@ -786,9 +786,9 @@ def test_platform_gate_judges_only_files_mapped_to_an_asset(synced_store, constr
 
 
 def test_system_evidence_for_code_areas_reverts_callers_and_column_readers():
-    from orion.codectx import Area, CodeContext
-    from orion.review import ReviewContext, system_evidence
-    from orion.symbols import SymbolChange
+    from fathom.codectx import Area, CodeContext
+    from fathom.review import ReviewContext, system_evidence
+    from fathom.symbols import SymbolChange
 
     files = parse(APP_DIFF)
     f = {"path": "app/service.py", "line": 5, "evidence": []}
@@ -813,7 +813,7 @@ def test_system_evidence_for_code_areas_reverts_callers_and_column_readers():
 
 
 def test_system_evidence_backs_a_data_change_on_an_asset_its_own_consumers_read():
-    from orion.review import ReviewContext, system_evidence
+    from fathom.review import ReviewContext, system_evidence
 
     def ctx(kind, origin):
         return ReviewContext([], {"change": {"touched": ["model:a", "model:b"], "ops": [{"kind": kind, "asset": "model:a", "evidence": ["diff:models/a.sql"]}, {"kind": "modify", "asset": "model:b", "evidence": ["diff:models/b.sql"]}]},
@@ -826,15 +826,15 @@ def test_system_evidence_backs_a_data_change_on_an_asset_its_own_consumers_read(
 
 
 def test_affected_assets_say_which_changed_asset_reaches_them(synced_store):
-    from orion.changes import ChangeOp, ChangeSet
-    from orion.verdict import affected_assets
+    from fathom.changes import ChangeOp, ChangeSet
+    from fathom.verdict import affected_assets
 
     cs = ChangeSet(ops=[ChangeOp("modify", "model:fct_orders", evidence=["diff:x"])], touched=["model:fct_orders"])
     reached = affected_assets(synced_store, cs)
     assert reached and all(info["from"] == ["model:fct_orders"] for info in reached.values())
 
 def test_review_cache_reuses_exact_calls_and_misses_when_the_context_changes(synced_store, constraints):
-    from orion.store import Store
+    from fathom.store import Store
 
     cache = Store(":memory:")
     calls = []
@@ -844,7 +844,7 @@ def test_review_cache_reuses_exact_calls_and_misses_when_the_context_changes(syn
         return {"findings": [{"path": "app/service.py", "line": 5, "severity": "warn", "category": "security", "title": "shell=True", "body": "b", "failure": "a name with ; runs a second command", "evidence": ["hunk:app/service.py:5"]}]}
 
     def run(store, diff=APP_DIFF):
-        return review(store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/orion"], escalation="model", second_reading=False, cache=cache)
+        return review(store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, scope=["fixture"], ignore=["fixture/fathom"], escalation="model", second_reading=False, cache=cache)
 
     first = run(synced_store)
     n = len(calls)
@@ -854,13 +854,13 @@ def test_review_cache_reuses_exact_calls_and_misses_when_the_context_changes(syn
     assert cache.cache_stats() == {"entries": n, "hits": n}
     run(synced_store, APP_DIFF.replace("shell=True", "shell=True, check=True"))
     assert len(calls) == 2 * n, "a changed hunk is reviewed again"
-    uncached = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False)
+    uncached = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/fathom"], second_reading=False)
     assert uncached["cache"]["on"] is False and len(calls) == 3 * n
 
 
 def test_review_cache_key_carries_the_system_context():
-    from orion.review import CachedProvider
-    from orion.store import Store
+    from fathom.review import CachedProvider
+    from fathom.store import Store
 
     c = CachedProvider(StubProvider({"findings": []}), Store(":memory:"))
     base = c.key("rules", ["System facts:\n- downstream node:model:a", "lens"], {"type": "object"}, "report_findings")
@@ -897,7 +897,7 @@ def test_a_warning_on_a_data_model_is_run_against_the_warehouse(synced_store, co
                 return {"checks": [{"index": "0", "sql": sql, "note": ""}]}  # an index sent as a string still matches
             return {"findings": [{"path": REFUNDS, "line": 10, "severity": "warn", "category": "data_contract", "title": "Refunds without an order now kept", "body": "b", "failure": "a refund whose order_id is not in fct_orders gets a null customer_id", "evidence": [f"hunk:{REFUNDS}:10"]}]}
 
-        return review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=JOIN_DIFF, scope=["fixture"], ignore=["fixture/orion"], lenses=[], second_reading=False, warehouse=wh, escalation=escalation)
+        return review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=JOIN_DIFF, scope=["fixture"], ignore=["fixture/fathom"], lenses=[], second_reading=False, warehouse=wh, escalation=escalation)
 
     real = run("select r.refund_id from stg_refunds r left join fct_orders o using (order_id) where o.order_id is null")
     (f,) = [f for f in real["findings"] if f["source"] == "model"]
@@ -915,7 +915,7 @@ def test_lens_passes_after_the_first_run_at_once_and_report_timing(synced_store,
     import threading
     import time
 
-    from orion.store import Store
+    from fathom.store import Store
 
     live, peak, lock = [0], [0], threading.Lock()
 
@@ -928,7 +928,7 @@ def test_lens_passes_after_the_first_run_at_once_and_report_timing(synced_store,
             live[0] -= 1
         return {"findings": []}
 
-    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False, cache=Store(":memory:"))
+    r = review(synced_store, ROOT, StubProvider(respond), constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/fathom"], second_reading=False, cache=Store(":memory:"))
     assert peak[0] == len(LENSES) - 1, "the first pass warms the prompt cache alone, the rest run together"
     assert r["timing"]["passes_s"] < 0.2 * len(LENSES) and r["timing"]["total_s"] >= r["timing"]["passes_s"]
     assert r["cache"] == {"on": True, "hits": 0, "misses": len(LENSES)}, "copies of the cached provider add to one count"
@@ -941,7 +941,7 @@ def test_model_routing_sends_large_diffs_to_the_complex_model(synced_store, cons
     big.name = "strong"
 
     def run(limit):
-        return review(synced_store, ROOT, small, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/orion"], second_reading=False, complex_provider=big, complex_lines=limit)
+        return review(synced_store, ROOT, small, constraints=constraints, risk_model=RiskModel.load(None), diff_text=APP_DIFF, scope=["fixture"], ignore=["fixture/fathom"], second_reading=False, complex_provider=big, complex_lines=limit)
 
     r = run(400)
     assert cheap and not strong and r["routing"] == {"changed_lines": 6, "passes": "stub", "second_reading": "stub"}

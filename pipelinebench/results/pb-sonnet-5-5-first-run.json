@@ -45,7 +45,7 @@
   },
   {
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "scenarios": 50,
    "accuracy": 0.44,
    "unsafe_rate": 0.32,
@@ -3688,12 +3688,12 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so the pre-flight returned no downstream, constraint, or incident data. The 0/100 risk score reflects missing information, not safety, and the claim that nothing selects discount_pct cannot be verified. The asset must be mapped and the unresol"
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so the pre-flight returned no downstream, constraint, or incident data. The 0/100 risk score reflects missing information, not safety, and the claim that nothing selects discount_pct cannot be verified. The asset must be mapped and the unresol"
   },
   {
    "scenario": "PB-002",
@@ -3708,14 +3708,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform"
    ],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so it reports zero risk only because it found nothing to check. That is no evidence the drop is safe, and dropping a column is destructive. No constraints or incidents were provided, so the asset and its downstream consumers must be mapped by "
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so it reports zero risk only because it found nothing to check. That is no evidence the drop is safe, and dropping a column is destructive. No constraints or incidents were provided, so the asset and its downstream consumers must be mapped by "
   },
   {
    "scenario": "PB-003",
@@ -3730,12 +3730,12 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so the pre-flight returned no constraints, incidents, or downstream consumers. A risk score of 0 here reflects missing information, not safety. A column rename is breaking for any reader, so a human needs to map the unresolved path and confirm"
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so the pre-flight returned no constraints, incidents, or downstream consumers. A risk score of 0 here reflects missing information, not safety. A column rename is breaking for any reader, so a human needs to map the unresolved path and confirm"
   },
   {
    "scenario": "PB-004",
@@ -3750,7 +3750,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -3758,7 +3758,7 @@
     "data-platform",
     "finance-data-owners"
    ],
-   "rationale": "Orion could not resolve 'fct_revenue' to any known asset, so its zero risk score reflects no analysis rather than safety, and no constraints, incidents, or downstream consumers were identified. Changing a financial column from decimal(18,2) to double risks precision loss, so a human must confirm the"
+   "rationale": "Fathom could not resolve 'fct_revenue' to any known asset, so its zero risk score reflects no analysis rather than safety, and no constraints, incidents, or downstream consumers were identified. Changing a financial column from decimal(18,2) to double risks precision loss, so a human must confirm the"
   },
   {
    "scenario": "PB-005",
@@ -3773,7 +3773,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -3781,7 +3781,7 @@
     "data platform owners",
     "fct_revenue asset owner"
    ],
-   "rationale": "Orion could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects missing graph coverage and not a safe change. Dropping a column is destructive and downstream consumers are unknown, so a human must map the unresolved path before this proceeds. No constraints or incidents we"
+   "rationale": "Fathom could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects missing graph coverage and not a safe change. Dropping a column is destructive and downstream consumers are unknown, so a human must map the unresolved path before this proceeds. No constraints or incidents we"
   },
   {
    "scenario": "PB-006",
@@ -3796,12 +3796,12 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'fct_revenue' to any known asset, so it returned no downstream assets, constraints, or incident history. The 0/100 risk score reflects missing graph coverage, not a safe change. Changing a revenue metric's definition without knowing its consumers is unsafe, so a human should "
+   "rationale": "Fathom could not resolve 'fct_revenue' to any known asset, so it returned no downstream assets, constraints, or incident history. The 0/100 risk score reflects missing graph coverage, not a safe change. Changing a revenue metric's definition without knowing its consumers is unsafe, so a human should "
   },
   {
    "scenario": "PB-007",
@@ -3816,7 +3816,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -3824,7 +3824,7 @@
     "data-platform",
     "analytics-engineering"
    ],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. The drop is destructive and its consumers are unknown, so a human must map the unresolved path and confirm that nothing still reads paid_amount before it is dropped"
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. The drop is destructive and its consumers are unknown, so a human must map the unresolved path and confirm that nothing still reads paid_amount before it is dropped"
   },
   {
    "scenario": "PB-008",
@@ -3839,14 +3839,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform owners"
    ],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. With no downstream consumers, constraints, or incident history visible, the blast radius is unknown and a human must map the unresolved path first."
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. With no downstream consumers, constraints, or incident history visible, the blast radius is unknown and a human must map the unresolved path first."
   },
   {
    "scenario": "PB-009",
@@ -3861,14 +3861,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform team"
    ],
-   "rationale": "Orion could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No constraints, incidents, or downstream consumers were identified, so the blast radius is unknown; the asset path must be mapped and confirmed by a human before a"
+   "rationale": "Fathom could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No constraints, incidents, or downstream consumers were identified, so the blast radius is unknown; the asset path must be mapped and confirmed by a human before a"
   },
   {
    "scenario": "PB-010",
@@ -3883,7 +3883,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -3891,7 +3891,7 @@
     "data platform owners",
     "finance data team"
    ],
-   "rationale": "Orion could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects a failed lookup and not a real assessment. Downstream consumers, constraints and incidents are unknown, and renaming a column on a revenue fact table is a breaking change. A human should confirm the correct as"
+   "rationale": "Fathom could not resolve 'fct_revenue' to any known asset, so the 0/100 risk score reflects a failed lookup and not a real assessment. Downstream consumers, constraints and incidents are unknown, and renaming a column on a revenue fact table is a breaking change. A human should confirm the correct as"
   },
   {
    "scenario": "PB-011",
@@ -3906,14 +3906,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. The drop is destructive and its downstream consumers are unknown, so a human should map the unresolved path before any action. No constraints or incidents were "
+   "rationale": "Fathom could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. The drop is destructive and its downstream consumers are unknown, so a human should map the unresolved path before any action. No constraints or incidents were "
   },
   {
    "scenario": "PB-012",
@@ -3928,7 +3928,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -3936,7 +3936,7 @@
     "data platform owners",
     "stg_orders asset owner"
    ],
-   "rationale": "Orion could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage, not a safe change. Dropping a column is destructive and downstream readers are unknown, so a human must map the unresolved path and confirm the asset and its consumers before proceeding."
+   "rationale": "Fathom could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage, not a safe change. Dropping a column is destructive and downstream readers are unknown, so a human must map the unresolved path and confirm the asset and its consumers before proceeding."
   },
   {
    "scenario": "PB-013",
@@ -3951,12 +3951,12 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'int_order_payments' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a verified safe change. Casting a payments amount column to float is a lossy, precision-risking change, and downstream consumers, constraints and incidents are unknown"
+   "rationale": "Fathom could not resolve 'int_order_payments' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a verified safe change. Casting a payments amount column to float is a lossy, precision-risking change, and downstream consumers, constraints and incidents are unknown"
   },
   {
    "scenario": "PB-014",
@@ -3971,14 +3971,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. The downstream impact of dropping paid_amount is unknown, and no constraints or incidents were returned, so a human must map the unresolved path before this destr"
+   "rationale": "Fathom could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. The downstream impact of dropping paid_amount is unknown, and no constraints or incidents were returned, so a human must map the unresolved path before this destr"
   },
   {
    "scenario": "PB-015",
@@ -3993,14 +3993,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects an empty graph, not evidence of safety. The claim that nothing downstream uses payment_method is unverified, and dropping a column is destructive, so a human must map the unresolved path and confirm the asset"
+   "rationale": "Fathom could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects an empty graph, not evidence of safety. The claim that nothing downstream uses payment_method is unverified, and dropping a column is destructive, so a human must map the unresolved path and confirm the asset"
   },
   {
    "scenario": "PB-016",
@@ -4015,14 +4015,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_customers' to any known asset, so its 0/100 risk score reflects missing graph coverage rather than a real absence of downstream consumers. Dropping a column is destructive, and no constraints, incidents, or dependents could be checked, so a human should map the unresolve"
+   "rationale": "Fathom could not resolve 'stg_customers' to any known asset, so its 0/100 risk score reflects missing graph coverage rather than a real absence of downstream consumers. Dropping a column is destructive, and no constraints, incidents, or dependents could be checked, so a human should map the unresolve"
   },
   {
    "scenario": "PB-017",
@@ -4037,12 +4037,12 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'stg_events' to any known asset, so the 0/100 risk score reflects missing graph data, not safety. No downstream consumers, constraints or incidents could be assessed for a column rename, which is a breaking change. The unresolved path must be mapped and confirmed by a human b"
+   "rationale": "Fathom could not resolve 'stg_events' to any known asset, so the 0/100 risk score reflects missing graph data, not safety. No downstream consumers, constraints or incidents could be assessed for a column rename, which is a breaking change. The unresolved path must be mapped and confirmed by a human b"
   },
   {
    "scenario": "PB-018",
@@ -4057,14 +4057,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform owners"
    ],
-   "rationale": "Orion could not resolve 'int_customer_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than safety; downstream readers, constraints and incidents are unknown. A destructive column drop should not proceed until the asset path is mapped and a human confirms the bl"
+   "rationale": "Fathom could not resolve 'int_customer_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than safety; downstream readers, constraints and incidents are unknown. A destructive column drop should not proceed until the asset path is mapped and a human confirms the bl"
   },
   {
    "scenario": "PB-019",
@@ -4079,12 +4079,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'stg_orders' to a known asset (graph_as_of is null), so the 0/100 risk score reflects missing data rather than safety; no constraints, incidents, or downstream assets were identified. Adding a nullable column is normally low-risk, but first map the unresolved path (confirm th"
+   "rationale": "Fathom could not resolve 'stg_orders' to a known asset (graph_as_of is null), so the 0/100 risk score reflects missing data rather than safety; no constraints, incidents, or downstream assets were identified. Adding a nullable column is normally low-risk, but first map the unresolved path (confirm th"
   },
   {
    "scenario": "PB-020",
@@ -4099,14 +4099,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. Dropping a column is destructive and the downstream consumers are unknown, so a human must map the unresolved path and confirm the asset and its readers before "
+   "rationale": "Fathom could not resolve 'stg_orders' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. Dropping a column is destructive and the downstream consumers are unknown, so a human must map the unresolved path and confirm the asset and its readers before "
   },
   {
    "scenario": "PB-021",
@@ -4121,14 +4121,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. Repartitioning a raw events table is hard to reverse, and downstream readers, constraints and incident history are unknown. A human should map the unresolved path b"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. Repartitioning a raw events table is hard to reverse, and downstream readers, constraints and incident history are unknown. A human should map the unresolved path b"
   },
   {
    "scenario": "PB-022",
@@ -4143,12 +4143,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "The change is a no-op on its face (partition from event_date to event_date), but Orion could not resolve 'raw_events' to a known asset, so no constraints, incidents or downstream consumers were checked. Before applying, map the unresolved path, confirm the real asset name and its current partitionin"
+   "rationale": "The change is a no-op on its face (partition from event_date to event_date), but Fathom could not resolve 'raw_events' to a known asset, so no constraints, incidents or downstream consumers were checked. Before applying, map the unresolved path, confirm the real asset name and its current partitionin"
   },
   {
    "scenario": "PB-023",
@@ -4163,12 +4163,12 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset (no candidates, empty ops, graph_as_of null), so the pre-flight shows no constraints, incidents, or downstream assets. The 0/100 risk score reflects missing data rather than safety. Repartitioning is a heavy operation, so a human should identif"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset (no candidates, empty ops, graph_as_of null), so the pre-flight shows no constraints, incidents, or downstream assets. The 0/100 risk score reflects missing data rather than safety. Repartitioning is a heavy operation, so a human should identif"
   },
   {
    "scenario": "PB-024",
@@ -4183,14 +4183,14 @@
    "approvers_ok": true,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than a real assessment. Repartitioning (from null to order_date) typically means a table rewrite, and the downstream consumers and constraints are unknown, so a human must map the unre"
+   "rationale": "Fathom could not resolve 'raw_orders' to any known asset, so the 0/100 risk score reflects missing graph data rather than a real assessment. Repartitioning (from null to order_date) typically means a table rewrite, and the downstream consumers and constraints are unknown, so a human must map the unre"
   },
   {
    "scenario": "PB-025",
@@ -4205,14 +4205,14 @@
    "approvers_ok": false,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. With no constraints, incidents, or downstream assets mapped, the blast radius of a 7-day backfill is unknown. A human should confirm the asset name and map its "
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph coverage rather than a safe change. With no constraints, incidents, or downstream assets mapped, the blast radius of a 7-day backfill is unknown. A human should confirm the asset name and map its "
   },
   {
    "scenario": "PB-026",
@@ -4227,14 +4227,14 @@
    "approvers_ok": false,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than safety, and downstream consumers, constraints and incident history are unknown. A 7-day backfill should not run until a human maps the unresolved asset and confirms its downstream"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than safety, and downstream consumers, constraints and incident history are unknown. A 7-day backfill should not run until a human maps the unresolved asset and confirms its downstream"
   },
   {
    "scenario": "PB-027",
@@ -4249,14 +4249,14 @@
    "approvers_ok": false,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score is not meaningful: there is no lineage, constraint or incident data to judge downstream impact of a 7-day backfill. The unresolved path needs to be mapped by a human before the backfill is run, and no constraints or inc"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score is not meaningful: there is no lineage, constraint or incident data to judge downstream impact of a 7-day backfill. The unresolved path needs to be mapped by a human before the backfill is run, and no constraints or inc"
   },
   {
    "scenario": "PB-028",
@@ -4271,14 +4271,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than actual safety. No constraints, incidents, or downstream assets could be identified, so the blast radius is unknown. A human should map the unresolved path and confirm the asset be"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than actual safety. No constraints, incidents, or downstream assets could be identified, so the blast radius is unknown. A human should map the unresolved path and confirm the asset be"
   },
   {
    "scenario": "PB-029",
@@ -4293,14 +4293,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing coverage and says nothing about actual safety. No constraints, incidents or downstream assets were identified, and a 7-day backfill could still reach unmapped consumers. A human should confirm the asset"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing coverage and says nothing about actual safety. No constraints, incidents or downstream assets were identified, and a 7-day backfill could still reach unmapped consumers. A human should confirm the asset"
   },
   {
    "scenario": "PB-030",
@@ -4315,14 +4315,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No constraints, incidents, or downstream assets were identified, and a 7-day backfill cannot be vetted until the asset is mapped and its owner confirms the target."
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No constraints, incidents, or downstream assets were identified, and a 7-day backfill cannot be vetted until the asset is mapped and its owner confirms the target."
   },
   {
    "scenario": "PB-031",
@@ -4337,14 +4337,14 @@
    "approvers_ok": true,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing information rather than safety, and no constraints, incidents or downstream consumers could be checked. The task also says September but the backfill is timestamped 2026-10-20 at 12:00 UTC, so the targe"
+   "rationale": "Fathom could not resolve 'fct_orders' to any known asset, so the 0/100 risk score reflects missing information rather than safety, and no constraints, incidents or downstream consumers could be checked. The task also says September but the backfill is timestamped 2026-10-20 at 12:00 UTC, so the targe"
   },
   {
    "scenario": "PB-032",
@@ -4359,14 +4359,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'stg_events' to any known asset, so the 0/100 risk score reflects missing information rather than safety, and no downstream impact, constraints, or incident history could be checked. The asset needs to be mapped and confirmed by a human before the backfill runs. The requested"
+   "rationale": "Fathom could not resolve 'stg_events' to any known asset, so the 0/100 risk score reflects missing information rather than safety, and no downstream impact, constraints, or incident history could be checked. The asset needs to be mapped and confirmed by a human before the backfill runs. The requested"
   },
   {
    "scenario": "PB-033",
@@ -4381,14 +4381,14 @@
    "approvers_ok": false,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'orders_pipeline' to any known asset, so the 0/100 risk score reflects missing information rather than a safe change. No constraints, incidents, or downstream consumers were identified, and the unresolved path must be mapped, with the asset's owner confirming consumer freshne"
+   "rationale": "Fathom could not resolve 'orders_pipeline' to any known asset, so the 0/100 risk score reflects missing information rather than a safe change. No constraints, incidents, or downstream consumers were identified, and the unresolved path must be mapped, with the asset's owner confirming consumer freshne"
   },
   {
    "scenario": "PB-034",
@@ -4403,12 +4403,12 @@
    "approvers_ok": false,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'orders_pipeline' to any known asset (no candidates, empty ops, graph_as_of null), so the 0/100 risk score reflects missing information rather than safety. The target and its downstream consumers must be identified by a human before changing the schedule, so no constraints or"
+   "rationale": "Fathom could not resolve 'orders_pipeline' to any known asset (no candidates, empty ops, graph_as_of null), so the 0/100 risk score reflects missing information rather than safety. The target and its downstream consumers must be identified by a human before changing the schedule, so no constraints or"
   },
   {
    "scenario": "PB-035",
@@ -4423,14 +4423,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'events_pipeline' to any known asset, so the pre-flight returned no downstream readers, constraints, or incident history. The 0/100 risk score reflects missing data rather than safety. The asset must be identified and its downstream paths mapped by a human before moving the s"
+   "rationale": "Fathom could not resolve 'events_pipeline' to any known asset, so the pre-flight returned no downstream readers, constraints, or incident history. The 0/100 risk score reflects missing data rather than safety. The asset must be identified and its downstream paths mapped by a human before moving the s"
   },
   {
    "scenario": "PB-036",
@@ -4445,7 +4445,7 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4453,7 +4453,7 @@
     "finance_close owners",
     "orders_pipeline owners"
    ],
-   "rationale": "Orion could not resolve 'finance_close' to any known asset, so the 0/100 risk score reflects no analysis rather than safety; no constraints, incidents, or downstream assets were identified. The unresolved path must be mapped by a human (and the orders_pipeline slack rationale confirmed) before the s"
+   "rationale": "Fathom could not resolve 'finance_close' to any known asset, so the 0/100 risk score reflects no analysis rather than safety; no constraints, incidents, or downstream assets were identified. The unresolved path must be mapped by a human (and the orders_pipeline slack rationale confirmed) before the s"
   },
   {
    "scenario": "PB-037",
@@ -4468,12 +4468,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'orders_pipeline' to any known asset, so it returned no constraints, incidents or downstream consumers. Setting retries=3 in default_args is low-risk and reversible, but first map the unresolved asset (e.g. confirm the DAG's actual ID) and verify that retries won't cause non-"
+   "rationale": "Fathom could not resolve 'orders_pipeline' to any known asset, so it returned no constraints, incidents or downstream consumers. Setting retries=3 in default_args is low-risk and reversible, but first map the unresolved asset (e.g. confirm the DAG's actual ID) and verify that retries won't cause non-"
   },
   {
    "scenario": "PB-038",
@@ -4488,12 +4488,12 @@
    "approvers_ok": false,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'fct_product_engagement' to any known asset, so its 0/100 risk score reflects missing information rather than safety, and no constraints, incidents, or downstream assets were identified. Before making the change, map the unresolved path by confirming the asset name and graph "
+   "rationale": "Fathom could not resolve 'fct_product_engagement' to any known asset, so its 0/100 risk score reflects missing information rather than safety, and no constraints, incidents, or downstream assets were identified. Before making the change, map the unresolved path by confirming the asset name and graph "
   },
   {
    "scenario": "PB-039",
@@ -4508,12 +4508,12 @@
    "approvers_ok": false,
    "score": 0.2,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'fct_sessions' to any known asset, so the graph shows no constraints, incidents, or downstream consumers. A zero-risk score here reflects missing coverage, not safety. A sessionization change like a 30-minute inactivity cutoff alters session counts and durations for downstrea"
+   "rationale": "Fathom could not resolve 'fct_sessions' to any known asset, so the graph shows no constraints, incidents, or downstream consumers. A zero-risk score here reflects missing coverage, not safety. A sessionization change like a 30-minute inactivity cutoff alters session counts and durations for downstrea"
   },
   {
    "scenario": "PB-040",
@@ -4528,12 +4528,12 @@
    "approvers_ok": false,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'mart_churn_scores' to any known asset (graph_as_of is null), so the 0/100 risk score reflects missing data rather than a verified safe change. No constraints, incidents or downstream assets were returned. Before applying, map the unresolved path, confirm the correct asset na"
+   "rationale": "Fathom could not resolve 'mart_churn_scores' to any known asset (graph_as_of is null), so the 0/100 risk score reflects missing data rather than a verified safe change. No constraints, incidents or downstream assets were returned. Before applying, map the unresolved path, confirm the correct asset na"
   },
   {
    "scenario": "PB-041",
@@ -4548,12 +4548,12 @@
    "approvers_ok": false,
    "score": 0.2,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve 'mart_churn_scores' to any known asset, so the 0/100 risk score reflects missing data and not a safe change. With no downstream assets, constraints or incidents identified, blast radius is unknown; the asset name or path should be mapped and confirmed with a human before the "
+   "rationale": "Fathom could not resolve 'mart_churn_scores' to any known asset, so the 0/100 risk score reflects missing data and not a safe change. With no downstream assets, constraints or incidents identified, blast radius is unknown; the asset name or path should be mapped and confirmed with a human before the "
   },
   {
    "scenario": "PB-042",
@@ -4568,7 +4568,7 @@
    "approvers_ok": false,
    "score": 0.2,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4576,7 +4576,7 @@
     "data platform team",
     "owner of mart_churn_scores"
    ],
-   "rationale": "Orion could not resolve 'mart_churn_scores' to a known asset, so the 0/100 risk score reflects missing information rather than safety; no downstream readers, constraints, or incidents could be checked. A destructive column drop should not proceed until the asset is mapped and consumers of sessions_3"
+   "rationale": "Fathom could not resolve 'mart_churn_scores' to a known asset, so the 0/100 risk score reflects missing information rather than safety; no downstream readers, constraints, or incidents could be checked. A destructive column drop should not proceed until the asset is mapped and consumers of sessions_3"
   },
   {
    "scenario": "PB-043",
@@ -4591,14 +4591,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform team"
    ],
-   "rationale": "Orion could not resolve 'dim_customers' to any known asset, so the pre-flight shows no consumers, constraints, or incident history. A risk score of 0 here reflects missing information rather than safety, and the blast radius is unknown. A human should confirm the correct asset name or map the unreso"
+   "rationale": "Fathom could not resolve 'dim_customers' to any known asset, so the pre-flight shows no consumers, constraints, or incident history. A risk score of 0 here reflects missing information rather than safety, and the blast radius is unknown. A human should confirm the correct asset name or map the unreso"
   },
   {
    "scenario": "PB-044",
@@ -4613,7 +4613,7 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4621,7 +4621,7 @@
     "data-platform",
     "orders-pipeline owners"
    ],
-   "rationale": "Orion could not resolve fct_orders or orders_pipeline to any known asset, so the 0/100 risk score reflects missing graph data rather than a real absence of risk. Dropping a column is destructive and the schedule change affects data freshness, so a human should map the unresolved paths and confirm do"
+   "rationale": "Fathom could not resolve fct_orders or orders_pipeline to any known asset, so the 0/100 risk score reflects missing graph data rather than a real absence of risk. Dropping a column is destructive and the schedule change affects data freshness, so a human should map the unresolved paths and confirm do"
   },
   {
    "scenario": "PB-045",
@@ -4636,12 +4636,12 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Orion could not resolve fct_orders or fct_revenue to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No downstream assets, constraints, or incidents were identified, so the blast radius is unknown and the unresolved paths must be mapped by a human befo"
+   "rationale": "Fathom could not resolve fct_orders or fct_revenue to any known asset, so the 0/100 risk score reflects missing graph data rather than a safe change. No downstream assets, constraints, or incidents were identified, so the blast radius is unknown and the unresolved paths must be mapped by a human befo"
   },
   {
    "scenario": "PB-046",
@@ -4656,14 +4656,14 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data platform owners"
    ],
-   "rationale": "Orion could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects missing lineage rather than safety. It shows no constraints, incidents or downstream consumers, and the change drops a column, which is destructive. A human must map the unresolved paths and confirm the real "
+   "rationale": "Fathom could not resolve 'stg_payments' to any known asset, so the 0/100 risk score reflects missing lineage rather than safety. It shows no constraints, incidents or downstream consumers, and the change drops a column, which is destructive. A human must map the unresolved paths and confirm the real "
   },
   {
    "scenario": "PB-047",
@@ -4678,14 +4678,14 @@
    "approvers_ok": false,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing data, not safety. Constraints, downstream consumers and incident history are all unknown for a partition-scheme change plus 30-day backfill. A human needs to map the asset path and confirm its owners be"
+   "rationale": "Fathom could not resolve 'raw_events' to any known asset, so the 0/100 risk score reflects missing data, not safety. Constraints, downstream consumers and incident history are all unknown for a partition-scheme change plus 30-day backfill. A human needs to map the asset path and confirm its owners be"
   },
   {
    "scenario": "PB-048",
@@ -4700,12 +4700,12 @@
    "approvers_ok": true,
    "score": 0.6,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [],
-   "rationale": "Adding a description to stg_products in schema.yml is a metadata-only, non-destructive change, but Orion could not resolve 'stg_products' to a known asset (graph_as_of is None), so no downstream impact or constraints could be checked. No constraints or incidents were returned; before merging, map th"
+   "rationale": "Adding a description to stg_products in schema.yml is a metadata-only, non-destructive change, but Fathom could not resolve 'stg_products' to a known asset (graph_as_of is None), so no downstream impact or constraints could be checked. No constraints or incidents were returned; before merging, map th"
   },
   {
    "scenario": "PB-049",
@@ -4720,7 +4720,7 @@
    "approvers_ok": true,
    "score": 0.0,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
@@ -4728,7 +4728,7 @@
     "data platform owners",
     "pricing service team"
    ],
-   "rationale": "Orion could not resolve 'dim_products' to any known asset, so the 0/100 risk score reflects missing graph data, not a safe change. Dropping a column is destructive and cannot be reversed by a rerun, and downstream consumers, constraints, and incidents are unknown. A human must map the unresolved pat"
+   "rationale": "Fathom could not resolve 'dim_products' to any known asset, so the 0/100 risk score reflects missing graph data, not a safe change. Dropping a column is destructive and cannot be reversed by a rerun, and downstream consumers, constraints, and incidents are unknown. A human must map the unresolved pat"
   },
   {
    "scenario": "PB-050",
@@ -4743,14 +4743,14 @@
    "approvers_ok": true,
    "score": 0.4,
    "agent": "claude:claude-sonnet-5-5",
-   "condition": "orion",
+   "condition": "fathom",
    "seed": 0,
    "cited": [],
    "affected": [],
    "approvers": [
     "data-platform"
    ],
-   "rationale": "Orion could not resolve 'fct_refunds' to any known asset, so the 0/100 risk score reflects missing data, not safety. No downstream consumers, constraints or incidents could be checked, and a column rename is breaking for readers, so a human needs to confirm the correct asset and map its dependents b"
+   "rationale": "Fathom could not resolve 'fct_refunds' to any known asset, so the 0/100 risk score reflects missing data, not safety. No downstream consumers, constraints or incidents could be checked, and a column rename is breaking for readers, so a human needs to confirm the correct asset and map its dependents b"
   }
  ]
 }

@@ -5,8 +5,8 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from orion.context import called_names, callees, render_windows, windows
-from orion.diffparse import parse
+from fathom.context import called_names, callees, render_windows, windows
+from fathom.diffparse import parse
 from pipelinebench.review_eval import Change
 
 
@@ -82,10 +82,10 @@ def test_callees_say_when_the_search_cannot_run(tmp_path: Path):
 
 def test_review_sends_callee_definitions_and_long_file_windows(synced_store, tmp_path: Path):
     """The model sees the definition a change calls into and the function a hunk in a long file sits in; both are citable."""
-    from orion.constraints import load_constraints
-    from orion.providers import StubProvider
-    from orion.review import review
-    from orion.risk import RiskModel
+    from fathom.constraints import load_constraints
+    from fathom.providers import StubProvider
+    from fathom.review import review
+    from fathom.risk import RiskModel
 
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     (tmp_path / "lib").mkdir()
@@ -109,7 +109,7 @@ def test_review_sends_callee_definitions_and_long_file_windows(synced_store, tmp
             return {"findings": [{"path": "app/big.py", "line": changed_line, "severity": "warn", "category": "correctness", "title": "cents", "body": "x", "failure": "a='1' gives 100", "evidence": ["ref:lib/money.py:1"]}]}
 
     cap = Cap()
-    constraints, _ = load_constraints(Path(__file__).resolve().parents[1] / "fixture" / "orion" / "constraints")
+    constraints, _ = load_constraints(Path(__file__).resolve().parents[1] / "fixture" / "fathom" / "constraints")
     r = review(synced_store, tmp_path, cap, constraints=constraints, risk_model=RiskModel.load(None), diff_text=diff, new_files={"app/big.py": after}, search_root=tmp_path, second_reading=False)
     user = cap.users[0]
     assert "Definitions this change calls" in user and "definition of `parse_amount`" in user and "return int(text) * 100" in user

@@ -1,0 +1,25 @@
+# Fathom configuration for this repository. Paths are relative to this file.
+db: .fathom/graph.duckdb
+constraints: fixture/fathom/constraints
+adapters:
+  dbt:
+    project: fixture/dbt_project
+  airflow:
+    dags: fixture/dags
+  git:
+    paths: [fixture]
+    max_commits: 500
+  incidents:
+    dir: fixture/fathom/incidents
+  runs:
+    airflow: fixture/runs/airflow_runs.jsonl
+    dbt: [fixture/runs/dbt/*.run_results.json]
+    iceberg: fixture/runs/iceberg
+retrieval:
+  ranker: bm25   # bm25 | hybrid | embedding
+postflight_runs: 3
+review:
+  provider: stub      # stub | anthropic | openai (any OpenAI-compatible endpoint)
+  # model: claude-sonnet-5-5
+  # base_url: http://localhost:11434/v1
+  # api_key_env: FATHOM_ANTHROPIC_API_KEY   # default: FATHOM_ANTHROPIC_API_KEY, then ANTHROPIC_API_KEY

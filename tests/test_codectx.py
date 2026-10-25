@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from orion.codectx import (
+from fathom.codectx import (
     AreasError,
     _codeowners_regex,
     code_context,
@@ -16,11 +16,11 @@ from orion.codectx import (
     load_codeowners,
     owners_of,
 )
-from orion.diffparse import parse
-from orion.providers import CLAUDE_CODE_COMMAND, CommandProvider, ProviderError, StubProvider, make_provider
-from orion.review import FINDINGS_SCHEMA, review
-from orion.store import Store
-from orion.verdict import load_risk
+from fathom.diffparse import parse
+from fathom.providers import CLAUDE_CODE_COMMAND, CommandProvider, ProviderError, StubProvider, make_provider
+from fathom.review import FINDINGS_SCHEMA, review
+from fathom.store import Store
+from fathom.verdict import load_risk
 
 
 def git(root: Path, *args: str) -> str:
@@ -161,7 +161,7 @@ def test_without_codeowners_or_areas_the_owner_is_not_recorded(tmp_path):
     git(tmp_path, "commit", "-qm", "init")
     files = parse("diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n-A = 1\n+A = 2\n")
     ctx = code_context(tmp_path, files, [], "HEAD")
-    from orion.codectx import facts
+    from fathom.codectx import facts
 
     assert facts(ctx) == ["- owners: not recorded (the repository has no CODEOWNERS file)", "- history: no fix, revert or incident commit among the last 300 commits that touched these files"]
     unread = code_context(tmp_path / "not-a-repo", files, [], None)
@@ -169,7 +169,7 @@ def test_without_codeowners_or_areas_the_owner_is_not_recorded(tmp_path):
 
 
 def test_an_area_points_at_a_file_with_a_changed_line(tmp_path):
-    from orion.codectx import Area
+    from fathom.codectx import Area
 
     files = parse("diff --git a/api/x b/api/x\nold mode 100644\nnew mode 100755\ndiff --git a/api/y.py b/api/y.py\n--- a/api/y.py\n+++ b/api/y.py\n@@ -1 +1 @@\n-A = 1\n+A = 2\n")
     (hit,) = code_context(tmp_path, files, [Area(id="API", reason="r", paths=["api/"])], history=False).areas
@@ -179,7 +179,7 @@ def test_an_area_points_at_a_file_with_a_changed_line(tmp_path):
 def test_cli_review_reads_areas_from_a_flag(shop, tmp_path, monkeypatch):
     from typer.testing import CliRunner
 
-    from orion.cli import app
+    from fathom.cli import app
 
     (tmp_path / "areas.yaml").write_text("- id: PAY\n  paths: [src/pay/]\n  why: moves money\n")
     _change(shop)
@@ -241,8 +241,8 @@ def test_command_provider_without_a_system_argument_puts_it_on_stdin_and_reads_p
     assert out["prompt"].startswith("SYS\n\nuser")
 
 
-def test_a_command_runs_where_orion_runs_unless_isolated(agent, tmp_path, monkeypatch):
-    monkeypatch.setenv("ORION_ALLOW_COMMAND", "1")
+def test_a_command_runs_where_fathom_runs_unless_isolated(agent, tmp_path, monkeypatch):
+    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools/agent.py").write_text(Path(agent[1]).read_text())
     monkeypatch.chdir(tmp_path)
@@ -261,10 +261,10 @@ def test_command_provider_errors_are_provider_errors(agent, monkeypatch):
         CommandProvider([*agent, "--error"]).complete_json("s", "u", {})
     with pytest.raises(ProviderError, match="not found"):
         CommandProvider(["/no/such/agent"]).complete_json("s", "u", {})
-    monkeypatch.delenv("ORION_ALLOW_COMMAND", raising=False)
-    with pytest.raises(ProviderError, match="ORION_ALLOW_COMMAND=1"):
-        make_provider("command", command=["./from-orion-yaml"])
-    monkeypatch.setenv("ORION_ALLOW_COMMAND", "1")
+    monkeypatch.delenv("FATHOM_ALLOW_COMMAND", raising=False)
+    with pytest.raises(ProviderError, match="FATHOM_ALLOW_COMMAND=1"):
+        make_provider("command", command=["./from-fathom-yaml"])
+    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
     with pytest.raises(ProviderError, match="needs a command"):
         make_provider("command")
 

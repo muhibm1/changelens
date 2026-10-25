@@ -1,4 +1,4 @@
-"""Review eval: does ``orion review`` catch planted bugs without raising false alarms?
+"""Review eval: does ``fathom review`` catch planted bugs without raising false alarms?
 
 PipelineBench scores the pre-flight verdict; this scores code review. Each case
 in ``pipelinebench/review/cases.yaml`` is a change to one or more files with
@@ -23,11 +23,11 @@ from typing import Any
 
 import yaml
 
-from orion.constraints import Constraint
-from orion.providers import Provider
-from orion.review import review
-from orion.risk import RiskModel
-from orion.store import Store
+from fathom.constraints import Constraint
+from fathom.providers import Provider
+from fathom.review import review
+from fathom.risk import RiskModel
+from fathom.store import Store
 
 WINDOW = 3
 ACTED_ON = ("warn", "block")
