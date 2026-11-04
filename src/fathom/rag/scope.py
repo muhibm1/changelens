@@ -19,7 +19,7 @@ class Scope:
     paths: list[str] = field(default_factory=list)  # seeds: repo-relative paths ("src/a.py"); ``repo`` names their repository
     assets: list[str] = field(default_factory=list)  # seeds: graph asset ids
     repos: list[str] = field(default_factory=list)  # filter
-    kinds: list[str] = field(default_factory=list)  # filter: code, doc, commit, pr, issue, review, comment, session, graph
+    kinds: list[str] = field(default_factory=list)  # filter: code, doc, graph
     since: str | None = None  # filter: ISO date; undated chunks pass
     path_prefixes: list[str] = field(default_factory=list)  # filter
     only_in_scope: bool = False

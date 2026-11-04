@@ -216,7 +216,7 @@ def preflight(
         console.print("[red]Give me something to check:[/] --git <ref>, --path <file>, --intent '<sentence>' or --ops <file>.")
         raise typer.Exit(2)
     cs = collect_changes(store, cfg.root, base_ref=base_ref, paths=paths, intent=intent, ops=ops, scope=_scope(cfg), ignore=_ignore(cfg))
-    v = run_preflight(store, cs, constraints, load_risk(cfg.path(cfg.risk) if cfg.risk else None), record=not no_record)
+    v = run_preflight(store, cs, constraints, load_risk(cfg.path(cfg.risk) if cfg.risk else None), record=not no_record, constraint_problems=problems)
     if fmt == "json":
         typer.echo(_json(v))
     elif fmt == "markdown":
@@ -281,11 +281,17 @@ def gate(
     from .verdict import preflight as run_preflight
 
     cfg, store = _open(config)
-    constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
-    cs = collect_changes(store, cfg.root, base_ref=base_ref, scope=_scope(cfg), ignore=_ignore(cfg))
-    v = run_preflight(store, cs, constraints, load_risk(cfg.path(cfg.risk) if cfg.risk else None))
-    typer.echo(to_markdown(v) if fmt == "markdown" else _json(v))
     order = ["inform", "warn", "block"]
+    if fail_on not in order[1:]:
+        raise typer.BadParameter("use warn or block", param_hint="--fail-on")
+    constraints, problems = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
+    cs = collect_changes(store, cfg.root, base_ref=base_ref, scope=_scope(cfg), ignore=_ignore(cfg))
+    v = run_preflight(store, cs, constraints, load_risk(cfg.path(cfg.risk) if cfg.risk else None), constraint_problems=problems)
+    typer.echo(to_markdown(v) if fmt == "markdown" else _json(v))
+    if problems:
+        # A constraint file that does not load is a rule nobody is checking; the gate does not pass on it.
+        typer.echo(f"gate: {len(problems)} constraint file(s) did not load; fix them before this gate can pass", err=True)
+        raise typer.Exit(1)
     if order.index(v["severity"]) >= order.index(fail_on):
         raise typer.Exit(1)
 
@@ -303,6 +309,8 @@ def record_decision(
 
     from .model import Event, EventKind
 
+    if decision not in ("approve", "waive", "reject"):
+        raise typer.BadParameter("use approve, waive or reject", param_hint="--decision")
     cfg, store = _open(config)
     v = store.get_verdict(verdict_id)
     if v is None:
@@ -606,7 +614,7 @@ def rag_search(
     k: int = typer.Option(8, "-k", min=1),
     changed: list[str] = typer.Option([], "--changed", help="A changed file (repeatable): graph-scope the search to its blast radius."),
     repo: list[str] = typer.Option([], "--repo"),
-    kind: list[str] = typer.Option([], "--kind", help="code | doc | commit | pr | issue | review | comment | session | graph"),
+    kind: list[str] = typer.Option([], "--kind", help="code | doc | graph"),
     mode: str = typer.Option("hybrid", "--mode", help="hybrid | bm25 | dense"),
     as_json: bool = typer.Option(False, "--json"),
     index: Path | None = typer.Option(None, "--index"),

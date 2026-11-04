@@ -147,7 +147,7 @@ The same change as a diff (`fathom preflight --git main`) resolves through the m
 
 ### Risk
 
-A weighted sum, not a model. Weights live in `fathom/risk.yaml` (optional; defaults below) and the verdict lists every factor's contribution.
+A weighted sum, not a model. Weights and thresholds live in the YAML file that `risk:` in `fathom.yaml` names, conventionally `fathom/risk.yaml` (optional; the defaults below apply to anything it leaves out) and the verdict lists every factor's contribution.
 
 | Factor | Weight |
 | --- | --- |

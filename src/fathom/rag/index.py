@@ -133,7 +133,7 @@ def _rrf_ranks(scores: dict[str, float]) -> dict[str, int]:
 
 
 class RagIndex:
-    """One retrieval index file. ``open`` it, ``add`` documents (or ``index_checkout`` / ``sync_record``), then ``search``."""
+    """One retrieval index file. ``open`` it, ``add`` documents (or ``index_checkout`` / ``sync_store``), then ``search``."""
 
     def __init__(self, path: Path | str, embedder: str | None = None, reranker: str | None = None, read_only: bool = False):
         self.path = Path(path)
@@ -321,20 +321,6 @@ class RagIndex:
         if state:
             self.set_meta(f"checkout:{repo}", state)
         return {"repo": repo, "skipped": False, "removed": len(gone), "edges": len(edges), **counts}
-
-    def sync_record(self, docstore: Any) -> dict[str, int]:
-        """Bring in what the ingestion ``DocStore`` added, changed or deleted since the last sync (by its sequence number)."""
-        from .docs import from_record
-
-        last = int(self.meta("record_seq") or 0)
-        upto = docstore.last_seq()  # read first: a document written during the sync is picked up next time
-        changed = docstore.changed_since(last) if last else list(docstore.iter_documents())
-        gone = [d.id for d in changed if getattr(d, "deleted", False) or getattr(d, "duplicate_of", None)]
-        self.remove(gone)
-        docs = [sd for sd in (from_record(d) for d in changed) if sd is not None]
-        counts = self.add(docs)
-        self.set_meta("record_seq", str(upto))
-        return {"removed": len(gone), **counts}
 
     def sync_store(self, store: Any, root: Path | str | None = None, repo: str = "") -> dict[str, int]:
         """Index the prose a Fathom graph store holds (postmortems, asset descriptions, constraint reasons), attached to its assets.
