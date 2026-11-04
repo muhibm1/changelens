@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-04): the first release as its own project
 
 ### A second real warehouse (2026-11-04)
 

@@ -16,6 +16,7 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
+from . import __version__
 from .changes import collect_changes
 from .config import FathomConfig, load_config
 from .constraints import load_constraints
@@ -91,7 +92,7 @@ def build_server(cfg: FathomConfig | None = None, review_provider: Any = None) -
     store = Store(cfg.path(cfg.db))
     constraints, constraint_problems = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     risk_model = load_risk(cfg.path(cfg.risk) if cfg.risk else None)
-    server = _log_calls(MCPServer("fathom", instructions=INSTRUCTIONS, version="0.1.0"))
+    server = _log_calls(MCPServer("fathom", instructions=INSTRUCTIONS, version=__version__))
 
     @server.tool(name="preflight", description="Check a proposed change before making it. Give a git base ref (diff of the working tree against it), file paths, a sentence of intent, or explicit ops. Returns a verdict whose every claim carries evidence ids.")
     def preflight_tool(base_ref: str | None = None, paths: list[str] | None = None, intent: str | None = None, ops: list[dict[str, Any]] | None = None, format: str = "json") -> dict[str, Any] | str:

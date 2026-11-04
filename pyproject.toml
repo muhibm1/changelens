@@ -1,6 +1,6 @@
 [project]
 name = "fathom"
-version = "0.1.0"
+version = "0.2.0"
 description = "The context layer for AI agents on data platforms: column-level lineage, constraints-as-code, ownership and incident history, checked before a change lands."
 readme = "README.md"
 requires-python = ">=3.11"
