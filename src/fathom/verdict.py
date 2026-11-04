@@ -317,9 +317,29 @@ def preflight(
     return verdict
 
 
+def _plain(val: Any) -> str:
+    """A check argument as a reader writes it: lists joined, strings bare."""
+    if isinstance(val, list | tuple):
+        return ", ".join(str(x) for x in val)
+    return str(val)
+
+
+def _unresolved_line(u: dict[str, Any]) -> str:
+    """One unresolved item in words: what could not be mapped, why, and the nearest assets when known."""
+    what = u.get("path") or u.get("intent") or u.get("op") or "change"
+    line = f"`{what}`: {u.get('reason', 'not resolved')}"
+    if u.get("candidates"):
+        line += " (nearest: " + ", ".join(str(c) for c in u["candidates"][:5]) + ")"
+    return line
+
+
 def to_markdown(v: dict[str, Any]) -> str:
     sev = v["severity"].upper()
-    lines = [f"**Fathom pre-flight: {sev}** (risk {v['risk']['score']}/100, verdict `{v['verdict_id']}`, graph as of {v['graph_as_of']})", "", v["summary"], ""]
+    as_of = v["graph_as_of"]
+    synced = f"graph as of {as_of:%Y-%m-%d %H:%M} UTC" if isinstance(as_of, datetime) else (f"graph as of {as_of}" if as_of else "graph never synced")
+    lines = [f"**Fathom pre-flight: {sev}** (risk {v['risk']['score']}/100, verdict `{v['verdict_id']}`, {synced})", "", v["summary"], ""]
+    if not as_of:
+        lines += ["The graph has never been synced, so no asset can be known. Run `fathom sync` first.", ""]
     if v["change"]["ops"]:
         lines.append("**Change**")
         for o in v["change"]["ops"]:
@@ -328,7 +348,7 @@ def to_markdown(v: dict[str, Any]) -> str:
         lines.append("")
     if v["change"]["unresolved"]:
         lines.append("**Unresolved**")
-        lines.extend(f"- {u}" for u in v["change"]["unresolved"])
+        lines.extend(f"- {_unresolved_line(u)}" for u in v["change"]["unresolved"])
         lines.append("")
     if v["affected"]:
         lines.append("**Affected**")
@@ -364,8 +384,8 @@ def to_markdown(v: dict[str, Any]) -> str:
     if v["checks"]:
         lines.append("**Routine checks**" if all(c["kind"] == "run_tests" for c in v["checks"]) else "**Recommended checks**")
         for c in v["checks"]:
-            desc = {k: val for k, val in c.items() if k not in ("kind", "evidence")}
-            lines.append(f"- `{c['kind']}` {desc if desc else ''}")
+            desc = "; ".join(f"{k}: {_plain(val)}" for k, val in c.items() if k not in ("kind", "evidence"))
+            lines.append(f"- `{c['kind']}`" + (f" ({desc})" if desc else ""))
         lines.append("")
     lines.append("Risk factors: " + "; ".join(f"{f['name']}={f['value']} (+{f['contribution']})" for f in v["risk"]["factors"]))
     return "\n".join(lines)

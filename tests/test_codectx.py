@@ -277,3 +277,20 @@ def test_claude_code_preset_runs_claude_print_mode_with_no_tools(monkeypatch):
     assert "--model" not in make_provider("claude-code").args("SYS", {}), "no model: the CLI's own default"
     assert make_provider("claude-code", command=["./my-agent"]).command == CLAUDE_CODE_COMMAND, "review.command never replaces the preset"
     assert CLAUDE_CODE_COMMAND[0] == "claude"
+
+
+def test_preset_name_and_errors_name_the_provider_not_the_binary(monkeypatch):
+    """Provider names and errors land in pull-request comments, so a preset reads as its label, never as the binary."""
+    from dataclasses import replace
+
+    p = make_provider("cli", model="sonnet")
+    assert p.name == "cli:sonnet" and make_provider("claude-code").name == "cli"
+    missing = replace(p, command=("no-such-binary-xyz", "-p"))
+    with pytest.raises(ProviderError) as e:
+        missing.complete_json("SYS", "hi", {"type": "object"})
+    assert str(e.value) == "the cli provider's command was not found; install it or set review.command"
+    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
+    hand_set = make_provider("command", command=["no-such-binary-xyz"])
+    with pytest.raises(ProviderError) as e:
+        hand_set.complete_json("SYS", "hi", {"type": "object"})
+    assert str(e.value).startswith("no-such-binary-xyz was not found")

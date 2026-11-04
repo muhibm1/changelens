@@ -41,7 +41,7 @@ class RetrievalConfig(BaseModel):
 
 
 class ReviewConfig(BaseModel):
-    provider: Literal["stub", "anthropic", "openai", "command", "claude-code"] = "stub"
+    provider: Literal["stub", "anthropic", "openai", "command", "cli", "claude-code"] = "stub"
     model: str | None = None
     command: list[str] | None = None  # the `command` provider's argument list (`{schema}`, `{system}`, `{model}`, `{effort}` filled per call)
     areas: str | None = None  # sensitive areas of the code (fathom.codectx), a YAML or JSON file; `file#key` picks one list from a file keyed by project

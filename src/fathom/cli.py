@@ -230,6 +230,8 @@ def preflight(
 def _print_verdict(v: dict) -> None:
     colour = {"inform": "green", "warn": "yellow", "block": "red"}[v["severity"]]
     console.print(f"[bold {colour}]{v['severity'].upper()}[/]  risk {v['risk']['score']}/100  {v['verdict_id']}  graph as of {v['graph_as_of']}" + ("  (reused)" if v.get("reused") else ""))
+    if not v["graph_as_of"]:
+        console.print("[yellow]the graph has never been synced; run `fathom sync` first[/]")
     console.print(v["summary"])
     if v["change"]["ops"]:
         console.print("[bold]change[/]")

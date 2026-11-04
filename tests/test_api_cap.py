@@ -21,7 +21,7 @@ def test_no_cap_means_the_anthropic_provider_refuses_to_start(monkeypatch):
     with pytest.raises(SpendCapError, match="set FATHOM_API_CAP") as refused:
         make_provider("anthropic")
     assert isinstance(refused.value, ProviderError), "the CLI and the review treat it like any provider failure"
-    assert make_provider("claude-code").name == "claude-code", "the subscription route needs no cap"
+    assert make_provider("claude-code").name == "cli", "the subscription route needs no cap"
 
 
 def test_each_call_is_priced_and_added_to_the_ledger(monkeypatch, tmp_path):

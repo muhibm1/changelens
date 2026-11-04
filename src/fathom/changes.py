@@ -458,7 +458,8 @@ def git_changes(repo_root: Path, base_ref: str, renames: dict[str, str] | None =
 # ---------------------------------------------------------------------- intent
 INTENT_PATTERNS = [
     (re.compile(r"\b(drop|remove|delete)\s+(?:the\s+)?(?:column\s+)?`?(\w+)`?(?:\s+column)?\s+(?:from|in|on)\s+`?([\w\.]+)`?", re.I), "drop_column"),
-    (re.compile(r"\brename\s+(?:the\s+)?(?:column\s+)?`?(\w+)`?\s+to\s+`?(\w+)`?\s+(?:in|on|across|of)\s+`?([\w\.]+)`?", re.I), "rename_column"),
+    # "rename a to b in t", "rename a in t to b" and "rename the column a in t" (new name not given yet)
+    (re.compile(r"\brename\s+(?:the\s+)?(?:column\s+)?`?(\w+)`?(?:\s+column)?(?:\s+to\s+`?(\w+)`?)?\s+(?:in|on|across|of|from)\s+`?([\w\.]+)`?(?:\s+to\s+`?(\w+)`?)?", re.I), "rename_column"),
     (re.compile(r"\badd\s+(?:a\s+)?(?:new\s+)?(?:column\s+)?`?(\w+)`?\s+(?:column\s+)?(?:to|in|on)\s+`?([\w\.]+)`?", re.I), "add_column"),
     (re.compile(r"\bbackfill\s+`?([\w\.]+)`?", re.I), "backfill"),
     (re.compile(r"\b(?:re-?partition|partition)\s+`?([\w\.]+)`?\s+(?:by|on)\s+`?(\w+)`?", re.I), "change_partition"),
@@ -479,7 +480,8 @@ def ops_from_intent(store: Store, text: str) -> tuple[list[ChangeOp], list[dict[
                 details = {}
             elif kind == "rename_column":
                 col, asset = g[0], g[2]
-                details = {"to": g[1]}
+                to = g[1] or g[3]
+                details = {"to": to} if to else {}
             elif kind == "add_column":
                 col, asset = g[0], g[1]
                 details = {}

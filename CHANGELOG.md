@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### A second real warehouse (2026-11-04)
+
+- Fathom ran unchanged on erp-data-platform, a dbt project on Postgres that it was not built around (`pipelinebench/results/partner-erp-data-platform.md`). Two fixes came out of it.
+- A source can be named the way the warehouse names it, `<schema>.<table>` (`source:raw.load_runs`), as well as dbt's `<source>.<table>` (`odoo.load_runs`). Only an unambiguous match resolves; two candidates stay unresolved and are listed.
+- "Rename the column X in T" is read as a rename whether or not it names the new column, and in either word order, so it fires a column lock instead of warning as a generic modify.
+- `preflight --format markdown` (the pull-request comment) writes checks and unresolved items in words rather than Python dicts, and says so when the graph has never been synced.
+- The weekly proposals workflow no longer fails when the repository does not let Actions open pull requests: the branch is still pushed, and the run's summary links to it.
+
 ### Split from Orion (2026-10-25)
 
 - Fathom is the data-platform half of Orion, moved into its own repository with its history. It keeps sync (dbt, Airflow, git, incidents, run history), column-level lineage, constraints, ownership and incident history, `preflight`, `gate`, `review`, `postflight`, `propose` and PipelineBench.

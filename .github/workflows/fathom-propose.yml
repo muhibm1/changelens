@@ -39,6 +39,10 @@ jobs:
           .venv/bin/fathom postflight --summary
           .venv/bin/fathom propose --write
       - name: Open a pull request with the proposals
+        id: cpr
+        # Opening the pull request needs the repository setting "Allow GitHub Actions to create and
+        # approve pull requests". Without it the branch is still pushed and the next step says so.
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v6
         with:
           branch: fathom/proposals
@@ -50,3 +54,21 @@ jobs:
             Merging a file is the approval. Edit the severity or scope first if the default is wrong; delete the file to reject it.
           add-paths: fixture/fathom/constraints/proposed/*.yaml
           delete-branch: true
+      - name: Say where the proposals are
+        if: always()
+        env:
+          OUTCOME: ${{ steps.cpr.outcome }}
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          COMPARE: ${{ github.server_url }}/${{ github.repository }}/compare/main...fathom/proposals
+        run: |
+          if [ -n "$PR_URL" ]; then
+            echo "Proposals: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$OUTCOME" = "failure" ]; then
+            {
+              echo "The proposals were pushed to \`fathom/proposals\`, but Actions may not open pull requests in this repository."
+              echo "Open one by hand: $COMPARE"
+              echo "Or allow it once: Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No new proposals this week." >> "$GITHUB_STEP_SUMMARY"
+          fi
