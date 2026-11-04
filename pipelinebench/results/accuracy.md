@@ -5,7 +5,7 @@ where the review stands against that, measured on bugs it was never tuned on, an
 
 **The short answer: 60% on held-out bugs, short of the 80% floor.** Focused review passes more than doubled
 recall on the same model (18% to 42% on the tuning set). Most numbers here come from Claude Haiku 5.5,
-because the credit available for this round was $2.77. A later single run on Sonnet 5.5 through the harness,
+because the credit available for this round was $2.77. A later single run on Sonnet 5.5 through a coding-agent CLI on a subscription,
 on a subscription, also reached 60% on the held-out set, with more context in its prompt than the Haiku runs had (section below). Opus was not run.
 
 ## What changed in the review
@@ -60,7 +60,7 @@ Claude Haiku 5.5, review passes at `medium` effort, one run per row.
 | four passes (`heldout-haiku-5-5-passes`) | held-out 45 | 26 | 9 | 2 | 8 | 0.58 | 0.78 | $0.42 |
 | four passes, stricter second reading (`heldout-haiku-5-5-passes-final`) | held-out 45 | 27 | 9 | 3 | 6 | **0.60** | **0.80** | $0.44 |
 
-## Sonnet 5.5 through the harness (2026-10-20)
+## Sonnet 5.5 through a coding-agent CLI (2026-10-20)
 
 The same four passes on Claude Sonnet 5.5, run with `--provider claude-code`: through `claude -p` on a subscription, with no API key and no API spend. Unlike the Haiku rows, the files' CODEOWNERS owners (where a repository has the file) and their fix history were in the prompt (#38); no areas file was set. The history is read from the review's base, the parent of the commit that introduced the bug, so the later upstream fix is never in it. Judged by Sonnet 5.5. One run.
 

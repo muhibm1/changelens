@@ -196,7 +196,7 @@ CON-P31abc2 freshness_sla (warn) on model:fct_refunds, model:fct_revenue
 
 `fathom serve` runs the MCP server in a checkout with a `fathom.yaml`. Seven tools: `preflight`, `explain`, `history`, `record_decision`, `propose_constraint`, `ask` and `review`. None of them writes to the platform; the server writes only the ledger and draft constraint files.
 
-To add it to the harness (or any MCP client):
+To add it to a coding agent or any other MCP client:
 
 ```json
 { "mcpServers": { "fathom": { "command": "fathom", "args": ["serve", "--project-dir", "/path/to/repo"] } } }

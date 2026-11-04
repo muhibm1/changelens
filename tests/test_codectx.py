@@ -192,7 +192,7 @@ def test_cli_review_reads_areas_from_a_flag(shop, tmp_path, monkeypatch):
     assert bad.exit_code == 2 and "cannot read areas file" in bad.output
 
 
-# A stand-in for an agent's CLI: echoes what it was given inside a harness style result envelope.
+# A stand-in for an agent's CLI: echoes what it was given inside a coding-agent CLI style result envelope.
 FAKE_AGENT = r"""
 import json, sys
 args = sys.argv[1:]

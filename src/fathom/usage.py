@@ -4,7 +4,7 @@ Standard library only, and never raises: logging must never fail the call it rec
 so processes that log at the same time do not interleave; the file is rotated once to ``usage.jsonl.1`` past
 ``MAX_BYTES``. ``FATHOM_USAGE`` names another file, or ``off`` turns logging off.
 
-The MCP server does not see the harness's session id, so the session-start hook leaves it under the the harness
+The MCP server does not see the coding agent's session id, so the session-start hook leaves it under the coding agent
 process's pid (``~/.fathom/sessions/<pid>``) and the server's records pick it up from there (``session_for_parent``).
 """
 
@@ -131,7 +131,7 @@ GIVE_UP = timedelta(hours=6)
 
 
 def _assistant_text(transcript: Path) -> str | None:
-    """Everything the assistant wrote or passed to a tool in a harness transcript (JSONL), or None if unreadable."""
+    """Everything the assistant wrote or passed to a tool in a coding-agent transcript (JSONL), or None if unreadable."""
     try:
         lines = transcript.read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
@@ -199,7 +199,7 @@ def _parent_of(pid: int) -> int | None:
 
 
 def remember_session(session_id: str) -> None:
-    """From the session-start hook: the session id under the hook's parent and grandparent pids (the harness runs a
+    """From the session-start hook: the session id under the hook's parent and grandparent pids (the coding agent runs a
     hook through a shell, which may or may not stay in between). A new session in the same process (/clear) overwrites it."""
     if not session_id or path() is None:
         return
@@ -214,7 +214,7 @@ def remember_session(session_id: str) -> None:
 
 
 def session_for_parent() -> str | None:
-    """The the harness session this process (an MCP server it started) serves, when the hook left it."""
+    """The coding-agent session this process (an MCP server it started) serves, when the hook left it."""
     try:
         return (_sessions_dir() / str(os.getppid())).read_text(encoding="utf-8").strip() or None
     except OSError:
