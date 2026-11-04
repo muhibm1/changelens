@@ -72,3 +72,28 @@ def test_bulk_write_matches_upserts_one_by_one():
     dupes = Store(":memory:")
     dupes.write_graph(first + again, edges + edges)
     assert rows(dupes) == rows(one), "duplicate ids within one batch merge like successive upserts"
+
+
+def test_source_resolves_by_warehouse_schema_as_well_as_source_name():
+    from fathom.resolver import resolve_ref
+
+    s = Store(":memory:")
+    s.upsert_node(Node(NodeKind.SOURCE_TABLE, "odoo.load_runs", {"schema": "raw", "identifier": "load_runs"}, provenance=[prov()]))
+    s.upsert_node(Node(NodeKind.SOURCE_TABLE, "odoo.account_move", {"schema": "raw", "identifier": "account_move"}, provenance=[prov()]))
+    assert resolve_ref(s, "source:odoo.load_runs").node_id == "source_table:odoo.load_runs"
+    r = resolve_ref(s, "source:raw.load_runs")
+    assert (r.node_id, r.method) == ("source_table:odoo.load_runs", "relation")
+    assert resolve_ref(s, "raw.account_move").node_id == "source_table:odoo.account_move"
+    miss = resolve_ref(s, "source:raw.nothing_here")
+    assert miss.node_id is None
+
+
+def test_source_relation_match_must_be_unambiguous():
+    from fathom.resolver import resolve_ref
+
+    s = Store(":memory:")
+    for src in ("odoo", "stripe"):
+        s.upsert_node(Node(NodeKind.SOURCE_TABLE, f"{src}.events", {"schema": "raw", "identifier": "events"}, provenance=[prov()]))
+    r = resolve_ref(s, "source:raw.events")
+    assert r.node_id is None
+    assert {c["id"] for c in r.candidates} == {"source_table:odoo.events", "source_table:stripe.events"}

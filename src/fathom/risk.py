@@ -35,7 +35,12 @@ class RiskModel:
         source = "built-in defaults"
         if path and path.exists():
             user = yaml.safe_load(path.read_text()) or {}
-            data = {**data, **user, "weights": {**DEFAULT_RISK["weights"], **(user.get("weights") or {})}}
+            data = {
+                **data,
+                **user,
+                "weights": {**DEFAULT_RISK["weights"], **(user.get("weights") or {})},
+                "thresholds": {**DEFAULT_RISK["thresholds"], **(user.get("thresholds") or {})},
+            }
             source = str(path)
         return cls(data["weights"], int(data["incident_horizon_days"]), data["thresholds"], source)
 

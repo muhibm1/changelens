@@ -16,6 +16,7 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
+from . import __version__
 from .changes import collect_changes
 from .config import FathomConfig, load_config
 from .constraints import load_constraints
@@ -60,7 +61,7 @@ def _log_calls(server: MCPServer) -> MCPServer:
                     return result
                 finally:
                     ids = _result_ids(result)
-                    usage.log("mcp", "call", tool=name, session_id=usage.session_for_parent(), cwd=os.getcwd(), latency_ms=round((time.monotonic() - t0) * 1000, 1), outcome=outcome, hits=len(ids), ids=ids[:20], timed_out=False, failed=outcome == "error")
+                    usage.log("mcp", "call", tool=name, cwd=os.getcwd(), latency_ms=round((time.monotonic() - t0) * 1000, 1), outcome=outcome, hits=len(ids), ids=ids[:20], timed_out=False, failed=outcome == "error")
 
             return register(*args, **kwargs)(logged)
 
@@ -89,16 +90,16 @@ def _jsonable(obj: Any) -> Any:
 def build_server(cfg: FathomConfig | None = None, review_provider: Any = None) -> MCPServer:
     cfg = cfg or load_config()
     store = Store(cfg.path(cfg.db))
-    constraints, _ = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
+    constraints, constraint_problems = load_constraints(cfg.path(cfg.constraints)) if cfg.constraints else ([], [])
     risk_model = load_risk(cfg.path(cfg.risk) if cfg.risk else None)
-    server = _log_calls(MCPServer("fathom", instructions=INSTRUCTIONS, version="0.1.0"))
+    server = _log_calls(MCPServer("fathom", instructions=INSTRUCTIONS, version=__version__))
 
     @server.tool(name="preflight", description="Check a proposed change before making it. Give a git base ref (diff of the working tree against it), file paths, a sentence of intent, or explicit ops. Returns a verdict whose every claim carries evidence ids.")
     def preflight_tool(base_ref: str | None = None, paths: list[str] | None = None, intent: str | None = None, ops: list[dict[str, Any]] | None = None, format: str = "json") -> dict[str, Any] | str:
         from .cli import _ignore, _scope
 
         cs = collect_changes(store, cfg.root, base_ref=base_ref, paths=paths, intent=intent, ops=ops, scope=_scope(cfg), ignore=_ignore(cfg))
-        v = preflight(store, cs, constraints, risk_model)
+        v = preflight(store, cs, constraints, risk_model, constraint_problems=constraint_problems)
         return to_markdown(v) if format == "markdown" else _jsonable(v)
 
     @server.tool(name="explain", description="What an asset is: owner, tier, upstream and downstream, tier-1 consumers in its blast radius, which task builds it, column lineage, constraints in scope, recent events. Asset can be a name (fct_orders), a ref (source:raw.raw_events, dag:orders_pipeline) or a path.")

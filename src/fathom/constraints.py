@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 from typing import Any, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -35,6 +36,25 @@ class Rule(BaseModel):
     allow: list[str] = Field(default_factory=list)
     key: str | None = None
     window: dict[str, str] | None = None
+
+    @field_validator("window", mode="before")
+    @classmethod
+    def _times_as_text(cls, v: Any) -> Any:
+        """YAML reads an unquoted 22:00 as the base-60 integer 1320; turn it back into "22:00" instead of rejecting
+        the constraint, and check that a ``tz`` names a real time zone."""
+        if not isinstance(v, dict):
+            return v
+        out = {}
+        for k, val in v.items():
+            if k in ("start", "end") and isinstance(val, int) and not isinstance(val, bool):
+                val = f"{val // 60:02d}:{val % 60:02d}"
+            out[k] = val
+        if out.get("tz"):
+            try:
+                ZoneInfo(str(out["tz"]))
+            except (ZoneInfoNotFoundError, ValueError) as e:
+                raise ValueError(f"unknown time zone {out['tz']!r}") from e
+        return out
     approvers: list[str] = Field(default_factory=list)
     minutes: int | None = None
 

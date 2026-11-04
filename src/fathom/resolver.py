@@ -50,7 +50,11 @@ def resolve_ref(store: Store, ref: str) -> Resolution:
             node = store.node(f"{k}:{name}")
             if node:
                 return Resolution(ref, node["id"], method="alias")
-        return Resolution(ref, None)
+        if NodeKind.SOURCE_TABLE in kinds:
+            hit = _source_by_relation(store, name)
+            if hit:
+                return Resolution(ref, hit, method="relation")
+        return Resolution(ref, None, candidates=store.search_nodes(name.split(".")[-1], limit=5), method="fuzzy")
     for k in ASSET_KINDS_IN_ORDER:
         node = store.node(f"{k}:{ref}")
         if node:
@@ -60,8 +64,27 @@ def resolve_ref(store: Store, ref: str) -> Resolution:
             for n in store.find_nodes(kind=str(NodeKind.SOURCE_TABLE)):
                 if n["name"].split(".")[-1] == ref:
                     return Resolution(ref, n["id"], method="short-name")
+            hit = _source_by_relation(store, ref)
+            if hit:
+                return Resolution(ref, hit, method="relation")
     cands = store.search_nodes(ref, limit=5)
     return Resolution(ref, None, candidates=cands, method="fuzzy")
+
+
+def _source_by_relation(store: Store, name: str) -> str | None:
+    """A source named the way the warehouse names it, ``<schema>.<table>``, rather than dbt's
+    ``<source_name>.<table>``: ``raw.load_runs`` for dbt source ``odoo.load_runs`` in schema ``raw``.
+    Only an unambiguous match resolves."""
+    if "." not in name:
+        return None
+    schema, table = name.lower().rsplit(".", 1)
+    hits = [
+        n["id"]
+        for n in store.find_nodes(kind=str(NodeKind.SOURCE_TABLE))
+        if str(n["properties"].get("schema") or "").lower().split(".")[-1] == schema
+        and str(n["properties"].get("identifier") or n["name"].split(".")[-1]).lower() == table
+    ]
+    return hits[0] if len(hits) == 1 else None
 
 
 class PathResolver:

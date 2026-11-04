@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-04): the first release as its own project
+
+### A second real warehouse (2026-11-04)
+
+- Fathom ran unchanged on erp-data-platform, a dbt project on Postgres that it was not built around (`pipelinebench/results/partner-erp-data-platform.md`). Two fixes came out of it.
+- A source can be named the way the warehouse names it, `<schema>.<table>` (`source:raw.load_runs`), as well as dbt's `<source>.<table>` (`odoo.load_runs`). Only an unambiguous match resolves; two candidates stay unresolved and are listed.
+- "Rename the column X in T" is read as a rename whether or not it names the new column, and in either word order, so it fires a column lock instead of warning as a generic modify.
+- `preflight --format markdown` (the pull-request comment) writes checks and unresolved items in words rather than Python dicts, and says so when the graph has never been synced.
+- The weekly proposals workflow no longer fails when the repository does not let Actions open pull requests: the branch is still pushed, and the run's summary links to it.
+
+### Verdicts that stay true
+
+- A reused verdict renders like a fresh one. Running `gate` or `preflight --format markdown` twice on the same change used to crash on the second run, because the stored verdict's dates came back as text.
+- The verdict id now covers everything the verdict reads: the ops, unresolved and ignored paths, the graph's sync time, the constraints and risk model in force, and the newest recorded decision. Before, an approval, a constraint edit or a newly unmapped path returned the old verdict until the next sync.
+- A broken constraint file no longer fails open. Load errors and scope refs that name no known asset are listed in the verdict under "Constraint problems", and `gate` exits non-zero while any file does not load.
+- `scope.columns` is honoured: a lock that names columns fires only for those columns (`"*"` or no list still covers all).
+- A backfill window is read in its own `tz`; an unknown time zone is a load error, and an unquoted `06:00` in YAML (which YAML reads as a number) loads as the time it says.
+- A later `reject` withdraws an earlier approval from the same approver.
+- A `thresholds` override in the risk file keeps the thresholds it leaves out.
+- `gate --fail-on` and `record-decision --decision` reject unknown values instead of crashing or recording them.
+- Removed code left from Orion: the session map and feedback judging in `usage.py`, `RagIndex.sync_record`, the `record:` citation the review agent could never produce, and test settings nothing read.
 
 ### Split from Orion (2026-10-25)
 

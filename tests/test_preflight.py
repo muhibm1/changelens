@@ -113,6 +113,25 @@ def test_markdown_render(synced_store, constraints, tmp_path):
     _, v = run(synced_store, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
     md = to_markdown(v)
     assert md.startswith("**Fathom pre-flight: BLOCK**") and "CON-031" in md and "diff:" not in md
+    # checks and their arguments read as words, not Python dicts, in a PR comment
+    assert "{'" not in md and "['" not in md
+    assert "- `get_approval` (from: team/finance-data; for: CON-031)" in md
+
+
+def test_markdown_unresolved_reads_as_words(synced_store, constraints, tmp_path):
+    _, v = run(synced_store, constraints, tmp_path, intent="drop the discount_pct column from fct_order")
+    md = to_markdown(v)
+    assert "**Unresolved**" in md and "{'" not in md
+    assert "no asset matches 'fct_order'" in md and "nearest: model:fct_orders" in md
+
+
+def test_markdown_says_when_the_graph_was_never_synced(tmp_path, constraints):
+    from fathom.store import Store
+
+    empty = Store(tmp_path / "empty.duckdb")
+    _, v = run(empty, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
+    md = to_markdown(v)
+    assert "graph never synced" in md and "Run `fathom sync` first." in md
 
 
 def test_risk_factors_are_transparent(synced_store, constraints, tmp_path):
@@ -387,3 +406,22 @@ def test_a_reader_that_gets_a_dropped_column_through_a_star_is_not_broken(synced
     cs.add(ChangeOp("drop_column", "model:a", "x"))
     by_reader = {r["reader"]: r["by_name"] for r in column_readers(store, cs)}
     assert by_reader == {"model:named": True, "model:star": False}
+
+
+def test_intent_rename_in_every_word_order(synced_store):
+    from fathom.changes import ops_from_intent
+
+    for text, to in [
+        ("rename discount_pct to discount_rate in fct_orders", "discount_rate"),
+        ("rename the column discount_pct in fct_orders to discount_rate", "discount_rate"),
+        ("rename the column discount_pct in fct_orders", None),
+    ]:
+        ops, unresolved = ops_from_intent(synced_store, text)
+        assert not unresolved, text
+        assert [(o.kind, o.asset, o.column, o.details.get("to")) for o in ops] == [("rename_column", "model:fct_orders", "discount_pct", to)], text
+
+
+def test_rename_without_a_new_name_still_hits_a_column_lock(synced_store, constraints, tmp_path):
+    _, v = run(synced_store, constraints, tmp_path, intent="rename the column discount_pct in fct_orders")
+    assert v["severity"] == "block"
+    assert "CON-031" in {c["id"] for c in v["constraints"] if c["status"] == "fires"}

@@ -47,7 +47,6 @@ jobs:
         continue-on-error: true
         run: |
           .venv/bin/fathom gate --git "origin/${{ github.base_ref }}" --fail-on block > verdict.md
-          echo "exit=$?" >> "$GITHUB_OUTPUT"
       - name: Comment the verdict on the pull request
         env:
           GH_TOKEN: ${{ github.token }}

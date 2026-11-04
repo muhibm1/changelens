@@ -21,7 +21,7 @@ class SourceDoc:
 
     id: str
     text: str
-    kind: str  # code | doc | commit | pr | issue | review | comment | session | graph
+    kind: str  # code | doc | graph (an ingested document may carry its own kind)
     repo: str = ""
     path: str = ""
     title: str = ""

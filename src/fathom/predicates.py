@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from .changes import ChangeOp
 from .constraints import Constraint
@@ -48,41 +49,76 @@ def _scoped_assets(store: Store, c: Constraint) -> set[str]:
     return out
 
 
-def _columns_downstream_assets(store: Store, asset: str, column: str) -> set[str]:
-    """Assets whose columns derive from ``asset.column``."""
+def unresolved_scope(store: Store, constraints: list[Constraint]) -> list[dict[str, Any]]:
+    """Scope refs that name no asset in the graph. Such a constraint can never fire on that ref, so the verdict lists
+    it rather than passing silently (a typo in a scope is otherwise invisible)."""
+    out = []
+    for c in constraints:
+        for ref in c.scope.assets:
+            r = resolve_ref(store, ref)
+            if not r.ok:
+                out.append({"constraint": c.id, "scope": ref, "reason": f"{c.id} scope names no known asset '{ref}'", "candidates": [x["id"] for x in r.candidates]})
+    return out
+
+
+def _columns_downstream(store: Store, asset: str, column: str) -> set[tuple[str, str]]:
+    """(asset, column) pairs whose columns derive from ``asset.column``."""
     name = asset.split(":", 1)[1]
     col_id = f"column:{name}.{column}"
     if store.node(col_id) is None:
         return set()
     found = store.walk([col_id], "downstream", kinds=(EdgeKind.DERIVES_FROM,), max_hops=20, always_include_tier=None)
-    assets = set()
+    out = set()
     for cid in found:
         n = store.node(cid)
         if n and n["properties"].get("asset"):
-            assets.add(n["properties"]["asset"])
-    return assets
+            out.add((n["properties"]["asset"], n["name"].rsplit(".", 1)[-1]))
+    return out
 
 
-def _in_window(at: datetime, window: dict[str, str]) -> bool:
+def _columns_downstream_assets(store: Store, asset: str, column: str) -> set[str]:
+    """Assets whose columns derive from ``asset.column``."""
+    return {a for a, _ in _columns_downstream(store, asset, column)}
+
+
+def _locked_columns(c: Constraint) -> set[str] | None:
+    """The columns a lock names, or None when it covers every column (``"*"`` or no list)."""
+    cols = c.scope.columns
+    if cols is None or cols == "*" or cols == ["*"]:
+        return None
+    return {cols} if isinstance(cols, str) else set(cols)
+
+
+def _window_tz(window: dict[str, Any]) -> str:
+    return str(window.get("tz") or "UTC")
+
+
+def _in_window(at: datetime, window: dict[str, Any]) -> bool:
+    """Whether ``at`` falls inside the window, read in the window's own ``tz`` (UTC when it names none)."""
+    at = at.astimezone(ZoneInfo(_window_tz(window)))
     start = window.get("start", "00:00")
     end = window.get("end", "23:59")
-    hhmm = at.astimezone(UTC).strftime("%H:%M")
+    hhmm = at.strftime("%H:%M")
     if start <= end:
         return start <= hhmm <= end
     return hhmm >= start or hhmm <= end
 
 
 def _ledger_has_decision(store: Store, asset_ids: set[str], approvers: list[str], since_days: int = 30) -> bool:
+    """True when an approver's newest decision in the window is approve or waive; a later reject withdraws it."""
     events = store.events_for(asset_ids, kinds=["decision_recorded"], limit=50)
     now = datetime.now(UTC)
+    newest: dict[str, tuple[datetime, str]] = {}
     for e in events:
         occurred = e["occurred_at"] if e["occurred_at"].tzinfo else e["occurred_at"].replace(tzinfo=UTC)
         if (now - occurred).days > since_days:
             continue
         by = e["payload"].get("by") or e["actor"] or ""
-        if e["payload"].get("decision") in ("approve", "waive") and (not approvers or by in approvers):
-            return True
-    return False
+        if approvers and by not in approvers:
+            continue
+        if by not in newest or occurred >= newest[by][0]:
+            newest[by] = (occurred, e["payload"].get("decision") or "")
+    return any(decision in ("approve", "waive") for _, decision in newest.values())
 
 
 def evaluate(store: Store, constraints: list[Constraint], ops: list[ChangeOp], affected_assets: set[str]) -> list[ConstraintHit]:
@@ -105,7 +141,12 @@ def evaluate(store: Store, constraints: list[Constraint], ops: list[ChangeOp], a
                 verb = {"drop_column": "drop", "rename_column": "rename", "change_type": "retype", "change_expression": "redefine"}[op.kind]
                 if verb in allow:
                     continue
-                reach = {op.asset} | (_columns_downstream_assets(store, op.asset, op.column) if op.column else set())
+                locked = _locked_columns(c)
+                pairs = {(op.asset, op.column)} | (_columns_downstream(store, op.asset, op.column) if op.column else set())
+                if locked is not None:
+                    # only the named columns are locked; an op with no column (a whole-asset change) still counts
+                    pairs = {(a, col) for a, col in pairs if col is None or col in locked}
+                reach = {a for a, _ in pairs}
                 if reach & scoped:
                     firing.append(op)
                     via = "directly" if op.asset in scoped else f"through {', '.join(sorted(reach & scoped))}"
@@ -124,7 +165,8 @@ def evaluate(store: Store, constraints: list[Constraint], ops: list[ChangeOp], a
                         when = when.replace(tzinfo=UTC)
                     if c.rule.window and _in_window(when, c.rule.window):
                         firing.append(op)
-                        detail = f"backfill at {when:%H:%M} UTC falls inside the blocked window {c.rule.window.get('start')}-{c.rule.window.get('end')} UTC"
+                        tz = _window_tz(c.rule.window)
+                        detail = f"backfill at {when.astimezone(ZoneInfo(tz)):%H:%M} {tz} falls inside the blocked window {c.rule.window.get('start')}-{c.rule.window.get('end')} {tz}"
         elif kind == "schedule_locked":
             for op in ops:
                 if op.kind == "change_schedule" and op.asset in scoped:

@@ -323,14 +323,19 @@ class CommandProvider:
                 try:
                     done = subprocess.run(args, input=prompt, capture_output=True, text=True, timeout=self.timeout, cwd=empty if self.isolate else None)
                 except FileNotFoundError as e:
-                    raise ProviderError(f"{args[0]} not found; install it or set review.command") from e
+                    raise ProviderError(f"{self._who(args)} was not found; install it or set review.command") from e
                 except subprocess.TimeoutExpired as e:
-                    raise ProviderError(f"{args[0]} gave no answer within {self.timeout:.0f}s") from e
+                    raise ProviderError(f"{self._who(args)} gave no answer within {self.timeout:.0f}s") from e
             if done.returncode != 0:
-                last = ProviderError(f"{args[0]} exited {done.returncode}: {_exit_reason(done.stdout, done.stderr)[:300]}")
+                last = ProviderError(f"{self._who(args)} exited {done.returncode}: {_exit_reason(done.stdout, done.stderr)[:300]}")
                 continue
             return self._answer(done.stdout)
-        raise last or ProviderError(f"{args[0]} failed")
+        raise last or ProviderError(f"{self._who(args)} failed")
+
+    def _who(self, args: list[str]) -> str:
+        """How errors name the command: a hand-set command by its program, a preset by its label alone, so text that
+        ends up in a pull-request comment names the provider the reader chose, not a vendor's binary."""
+        return f"the {self.label} provider's command" if self.label != "command" else args[0]
 
     def _answer(self, stdout: str) -> dict[str, Any]:
         try:
@@ -381,8 +386,8 @@ def make_provider(spec: str | None, *, model: str | None = None, base_url: str |
         if os.environ.get("FATHOM_ALLOW_COMMAND") != "1":
             raise ProviderError("the command provider runs review.command from fathom.yaml; set FATHOM_ALLOW_COMMAND=1 where that file is trusted")
         return CommandProvider(tuple(command or ()), model=model, effort=effort)
-    if spec == "claude-code":
-        return CommandProvider(CLAUDE_CODE_COMMAND, model=model, effort=effort, label="claude-code", isolate=True)  # review.command is the `command` provider's, never this one's
+    if spec in ("cli", "claude-code"):  # "cli" names the signed-in command-line preset without its vendor
+        return CommandProvider(CLAUDE_CODE_COMMAND, model=model, effort=effort, label="cli", isolate=True)  # review.command is the `command` provider's, never this one's
     raise ProviderError(f"unknown provider {spec}; use stub, anthropic, openai, command or claude-code")
 
 

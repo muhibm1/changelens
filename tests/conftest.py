@@ -33,12 +33,6 @@ def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> St
 
 
 @pytest.fixture(autouse=True)
-def _no_background_refresh(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Servers built in tests do not refresh indexes behind the test's back; tests of the refresh turn it on."""
-    monkeypatch.setenv("FATHOM_REFRESH", "off")
-
-
-@pytest.fixture(autouse=True)
 def _no_paid_calls(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """No test can spend API credit: real keys are removed, and the faked Anthropic calls tests make run under a
     one-dollar cap kept in a temporary ledger, never the user's."""
@@ -50,8 +44,7 @@ def _no_paid_calls(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.Tem
 
 @pytest.fixture(autouse=True)
 def _usage_log_in_tmp(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
-    """Hooks and tools log to the usage log; in tests that log is a temporary file, never the user's."""
+    """The MCP tools log to the usage log; in tests that log is a temporary file, never the user's."""
     home = tmp_path_factory.mktemp("fathom-home")
     monkeypatch.setenv("FATHOM_HOME", str(home))
     monkeypatch.setenv("FATHOM_USAGE", str(home / "usage.jsonl"))
-    monkeypatch.setenv("FATHOM_SOCKET", str(tmp_path_factory.mktemp("sock") / "d.sock"))

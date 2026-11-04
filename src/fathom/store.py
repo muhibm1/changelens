@@ -102,6 +102,19 @@ def _json_default(o: Any) -> Any:
     return o.isoformat() if isinstance(o, datetime) else str(o)
 
 
+_TIME_KEYS = ("occurred_at", "issued_at", "graph_as_of", "landed_at", "observed_at")
+
+
+def _decode_times(d: dict[str, Any]) -> dict[str, Any]:
+    """A stored verdict's timestamps come back as datetimes, so a reused verdict renders like a fresh one."""
+    for k in _TIME_KEYS:
+        v = d.get(k)
+        if isinstance(v, str):
+            with contextlib.suppress(ValueError):
+                d[k] = datetime.fromisoformat(v)
+    return d
+
+
 class Store:
     def __init__(self, path: str | Path = ".fathom/graph.duckdb"):
         self.path = Path(path)
@@ -307,7 +320,7 @@ class Store:
 
     def get_verdict(self, verdict_id: str) -> dict[str, Any] | None:
         row = self.con.execute("SELECT body FROM verdicts WHERE id = ?", [verdict_id]).fetchone()
-        return json.loads(row[0]) if row else None
+        return json.loads(row[0], object_hook=_decode_times) if row else None
 
     def mark_synced(self, adapter: str, source: str, digest: str) -> None:
         self.con.execute(

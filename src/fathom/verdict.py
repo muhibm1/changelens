@@ -15,7 +15,7 @@ from typing import Any
 from .changes import COLUMN_OPS, DESTRUCTIVE, ChangeSet
 from .constraints import Constraint
 from .model import EdgeKind, Event, EventKind
-from .predicates import ConstraintHit, evaluate
+from .predicates import ConstraintHit, evaluate, unresolved_scope
 from .risk import RiskModel, score, severity
 from .store import Store
 from .sync import graph_as_of
@@ -236,6 +236,24 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
     return " ".join(parts)
 
 
+def _fingerprint(store: Store, cs: ChangeSet, constraints: list[Constraint], risk_model: RiskModel, as_of: Any, problems: list[str]) -> str:
+    """The verdict id: the same inputs give the same id and the stored verdict is reused. Inputs are everything the
+    verdict reads: the ops, what could not be resolved or was ignored, the graph's sync time, the constraints and risk
+    model in force, and the newest decision recorded in the ledger (an approval changes what fires)."""
+    newest_decision = store.con.execute("SELECT max(id || '@' || CAST(occurred_at AS VARCHAR)) FROM events WHERE kind = 'decision_recorded'").fetchone()
+    key = {
+        "ops": [o.to_dict() for o in cs.ops],
+        "unresolved": cs.unresolved,
+        "ignored": cs.ignored,
+        "as_of": str(as_of),
+        "constraints": [c.model_dump(mode="json") for c in sorted(constraints, key=lambda c: c.id)],
+        "risk": {"weights": risk_model.weights, "thresholds": risk_model.thresholds, "horizon": risk_model.incident_horizon_days},
+        "decision": newest_decision[0] if newest_decision else None,
+        "problems": problems,
+    }
+    return hashlib.sha1(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+
 def preflight(
     store: Store,
     cs: ChangeSet,
@@ -243,10 +261,14 @@ def preflight(
     risk_model: RiskModel,
     *,
     record: bool = True,
+    constraint_problems: list[str] | None = None,
 ) -> dict[str, Any]:
+    """The verdict on a change set. ``constraint_problems`` are load errors from the constraint files; they and any
+    scope that names no known asset are carried in the verdict, so a broken rule is visible instead of silently off."""
     now = datetime.now(UTC)
     as_of = graph_as_of(store)
-    fingerprint = hashlib.sha1(json.dumps([o.to_dict() for o in cs.ops], sort_keys=True, default=str).encode() + str(as_of).encode()).hexdigest()[:16]
+    problems = list(constraint_problems or []) + [u["reason"] for u in unresolved_scope(store, constraints)]
+    fingerprint = _fingerprint(store, cs, constraints, risk_model, as_of, problems)
     verdict_id = f"pf_{fingerprint}"
     existing = store.get_verdict(verdict_id)
     if existing is not None:
@@ -293,6 +315,7 @@ def preflight(
         "change": {"source": cs.source, "ops": [o.to_dict() for o in cs.ops], "touched": cs.touched, "unresolved": cs.unresolved, "ignored": cs.ignored},
         "affected": affected_rows,
         "constraints": [h.to_dict() for h in hits],
+        "constraint_problems": problems,
         "readers": readers,
         "history": history,
         "background_events": background,
@@ -317,9 +340,29 @@ def preflight(
     return verdict
 
 
+def _plain(val: Any) -> str:
+    """A check argument as a reader writes it: lists joined, strings bare."""
+    if isinstance(val, list | tuple):
+        return ", ".join(str(x) for x in val)
+    return str(val)
+
+
+def _unresolved_line(u: dict[str, Any]) -> str:
+    """One unresolved item in words: what could not be mapped, why, and the nearest assets when known."""
+    what = u.get("path") or u.get("intent") or u.get("op") or "change"
+    line = f"`{what}`: {u.get('reason', 'not resolved')}"
+    if u.get("candidates"):
+        line += " (nearest: " + ", ".join(str(c) for c in u["candidates"][:5]) + ")"
+    return line
+
+
 def to_markdown(v: dict[str, Any]) -> str:
     sev = v["severity"].upper()
-    lines = [f"**Fathom pre-flight: {sev}** (risk {v['risk']['score']}/100, verdict `{v['verdict_id']}`, graph as of {v['graph_as_of']})", "", v["summary"], ""]
+    as_of = v["graph_as_of"]
+    synced = f"graph as of {as_of:%Y-%m-%d %H:%M} UTC" if isinstance(as_of, datetime) else (f"graph as of {as_of}" if as_of else "graph never synced")
+    lines = [f"**Fathom pre-flight: {sev}** (risk {v['risk']['score']}/100, verdict `{v['verdict_id']}`, {synced})", "", v["summary"], ""]
+    if not as_of:
+        lines += ["The graph has never been synced, so no asset can be known. Run `fathom sync` first.", ""]
     if v["change"]["ops"]:
         lines.append("**Change**")
         for o in v["change"]["ops"]:
@@ -328,7 +371,11 @@ def to_markdown(v: dict[str, Any]) -> str:
         lines.append("")
     if v["change"]["unresolved"]:
         lines.append("**Unresolved**")
-        lines.extend(f"- {u}" for u in v["change"]["unresolved"])
+        lines.extend(f"- {_unresolved_line(u)}" for u in v["change"]["unresolved"])
+        lines.append("")
+    if v.get("constraint_problems"):
+        lines.append("**Constraint problems** (these rules were not checked)")
+        lines.extend(f"- {p}" for p in v["constraint_problems"])
         lines.append("")
     if v["affected"]:
         lines.append("**Affected**")
@@ -364,8 +411,8 @@ def to_markdown(v: dict[str, Any]) -> str:
     if v["checks"]:
         lines.append("**Routine checks**" if all(c["kind"] == "run_tests" for c in v["checks"]) else "**Recommended checks**")
         for c in v["checks"]:
-            desc = {k: val for k, val in c.items() if k not in ("kind", "evidence")}
-            lines.append(f"- `{c['kind']}` {desc if desc else ''}")
+            desc = "; ".join(f"{k}: {_plain(val)}" for k, val in c.items() if k not in ("kind", "evidence"))
+            lines.append(f"- `{c['kind']}`" + (f" ({desc})" if desc else ""))
         lines.append("")
     lines.append("Risk factors: " + "; ".join(f"{f['name']}={f['value']} (+{f['contribution']})" for f in v["risk"]["factors"]))
     return "\n".join(lines)
