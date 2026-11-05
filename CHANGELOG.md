@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### A hardcoded table name is a finding, and changed SQL is read in the warehouse's dialect (2026-11-05)
+
+- Four weeks of cal-itp/data-infra pull requests (49, merged and open) were run through `fathom review --provider stub` and `fathom preflight` and compared with what the human reviewers said (`pipelinebench/results/calitp-shadow-2026-11.md`). At 0.2.0 the review raised no warning, and the reviewers found no defect in Fathom's scope except one both missed: a model's `ref()` calls replaced by hardcoded production table names (#5767, fixed in #5768). Two fixes came out of it, and on the same 49 pull requests the fixed build warns on that one, twice, on the two lines that need the `ref()` back, and on nothing else.
+- A model that reads a model, seed, snapshot or source table by its warehouse name (`db.schema.table` or `schema.table`) where `ref()` or `source()` would name it is a `literal_relation` op. The pre-flight is at least `warn` and its summary says which asset is read by which name; the review carries one `warn` finding per name, on the line that reads it, with the node as evidence. Only a name the change introduces counts; the reverse diff that restores the `ref()` raises nothing. When the SQL does not parse, a textual pass over quoted and dotted names stands in.
+- The dbt adapter records the warehouse's sqlglot dialect, `database` and `relation_name` on every model, seed, snapshot and source node, and the change parser reads changed SQL in that dialect instead of always as duckdb. On cal-itp (BigQuery) that took the models in the window that did not parse from 6 of 14 to 2 of 14, and resolved six dropped columns and a filter change the duckdb reading could not see. An existing graph needs `fathom sync --force` once to carry the dialect; until then changed SQL is still read as duckdb.
+
 ## 0.2.0 (2026-11-04): the first release as its own project
 
 ### A second real warehouse (2026-11-04)

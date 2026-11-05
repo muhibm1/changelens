@@ -1,0 +1,2415 @@
+{
+ "repo": "cal-itp/data-infra",
+ "window": [
+  "2026-10-08",
+  "2026-11-05"
+ ],
+ "graph": "dbt manifest and catalog published at dbt-docs.dds.dot.ca.gov, generated 2026-10-26",
+ "provider": "stub",
+ "prs": [
+  {
+   "number": 5685,
+   "title": "feat(gtfs-rt-archiver-high-frequency): add high-frequency cohort archiver as a separate service",
+   "author": "tihuang02",
+   "state": "merged",
+   "created_at": "2026-09-02T23:21:23Z",
+   "merged_at": "2026-10-29T00:43:12Z",
+   "head": "472c85e696",
+   "base": "472c85e696",
+   "files": 39,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.6,
+   "call": "out of scope",
+   "reviewers": "changes requested then approved (design of a new service, Terraform)",
+   "note": "services and iac are not platform assets; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5728,
+   "title": "Add compacted GTFS-RT archive buckets in staging and prod",
+   "author": "vevetron",
+   "state": "merged",
+   "created_at": "2026-09-17T23:19:15Z",
+   "merged_at": "2026-10-22T17:24:22Z",
+   "head": "e4d452a23c",
+   "base": "e4d452a23c",
+   "files": 4,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "out of scope",
+   "reviewers": "approved",
+   "note": "Terraform only; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5759,
+   "title": "fix: Update Enghouse Transactions Assumptions (#5697 #5738)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-07T01:38:37Z",
+   "merged_at": "2026-10-08T18:29:27Z",
+   "head": "93b3119851",
+   "base": "93b3119851",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 4,
+   "ops": [
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_enghouse__taps"
+    }
+   ],
+   "affected": 5,
+   "unresolved": 0,
+   "seconds": 2.0,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "metadata change on stg_enghouse__taps reaches 5 models; no reviewer defect",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_enghouse__taps"
+     }
+    ],
+    "affected": 5
+   }
+  },
+  {
+   "number": 5761,
+   "title": "fix: De-duplicate Littlepay Customers and Rides",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-07T20:55:27Z",
+   "merged_at": "2026-10-15T01:05:49Z",
+   "head": "ad497afc69",
+   "base": "ad497afc69",
+   "files": 14,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 4,
+   "ops": [
+    {
+     "kind": "change_metadata",
+     "asset": "model:int_payments__deduped_customer_funding_sources"
+    },
+    {
+     "kind": "change_filter",
+     "asset": "model:int_payments__customer_funding_source_vaults"
+    },
+    {
+     "kind": "change_filter",
+     "asset": "model:int_payments__customers"
+    },
+    {
+     "kind": "add_asset",
+     "asset": "model:int_payments__deduped_customer_funding_sources"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:int_littlepay__unioned_customer_funding_source"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:int_littlepay__unioned_customer_funding_source",
+     "column": "record_updated_timestamp_utc"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:fct_payments_rides_v2"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:fct_payments_rides_v2"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_customer_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_customer_id_ranking_size"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_funding_source_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_funding_source_id_ranking_size"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_funding_source_vault_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source",
+     "column": "calitp_funding_source_vault_id_ranking_size"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:stg_littlepay__customer_funding_source"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_customer_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_customer_id_ranking_size"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_funding_source_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_funding_source_id_ranking_size"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_funding_source_vault_id_rank"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_littlepay__customer_funding_source_v3",
+     "column": "calitp_funding_source_vault_id_ranking_size"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:stg_littlepay__customer_funding_source_v3"
+    }
+   ],
+   "affected": 5,
+   "unresolved": 0,
+   "seconds": 7.1,
+   "call": "agreed",
+   "reviewers": "approved (LGTM)",
+   "note": "22 ops, 5 downstream models; 3 models did not parse (see limits); no reviewer defect, no later fix",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__deduped_customer_funding_sources"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__customer_funding_source_vaults"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__customers"
+     },
+     {
+      "kind": "add_asset",
+      "asset": "model:int_payments__deduped_customer_funding_sources"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_littlepay__unioned_customer_funding_source"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:int_littlepay__unioned_customer_funding_source",
+      "column": "record_updated_timestamp_utc"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_rides_v2"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_payments_rides_v2"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_ranking_size"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:stg_littlepay__customer_funding_source"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_ranking_size"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "record_updated_timestamp_utc"
+     }
+    ],
+    "affected": 5
+   }
+  },
+  {
+   "number": 5763,
+   "title": "chore: Enghouse Transactions Cleanup (#5712)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-08T00:26:21Z",
+   "merged_at": "2026-10-15T18:21:55Z",
+   "head": "6f1cc4b76c",
+   "base": "6f1cc4b76c",
+   "files": 5,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 2,
+   "ops": [
+    {
+     "kind": "change_metadata",
+     "asset": "model:int_payments__transactions_deduped_enghouse"
+    },
+    {
+     "kind": "change_filter",
+     "asset": "model:int_payments__transactions_deduped_enghouse"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:fct_payments_settlements_enghouse"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:fct_payments_settlements_enghouse"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:stg_enghouse__transactions"
+    }
+   ],
+   "affected": 2,
+   "unresolved": 0,
+   "seconds": 4.2,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "5 ops, 2 downstream models",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__transactions_deduped_enghouse"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__transactions_deduped_enghouse"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_settlements_enghouse"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_payments_settlements_enghouse"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_enghouse__transactions"
+     }
+    ],
+    "affected": 2
+   }
+  },
+  {
+   "number": 5764,
+   "title": "fix(airflow): upgrade urllib3 and fix VCR replay; match test env to Composer",
+   "author": "tihuang02",
+   "state": "merged",
+   "created_at": "2026-10-08T03:03:15Z",
+   "merged_at": "2026-10-13T16:13:11Z",
+   "head": "0a93e4acd9",
+   "base": "0a93e4acd9",
+   "files": 11,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/Makefile",
+     "line": 1,
+     "title": "7 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 7,
+   "seconds": 2.3,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved; reviewer asked for the upgrade workflow to be documented",
+   "note": "7 unmapped paths raised preflight to warn; the review reports them at inform",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/Makefile",
+      "line": 1,
+      "title": "7 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5767,
+   "title": "Fix daily schedule+RT route-direction summary trip counting",
+   "author": "tiffanychu90",
+   "state": "merged",
+   "created_at": "2026-10-12T17:10:05Z",
+   "merged_at": "2026-10-12T17:35:52Z",
+   "head": "34716dcc27",
+   "base": "34716dcc27",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 8,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:dim_provider_gtfs_data"
+    }
+   ],
+   "affected": 34,
+   "unresolved": 0,
+   "seconds": 2.5,
+   "call": "missed at 0.2.0; caught after the fix in this change",
+   "reviewers": "approved; a hardcoded production table name replacing ref() was merged and fixed hours later in #5768",
+   "note": "at 0.2.0 the change parser reported 'SQL did not parse' at the hardcoded name and raised nothing; with the adapter dialect and the literal-name check it warns twice, on lines 5 and 33",
+   "after_fix": {
+    "review_severity": "warn",
+    "review_findings": [
+     {
+      "severity": "warn",
+      "source": "deterministic",
+      "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+      "line": 5,
+      "title": "dim_provider_gtfs_data reads dim_gtfs_datasets by its warehouse name, not ref()",
+      "category": "correctness"
+     },
+     {
+      "severity": "warn",
+      "source": "deterministic",
+      "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+      "line": 33,
+      "title": "dim_provider_gtfs_data reads int_gtfs_quality__daily_assessment_candidate_entities by its warehouse name, not ref()",
+      "category": "correctness"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:dim_provider_gtfs_data",
+      "column": "_valid_from_service_date"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:dim_provider_gtfs_data",
+      "column": "_valid_to_service_date"
+     },
+     {
+      "kind": "literal_relation",
+      "asset": "model:dim_provider_gtfs_data"
+     },
+     {
+      "kind": "literal_relation",
+      "asset": "model:dim_provider_gtfs_data"
+     }
+    ],
+    "affected": 34
+   }
+  },
+  {
+   "number": 5768,
+   "title": "(fix): update references missed in PR 5767",
+   "author": "tiffanychu90",
+   "state": "merged",
+   "created_at": "2026-10-12T18:05:15Z",
+   "merged_at": "2026-10-12T18:07:17Z",
+   "head": "b0b73b32bb",
+   "base": "b0b73b32bb",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 8,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "model:dim_provider_gtfs_data"
+    }
+   ],
+   "affected": 35,
+   "unresolved": 0,
+   "seconds": 1.9,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "restores the ref() calls; 35 downstream assets listed",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:dim_provider_gtfs_data"
+     }
+    ],
+    "affected": 35
+   }
+  },
+  {
+   "number": 5770,
+   "title": "Chore(deps): Bump @fastify/busboy and @sveltejs/kit in /apps/maps",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-13T10:59:30Z",
+   "merged_at": null,
+   "head": "67c502454a",
+   "base": "b0b73b32bb",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.3,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5771,
+   "title": "Chore(deps): Bump werkzeug from 3.1.8 to 3.1.9 in /services/gtfs-rt-archiver",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-13T16:16:40Z",
+   "merged_at": null,
+   "head": "67273ec842",
+   "base": "0a93e4acd9",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.0,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5772,
+   "title": "Chore(deps): Bump multidict from 6.7.1 to 6.9.1 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-13T16:16:52Z",
+   "merged_at": null,
+   "head": "32f421b3dd",
+   "base": "0a93e4acd9",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 1459,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.2,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 1459,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5773,
+   "title": "Chore(deps-dev): Bump source-map-js from 1.0.2 to 1.2.2 in /apps/maps",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-13T16:35:05Z",
+   "merged_at": null,
+   "head": "6bd8bff88d",
+   "base": "0a93e4acd9",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5774,
+   "title": "Chore(deps): Bump fsspec from 2024.5.0 to 2026.6.0 in /packages/calitp-data-analysis",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-13T16:35:23Z",
+   "merged_at": null,
+   "head": "df82330c3c",
+   "base": "a3d616cf01",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5777,
+   "title": "Remove deprecated GTFS Schedule DAGs and associated code (issue #4814)",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-13T23:39:35Z",
+   "merged_at": "2026-10-15T18:17:56Z",
+   "head": "eaac643232",
+   "base": "eaac643232",
+   "files": 53,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/dags/download_gtfs_schedule_v2/METADATA.yml",
+     "line": 0,
+     "title": "31 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 31,
+   "seconds": 4.2,
+   "call": "false alarm (preflight)",
+   "reviewers": "commented then approved; reviewer asked for follow-up cleanups (PodOperator, README, GKE, a bucket variable)",
+   "note": "31 deleted paths are not in the graph (sync from the base branch would fix this); reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/dags/download_gtfs_schedule_v2/METADATA.yml",
+      "line": 0,
+      "title": "31 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5781,
+   "title": "Fix GTFS validator test fixture expiration date",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-14T18:53:47Z",
+   "merged_at": "2026-10-15T00:34:21Z",
+   "head": "4312be4c00",
+   "base": "4312be4c00",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/tests/fixtures/schedule-27.zip",
+     "line": null,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.8,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved",
+   "note": "a test fixture zip is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/tests/fixtures/schedule-27.zip",
+      "line": null,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5785,
+   "title": "fix: make TIDES datapackage.json pass Frictionless validation",
+   "author": "vevetron",
+   "state": "merged",
+   "created_at": "2026-10-15T17:39:35Z",
+   "merged_at": "2026-10-26T20:11:33Z",
+   "head": "7511a68a30",
+   "base": "7511a68a30",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/plugins/operators/tides_frictionless_metadata_operator.py",
+     "line": 112,
+     "title": "2 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 2,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved; reviewer asked where packages were installed and for tests",
+   "note": "2 unmapped plugin paths; reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/tides_frictionless_metadata_operator.py",
+      "line": 112,
+      "title": "2 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5786,
+   "title": "chore: update payments_entity_mapping for scmetro (#5778)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-15T17:44:17Z",
+   "merged_at": "2026-10-15T17:46:40Z",
+   "head": "e8e60ae831",
+   "base": "e8e60ae831",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 6,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "seed:payments_entity_mapping"
+    }
+   ],
+   "affected": 16,
+   "unresolved": 0,
+   "seconds": 2.1,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "seed change reaches 16 payments models",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "seed:payments_entity_mapping"
+     }
+    ],
+    "affected": 16
+   }
+  },
+  {
+   "number": 5788,
+   "title": "feat: enghouse parse job writes audit table (#5766)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-15T20:21:14Z",
+   "merged_at": "2026-10-16T17:00:04Z",
+   "head": "8af13f105c",
+   "base": "8af13f105c",
+   "files": 7,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/.test.env",
+     "line": 13,
+     "title": "4 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "task:create_external_tables.enghouse_parse_job_results"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "source_table:external_enghouse.parse_job_results"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 4,
+   "seconds": 1.7,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved",
+   "note": "task and source schema change mapped; operator and tests unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.test.env",
+      "line": 13,
+      "title": "4 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.enghouse_parse_job_results"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "source_table:external_enghouse.parse_job_results"
+     }
+    ],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5792,
+   "title": "fix(metabase): exclude cookies from Cloud Armor RCE inspection; exempt query-builder autocomplete",
+   "author": "jamalk23",
+   "state": "merged",
+   "created_at": "2026-10-17T18:41:22Z",
+   "merged_at": "2026-10-19T19:25:44Z",
+   "head": "6f1c57c3c3",
+   "base": "6f1c57c3c3",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "out of scope",
+   "reviewers": "commented then approved",
+   "note": "Terraform only; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5796,
+   "title": "Remove deprecated PodOperator and GTFS Schedule configuration",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-20T04:26:50Z",
+   "merged_at": "2026-10-22T23:44:04Z",
+   "head": "4de38421e8",
+   "base": "4de38421e8",
+   "files": 11,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/.development.env",
+     "line": 34,
+     "title": "5 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 5,
+   "seconds": 1.2,
+   "call": "false alarm (preflight)",
+   "reviewers": "commented then approved; reviewer listed stale docs and environment variables",
+   "note": "Fathom's reference check found no remaining PodOperator callers, matching the reviewer; 5 unmapped paths; docs out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 34,
+      "title": "5 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5797,
+   "title": "Chore(deps): Bump aiohttp from 3.12.15 to 3.14.4 in /images/jupyter-singleuser",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-20T05:38:59Z",
+   "merged_at": null,
+   "head": "e4de6279d0",
+   "base": "6f1c57c3c3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5798,
+   "title": "Chore(deps): Bump aiohttp from 3.13.3 to 3.14.4 in /packages/calitp-data-analysis",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-20T06:23:33Z",
+   "merged_at": null,
+   "head": "9cd8452f62",
+   "base": "a3d616cf01",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5799,
+   "title": "Chore(deps): Bump aiohttp from 3.14.1 to 3.14.4 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-20T07:42:12Z",
+   "merged_at": null,
+   "head": "c5946995ee",
+   "base": "6f1c57c3c3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 39,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 39,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5800,
+   "title": "Chore(deps): Bump aiohttp from 3.9.5 to 3.14.4 in /apps/maps",
+   "author": "dependabot[bot]",
+   "state": "merged",
+   "created_at": "2026-10-20T09:51:03Z",
+   "merged_at": "2026-10-20T17:49:55Z",
+   "head": "a3d616cf01",
+   "base": "a3d616cf01",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5801,
+   "title": "fix: stop un-diagnosable errors for duplicate settlements (#5023)",
+   "author": "mrtopsyt",
+   "state": "open",
+   "created_at": "2026-10-20T17:19:59Z",
+   "merged_at": null,
+   "head": "25eb1de462",
+   "base": "6f1c57c3c3",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "change_metadata",
+     "asset": "model:int_payments__settlements_to_aggregations"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "model:fct_payments_aggregations"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 2.2,
+   "call": "agreed (no review yet)",
+   "reviewers": "open, no review",
+   "note": "test metadata changes on 2 models, no downstream assets; the PR body's own dbt log shows 3 errors, which Fathom does not read",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__settlements_to_aggregations"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_aggregations"
+     }
+    ],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5802,
+   "title": "feat: Handle Littlepay passes and revenue-inspection-outcomes Tables (#5793)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-20T18:04:44Z",
+   "merged_at": "2026-10-21T17:19:28Z",
+   "head": "8799510bb6",
+   "base": "8799510bb6",
+   "files": 4,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/plugins/operators/littlepay_s3_to_gcs_operator.py",
+     "line": 20,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 5,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "task:create_external_tables.micropayment_adjustments_v3"
+    },
+    {
+     "kind": "modify",
+     "asset": "task:create_external_tables.revenue_inspection_outcomes_v3"
+    },
+    {
+     "kind": "change_metadata",
+     "asset": "source_table:external_littlepay_v3.revenue_inspection_outcomes"
+    }
+   ],
+   "affected": 10,
+   "unresolved": 1,
+   "seconds": 1.4,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved",
+   "note": "task and source changes reach 10 payments models including fct_payments_rides_v2; 1 unmapped operator path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/littlepay_s3_to_gcs_operator.py",
+      "line": 20,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.micropayment_adjustments_v3"
+     },
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.revenue_inspection_outcomes_v3"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "source_table:external_littlepay_v3.revenue_inspection_outcomes"
+     }
+    ],
+    "affected": 10
+   }
+  },
+  {
+   "number": 5813,
+   "title": "Remove duplicate Terraform resource for calitp-tides",
+   "author": "vevetron",
+   "state": "merged",
+   "created_at": "2026-10-22T18:35:34Z",
+   "merged_at": "2026-10-22T18:46:39Z",
+   "head": "b2e7027330",
+   "base": "b2e7027330",
+   "files": 3,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "out of scope",
+   "reviewers": "approved; author questioned a Terraform 'no longer manage' notice",
+   "note": "Terraform only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5814,
+   "title": "Chore(deps-dev): Bump vite, @sveltejs/adapter-auto, @sveltejs/adapter-static and @sveltejs/kit in /apps/maps",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-22T23:50:15Z",
+   "merged_at": null,
+   "head": "a094029e00",
+   "base": "4de38421e8",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5815,
+   "title": "Remove legacy airflow-jobs Kubernetes resources and bindings (i5789)",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-23T00:00:47Z",
+   "merged_at": "2026-10-23T22:31:56Z",
+   "head": "6f71359bc3",
+   "base": "6f71359bc3",
+   "files": 18,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/.development.env",
+     "line": 55,
+     "title": "4 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 4,
+   "seconds": 1.2,
+   "call": "false alarm (preflight)",
+   "reviewers": "commented then approved; reviewer found a rollout gap and a missing Python pin",
+   "note": "4 unmapped paths; reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 55,
+      "title": "4 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5816,
+   "title": "Chore(deps): Bump virtualenv from 21.4.2 to 21.14.9 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T00:01:53Z",
+   "merged_at": null,
+   "head": "6cc12c4228",
+   "base": "4de38421e8",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5817,
+   "title": "Chore(deps): Bump certifi from 2026.5.20 to 2026.10.19 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T00:01:54Z",
+   "merged_at": null,
+   "head": "288b8ba0fa",
+   "base": "4de38421e8",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5822,
+   "title": "Remove leftover sync_elavon DAG metadata",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-23T21:33:51Z",
+   "merged_at": "2026-10-29T03:52:03Z",
+   "head": "51e80c9031",
+   "base": "51e80c9031",
+   "files": 6,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/dags/sync_elavon/METADATA.yml",
+     "line": 0,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "approved; reviewer asked for stale docs to go too",
+   "note": "deleted DAG metadata not in the graph",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/dags/sync_elavon/METADATA.yml",
+      "line": 0,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5823,
+   "title": "Chore(deps): Bump setuptools from 80.9.0 to 84.1.0 in /images/jupyter-singleuser",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T22:33:44Z",
+   "merged_at": null,
+   "head": "a7e1789d65",
+   "base": "6f71359bc3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.0,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5824,
+   "title": "Chore(deps): Bump filelock from 3.29.1 to 4.2.1 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T22:33:46Z",
+   "merged_at": null,
+   "head": "dd3166ed89",
+   "base": "6f71359bc3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.0,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5825,
+   "title": "Chore(deps): Bump setuptools from 82.0.1 to 84.1.0 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T22:34:04Z",
+   "merged_at": null,
+   "head": "0b218877bb",
+   "base": "6f71359bc3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.0,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5826,
+   "title": "Chore(deps): Bump pillow from 12.1.1 to 13.0.0 in /packages/calitp-data-analysis",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-23T22:34:16Z",
+   "merged_at": null,
+   "head": "a562d1c07e",
+   "base": "6f71359bc3",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5827,
+   "title": "Add flex summary columns to daily and monthly GTFS route-direction and operator summary models",
+   "author": "tiffanychu90",
+   "state": "merged",
+   "created_at": "2026-10-26T22:08:08Z",
+   "merged_at": "2026-10-26T22:28:00Z",
+   "head": "6b49eee1bb",
+   "base": "6b49eee1bb",
+   "files": 5,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 5,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "model:fct_daily_feed_scheduled_service_summary"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:fct_daily_schedule_rt_operator_summary"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+    },
+    {
+     "kind": "modify",
+     "asset": "model:fct_monthly_operator_summary"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "ttl_arrivals"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "daily_arrivals"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "n_flex_trips"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "daily_flex_trips_all_day"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "ttl_flex_arrivals"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "daily_flex_arrivals"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "n_demand_response_trips"
+    },
+    {
+     "kind": "add_column",
+     "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+     "column": "daily_demand_response_trips_all_day"
+    }
+   ],
+   "affected": 9,
+   "unresolved": 0,
+   "seconds": 2.6,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "8 added columns and 4 modified models reach 9 assets including the calitp_reports_site exposure, the same exposure cal-itp's own Impacted Exposures bot named",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_feed_scheduled_service_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_operator_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_monthly_operator_summary"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "ttl_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "n_flex_trips"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_flex_trips_all_day"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "ttl_flex_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_flex_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "n_demand_response_trips"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_demand_response_trips_all_day"
+     }
+    ],
+    "affected": 9
+   }
+  },
+  {
+   "number": 5830,
+   "title": "Revert staging deployment policy to any `staging/**` branch (undo #5673)",
+   "author": "tihuang02",
+   "state": "merged",
+   "created_at": "2026-10-27T20:36:20Z",
+   "merged_at": "2026-10-28T20:54:20Z",
+   "head": "ecf31bffe2",
+   "base": "ecf31bffe2",
+   "files": 5,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "out of scope",
+   "reviewers": "approved after a discussion of deploy concurrency",
+   "note": "workflow files only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5834,
+   "title": "Add GTFS-RT raw compactor DAG and script",
+   "author": "vevetron",
+   "state": "open",
+   "created_at": "2026-10-28T18:23:10Z",
+   "merged_at": null,
+   "head": "4603279600",
+   "base": "28f5afccbf",
+   "files": 11,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/.development.env",
+     "line": 29,
+     "title": "7 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "add_asset",
+     "asset": "dag:compact_gtfs_rt_raw"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 7,
+   "seconds": 1.9,
+   "call": "false alarm (preflight)",
+   "reviewers": "open; reviewer raised design questions",
+   "note": "new DAG mapped; 7 unmapped script and test paths; design questions out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 29,
+      "title": "7 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "add_asset",
+      "asset": "dag:compact_gtfs_rt_raw"
+     }
+    ],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5835,
+   "title": "Chore(deps): Bump certifi from 2026.2.25 to 2026.10.18 in /services/gtfs-rt-archiver",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-28T20:56:27Z",
+   "merged_at": null,
+   "head": "012c92edf9",
+   "base": "ecf31bffe2",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5836,
+   "title": "Chore(deps): Bump msgpack from 1.1.2 to 1.2.3 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-28T20:56:45Z",
+   "merged_at": null,
+   "head": "b16fff0fb4",
+   "base": "ecf31bffe2",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.1,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5839,
+   "title": "Fix flex group name in IAM bindings (#5837)",
+   "author": "tihuang02",
+   "state": "merged",
+   "created_at": "2026-10-28T23:27:29Z",
+   "merged_at": "2026-10-29T16:21:31Z",
+   "head": "28f5afccbf",
+   "base": "28f5afccbf",
+   "files": 2,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "out of scope",
+   "reviewers": "approved",
+   "note": "Terraform IAM only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5842,
+   "title": "Chore(deps): Bump certifi from 2026.2.25 to 2026.10.18 in /services/gtfs-rt-archiver-high-frequency",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-29T00:46:18Z",
+   "merged_at": null,
+   "head": "29538db8fa",
+   "base": "472c85e696",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5843,
+   "title": "chore: stop parsing ccjpa refunds (#5828)",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-10-29T18:25:22Z",
+   "merged_at": "2026-10-30T21:01:41Z",
+   "head": "458299a16d",
+   "base": "458299a16d",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "dag:download_and_parse_littlepay"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "agreed",
+   "reviewers": "approved; reverted 5 days later because the upstream data was fixed, not because the change was wrong",
+   "note": "DAG modified, no schedule or task change",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "dag:download_and_parse_littlepay"
+     }
+    ],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5845,
+   "title": "Decommission legacy airflow-jobs GKE clusters (#5789)",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-10-30T21:41:57Z",
+   "merged_at": "2026-10-31T00:10:53Z",
+   "head": "fc285f1125",
+   "base": "fc285f1125",
+   "files": 11,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "out of scope",
+   "reviewers": "approved; reviewer caught an unrelated node-count change in the plan",
+   "note": "Terraform only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5846,
+   "title": "Chore(deps): Bump pyasn1 from 0.6.3 to 0.6.5 in /services/gtfs-rt-archiver",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-30T23:21:32Z",
+   "merged_at": null,
+   "head": "83c1d34b93",
+   "base": "458299a16d",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.2,
+   "call": "agreed",
+   "reviewers": "no human review (dependency bump)",
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5847,
+   "title": "Chore(deps): Bump pyasn1 from 0.6.3 to 0.6.5 in /warehouse",
+   "author": "dependabot[bot]",
+   "state": "open",
+   "created_at": "2026-10-30T23:21:40Z",
+   "merged_at": null,
+   "head": "1826209759",
+   "base": "458299a16d",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "warehouse/uv.lock",
+     "line": 2,
+     "title": "1 changed path is not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [],
+   "affected": 0,
+   "unresolved": 1,
+   "seconds": 1.2,
+   "call": "false alarm (preflight)",
+   "reviewers": "no human review (dependency bump)",
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5850,
+   "title": "Filter existing Littlepay files before creating mapped tasks (issue #5838)",
+   "author": "fsalemi",
+   "state": "merged",
+   "created_at": "2026-11-03T05:03:42Z",
+   "merged_at": "2026-11-04T18:51:38Z",
+   "head": "71074c5e1e",
+   "base": "71074c5e1e",
+   "files": 6,
+   "review_severity": "inform",
+   "review_findings": [
+    {
+     "severity": "inform",
+     "source": "deterministic",
+     "path": "airflow/plugins/operators/littlepay_s3_list_filter_operator.py",
+     "line": 1,
+     "title": "5 changed paths are not mapped to any asset",
+     "category": "operational"
+    }
+   ],
+   "preflight_severity": "warn",
+   "raised_for_unresolved": true,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "change_schedule",
+     "asset": "dag:download_and_parse_littlepay"
+    },
+    {
+     "kind": "add_task",
+     "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list_filter'"
+    },
+    {
+     "kind": "delete_asset",
+     "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list'"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 5,
+   "seconds": 1.4,
+   "call": "false alarm (preflight)",
+   "reviewers": "changes requested (test structure, avoid an extra task) then approved",
+   "note": "schedule change 12:00 to 12:30 UTC, one task added and one removed; 5 unmapped paths",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/littlepay_s3_list_filter_operator.py",
+      "line": 1,
+      "title": "5 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "change_schedule",
+      "asset": "dag:download_and_parse_littlepay"
+     },
+     {
+      "kind": "add_task",
+      "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list_filter'"
+     },
+     {
+      "kind": "delete_asset",
+      "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list'"
+     }
+    ],
+    "affected": 0
+   }
+  },
+  {
+   "number": 5855,
+   "title": "Revert \"chore: stop parsing ccjpa refunds (#5828)\"",
+   "author": "mrtopsyt",
+   "state": "merged",
+   "created_at": "2026-11-04T18:25:40Z",
+   "merged_at": "2026-11-04T19:07:27Z",
+   "head": "3801da68ed",
+   "base": "3801da68ed",
+   "files": 1,
+   "review_severity": "inform",
+   "review_findings": [],
+   "preflight_severity": "inform",
+   "raised_for_unresolved": false,
+   "risk": 0,
+   "ops": [
+    {
+     "kind": "modify",
+     "asset": "dag:download_and_parse_littlepay"
+    }
+   ],
+   "affected": 0,
+   "unresolved": 0,
+   "seconds": 1.1,
+   "call": "agreed",
+   "reviewers": "approved",
+   "note": "parse_kwargs removed with no remaining references",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "dag:download_and_parse_littlepay"
+     }
+    ],
+    "affected": 0
+   }
+  }
+ ],
+ "runs": {
+  "before": "Fathom 0.2.0 (a4d5b0b): changed SQL parsed as duckdb, no literal-name check",
+  "after": "this change: changed SQL parsed in the adapter's dialect (bigquery), literal_relation check"
+ }
+}

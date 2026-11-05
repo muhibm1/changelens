@@ -93,6 +93,9 @@ class PathResolver:
     for a node."""
 
     def __init__(self, store: Store):
+        self.store = store
+        self._dialect: str | None = None
+        self._relations: dict[str, str] | None = None
         self.by_path: dict[str, list[str]] = {}
         self.by_test: dict[str, list[str]] = {}
         self.by_macro: dict[str, list[str]] = {}
@@ -113,6 +116,36 @@ class PathResolver:
             return list(self.by_path[p])
         # a schema.yml names several assets; a model file names one
         return [nid for k, ids in self.by_path.items() if k.endswith(p) or p.endswith(k) for nid in ids]
+
+    @property
+    def dialect(self) -> str:
+        """The SQL dialect the dbt adapter recorded on its nodes; duckdb when the graph has none."""
+        if self._dialect is None:
+            row = self.store.con.execute("SELECT json_extract_string(properties, '$.dialect') FROM nodes WHERE kind IN ('model', 'seed', 'snapshot', 'source_table') AND json_extract_string(properties, '$.dialect') IS NOT NULL LIMIT 1").fetchone()
+            self._dialect = (row[0] if row and row[0] else None) or "duckdb"
+        return self._dialect
+
+    @property
+    def relations(self) -> dict[str, str]:
+        """Warehouse names -> node id, for a model, seed, snapshot or source table: ``db.schema.table`` and
+        ``schema.table``, lower-cased and unquoted, so a model that reads one by that name instead of ``ref()`` or
+        ``source()`` can be told."""
+        if self._relations is None:
+            self._relations = {}
+            for n in self.store.find_nodes():
+                if n["kind"] not in ("model", "seed", "snapshot", "source_table"):
+                    continue
+                props = n["properties"]
+                table = props.get("alias") or props.get("identifier") or n["name"].split(".")[-1]
+                schema = props.get("schema")
+                if not schema:
+                    continue
+                keys = {f"{schema}.{table}"}
+                if props.get("database"):
+                    keys.add(f"{props['database']}.{schema}.{table}")
+                for key in keys:
+                    self._relations.setdefault(key.lower(), n["id"])
+        return self._relations
 
     def macro_users(self, path: str) -> list[str]:
         """Assets whose SQL calls the project macro defined at ``path``."""

@@ -937,6 +937,16 @@ def deterministic_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
         verb = "drops" if r["op"] == "drop_column" else "renames"
         out.append({"source": "deterministic", "path": path, "line": line, "end_line": None, "severity": "warn", "category": "data_contract", "title": f"{r['reader'].split(':', 1)[1]} still selects {r['column']}", "body": f"This change {verb} {r['column']}, and {r['reader']} selects it directly but is not changed in this diff, so it will fail to build. Update it in the same change.", "evidence": [f"node:{r['reader']}"] + r["evidence"], "status": "valid", "notes": []})
     for o in v["change"]["ops"]:
+        if o["kind"] != "literal_relation":
+            continue
+        d = o["details"]
+        path = next((e[5:] for e in o.get("evidence", []) if e.startswith("diff:")), None)
+        fd = _file(ctx, path) if path else None
+        line = d.get("line") or (fd.first_changed_line() if fd else None)
+        asset, target = o["asset"].split(":", 1)[-1], d["node"].split(":", 1)[-1]
+        body = f"{asset} now reads {target} as {d['relation']}, a warehouse name typed by hand, where `ref()` or `source()` would name it. dbt's graph no longer records that {asset} depends on {target}: `dbt build --select +{asset}` and a selector on the upstream model skip it, the run order is no longer guaranteed, and every environment reads the one hardcoded project. If this is a debugging leftover, restore the ref; if it is meant, say why in the change."
+        out.append({"source": "deterministic", "path": fd.path if fd else path, "line": line, "end_line": None, "severity": "warn", "category": "correctness", "title": f"{asset} reads {target} by its warehouse name, not ref()", "body": body, "evidence": [f"node:{d['node']}"] + ([f"hunk:{fd.path}:{line}"] if fd and line else []), "status": "valid", "notes": []})
+    for o in v["change"]["ops"]:
         d = o.get("details") or {}
         if d.get("field") != NOT_SELECTED:
             continue
