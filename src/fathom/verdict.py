@@ -203,6 +203,9 @@ def _summary(cs: ChangeSet, affected_rows: list[dict[str, Any]], hits: list[Cons
         parts[0] += f", {len(tier1)} of them tier 1 ({names}{'…' if len(tier1) > 3 else ''})." if tier1 else ("; none are tier 1." if tiers_recorded else "; no tiers are recorded, so none is known to be tier 1.")
     else:
         parts[0] += " reaches no downstream assets."
+    literal = [o for o in cs.ops if o.kind == "literal_relation"]
+    if literal:
+        parts.append("Reads " + ", ".join(f"{_short(o.details['node'])} by its warehouse name {o.details['relation']} instead of ref() or source()" for o in literal[:3]) + ", so dbt no longer knows the dependency.")
     firing = [h for h in hits if h.status == "fires"]
     if firing:
         parts.append("Fires " + ", ".join(f"{h.constraint.id} ({h.constraint.severity})" for h in firing) + ".")
@@ -298,6 +301,10 @@ def preflight(
         blast_radius=len(affected_rows),
     )
     firing_sev = [h.constraint.severity for h in hits if h.status == "fires"]
+    if any(o.kind == "literal_relation" for o in cs.ops):
+        # A model reading another asset by its warehouse name drops the dependency from dbt's own graph: a defect in
+        # the change itself, so at least a warn whatever the blast radius says.
+        firing_sev.append("warn")
     sev = severity(risk_model, risk.score, firing_sev)
     readers = column_readers(store, cs)
     # Readers left selecting a removed column are a check and a review finding, not a severity bump:

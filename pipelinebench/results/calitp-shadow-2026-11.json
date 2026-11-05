@@ -28,7 +28,14 @@
    "seconds": 1.6,
    "call": "out of scope",
    "reviewers": "changes requested then approved (design of a new service, Terraform)",
-   "note": "services and iac are not platform assets; no finding"
+   "note": "services and iac are not platform assets; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5728,
@@ -51,7 +58,14 @@
    "seconds": 1.1,
    "call": "out of scope",
    "reviewers": "approved",
-   "note": "Terraform only; no finding"
+   "note": "Terraform only; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5759,
@@ -79,7 +93,19 @@
    "seconds": 2.0,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "metadata change on stg_enghouse__taps reaches 5 models; no reviewer defect"
+   "note": "metadata change on stg_enghouse__taps reaches 5 models; no reviewer defect",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_enghouse__taps"
+     }
+    ],
+    "affected": 5
+   }
   },
   {
    "number": 5761,
@@ -204,7 +230,147 @@
    "seconds": 7.1,
    "call": "agreed",
    "reviewers": "approved (LGTM)",
-   "note": "22 ops, 5 downstream models; 3 models did not parse (see limits); no reviewer defect, no later fix"
+   "note": "22 ops, 5 downstream models; 3 models did not parse (see limits); no reviewer defect, no later fix",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__deduped_customer_funding_sources"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__customer_funding_source_vaults"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__customers"
+     },
+     {
+      "kind": "add_asset",
+      "asset": "model:int_payments__deduped_customer_funding_sources"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_littlepay__unioned_customer_funding_source"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:int_littlepay__unioned_customer_funding_source",
+      "column": "record_updated_timestamp_utc"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_rides_v2"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_payments_rides_v2"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_ranking_size"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:stg_littlepay__customer_funding_source"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_ranking_size"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_ranking_size"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_funding_source_vault_id_rank"
+     },
+     {
+      "kind": "drop_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "calitp_customer_id_rank"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:stg_littlepay__customer_funding_source_v3",
+      "column": "record_updated_timestamp_utc"
+     }
+    ],
+    "affected": 5
+   }
   },
   {
    "number": 5763,
@@ -248,7 +414,35 @@
    "seconds": 4.2,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "5 ops, 2 downstream models"
+   "note": "5 ops, 2 downstream models",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__transactions_deduped_enghouse"
+     },
+     {
+      "kind": "change_filter",
+      "asset": "model:int_payments__transactions_deduped_enghouse"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_settlements_enghouse"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_payments_settlements_enghouse"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:stg_enghouse__transactions"
+     }
+    ],
+    "affected": 2
+   }
   },
   {
    "number": 5764,
@@ -280,7 +474,23 @@
    "seconds": 2.3,
    "call": "false alarm (preflight)",
    "reviewers": "approved; reviewer asked for the upgrade workflow to be documented",
-   "note": "7 unmapped paths raised preflight to warn; the review reports them at inform"
+   "note": "7 unmapped paths raised preflight to warn; the review reports them at inform",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/Makefile",
+      "line": 1,
+      "title": "7 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5767,
@@ -310,9 +520,56 @@
    "affected": 34,
    "unresolved": 0,
    "seconds": 2.5,
-   "call": "missed (surfaced, not flagged)",
+   "call": "missed at 0.2.0; caught after the fix in this change",
    "reviewers": "approved; a hardcoded production table name replacing ref() was merged and fixed hours later in #5768",
-   "note": "change parser reported 'SQL did not parse' on dim_provider_gtfs_data at the hardcoded name but raised no finding"
+   "note": "at 0.2.0 the change parser reported 'SQL did not parse' at the hardcoded name and raised nothing; with the adapter dialect and the literal-name check it warns twice, on lines 5 and 33",
+   "after_fix": {
+    "review_severity": "warn",
+    "review_findings": [
+     {
+      "severity": "warn",
+      "source": "deterministic",
+      "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+      "line": 5,
+      "title": "dim_provider_gtfs_data reads dim_gtfs_datasets by its warehouse name, not ref()",
+      "category": "correctness"
+     },
+     {
+      "severity": "warn",
+      "source": "deterministic",
+      "path": "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql",
+      "line": 33,
+      "title": "dim_provider_gtfs_data reads int_gtfs_quality__daily_assessment_candidate_entities by its warehouse name, not ref()",
+      "category": "correctness"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:dim_provider_gtfs_data",
+      "column": "_valid_from_service_date"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:dim_provider_gtfs_data",
+      "column": "_valid_to_service_date"
+     },
+     {
+      "kind": "literal_relation",
+      "asset": "model:dim_provider_gtfs_data"
+     },
+     {
+      "kind": "literal_relation",
+      "asset": "model:dim_provider_gtfs_data"
+     }
+    ],
+    "affected": 34
+   }
   },
   {
    "number": 5768,
@@ -340,7 +597,19 @@
    "seconds": 1.9,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "restores the ref() calls; 35 downstream assets listed"
+   "note": "restores the ref() calls; 35 downstream assets listed",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:dim_provider_gtfs_data"
+     }
+    ],
+    "affected": 35
+   }
   },
   {
    "number": 5770,
@@ -363,7 +632,14 @@
    "seconds": 1.3,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5771,
@@ -386,7 +662,14 @@
    "seconds": 1.0,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5772,
@@ -418,7 +701,23 @@
    "seconds": 1.2,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 1459,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5773,
@@ -441,7 +740,14 @@
    "seconds": 1.2,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5774,
@@ -464,7 +770,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5777,
@@ -496,7 +809,23 @@
    "seconds": 4.2,
    "call": "false alarm (preflight)",
    "reviewers": "commented then approved; reviewer asked for follow-up cleanups (PodOperator, README, GKE, a bucket variable)",
-   "note": "31 deleted paths are not in the graph (sync from the base branch would fix this); reviewer items out of scope"
+   "note": "31 deleted paths are not in the graph (sync from the base branch would fix this); reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/dags/download_gtfs_schedule_v2/METADATA.yml",
+      "line": 0,
+      "title": "31 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5781,
@@ -528,7 +857,23 @@
    "seconds": 1.8,
    "call": "false alarm (preflight)",
    "reviewers": "approved",
-   "note": "a test fixture zip is unmapped"
+   "note": "a test fixture zip is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/tests/fixtures/schedule-27.zip",
+      "line": null,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5785,
@@ -560,7 +905,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "approved; reviewer asked where packages were installed and for tests",
-   "note": "2 unmapped plugin paths; reviewer items out of scope"
+   "note": "2 unmapped plugin paths; reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/tides_frictionless_metadata_operator.py",
+      "line": 112,
+      "title": "2 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5786,
@@ -588,7 +949,19 @@
    "seconds": 2.1,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "seed change reaches 16 payments models"
+   "note": "seed change reaches 16 payments models",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "seed:payments_entity_mapping"
+     }
+    ],
+    "affected": 16
+   }
   },
   {
    "number": 5788,
@@ -629,7 +1002,32 @@
    "seconds": 1.7,
    "call": "false alarm (preflight)",
    "reviewers": "approved",
-   "note": "task and source schema change mapped; operator and tests unmapped"
+   "note": "task and source schema change mapped; operator and tests unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.test.env",
+      "line": 13,
+      "title": "4 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.enghouse_parse_job_results"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "source_table:external_enghouse.parse_job_results"
+     }
+    ],
+    "affected": 0
+   }
   },
   {
    "number": 5792,
@@ -652,7 +1050,14 @@
    "seconds": 1.1,
    "call": "out of scope",
    "reviewers": "commented then approved",
-   "note": "Terraform only; no finding"
+   "note": "Terraform only; no finding",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5796,
@@ -684,7 +1089,23 @@
    "seconds": 1.2,
    "call": "false alarm (preflight)",
    "reviewers": "commented then approved; reviewer listed stale docs and environment variables",
-   "note": "Fathom's reference check found no remaining PodOperator callers, matching the reviewer; 5 unmapped paths; docs out of scope"
+   "note": "Fathom's reference check found no remaining PodOperator callers, matching the reviewer; 5 unmapped paths; docs out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 34,
+      "title": "5 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5797,
@@ -707,7 +1128,14 @@
    "seconds": 1.2,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5798,
@@ -730,7 +1158,14 @@
    "seconds": 1.2,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5799,
@@ -762,7 +1197,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 39,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5800,
@@ -785,7 +1236,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5801,
@@ -817,7 +1275,23 @@
    "seconds": 2.2,
    "call": "agreed (no review yet)",
    "reviewers": "open, no review",
-   "note": "test metadata changes on 2 models, no downstream assets; the PR body's own dbt log shows 3 errors, which Fathom does not read"
+   "note": "test metadata changes on 2 models, no downstream assets; the PR body's own dbt log shows 3 errors, which Fathom does not read",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "change_metadata",
+      "asset": "model:int_payments__settlements_to_aggregations"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "model:fct_payments_aggregations"
+     }
+    ],
+    "affected": 0
+   }
   },
   {
    "number": 5802,
@@ -862,7 +1336,36 @@
    "seconds": 1.4,
    "call": "false alarm (preflight)",
    "reviewers": "approved",
-   "note": "task and source changes reach 10 payments models including fct_payments_rides_v2; 1 unmapped operator path"
+   "note": "task and source changes reach 10 payments models including fct_payments_rides_v2; 1 unmapped operator path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/littlepay_s3_to_gcs_operator.py",
+      "line": 20,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.micropayment_adjustments_v3"
+     },
+     {
+      "kind": "modify",
+      "asset": "task:create_external_tables.revenue_inspection_outcomes_v3"
+     },
+     {
+      "kind": "change_metadata",
+      "asset": "source_table:external_littlepay_v3.revenue_inspection_outcomes"
+     }
+    ],
+    "affected": 10
+   }
   },
   {
    "number": 5813,
@@ -885,7 +1388,14 @@
    "seconds": 1.2,
    "call": "out of scope",
    "reviewers": "approved; author questioned a Terraform 'no longer manage' notice",
-   "note": "Terraform only"
+   "note": "Terraform only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5814,
@@ -908,7 +1418,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5815,
@@ -940,7 +1457,23 @@
    "seconds": 1.2,
    "call": "false alarm (preflight)",
    "reviewers": "commented then approved; reviewer found a rollout gap and a missing Python pin",
-   "note": "4 unmapped paths; reviewer items out of scope"
+   "note": "4 unmapped paths; reviewer items out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 55,
+      "title": "4 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5816,
@@ -972,7 +1505,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5817,
@@ -1004,7 +1553,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5822,
@@ -1036,7 +1601,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "approved; reviewer asked for stale docs to go too",
-   "note": "deleted DAG metadata not in the graph"
+   "note": "deleted DAG metadata not in the graph",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/dags/sync_elavon/METADATA.yml",
+      "line": 0,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5823,
@@ -1059,7 +1640,14 @@
    "seconds": 1.0,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5824,
@@ -1091,7 +1679,23 @@
    "seconds": 1.0,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5825,
@@ -1123,7 +1727,23 @@
    "seconds": 1.0,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5826,
@@ -1146,7 +1766,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5827,
@@ -1226,7 +1853,71 @@
    "seconds": 2.6,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "8 added columns and 4 modified models reach 9 assets including the calitp_reports_site exposure, the same exposure cal-itp's own Impacted Exposures bot named"
+   "note": "8 added columns and 4 modified models reach 9 assets including the calitp_reports_site exposure, the same exposure cal-itp's own Impacted Exposures bot named",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_feed_scheduled_service_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_operator_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_daily_schedule_rt_route_direction_summary"
+     },
+     {
+      "kind": "modify",
+      "asset": "model:fct_monthly_operator_summary"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "ttl_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "n_flex_trips"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_flex_trips_all_day"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "ttl_flex_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_flex_arrivals"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "n_demand_response_trips"
+     },
+     {
+      "kind": "add_column",
+      "asset": "model:fct_monthly_schedule_rt_route_direction_summary",
+      "column": "daily_demand_response_trips_all_day"
+     }
+    ],
+    "affected": 9
+   }
   },
   {
    "number": 5830,
@@ -1249,7 +1940,14 @@
    "seconds": 1.1,
    "call": "out of scope",
    "reviewers": "approved after a discussion of deploy concurrency",
-   "note": "workflow files only"
+   "note": "workflow files only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5834,
@@ -1286,7 +1984,28 @@
    "seconds": 1.9,
    "call": "false alarm (preflight)",
    "reviewers": "open; reviewer raised design questions",
-   "note": "new DAG mapped; 7 unmapped script and test paths; design questions out of scope"
+   "note": "new DAG mapped; 7 unmapped script and test paths; design questions out of scope",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/.development.env",
+      "line": 29,
+      "title": "7 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "add_asset",
+      "asset": "dag:compact_gtfs_rt_raw"
+     }
+    ],
+    "affected": 0
+   }
   },
   {
    "number": 5835,
@@ -1309,7 +2028,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5836,
@@ -1341,7 +2067,23 @@
    "seconds": 1.1,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5839,
@@ -1364,7 +2106,14 @@
    "seconds": 1.1,
    "call": "out of scope",
    "reviewers": "approved",
-   "note": "Terraform IAM only"
+   "note": "Terraform IAM only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5842,
@@ -1387,7 +2136,14 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5843,
@@ -1415,7 +2171,19 @@
    "seconds": 1.2,
    "call": "agreed",
    "reviewers": "approved; reverted 5 days later because the upstream data was fixed, not because the change was wrong",
-   "note": "DAG modified, no schedule or task change"
+   "note": "DAG modified, no schedule or task change",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "dag:download_and_parse_littlepay"
+     }
+    ],
+    "affected": 0
+   }
   },
   {
    "number": 5845,
@@ -1438,7 +2206,14 @@
    "seconds": 1.1,
    "call": "out of scope",
    "reviewers": "approved; reviewer caught an unrelated node-count change in the plan",
-   "note": "Terraform only"
+   "note": "Terraform only",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5846,
@@ -1461,7 +2236,14 @@
    "seconds": 1.2,
    "call": "agreed",
    "reviewers": "no human review (dependency bump)",
-   "note": "no platform path"
+   "note": "no platform path",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5847,
@@ -1493,7 +2275,23 @@
    "seconds": 1.2,
    "call": "false alarm (preflight)",
    "reviewers": "no human review (dependency bump)",
-   "note": "uv.lock is unmapped"
+   "note": "uv.lock is unmapped",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "warehouse/uv.lock",
+      "line": 2,
+      "title": "1 changed path is not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [],
+    "affected": 0
+   }
   },
   {
    "number": 5850,
@@ -1538,7 +2336,36 @@
    "seconds": 1.4,
    "call": "false alarm (preflight)",
    "reviewers": "changes requested (test structure, avoid an extra task) then approved",
-   "note": "schedule change 12:00 to 12:30 UTC, one task added and one removed; 5 unmapped paths"
+   "note": "schedule change 12:00 to 12:30 UTC, one task added and one removed; 5 unmapped paths",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [
+     {
+      "severity": "inform",
+      "source": "deterministic",
+      "path": "airflow/plugins/operators/littlepay_s3_list_filter_operator.py",
+      "line": 1,
+      "title": "5 changed paths are not mapped to any asset",
+      "category": "operational"
+     }
+    ],
+    "preflight_severity": "warn",
+    "ops": [
+     {
+      "kind": "change_schedule",
+      "asset": "dag:download_and_parse_littlepay"
+     },
+     {
+      "kind": "add_task",
+      "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list_filter'"
+     },
+     {
+      "kind": "delete_asset",
+      "asset": "task:download_and_parse_littlepay.f'{provider}_littlepay_list'"
+     }
+    ],
+    "affected": 0
+   }
   },
   {
    "number": 5855,
@@ -1566,7 +2393,23 @@
    "seconds": 1.1,
    "call": "agreed",
    "reviewers": "approved",
-   "note": "parse_kwargs removed with no remaining references"
+   "note": "parse_kwargs removed with no remaining references",
+   "after_fix": {
+    "review_severity": "inform",
+    "review_findings": [],
+    "preflight_severity": "inform",
+    "ops": [
+     {
+      "kind": "modify",
+      "asset": "dag:download_and_parse_littlepay"
+     }
+    ],
+    "affected": 0
+   }
   }
- ]
+ ],
+ "runs": {
+  "before": "Fathom 0.2.0 (a4d5b0b): changed SQL parsed as duckdb, no literal-name check",
+  "after": "this change: changed SQL parsed in the adapter's dialect (bigquery), literal_relation check"
+ }
 }

@@ -74,20 +74,61 @@ def _graph_schema(store: Store) -> dict[str, dict[str, str]]:
     return schema
 
 
-def _select_items(sql: str) -> dict[str, str]:
+def _select_items(sql: str, dialect: str = "duckdb") -> dict[str, str]:
     """output column -> normalised expression text, for change detection."""
     import sqlglot
 
     try:
-        expr = sqlglot.parse_one(sql, read="duckdb")
+        expr = sqlglot.parse_one(sql, read=dialect)
     except Exception:  # noqa: BLE001
         return {}
     items: dict[str, str] = {}
     for sel in expr.selects:
         name = sel.alias_or_name
         inner = sel.this if hasattr(sel, "this") and sel.key == "alias" else sel
-        items[name] = inner.sql(dialect="duckdb").lower()
+        items[name] = inner.sql(dialect=dialect).lower()
     return items
+
+
+QUOTED_NAME_RE = re.compile(r"((?:[`\"][^`\"]+[`\"]|[\w-]+)\.)?([`\"][^`\"]+[`\"]|\w+)\.([`\"][^`\"]+[`\"]|\w+)")
+
+
+def literal_relations(sql: str, dialect: str, relations: dict[str, str]) -> dict[str, str]:
+    """Tables the SQL reads by a warehouse name (``db.schema.table`` or ``schema.table``) that is really an asset in the
+    graph: the text as written -> node id. ``ref()`` and ``source()`` calls have already been reduced to bare names by
+    ``dejinja``, so a qualified name here was typed by hand. Parsed with sqlglot; when the SQL does not parse, a
+    textual pass over quoted and dotted names stands in."""
+    if not relations:
+        return {}
+    import sqlglot
+    from sqlglot import exp
+
+    found: dict[str, str] = {}
+    try:
+        expr = sqlglot.parse_one(sql, read=dialect)
+        tables = [(t.sql(dialect=dialect, comments=False), [p.name for p in (t.args.get("catalog"), t.args.get("db"), t.this) if p is not None]) for t in expr.find_all(exp.Table)]
+    except Exception:  # noqa: BLE001
+        tables = []
+        for m in QUOTED_NAME_RE.finditer(sql):
+            parts = [x.strip("`\"") for x in (m.group(1).rstrip(".") if m.group(1) else None, m.group(2), m.group(3)) if x]
+            tables.append((m.group(0), parts))
+    for text, parts in tables:
+        if len(parts) < 2:
+            continue
+        key = ".".join(parts).lower()
+        node = relations.get(key) or (relations.get(".".join(parts[1:]).lower()) if len(parts) == 3 else None)
+        if node:
+            found.setdefault(text, node)
+    return found
+
+
+def _line_of(sql: str | None, text: str) -> int | None:
+    """The first line of ``sql`` that reads the relation ``text`` names, by its unquoted table name."""
+    needle = text.split(".")[-1].strip("`\"")
+    for i, line in enumerate((sql or "").splitlines(), 1):
+        if text in line or (needle in line and "." in line and "{{" not in line):
+            return i
+    return None
 
 
 def _partition_by(raw_sql: str) -> str | None:
@@ -95,7 +136,22 @@ def _partition_by(raw_sql: str) -> str | None:
     return m.group(1) if m else None
 
 
-def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str | None, schema: dict) -> list[ChangeOp]:
+def _literal_ops(asset: str, path: str, old_plain: str, new_plain: str, new_sql: str, dialect: str, relations: dict[str, str] | None) -> list[ChangeOp]:
+    """One ``literal_relation`` op per graph asset the new SQL reads by its warehouse name and the old SQL did not."""
+    if not relations:
+        return []
+    before = set(literal_relations(old_plain, dialect, relations).values())
+    ops: list[ChangeOp] = []
+    for text, node in literal_relations(new_plain, dialect, relations).items():
+        if node in before:
+            continue
+        ops.append(ChangeOp("literal_relation", asset, details={"relation": text, "node": node, "line": _line_of(new_sql, text)}, evidence=[f"diff:{path}", f"node:{node}"]))
+    return ops
+
+
+def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str | None, schema: dict, dialect: str = "duckdb", relations: dict[str, str] | None = None) -> list[ChangeOp]:
+    """``dialect`` is the warehouse's sqlglot dialect, as the dbt adapter recorded it; ``relations`` maps warehouse
+    names to node ids (``PathResolver.relations``) for the hardcoded-name check."""
     ev = [f"diff:{path}"]
     if new_sql is None:
         return [ChangeOp("delete_asset", asset, evidence=ev)]
@@ -103,12 +159,13 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
         return [ChangeOp("add_asset", asset, evidence=ev)]
     ops: list[ChangeOp] = []
     old_plain, new_plain = dejinja(old_sql, asset), dejinja(new_sql, asset)
+    literal = _literal_ops(asset, path, old_plain, new_plain, new_sql, dialect, relations)
     try:
-        old_cols = output_columns(old_plain, schema)
-        new_cols = output_columns(new_plain, schema)
+        old_cols = output_columns(old_plain, schema, dialect)
+        new_cols = output_columns(new_plain, schema, dialect)
     except Exception as e:  # noqa: BLE001
-        return [ChangeOp("modify", asset, details={"note": f"SQL did not parse: {e}"}, evidence=ev)]
-    old_items, new_items = _select_items(old_plain), _select_items(new_plain)
+        return [ChangeOp("modify", asset, details={"note": f"SQL did not parse: {e}"}, evidence=ev), *literal]
+    old_items, new_items = _select_items(old_plain, dialect), _select_items(new_plain, dialect)
     removed = [c for c in old_cols if c not in new_cols]
     added = [c for c in new_cols if c not in old_cols]
     # one out, one in, same expression -> a rename
@@ -132,7 +189,7 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
         ops.append(ChangeOp("change_filter", asset, details={"from": old_where.group(1).strip() if old_where else None, "to": new_where.group(1).strip() if new_where else None}, evidence=ev))
     if not ops:
         ops.append(ChangeOp("modify", asset, details={"note": "no schema, filter or partition change detected"}, evidence=ev))
-    return ops
+    return ops + literal
 
 
 def ops_from_dag_change(store: Store, path: str, old_src: str | None, new_src: str | None, tmp: Path) -> tuple[list[ChangeOp], list[str]]:
@@ -362,7 +419,7 @@ def ops_from_file_change(store: Store, resolver: PathResolver, path: str, old_te
         schema = _graph_schema(store)
         ops: list[ChangeOp] = []
         for a in assets:
-            ops.extend(ops_from_sql_change(a, path, old_text, new_text, schema))
+            ops.extend(ops_from_sql_change(a, path, old_text, new_text, schema, resolver.dialect, resolver.relations))
         return ops, unresolved
     if path.endswith((".yml", ".yaml")):
         entries: list[str] = []
