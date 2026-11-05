@@ -4,6 +4,8 @@
 
 Code-context tools index what the repository says. Fathom indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. Every claim in a verdict carries an evidence id, the checks run in code that a model cannot override, and anything Fathom does not know is reported as "not recorded" rather than guessed.
 
+> Fathom is complete as the data-platform verdict. General code review, its benchmark replayed from real fix history, and the public bug sets (`recall.yaml`, `heldout.yaml`) now live in [Orion](https://github.com/muhibm1/orion) (`orion review`, `orion review bench --public`).
+
 > Status: 0.1.0. Tested on the bundled fixture platform and on [cal-itp/data-infra](https://github.com/cal-itp/data-infra), a public warehouse with 625 dbt models and 21 Airflow DAGs. On PipelineBench, Fathom's own benchmark, language-model agents given Fathom's verdict made no forbidden call and got every escalation right (`pipelinebench/results/llm-agents.md`).
 >
 > Fathom was originally part of Orion, a personal context layer, and was split out on 2026-10-25; the history before that date is Orion's.
