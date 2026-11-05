@@ -72,14 +72,16 @@ def test_fixture_graph_records_dialect_and_warehouse_names(synced_store):
     r = PathResolver(synced_store)
     assert r.dialect == "duckdb"
     assert r.relations["main.int_order_payments"] == "model:int_order_payments"
-    assert r.relations["test_warehouse.main.int_order_payments"] == "model:int_order_payments"
+    # the database name depends on how the fixture was built (dbt parse locally, dbt build in CI), so read it back
+    db = synced_store.node("model:int_order_payments")["properties"]["database"]
+    assert db and r.relations[f"{db}.main.int_order_payments"] == "model:int_order_payments"
 
 
 def test_a_ref_replaced_by_a_warehouse_name_warns_in_preflight_and_review(synced_store, constraints, tmp_path):
     """End to end on the fixture: the verdict is at least warn, the summary says why, and the review carries a finding
     on the line that reads the table."""
     old = (ROOT / FCT_ORDERS).read_text()
-    new = old.replace("{{ ref('int_order_payments') }}", "test_warehouse.main.int_order_payments")
+    new = old.replace("{{ ref('int_order_payments') }}", "test_warehouse.main.int_order_payments")  # the schema.table part is what resolves
     assert new != old
     cs = collect_changes(synced_store, ROOT, tmp=tmp_path, file_changes=[(FCT_ORDERS, old, new)])
     literal = [o for o in cs.ops if o.kind == "literal_relation"]
