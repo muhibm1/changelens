@@ -56,6 +56,7 @@ Copy `.github/workflows/fathom-review.yml` and change the paths. Fathom's own re
 | What | Result | Source |
 | --- | --- | --- |
 | cal-itp, 116 merged changes over 26 weeks, deterministic checks only | 4 warnings, 0 false alarms a week | `pipelinebench/results/calitp-history-deterministic.md` |
+| cal-itp, 49 pull requests over 4 weeks (2026-10-08 to 2026-11-05), deterministic checks only, compared with the reviewers | 0 warnings a week from `fathom review`; the reviewers found no defect in Fathom's scope except one it also missed (hardcoded table names replacing `ref()`) | `pipelinebench/results/calitp-shadow-2026-11.md` |
 | Same changes, model review, `platform` policy | 2.23 warnings and 0.81 false alarms a week; 3 of 6 known bugs flagged at warn | `pipelinebench/results/calitp-history-model-consumers.md` |
 | Same changes, model review, every model warning kept (`model`) | 5.27 warnings and 1.62 false alarms a week; the same 3 of 6 bugs | `pipelinebench/results/calitp-history-model.md` |
 | 45 held-out bugs from eight application repositories (Sonnet 5.5, 3 runs) | 0.741 surfaced at any severity, 0.615 at warn | `CHANGELOG.md`, Precision at warn |

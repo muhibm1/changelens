@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Shadow study on cal-itp pull requests (2026-11-05)
+
+- Four weeks of cal-itp/data-infra pull requests (49, merged and open) were run through `fathom review --provider stub` and `fathom preflight` and compared with what the human reviewers said (`pipelinebench/results/calitp-shadow-2026-11.md`). The review raised no warning; the reviewers found no defect in Fathom's scope except one both missed: a model's `ref()` calls replaced by hardcoded production table names (#5767, fixed in #5768). Two follow-ups come out of it: the change parser reads model SQL in the DuckDB dialect whatever the adapter is, so BigQuery names and aggregates fail to parse; and a literal table name that resolves to a graph node should be a finding, not a parse error. Neither is built yet.
+
 ## 0.2.0 (2026-11-04): the first release as its own project
 
 ### A second real warehouse (2026-11-04)
