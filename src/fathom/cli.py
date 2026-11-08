@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
+from .adapters.dbt import ManifestNotFoundError
 from .config import load_config
 from .constraints import load_constraints
 from .explain import explain as explain_asset
@@ -83,7 +84,14 @@ def sync(
 ):
     """Pull the asset graph and ledger from the configured sources."""
     cfg, store = _open(config)
-    results = run_sync(cfg, store, only=adapters or None, force=force)
+    try:
+        results = run_sync(cfg, store, only=adapters or None, force=force)
+    except ManifestNotFoundError as e:
+        console.print(
+            f"[red]dbt manifest not found: {escape(str(e.manifest_path))}. Build it with: dbt parse --project-dir {escape(str(e.project_dir))}[/]",
+            soft_wrap=True,
+        )
+        raise typer.Exit(1) from None
     t = Table("adapter", "nodes", "edges", "events", "status")
     for r in results:
         t.add_row(r.adapter, str(r.nodes), str(r.edges), str(r.events), "unchanged" if r.skipped else "synced")
