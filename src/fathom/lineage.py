@@ -109,6 +109,19 @@ def _top_level_words(body: str) -> list[tuple[str, int]]:
     return out
 
 
+def _has_line_comment(text: str) -> bool:
+    i = 0
+    while i < len(text):
+        j = _skip_quoted(text, i)
+        if j != i:
+            if text.startswith(("--", "#"), i):
+                return True
+            i = j
+        else:
+            i += 1
+    return False
+
+
 def bigquery_aggregate_filter(sql: str) -> str:
     """BigQuery accepts a filter inside an aggregate call, ``COUNT(DISTINCT x WHERE cond)``, which sqlglot does not parse.
     It is rewritten to the equivalent ``COUNT(DISTINCT IF(cond, x, NULL))`` (`COUNT(*)` becomes `COUNT(IF(cond, 1, NULL))`; this holds for the aggregates that skip NULLs, such as COUNT, SUM, AVG, MIN, MAX), nested calls
@@ -145,7 +158,10 @@ def bigquery_aggregate_filter(sql: str) -> str:
             if not {"order", "limit", "having", "group", "ignore", "respect"} & set(names[k + 1:]) and head.strip() and cond.strip():
                 lead = re.match(r"\s*(distinct\s+)?", head, re.I).group(0)
                 operand = "1" if head[len(lead):].strip() == "*" else head[len(lead):].strip()
-                body = f"{lead}IF({cond.strip()}, {operand}, NULL)"
+                cond = cond.strip()
+                if _has_line_comment(cond) or _has_line_comment(operand):  # a trailing line comment must not swallow the rest
+                    cond, operand = cond + "\n", operand + "\n"
+                body = f"{lead}IF({cond}, {operand}, NULL)"
         out.append(m.group(0) + body + ")")
         i = j
     return "".join(out)

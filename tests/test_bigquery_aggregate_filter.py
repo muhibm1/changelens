@@ -95,3 +95,17 @@ def test_count_star_with_filter_counts_rows():
 def test_nulls_modifiers_order_by_and_limit_are_left_as_written():
     for sql in ("select array_agg(x ignore nulls where c) from t", "select array_agg(x respect nulls where c) from t", "select array_agg(x order by y where c) from t", "select array_agg(x where c limit 2) from t"):
         assert bigquery_aggregate_filter(sql) == sql
+
+
+def test_line_comments_in_operand_or_condition_do_not_swallow_the_rewrite():
+    import sqlglot
+
+    for sql in (
+        "select count(a -- note\n where b) from t",
+        "select count(a where b -- x\n) from t",
+        "select count(a # note\n where b) from t",
+        "select count(a where b # x\n) from t",
+    ):
+        out = bigquery_aggregate_filter(sql)
+        expr = sqlglot.parse_one(out, read="bigquery")
+        assert {c.name for c in expr.find_all(sqlglot.exp.Column)} == {"a", "b"}, out
