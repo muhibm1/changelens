@@ -114,7 +114,7 @@ class Embedder(Protocol):
 
 
 class HashEmbedder:
-    """Deterministic, dependency-free vectors: hashed tokens and character trigrams, L2-normalised."""
+    """Deterministic, dependency-free vectors: hashed tokens and character trigrams, L2-normalized."""
 
     def __init__(self, dims: int = 512):
         self.dims = dims

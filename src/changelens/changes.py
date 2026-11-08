@@ -75,7 +75,7 @@ def _graph_schema(store: Store) -> dict[str, dict[str, str]]:
 
 
 def _select_items(sql: str, dialect: str = "duckdb") -> dict[str, str]:
-    """output column -> normalised expression text, for change detection."""
+    """output column -> normalized expression text, for change detection."""
     import sqlglot
 
     try:
@@ -487,7 +487,7 @@ def _settle_removed_entries(cs: ChangeSet, changes: list[tuple[str, str | None, 
 
 
 def _as_text(data: bytes) -> str:
-    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalised), except that a byte it cannot decode becomes a replacement character (plus a closing line naming the file's SHA-256) instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
+    """A changed file's bytes as text mode read them (the locale's encoding, newlines normalized), except that a byte it cannot decode becomes a replacement character (plus a closing line naming the file's SHA-256) instead of stopping the pre-flight, and a binary file (a NUL byte in its first 8000, git's own test) reads as a line naming its SHA-256, so two different binaries never look alike."""
     if b"\0" in data[:8000]:
         return f"binary file, sha256 {hashlib.sha256(data).hexdigest()}\n"
     encoding = locale.getpreferredencoding(False)

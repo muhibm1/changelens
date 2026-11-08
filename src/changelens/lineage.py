@@ -189,7 +189,7 @@ def parse_model(sql: str, dialect: str = "duckdb") -> exp.Expr:
 
 
 def tables_schema(expr: exp.Expr, schema: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
-    """Only the tables the query reads: sqlglot normalises the whole schema on every call, which is quadratic on a large project.
+    """Only the tables the query reads: sqlglot normalizes the whole schema on every call, which is quadratic on a large project.
     Column types are left out (``UNKNOWN``): lineage does not need them, and an empty or warehouse-specific type string
     makes sqlglot's type annotation fail for the whole query."""
     names = {t.name for t in expr.find_all(exp.Table)}
