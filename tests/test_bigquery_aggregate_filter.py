@@ -51,3 +51,47 @@ def test_other_dialects_are_untouched():
     assert normalize_sql(sql, "duckdb") == sql
     assert normalize_sql(sql, "bigquery") != sql
     parse_model(normalize_sql(sql, "bigquery"), "bigquery")
+
+
+FILTER_OLD = """with base as (
+    select feed_key, trip_instance_key, is_flex from {{ ref('fct_scheduled_trips') }}
+    where service_date < current_date()
+),
+agg as (
+    select feed_key, count(distinct trip_instance_key) as n_trips
+    from base
+    group by 1
+)
+select feed_key, n_trips from agg
+"""
+FILTER_NEW = FILTER_OLD.replace(
+    "count(distinct trip_instance_key) as n_trips",
+    "count(distinct trip_instance_key) as n_trips, count(distinct trip_instance_key where is_flex = true) as n_flex",
+).replace("select feed_key, n_trips from agg", "select feed_key, n_trips, n_flex from agg")
+
+
+def test_row_filters_unchanged_means_no_change_filter_when_only_select_columns_change():
+    ops = ops_from_sql_change("model:m", "m.sql", FILTER_OLD, FILTER_NEW, {}, dialect="bigquery")
+    assert [o.column for o in ops if o.kind == "add_column"] == ["n_flex"]
+    assert not [o for o in ops if o.kind == "change_filter"]
+
+
+def test_a_real_row_filter_change_is_still_a_change_filter():
+    changed = FILTER_NEW.replace("service_date < current_date()", "service_date < date '2026-01-01'")
+    assert [o for o in ops_from_sql_change("model:m", "m.sql", FILTER_NEW, changed, {}, dialect="bigquery") if o.kind == "change_filter"]
+
+
+def test_comments_are_skipped_not_rewritten_or_read_as_strings():
+    assert bigquery_aggregate_filter("select count(a /* where */) from t") == "select count(a /* where */) from t"
+    sql = "select 1 -- don't\n, count(a where b) from t"
+    assert bigquery_aggregate_filter(sql) == "select 1 -- don't\n, count(IF(b, a, NULL)) from t"
+
+
+def test_count_star_with_filter_counts_rows():
+    assert bigquery_aggregate_filter("select count(* where b) from t") == "select count(IF(b, 1, NULL)) from t"
+    assert bigquery_aggregate_filter("select count(distinct * where b) from t") == "select count(distinct IF(b, 1, NULL)) from t"
+
+
+def test_nulls_modifiers_order_by_and_limit_are_left_as_written():
+    for sql in ("select array_agg(x ignore nulls where c) from t", "select array_agg(x respect nulls where c) from t", "select array_agg(x order by y where c) from t", "select array_agg(x where c limit 2) from t"):
+        assert bigquery_aggregate_filter(sql) == sql

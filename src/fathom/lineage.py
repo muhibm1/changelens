@@ -70,7 +70,13 @@ _NOT_A_CALL = {"in", "exists", "as", "on", "and", "or", "not", "from", "join", "
 
 
 def _skip_quoted(sql: str, i: int) -> int:
-    """The index after the string or quoted identifier that starts at ``i``, or ``i`` if none does."""
+    """The index after the string, quoted identifier or comment that starts at ``i``, or ``i`` if none does."""
+    if sql.startswith("--", i) or sql[i] == "#":
+        j = sql.find("\n", i)
+        return len(sql) if j < 0 else j
+    if sql.startswith("/*", i):
+        j = sql.find("*/", i + 2)
+        return len(sql) if j < 0 else j + 2
     q = sql[i]
     if q not in "'\"`":
         return i
@@ -85,8 +91,8 @@ def _top_level_words(body: str) -> list[tuple[str, int]]:
     out, depth, i = [], 0, 0
     while i < len(body):
         c = body[i]
-        if c in "'\"`":
-            i = _skip_quoted(body, i)
+        if (j := _skip_quoted(body, i)) != i:
+            i = j
             continue
         if c == "(":
             depth += 1
@@ -105,13 +111,12 @@ def _top_level_words(body: str) -> list[tuple[str, int]]:
 
 def bigquery_aggregate_filter(sql: str) -> str:
     """BigQuery accepts a filter inside an aggregate call, ``COUNT(DISTINCT x WHERE cond)``, which sqlglot does not parse.
-    It is rewritten to the equivalent ``COUNT(DISTINCT IF(cond, x, NULL))`` (an aggregate ignores the NULLs), nested calls
-    and string literals included. A call whose body holds a subquery or a top-level comma is left as written."""
+    It is rewritten to the equivalent ``COUNT(DISTINCT IF(cond, x, NULL))`` (`COUNT(*)` becomes `COUNT(IF(cond, 1, NULL))`; this holds for the aggregates that skip NULLs, such as COUNT, SUM, AVG, MIN, MAX), nested calls
+    and string literals included. A call whose body holds a subquery, a top-level comma, IGNORE or RESPECT NULLS, ORDER BY or LIMIT is left as written. Comments are skipped like strings."""
     out, i, n = [], 0, len(sql)
     while i < n:
         c = sql[i]
-        if c in "'\"`":
-            j = _skip_quoted(sql, i)
+        if (j := _skip_quoted(sql, i)) != i:
             out.append(sql[i:j])
             i = j
             continue
@@ -122,8 +127,8 @@ def bigquery_aggregate_filter(sql: str) -> str:
             continue
         depth, j = 1, m.end()
         while j < n and depth:
-            if sql[j] in "'\"`":
-                j = _skip_quoted(sql, j)
+            if (k := _skip_quoted(sql, j)) != j:
+                j = k
                 continue
             depth += (sql[j] == "(") - (sql[j] == ")")
             j += 1
@@ -133,13 +138,14 @@ def bigquery_aggregate_filter(sql: str) -> str:
         body = bigquery_aggregate_filter(sql[m.end():j - 1])
         words = _top_level_words(body)
         names = [w for w, _ in words]
-        if "where" in names and not {"select", "from", "with", ",", "order", "limit", "having"} & set(names[: names.index("where")]):
+        if "where" in names and not {"select", "from", "with", ",", "order", "limit", "having", "ignore", "respect"} & set(names[: names.index("where")]):
             k = names.index("where")
             at = words[k][1]
             head, cond = body[:at], body[at + 5:]
-            if not {"order", "limit", "having", "group"} & set(names[k + 1:]) and head.strip() and cond.strip():
+            if not {"order", "limit", "having", "group", "ignore", "respect"} & set(names[k + 1:]) and head.strip() and cond.strip():
                 lead = re.match(r"\s*(distinct\s+)?", head, re.I).group(0)
-                body = f"{lead}IF({cond.strip()}, {head[len(lead):].strip()}, NULL)"
+                operand = "1" if head[len(lead):].strip() == "*" else head[len(lead):].strip()
+                body = f"{lead}IF({cond.strip()}, {operand}, NULL)"
         out.append(m.group(0) + body + ")")
         i = j
     return "".join(out)

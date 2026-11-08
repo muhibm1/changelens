@@ -4,7 +4,7 @@
 
 ### BigQuery aggregates with an inline filter are parsed
 
-- `COUNT(DISTINCT x WHERE cond)`, which BigQuery accepts and sqlglot does not, is read as `COUNT(DISTINCT IF(cond, x, NULL))` before parsing, in the BigQuery dialect only. A changed model that uses it now yields typed ops and column lineage that includes the counted and the filter column, instead of a bare `modify` with a parse note (the two unparsed models in the cal-itp #5827 shadow study).
+- `COUNT(DISTINCT x WHERE cond)`, which BigQuery accepts and sqlglot does not, is read as `COUNT(DISTINCT IF(cond, x, NULL))` before parsing, in the BigQuery dialect only. A changed model that uses it now yields typed ops and column lineage that includes the counted and the filter column, instead of a bare `modify` with a parse note (the two unparsed models in the cal-itp #5827 shadow study). Comments, `COUNT(*)`, and aggregates with IGNORE NULLS, ORDER BY or LIMIT are handled or left as written. When both versions of the SQL parse, the filter-change check compares their real WHERE clauses instead of a text span from the first WHERE, which had reported a filter change when only select columns moved.
 
 ### A hardcoded table name is a finding, and changed SQL is read in the warehouse's dialect (2026-11-05)
 
