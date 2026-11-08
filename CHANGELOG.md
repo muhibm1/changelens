@@ -18,7 +18,7 @@
 
 ### A second real warehouse (2026-11-04)
 
-- ChangeLens ran unchanged on erp-data-platform, a dbt project on Postgres that it was not built around (`pipelinebench/results/partner-erp-data-platform.md`). Two fixes came out of it.
+- ChangeLens ran unchanged on ClearLedger, a dbt project on Postgres that it was not built around (`pipelinebench/results/partner-clearledger.md`). Two fixes came out of it.
 - A source can be named the way the warehouse names it, `<schema>.<table>` (`source:raw.load_runs`), as well as dbt's `<source>.<table>` (`odoo.load_runs`). Only an unambiguous match resolves; two candidates stay unresolved and are listed.
 - "Rename the column X in T" is read as a rename whether or not it names the new column, and in either word order, so it fires a column lock instead of warning as a generic modify.
 - `preflight --format markdown` (the pull-request comment) writes checks and unresolved items in words rather than Python dicts, and says so when the graph has never been synced.
