@@ -267,7 +267,7 @@ A postmortem is Markdown with front matter naming `assets`, `started_at`, `resol
 .venv/bin/pytest -q
 ```
 
-The end-to-end tests parse the fixture dbt project on the fly, so they need no warehouse; the catalog only adds column types.
+The tests need the fixture warehouse first: run the `dbt seed` and `dbt build` line from the tour above, or they error out. The commands assume [uv](https://docs.astral.sh/uv/) is installed.
 
 ## Roadmap
 
