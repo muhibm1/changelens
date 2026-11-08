@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### BigQuery aggregates with an inline filter are parsed
+
+- `COUNT(DISTINCT x WHERE cond)`, which BigQuery accepts and sqlglot does not, is read as `COUNT(DISTINCT IF(cond, x, NULL))` before parsing, in the BigQuery dialect only. A changed model that uses it now yields typed ops and column lineage that includes the counted and the filter column, instead of a bare `modify` with a parse note (the two unparsed models in the cal-itp #5827 shadow study).
+
 ### A hardcoded table name is a finding, and changed SQL is read in the warehouse's dialect (2026-11-05)
 
 - Four weeks of cal-itp/data-infra pull requests (49, merged and open) were run through `fathom review --provider stub` and `fathom preflight` and compared with what the human reviewers said (`pipelinebench/results/calitp-shadow-2026-11.md`). At 0.2.0 the review raised no warning, and the reviewers found no defect in Fathom's scope except one both missed: a model's `ref()` calls replaced by hardcoded production table names (#5767, fixed in #5768). Two fixes came out of it, and on the same 49 pull requests the fixed build warns on that one, twice, on the two lines that need the `ref()` back, and on nothing else.

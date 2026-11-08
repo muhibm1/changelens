@@ -21,7 +21,7 @@ from typing import Any
 import yaml
 
 from .adapters.airflow import parse_bash_command, parse_dag_file
-from .lineage import dejinja, output_columns, schema_key
+from .lineage import dejinja, normalize_sql, output_columns, schema_key
 from .resolver import PathResolver, resolve_ref
 from .store import Store
 
@@ -79,7 +79,7 @@ def _select_items(sql: str, dialect: str = "duckdb") -> dict[str, str]:
     import sqlglot
 
     try:
-        expr = sqlglot.parse_one(sql, read=dialect)
+        expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
     except Exception:  # noqa: BLE001
         return {}
     items: dict[str, str] = {}
@@ -105,7 +105,7 @@ def literal_relations(sql: str, dialect: str, relations: dict[str, str]) -> dict
 
     found: dict[str, str] = {}
     try:
-        expr = sqlglot.parse_one(sql, read=dialect)
+        expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
         tables = [(t.sql(dialect=dialect, comments=False), [p.name for p in (t.args.get("catalog"), t.args.get("db"), t.this) if p is not None]) for t in expr.find_all(exp.Table)]
     except Exception:  # noqa: BLE001
         tables = []
@@ -158,7 +158,7 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
     if old_sql is None:
         return [ChangeOp("add_asset", asset, evidence=ev)]
     ops: list[ChangeOp] = []
-    old_plain, new_plain = dejinja(old_sql, asset), dejinja(new_sql, asset)
+    old_plain, new_plain = normalize_sql(dejinja(old_sql, asset), dialect), normalize_sql(dejinja(new_sql, asset), dialect)
     literal = _literal_ops(asset, path, old_plain, new_plain, new_sql, dialect, relations)
     try:
         old_cols = output_columns(old_plain, schema, dialect)
