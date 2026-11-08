@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from fathom.model import Confidence, Edge, EdgeKind, Event, EventKind, Node, NodeKind, Provenance
-from fathom.store import ProvenanceRequired, Store
+from changelens.model import Confidence, Edge, EdgeKind, Event, EventKind, Node, NodeKind, Provenance
+from changelens.store import ProvenanceRequired, Store
 
 
 def prov() -> Provenance:
@@ -75,7 +75,7 @@ def test_bulk_write_matches_upserts_one_by_one():
 
 
 def test_source_resolves_by_warehouse_schema_as_well_as_source_name():
-    from fathom.resolver import resolve_ref
+    from changelens.resolver import resolve_ref
 
     s = Store(":memory:")
     s.upsert_node(Node(NodeKind.SOURCE_TABLE, "odoo.load_runs", {"schema": "raw", "identifier": "load_runs"}, provenance=[prov()]))
@@ -89,7 +89,7 @@ def test_source_resolves_by_warehouse_schema_as_well_as_source_name():
 
 
 def test_source_relation_match_must_be_unambiguous():
-    from fathom.resolver import resolve_ref
+    from changelens.resolver import resolve_ref
 
     s = Store(":memory:")
     for src in ("odoo", "stripe"):

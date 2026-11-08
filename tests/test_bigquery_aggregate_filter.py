@@ -2,8 +2,8 @@
 left two of the 14 models changed in cal-itp/data-infra #5827 as a bare "modify" (``pipelinebench/results/calitp-shadow-2026-11.md``).
 The excerpts below are shortened from those models."""
 
-from fathom.changes import ops_from_sql_change
-from fathom.lineage import bigquery_aggregate_filter, column_lineage, normalize_sql, parse_model
+from changelens.changes import ops_from_sql_change
+from changelens.lineage import bigquery_aggregate_filter, column_lineage, normalize_sql, parse_model
 
 OLD = """with trips as (
     select feed_key, service_date, count(distinct trip_instance_key) as n_trips

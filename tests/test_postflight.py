@@ -3,19 +3,19 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from fathom.changes import collect_changes
-from fathom.constraints import load_constraints
-from fathom.model import Event, EventKind
-from fathom.postflight import calibration, watch
-from fathom.proposals import propose
-from fathom.risk import RiskModel
-from fathom.verdict import preflight
+from changelens.changes import collect_changes
+from changelens.constraints import load_constraints
+from changelens.model import Event, EventKind
+from changelens.postflight import calibration, watch
+from changelens.proposals import propose
+from changelens.risk import RiskModel
+from changelens.verdict import preflight
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _verdict(store, tmp_path, **kwargs):
-    constraints, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
+    constraints, _ = load_constraints(ROOT / "fixture" / "changelens" / "constraints")
     cs = collect_changes(store, ROOT, tmp=tmp_path, **kwargs)
     return preflight(store, cs, constraints, RiskModel.load(None), record=True)
 
@@ -69,7 +69,7 @@ def test_failure_after_landing_is_an_under_call_and_yields_a_proposal(synced_sto
     cal = calibration(synced_store)
     assert cal["missed"] >= 1 and cal["table"]["inform"]["failed"] >= 1
 
-    constraints, _ = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
+    constraints, _ = load_constraints(ROOT / "fixture" / "changelens" / "constraints")
     props = propose(synced_store, constraints)
     under = [p for p in props if p.pattern == "verdict_under_called"]
     assert under and under[0].constraint["scope"]["assets"] == ["model:fct_product_engagement"]

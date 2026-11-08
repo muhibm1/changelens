@@ -6,25 +6,25 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from fathom.changes import ChangeOp, ChangeSet, collect_changes
-from fathom.config import load_config
-from fathom.constraints import Constraint, load_constraints
-from fathom.model import Event, EventKind
-from fathom.predicates import _in_window, evaluate
-from fathom.risk import RiskModel, severity
-from fathom.store import Store
-from fathom.sync import run_sync
-from fathom.verdict import preflight, to_markdown
+from changelens.changes import ChangeOp, ChangeSet, collect_changes
+from changelens.config import load_config
+from changelens.constraints import Constraint, load_constraints
+from changelens.model import Event, EventKind
+from changelens.predicates import _in_window, evaluate
+from changelens.risk import RiskModel, severity
+from changelens.store import Store
+from changelens.sync import run_sync
+from changelens.verdict import preflight, to_markdown
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_CONSTRAINTS = ROOT / "fixture" / "fathom" / "constraints"
+FIXTURE_CONSTRAINTS = ROOT / "fixture" / "changelens" / "constraints"
 
 
 @pytest.fixture
 def fresh_store(manifest: Path, tmp_path: Path) -> Store:
     """A store of its own, for tests that write decisions to the ledger."""
     store = Store(tmp_path / "graph.duckdb")
-    run_sync(load_config(ROOT / "fathom.yaml"), store)
+    run_sync(load_config(ROOT / "changelens.yaml"), store)
     return store
 
 
@@ -120,7 +120,7 @@ def test_a_partial_threshold_override_keeps_the_rest(tmp_path):
 
 
 def test_cli_rejects_unknown_choices(tmp_path, monkeypatch):
-    from fathom.cli import app
+    from changelens.cli import app
 
     monkeypatch.chdir(ROOT)
     bad_gate = CliRunner().invoke(app, ["gate", "--fail-on", "blok"])

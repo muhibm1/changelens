@@ -53,8 +53,8 @@ jobs:
         run: .venv/bin/pytest -q
       - name: Sync and explain
         run: |
-          .venv/bin/fathom sync
-          .venv/bin/fathom explain fct_orders
-          .venv/bin/fathom postflight --dry-run --summary
-          .venv/bin/fathom propose
+          .venv/bin/changelens sync
+          .venv/bin/changelens explain fct_orders
+          .venv/bin/changelens postflight --dry-run --summary
+          .venv/bin/changelens propose
           .venv/bin/pipelinebench check-ground-truth

@@ -1,4 +1,4 @@
-from fathom.lineage import column_lineage, dejinja
+from changelens.lineage import column_lineage, dejinja
 
 SQL = """
 {{ config(materialized='table') }}

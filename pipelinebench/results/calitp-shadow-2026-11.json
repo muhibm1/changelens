@@ -1089,7 +1089,7 @@
    "seconds": 1.2,
    "call": "false alarm (preflight)",
    "reviewers": "commented then approved; reviewer listed stale docs and environment variables",
-   "note": "Fathom's reference check found no remaining PodOperator callers, matching the reviewer; 5 unmapped paths; docs out of scope",
+   "note": "ChangeLens's reference check found no remaining PodOperator callers, matching the reviewer; 5 unmapped paths; docs out of scope",
    "after_fix": {
     "review_severity": "inform",
     "review_findings": [
@@ -1275,7 +1275,7 @@
    "seconds": 2.2,
    "call": "agreed (no review yet)",
    "reviewers": "open, no review",
-   "note": "test metadata changes on 2 models, no downstream assets; the PR body's own dbt log shows 3 errors, which Fathom does not read",
+   "note": "test metadata changes on 2 models, no downstream assets; the PR body's own dbt log shows 3 errors, which ChangeLens does not read",
    "after_fix": {
     "review_severity": "inform",
     "review_findings": [],
@@ -2409,7 +2409,7 @@
   }
  ],
  "runs": {
-  "before": "Fathom 0.2.0 (a4d5b0b): changed SQL parsed as duckdb, no literal-name check",
+  "before": "ChangeLens 0.2.0 (a4d5b0b): changed SQL parsed as duckdb, no literal-name check",
   "after": "this change: changed SQL parsed in the adapter's dialect (bigquery), literal_relation check"
  }
 }

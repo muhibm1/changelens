@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from fathom.config import load_config
-from fathom.store import Store
-from fathom.sync import run_sync
+from changelens.config import load_config
+from changelens.store import Store
+from changelens.sync import run_sync
 
 ROOT = Path(__file__).resolve().parents[1]
 DBT_PROJECT = ROOT / "fixture" / "dbt_project"
@@ -26,8 +26,8 @@ def manifest() -> Path:
 
 @pytest.fixture(scope="session")
 def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> Store:
-    cfg = load_config(ROOT / "fathom.yaml")
-    store = Store(tmp_path_factory.mktemp("fathom") / "graph.duckdb")
+    cfg = load_config(ROOT / "changelens.yaml")
+    store = Store(tmp_path_factory.mktemp("changelens") / "graph.duckdb")
     run_sync(cfg, store)
     return store
 
@@ -36,15 +36,15 @@ def synced_store(manifest: Path, tmp_path_factory: pytest.TempPathFactory) -> St
 def _no_paid_calls(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """No test can spend API credit: real keys are removed, and the faked Anthropic calls tests make run under a
     one-dollar cap kept in a temporary ledger, never the user's."""
-    for name in ("ANTHROPIC_API_KEY", "FATHOM_ANTHROPIC_API_KEY"):
+    for name in ("ANTHROPIC_API_KEY", "CHANGELENS_ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("FATHOM_API_CAP", "1")
-    monkeypatch.setenv("FATHOM_API_LEDGER", str(tmp_path_factory.mktemp("fathom-api") / "api-ledger.jsonl"))
+    monkeypatch.setenv("CHANGELENS_API_CAP", "1")
+    monkeypatch.setenv("CHANGELENS_API_LEDGER", str(tmp_path_factory.mktemp("changelens-api") / "api-ledger.jsonl"))
 
 
 @pytest.fixture(autouse=True)
 def _usage_log_in_tmp(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:
     """The MCP tools log to the usage log; in tests that log is a temporary file, never the user's."""
-    home = tmp_path_factory.mktemp("fathom-home")
-    monkeypatch.setenv("FATHOM_HOME", str(home))
-    monkeypatch.setenv("FATHOM_USAGE", str(home / "usage.jsonl"))
+    home = tmp_path_factory.mktemp("changelens-home")
+    monkeypatch.setenv("CHANGELENS_HOME", str(home))
+    monkeypatch.setenv("CHANGELENS_USAGE", str(home / "usage.jsonl"))

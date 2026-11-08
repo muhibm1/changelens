@@ -1,19 +1,19 @@
 """A model that reads another asset by its warehouse name instead of ``ref()`` or ``source()`` is a finding, and changed
 SQL is parsed in the warehouse's own dialect. Both come from the cal-itp shadow study
 (``pipelinebench/results/calitp-shadow-2026-11.md``): a BigQuery model whose refs were swapped for hardcoded
-production table names was approved, merged and fixed hours later, and Fathom had only reported a parse error."""
+production table names was approved, merged and fixed hours later, and ChangeLens had only reported a parse error."""
 
 from pathlib import Path
 
 import pytest
 
-from fathom.changes import collect_changes, literal_relations, ops_from_sql_change
-from fathom.constraints import load_constraints
-from fathom.providers import StubProvider
-from fathom.resolver import PathResolver
-from fathom.review import review
-from fathom.risk import RiskModel
-from fathom.verdict import preflight
+from changelens.changes import collect_changes, literal_relations, ops_from_sql_change
+from changelens.constraints import load_constraints
+from changelens.providers import StubProvider
+from changelens.resolver import PathResolver
+from changelens.review import review
+from changelens.risk import RiskModel
+from changelens.verdict import preflight
 
 ROOT = Path(__file__).resolve().parents[1]
 FCT_ORDERS = "fixture/dbt_project/models/marts/fct_orders.sql"
@@ -35,7 +35,7 @@ RELATIONS = {"cal-itp-data-infra.mart_transit_database.dim_gtfs_datasets": "mode
 @pytest.fixture(scope="module")
 def constraints():
     """The fixture's constraints, loaded once."""
-    cs, problems = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
+    cs, problems = load_constraints(ROOT / "fixture" / "changelens" / "constraints")
     assert not problems
     return cs
 
@@ -92,7 +92,7 @@ def test_a_ref_replaced_by_a_warehouse_name_warns_in_preflight_and_review(synced
 
     from pipelinebench.review_eval import Change
 
-    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=Change(FCT_ORDERS, old, new).diff(), scope=["fixture"], ignore=["fixture/fathom"])
+    r = review(synced_store, ROOT, StubProvider(), constraints=constraints, risk_model=RiskModel.load(None), diff_text=Change(FCT_ORDERS, old, new).diff(), scope=["fixture"], ignore=["fixture/changelens"])
     det = [f for f in r["findings"] if f["source"] == "deterministic" and f["title"].endswith("not ref()")]
     assert len(det) == 1
     f = det[0]

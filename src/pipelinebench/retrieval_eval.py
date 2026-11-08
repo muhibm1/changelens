@@ -30,9 +30,9 @@ from typing import Any
 
 import yaml
 
-from fathom.rag import RagIndex, Scope
-from fathom.rag.cite import check, extractive_answer
-from fathom.rag.code import checkout_documents, import_edges
+from changelens.rag import RagIndex, Scope
+from changelens.rag.cite import check, extractive_answer
+from changelens.rag.code import checkout_documents, import_edges
 
 ROOT = Path(__file__).resolve().parents[2]
 QUERIES = ROOT / "pipelinebench" / "retrieval" / "queries.yaml"
@@ -75,7 +75,7 @@ def materialize(commit: str, dest: Path, repo_root: Path = ROOT) -> Path:
 
 
 def _def_line(text: str, symbol: str) -> int | None:
-    """The 1-based line that defines ``symbol`` (a def, class, heading or YAML key), found by pattern, not by Fathom."""
+    """The 1-based line that defines ``symbol`` (a def, class, heading or YAML key), found by pattern, not by ChangeLens."""
     name = re.escape(symbol.split(".")[-1])
     for pat in (rf"^[ \t]*(?:async[ \t]+)?(?:def|class|function)[ \t]+{name}\b", rf"^#+[ \t]+{name}[ \t]*\r?$", rf"^[ \t]*{name}[ \t]*[:=]"):
         m = re.search(pat, text, re.M)
@@ -97,9 +97,9 @@ def relevant(hit: Any, label: dict[str, Any], files: dict[str, str]) -> bool:
 
 
 def _store_for(config_path: Path | None) -> tuple[Any, Path] | None:
-    from fathom.config import load_config
-    from fathom.store import Store
-    from fathom.sync import run_sync
+    from changelens.config import load_config
+    from changelens.store import Store
+    from changelens.sync import run_sync
 
     cfg = load_config(config_path, cwd=ROOT)
     manifest = cfg.root / "fixture" / "dbt_project" / "target" / "manifest.json"

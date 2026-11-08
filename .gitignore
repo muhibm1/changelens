@@ -1,5 +1,5 @@
 .venv/
-.fathom/
+.changelens/
 __pycache__/
 *.pyc
 *.duckdb
