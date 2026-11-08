@@ -1,8 +1,8 @@
-# Second warehouse: erp-data-platform (dbt on Postgres, finance marts)
+# Second warehouse: ClearLedger (dbt on Postgres, finance marts)
 
-ChangeLens was built against its own fixture and then tried on cal-itp's public warehouse. This note is the second real warehouse: [muhibm1/erp-data-platform](https://github.com/muhibm1/erp-data-platform), a deal-to-cash pipeline that copies Odoo's CRM and accounting records into Postgres and builds finance marts with dbt. It is small (11 models in staging, intermediate and mart layers over 9 Odoo source tables, 18 tests, 2 exposures), but unlike the fixture it was written for another purpose, by its own rules: one dbt source (`odoo`) in schema `raw`, a `latest()` macro behind every staging model, and four postmortems, three of them from failure drills.
+ChangeLens was built against its own fixture and then tried on cal-itp's public warehouse. This note is the second real warehouse: [muhibm1/clearledger](https://github.com/muhibm1/clearledger), a deal-to-cash pipeline that copies Odoo's CRM and accounting records into Postgres and builds finance marts with dbt. It is small (11 models in staging, intermediate and mart layers over 9 Odoo source tables, 18 tests, 2 exposures), but unlike the fixture it was written for another purpose, by its own rules: one dbt source (`odoo`) in schema `raw`, a `latest()` macro behind every staging model, and four postmortems, three of them from failure drills.
 
-The question: does ChangeLens give the right answer on a warehouse it was not built around, with no changes to that warehouse? Everything below is deterministic (no model call), recorded on 2026-11-04 against erp-data-platform `4a73c77` with `dbt parse` only (no catalog, so no column types).
+The question: does ChangeLens give the right answer on a warehouse it was not built around, with no changes to that warehouse? Everything below is deterministic (no model call), recorded on 2026-11-04 against ClearLedger `4a73c77` with `dbt parse` only (no catalog, so no column types).
 
 ## Sync
 
@@ -31,7 +31,7 @@ The rename row needed the second fix. "Rename the column X in T", with no new na
 ## How to repeat it
 
 ```bash
-git clone https://github.com/muhibm1/erp-data-platform && cd erp-data-platform
+git clone https://github.com/muhibm1/clearledger && cd clearledger
 uv venv .venv && uv pip install "git+https://github.com/muhibm1/changelens" dbt-postgres
 (cd dbt && ../.venv/bin/dbt parse --profiles-dir .)   # needs no database
 .venv/bin/changelens sync
