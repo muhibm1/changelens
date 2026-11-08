@@ -73,7 +73,7 @@
   - `recall-eval` splits detection from escalation recall.
   - `recall-spread` reports the spread over repeated runs.
 - **cal-itp, deterministic checks, 116 commits over 26 weeks.** Warnings fell from 33 to 4, all of them artifacts of replaying against a newer graph, so there were 0 false alarms a week.
-- **cal-itp, model review, same 116 commits** (Haiku 5.5 passes, Sonnet 5.5 second reading, `--escalation model`, scored for all three policies; `pipelinebench/results/calitp-history-model.md`). Warnings were labelled by hand from the diff and the upstream history, with limited checking against the code, so treat noise counts as one reader's judgement.
+- **cal-itp, model review, same 116 commits** (Haiku 5.5 passes, Sonnet 5.5 second reading, `--escalation model`, scored for all three policies; `pipelinebench/results/calitp-history-model.md`). Warnings were labeled by hand from the diff and the upstream history, with limited checking against the code, so treat noise counts as one reader's judgement.
 
   | policy | warnings a week | false alarms a week | bugs flagged at warn |
   | --- | ---: | ---: | ---: |
@@ -84,13 +84,13 @@
   Five of the six bugs surface at some severity. As first scored, `platform` lowered all three bugs caught at warn, because a change to a whole model got no backing unless it was the only asset the change touched.
 - **The gate now backs a finding with the consumers of its own file's asset.** Pre-flight's `affected` entries say which changed assets reach them (`from`), and any change to the rows or values of an asset other assets read is backing. Re-scored on the same reviews (`pipelinebench/results/calitp-history-model-consumers.md`), `platform` has 2.23 warnings and 0.81 false alarms a week and flags 3 of 6 bugs, the same bugs as `model` at half its false alarms. The rule was written after seeing the misses, so this is a tuning result. The held-out set is application code, which `platform` does not gate, so it is unchanged there.
 - `pipelinebench history-relabel` re-scores a finished replay against edited labels without re-running the reviews.
-- **cal-itp with the agentic review (`--agent`), same 116 commits, Haiku 5.5** (`pipelinebench/results/calitp-history-agent.md`). Under `platform` it raised 1.31 warnings and 0.35 false alarms a week and flagged 2 of 6 bugs at warn, against 2.23, 0.81 and 3 of 6 for the four lenses. It surfaced 3 of 6 bugs at any severity, against 5 of 6. It used 29.6M input and 1.9M output tokens, against 18.7M and 2.7M. Fewer false alarms, but less recall, so `review.agent` stays off. 25 of its warnings were new and were labelled by hand the same way.
+- **cal-itp with the agentic review (`--agent`), same 116 commits, Haiku 5.5** (`pipelinebench/results/calitp-history-agent.md`). Under `platform` it raised 1.31 warnings and 0.35 false alarms a week and flagged 2 of 6 bugs at warn, against 2.23, 0.81 and 3 of 6 for the four lenses. It surfaced 3 of 6 bugs at any severity, against 5 of 6. It used 29.6M input and 1.9M output tokens, against 18.7M and 2.7M. Fewer false alarms, but less recall, so `review.agent` stays off. 25 of its warnings were new and were labeled by hand the same way.
 
 ### Retrieval core
 
 - `changelens rag index | search | read`: hybrid (BM25 + local embeddings, reciprocal rank fusion), graph-scoped retrieval over code and the platform's prose, in one DuckDB file. Code is chunked by syntax with line spans; import edges, record refs and the data graph's blast radius make a change's neighbourhood rank first. Optional local cross-encoder reranking (`CHANGELENS_RAG_RERANKER=ce:<model>`). Incremental by git blob and chunk text hash; unchanged checkouts and repeated searches are cached.
 - `changelens.rag.cite.check`: citation validity and support for any answer that cites chunk ids.
-- `pipelinebench retrieval-eval`: 42 hand-labelled queries (dev and held-out), recall@k, MRR, citation faithfulness with a tamper control, latency, three runs per configuration.
+- `pipelinebench retrieval-eval`: 42 hand-labeled queries (dev and held-out), recall@k, MRR, citation faithfulness with a tamper control, latency, three runs per configuration.
 
 ### Reviews for app projects, on a subscription
 
@@ -104,7 +104,7 @@
 
 - `changelens review` reads each change in four focused passes: unusual inputs, the real semantics of the calls the code makes, control flow and state, and contracts with callers and callees. The system prompt and the change form a shared, prompt-cached prefix. Findings from the passes are merged, and the second reading rejects a finding that repeats an earlier one (kept under `rejected` with a note). `--lens` and `review.lenses` choose the passes; `--lens general` is the old single pass.
 - `--effort` and `review.effort` set how hard an Anthropic model thinks (default `medium`). The second reading runs at `high` (`--verify-effort`, `review.verify_effort`). It now lowers a case that failed the same way before the change (`pre_existing`) and one that an earlier check on the same path rules out.
-- `pipelinebench/review/heldout.yaml`: 45 real bugs from eight repositories outside the tuning set, labelled by hand from upstream history and never used for tuning. `recall-eval --judge-model` judges whether a finding is about the labelled bug with a model, instead of the `must_mention` words, which gave false credit. `--rejudge` judges kept raw reviews again without reviewing, and `--jobs` reviews cases in parallel worktrees.
+- `pipelinebench/review/heldout.yaml`: 45 real bugs from eight repositories outside the tuning set, labeled by hand from upstream history and never used for tuning. `recall-eval --judge-model` judges whether a finding is about the labeled bug with a model, instead of the `must_mention` words, which gave false credit. `--rejudge` judges kept raw reviews again without reviewing, and `--jobs` reviews cases in parallel worktrees.
 - On Claude Haiku 5.5, the passes raise recall on the 50 tuning bugs from 0.18 to 0.42 and reach 0.60 on the held-out bugs (0.80 warned in the right file). That is short of the 0.95 target and the 0.80 floor, and it costs precision: 6 false alarms on the planted-bug cases where a single pass had 1 (`pipelinebench/results/accuracy.md`).
 - The pull-request review workflow uses Claude Haiku 5.5 to keep each push's review to a few cents.
 
@@ -116,7 +116,7 @@
 
 ### Recall on real bugs
 
-- `pipelinebench mine-introducers` blames the lines a fix commit changed to find the commit that introduced the bug, and lists the small enough ones as candidates. `pipelinebench/review/recall.yaml` holds fifty of them from httpx, hono and cobra, read and labelled by hand (what the bug was, and where it sits in the introducing commit).
+- `pipelinebench mine-introducers` blames the lines a fix commit changed to find the commit that introduced the bug, and lists the small enough ones as candidates. `pipelinebench/review/recall.yaml` holds fifty of them from httpx, hono and cobra, read and labeled by hand (what the bug was, and where it sits in the introducing commit).
 - `pipelinebench recall-eval` reviews each introducing commit against its parent with its commit message as intent, as a team would have seen it, and counts the bugs caught at warn or block within twelve lines (`caught`), warned about elsewhere in the file (`in_file`), raised only as inform, or missed. `--changelens` points it at another build so two builds compare. Sonnet 5.5 catches 21 of the 50 at warn or block and warns in the right file on 29 (`pipelinebench/results/recall.md`); the context changes did not move that number beyond one run's variance, and the second reading still lowers about six right warnings per run.
 - Replay and recall clones keep `changelens.yaml` and the graph out of the diff under review (`.git/info/exclude`); before, both appeared as added files in every replayed change.
 
@@ -159,7 +159,7 @@ The first release. ChangeLens reviews any diff, and when it knows your data plat
 - `changelens review` on any diff or git range, in any repository. Without an `changelens.yaml` it runs a general code review; with one it adds system context. `--git base` diffs from where the branch left the base.
 - Four stages. Deterministic findings come first; the model's candidate findings follow; then code checks each candidate against the diff and the store; then the output is formatted. A finding with no valid evidence is marked uncertain, and one outside the diff is rejected.
 - Warnings must name a concrete failing case; a warning without one becomes inform. A second reading re-checks each warn and block, optionally with a stronger model (`review.verify_model`).
-- The model reads the change's stated intent (`--intent`, or the commit messages), so an announced behaviour change is not reported as a bug.
+- The model reads the change's stated intent (`--intent`, or the commit messages), so an announced behavior change is not reported as a bug.
 - Credential scan (AWS, GitHub, Slack, Google, Anthropic, OpenAI, Stripe, private keys, JWTs, database URLs). Secrets are redacted before the diff leaves the machine, and a model finding that repeats the block is dropped.
 - Symbol references by parsing (tree-sitter, optional): imports resolved to the file they name; receivers typed by annotation, construction, a field or a declared return type, scoped to the enclosing class. A removed name or method still referenced elsewhere is a finding.
 - Providers: `stub`, `anthropic`, and `openai` (any OpenAI-compatible endpoint, schemas sent in strict form). No vendor SDK.
@@ -176,7 +176,7 @@ The first release. ChangeLens reviews any diff, and when it knows your data plat
 
 ### Evidence
 
-- Review eval, 61 hand-labelled diffs: Sonnet recall 1.0 with 0 false alarms with the second reading; Haiku through the OpenAI-compatible endpoint has recall 1.0 and precision 0.955.
+- Review eval, 61 hand-labeled diffs: Sonnet recall 1.0 with 0 false alarms with the second reading; Haiku through the OpenAI-compatible endpoint has recall 1.0 and precision 0.955.
 - Design partners: httpx, hono, cobra and cal-itp/data-infra (`pipelinebench/results/partner-*.md`). One cal-itp warning was confirmed by the project's next commit.
 - Real dbt builds: a breaking rename is predicted block and observed failed, and a safe column add is predicted inform and observed clean (`pipelinebench/results/postflight-real-dbt.md`).
 - PipelineBench, 50 scenarios × 4 context conditions, with Sonnet 5.5 and Haiku 5.5 as agents (`pipelinebench/results/llm-agents.md`). With ChangeLens's verdict, neither model made a forbidden decision, both got all 20 escalations right, and the scores were 0.82 and 0.83. With the whole repository the scores were 0.76 and 0.72, and the models escalated 10 to 12 of the 30 changes that should go ahead. With retrieved chunks the scores were 0.58 and 0.60.

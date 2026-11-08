@@ -229,7 +229,7 @@ def _class_body(lines: list[str], line: int) -> list[str]:
 
 
 def _receiver_type(lines: list[str], receiver: str, line: int, lang: str | None) -> str | None:
-    """The class the receiver of a member access on ``line`` is, as far as the file says: the class itself or a construction of it (``Client.fetch``, ``Client().fetch()``, ``new Client()``, ``Client::new()``, ``Client.new``), or a plain name bound to a capitalised type between the enclosing definition and the access (``c: Client``, ``c = Client(...)``, ``c := &Client{}``, ``let c = Client::new()``, a Go parameter ``c *Client``), the nearest such binding winning. Nothing else is inferred, so a lower-case receiver with no such binding is None."""
+    """The class the receiver of a member access on ``line`` is, as far as the file says: the class itself or a construction of it (``Client.fetch``, ``Client().fetch()``, ``new Client()``, ``Client::new()``, ``Client.new``), or a plain name bound to a capitalized type between the enclosing definition and the access (``c: Client``, ``c = Client(...)``, ``c := &Client{}``, ``let c = Client::new()``, a Go parameter ``c *Client``), the nearest such binding winning. Nothing else is inferred, so a lower-case receiver with no such binding is None."""
     r = receiver.strip().lstrip("&*")
     while r.startswith("(") and r.endswith(")"):
         r = r[1:-1].strip()

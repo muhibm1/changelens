@@ -3,7 +3,7 @@
 The replay eval (``replay_eval.py``) measures noise on correct changes. This one measures the other
 side. ``pipelinebench/review/recall.yaml`` lists commits from public repositories that introduced a bug
 a later fix commit removed, found by blaming the fixed lines (``introducers.py``) and then read and
-labelled by hand. Each case names the introducing commit, the fix, and where in the introducing commit
+labeled by hand. Each case names the introducing commit, the fix, and where in the introducing commit
 the bug sits (``expect``: the lines the fix later touched, in the introducing commit's numbering).
 
 ChangeLens reviews the introducing commit against its parent with the commit message as intent, as a team
@@ -93,7 +93,7 @@ JUDGE_SCHEMA: dict[str, Any] = {
 
 
 def model_about(case: Case, result: dict[str, Any], provider: Any) -> tuple[set[int], dict[str, Any] | None]:
-    """Which findings near the expected span describe the labelled bug, by a model reading the hand-written label;
+    """Which findings near the expected span describe the labeled bug, by a model reading the hand-written label;
     the ids of the matching findings and the judge's token usage. The label, not ChangeLens's output, is the reference."""
     near = [f for f in result.get("findings", []) if f.get("path") and any(s.near(f["path"], f.get("line")) for s in case.expect)]
     if not near:

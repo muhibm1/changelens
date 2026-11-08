@@ -163,7 +163,7 @@ def relabel(res: dict[str, Any], labels: Path) -> dict[str, Any]:
 
 
 def with_bugs(clone: Path, window: list[dict[str, str]], labels: Path | None) -> list[dict[str, str]]:
-    """The window's commits, then each labelled bug-introducing commit from before it (marked ``in_window: False``), so a
+    """The window's commits, then each labeled bug-introducing commit from before it (marked ``in_window: False``), so a
     bug introduced earlier and fixed later is still reviewed; only in-window commits count toward warnings per week."""
     bugs, _ = load_labels(labels)
     have = {c["commit"] for c in window}

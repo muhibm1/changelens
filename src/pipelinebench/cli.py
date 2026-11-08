@@ -111,7 +111,7 @@ def review_eval_cmd(
     out: Path = typer.Option(RESULTS, "--out"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ):
-    """Score `changelens review` on hand-labelled diffs: bugs caught, false alarms, tokens."""
+    """Score `changelens review` on hand-labeled diffs: bugs caught, false alarms, tokens."""
     from datetime import UTC, datetime
 
     from changelens.cli import _ignore, _scope
@@ -300,7 +300,7 @@ def history_relabel_cmd(
     results: Path = typer.Argument(..., help="A history-replay results JSON."),
     labels: Path = typer.Option(..., "--labels", help="The hand-written labels to score its warnings against."),
 ):
-    """Score a finished history replay again after its warnings were labelled (no reviews, no judge calls)."""
+    """Score a finished history replay again after its warnings were labeled (no reviews, no judge calls)."""
     from .history_replay import relabel, to_markdown
 
     res = relabel(json.loads(results.read_text()), labels)
