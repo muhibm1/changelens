@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from fathom.codectx import (
+from changelens.codectx import (
     AreasError,
     _codeowners_regex,
     code_context,
@@ -16,11 +16,11 @@ from fathom.codectx import (
     load_codeowners,
     owners_of,
 )
-from fathom.diffparse import parse
-from fathom.providers import CLAUDE_CODE_COMMAND, CommandProvider, ProviderError, StubProvider, make_provider
-from fathom.review import FINDINGS_SCHEMA, review
-from fathom.store import Store
-from fathom.verdict import load_risk
+from changelens.diffparse import parse
+from changelens.providers import CLAUDE_CODE_COMMAND, CommandProvider, ProviderError, StubProvider, make_provider
+from changelens.review import FINDINGS_SCHEMA, review
+from changelens.store import Store
+from changelens.verdict import load_risk
 
 
 def git(root: Path, *args: str) -> str:
@@ -161,7 +161,7 @@ def test_without_codeowners_or_areas_the_owner_is_not_recorded(tmp_path):
     git(tmp_path, "commit", "-qm", "init")
     files = parse("diff --git a/a.py b/a.py\n--- a/a.py\n+++ b/a.py\n@@ -1 +1 @@\n-A = 1\n+A = 2\n")
     ctx = code_context(tmp_path, files, [], "HEAD")
-    from fathom.codectx import facts
+    from changelens.codectx import facts
 
     assert facts(ctx) == ["- owners: not recorded (the repository has no CODEOWNERS file)", "- history: no fix, revert or incident commit among the last 300 commits that touched these files"]
     unread = code_context(tmp_path / "not-a-repo", files, [], None)
@@ -169,7 +169,7 @@ def test_without_codeowners_or_areas_the_owner_is_not_recorded(tmp_path):
 
 
 def test_an_area_points_at_a_file_with_a_changed_line(tmp_path):
-    from fathom.codectx import Area
+    from changelens.codectx import Area
 
     files = parse("diff --git a/api/x b/api/x\nold mode 100644\nnew mode 100755\ndiff --git a/api/y.py b/api/y.py\n--- a/api/y.py\n+++ b/api/y.py\n@@ -1 +1 @@\n-A = 1\n+A = 2\n")
     (hit,) = code_context(tmp_path, files, [Area(id="API", reason="r", paths=["api/"])], history=False).areas
@@ -179,7 +179,7 @@ def test_an_area_points_at_a_file_with_a_changed_line(tmp_path):
 def test_cli_review_reads_areas_from_a_flag(shop, tmp_path, monkeypatch):
     from typer.testing import CliRunner
 
-    from fathom.cli import app
+    from changelens.cli import app
 
     (tmp_path / "areas.yaml").write_text("- id: PAY\n  paths: [src/pay/]\n  why: moves money\n")
     _change(shop)
@@ -241,8 +241,8 @@ def test_command_provider_without_a_system_argument_puts_it_on_stdin_and_reads_p
     assert out["prompt"].startswith("SYS\n\nuser")
 
 
-def test_a_command_runs_where_fathom_runs_unless_isolated(agent, tmp_path, monkeypatch):
-    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
+def test_a_command_runs_where_changelens_runs_unless_isolated(agent, tmp_path, monkeypatch):
+    monkeypatch.setenv("CHANGELENS_ALLOW_COMMAND", "1")
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools/agent.py").write_text(Path(agent[1]).read_text())
     monkeypatch.chdir(tmp_path)
@@ -261,10 +261,10 @@ def test_command_provider_errors_are_provider_errors(agent, monkeypatch):
         CommandProvider([*agent, "--error"]).complete_json("s", "u", {})
     with pytest.raises(ProviderError, match="not found"):
         CommandProvider(["/no/such/agent"]).complete_json("s", "u", {})
-    monkeypatch.delenv("FATHOM_ALLOW_COMMAND", raising=False)
-    with pytest.raises(ProviderError, match="FATHOM_ALLOW_COMMAND=1"):
-        make_provider("command", command=["./from-fathom-yaml"])
-    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
+    monkeypatch.delenv("CHANGELENS_ALLOW_COMMAND", raising=False)
+    with pytest.raises(ProviderError, match="CHANGELENS_ALLOW_COMMAND=1"):
+        make_provider("command", command=["./from-changelens-yaml"])
+    monkeypatch.setenv("CHANGELENS_ALLOW_COMMAND", "1")
     with pytest.raises(ProviderError, match="needs a command"):
         make_provider("command")
 
@@ -289,7 +289,7 @@ def test_preset_name_and_errors_name_the_provider_not_the_binary(monkeypatch):
     with pytest.raises(ProviderError) as e:
         missing.complete_json("SYS", "hi", {"type": "object"})
     assert str(e.value) == "the cli provider's command was not found; install it or set review.command"
-    monkeypatch.setenv("FATHOM_ALLOW_COMMAND", "1")
+    monkeypatch.setenv("CHANGELENS_ALLOW_COMMAND", "1")
     hand_set = make_provider("command", command=["no-such-binary-xyz"])
     with pytest.raises(ProviderError) as e:
         hand_set.complete_json("SYS", "hi", {"type": "object"})

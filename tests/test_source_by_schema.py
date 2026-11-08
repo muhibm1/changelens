@@ -4,10 +4,10 @@ source node dbt names ``odoo.load_runs``; an ambiguous relation must stay unreso
 import json
 from pathlib import Path
 
-from fathom.config import load_config
-from fathom.resolver import resolve_ref
-from fathom.store import Store
-from fathom.sync import run_sync
+from changelens.config import load_config
+from changelens.resolver import resolve_ref
+from changelens.store import Store
+from changelens.sync import run_sync
 
 
 def _source(source_name: str, table: str, schema: str = "raw") -> dict:
@@ -58,9 +58,9 @@ def _sync(tmp_path: Path, sources: list[dict], notes: dict[str, list[str]]):
     inc.mkdir()
     for inc_id, assets in notes.items():
         (inc / f"{inc_id}.md").write_text(_note(inc_id, assets))
-    (tmp_path / "fathom.yaml").write_text("db: g.duckdb\nadapters:\n  dbt:\n    project: dbt\n  incidents:\n    dir: incidents\n")
+    (tmp_path / "changelens.yaml").write_text("db: g.duckdb\nadapters:\n  dbt:\n    project: dbt\n  incidents:\n    dir: incidents\n")
     store = Store(tmp_path / "g.duckdb")
-    results = run_sync(load_config(tmp_path / "fathom.yaml"), store)
+    results = run_sync(load_config(tmp_path / "changelens.yaml"), store)
     notes_out = [n for r in results for n in r.notes]
     return store, notes_out
 
@@ -76,7 +76,7 @@ def test_schema_named_source_reaches_dbt_named_source(tmp_path):
     ev = store.events_for([node], kinds=["incident_opened"])
     assert [e["source_ref"] for e in ev] == ["INC-002"]
     assert node in ev[0]["assets"] and "model:revenue_by_customer" in ev[0]["assets"]
-    # what `fathom history raw.load_runs` and `fathom history source:raw.load_runs` look up
+    # what `changelens history raw.load_runs` and `changelens history source:raw.load_runs` look up
     for ref in ("source:raw.load_runs", "raw.load_runs"):
         r = resolve_ref(store, ref)
         assert r.node_id == node

@@ -1,4 +1,4 @@
-"""Review eval: does ``fathom review`` catch planted bugs without raising false alarms?
+"""Review eval: does ``changelens review`` catch planted bugs without raising false alarms?
 
 PipelineBench scores the pre-flight verdict; this scores code review. Each case
 in ``pipelinebench/review/cases.yaml`` is a change to one or more files with
@@ -23,11 +23,11 @@ from typing import Any
 
 import yaml
 
-from fathom.constraints import Constraint
-from fathom.providers import Provider
-from fathom.review import review
-from fathom.risk import RiskModel
-from fathom.store import Store
+from changelens.constraints import Constraint
+from changelens.providers import Provider
+from changelens.review import review
+from changelens.risk import RiskModel
+from changelens.store import Store
 
 WINDOW = 3
 ACTED_ON = ("warn", "block")

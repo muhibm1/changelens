@@ -2,14 +2,14 @@ import asyncio
 import json
 from pathlib import Path
 
-from fathom.config import load_config
-from fathom.server import build_server
+from changelens.config import load_config
+from changelens.server import build_server
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_server_exposes_its_tools(synced_store):
-    cfg = load_config(ROOT / "fathom.yaml")
+    cfg = load_config(ROOT / "changelens.yaml")
     cfg.db = str(synced_store.path)
     cfg.root = ROOT
     server = build_server(cfg)
@@ -18,9 +18,9 @@ def test_server_exposes_its_tools(synced_store):
 
 
 def test_review_tool_runs_a_diff(synced_store):
-    from fathom.providers import StubProvider
+    from changelens.providers import StubProvider
 
-    cfg = load_config(ROOT / "fathom.yaml")
+    cfg = load_config(ROOT / "changelens.yaml")
     cfg.db = str(synced_store.path)
     cfg.root = ROOT
     fct = "fixture/dbt_project/models/marts/fct_orders.sql"
@@ -46,7 +46,7 @@ def test_review_tool_runs_a_diff(synced_store):
 
 
 def test_ask_is_graph_scoped(synced_store):
-    from fathom.retrieval import ask
+    from changelens.retrieval import ask
 
     out = ask(synced_store, "why is events partitioned by event_date", ["source_table:raw.raw_events"])
     assert out["answer"] != "not recorded"
@@ -57,7 +57,7 @@ def test_ask_is_graph_scoped(synced_store):
 
 
 def test_rankers_agree_on_the_obvious_question(synced_store):
-    from fathom.retrieval import HashEmbedder, ask
+    from changelens.retrieval import HashEmbedder, ask
 
     q = "why was raw_events repartitioned and what went wrong"
     scope = ["source_table:raw.raw_events"]

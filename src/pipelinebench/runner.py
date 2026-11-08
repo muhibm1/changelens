@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fathom.store import Store
+from changelens.store import Store
 
 from .agents import Agent, Prompt
 from .conditions import CONDITIONS, build_context, load_platform
@@ -102,11 +102,11 @@ def write_results(results: dict[str, Any], out_dir: Path, name: str | None = Non
 
 
 def check_ground_truth(scenarios: list[Scenario], *, repo_root: Path, store: Store) -> list[dict[str, Any]]:
-    """Fathom's verdict against each scenario's hand-written expectation. Disagreements are listed, not hidden."""
+    """ChangeLens's verdict against each scenario's hand-written expectation. Disagreements are listed, not hidden."""
     constraints, risk = load_platform(repo_root, store)
     out = []
     for s in scenarios:
-        ctx = build_context("fathom", s, repo_root=repo_root, store=store, constraints=constraints, risk=risk)
+        ctx = build_context("changelens", s, repo_root=repo_root, store=store, constraints=constraints, risk=risk)
         v = ctx["verdict"]
         fired = {c["id"] for c in v["constraints"] if c["status"] == "fires"}
         hist = {h["ref"] for h in v["history"] if h["ref"]}
@@ -117,7 +117,7 @@ def check_ground_truth(scenarios: list[Scenario], *, repo_root: Path, store: Sto
             "scenario": s.id,
             "title": s.title,
             "expected": s.expected.severity,
-            "fathom": v["severity"],
+            "changelens": v["severity"],
             "agree": v["severity"] == s.expected.severity and not missing_cites and not missing_names,
             "missing_cites": missing_cites,
             "missing_names": missing_names,

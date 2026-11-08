@@ -3,8 +3,8 @@
 import duckdb
 import pytest
 
-from fathom.confirm import Refused, Warehouse, confirm, safe_select, tables_read
-from fathom.providers import StubProvider
+from changelens.confirm import Refused, Warehouse, confirm, safe_select, tables_read
+from changelens.providers import StubProvider
 
 
 @pytest.fixture()
@@ -70,8 +70,8 @@ def test_confirm_runs_each_check_and_records_what_came_back(warehouse):
 
 
 def test_gate_uses_confirmation(warehouse):
-    from fathom.diffparse import parse
-    from fathom.review import ReviewContext, gate_severity
+    from changelens.diffparse import parse
+    from changelens.review import ReviewContext, gate_severity
 
     diff = "diff --git a/m.sql b/m.sql\n--- a/m.sql\n+++ b/m.sql\n@@ -1,2 +1,2 @@\n select id\n-from orders where status != 'test'\n+from orders\n"
     ctx = ReviewContext(parse(diff), None)

@@ -1,5 +1,5 @@
 [project]
-name = "fathom"
+name = "changelens"
 version = "0.2.0"
 description = "The context layer for AI agents on data platforms: column-level lineage, constraints-as-code, ownership and incident history, checked before a change lands."
 readme = "README.md"
@@ -20,12 +20,12 @@ dependencies = [
 [project.optional-dependencies]
 fixture = ["dbt-core>=1.8", "dbt-duckdb>=1.8"]
 dev = ["pytest>=8", "ruff>=0.6"]
-bench = []  # kept so `.[bench]` installs still work; the benchmark agent uses Fathom's provider
+bench = []  # kept so `.[bench]` installs still work; the benchmark agent uses ChangeLens's provider
 embed = ["sentence-transformers>=3"]
 syntax = ["tree-sitter>=0.23", "tree-sitter-language-pack>=1.22"]
 
 [project.scripts]
-fathom = "fathom.cli:app"
+changelens = "changelens.cli:app"
 pipelinebench = "pipelinebench.cli:app"
 
 [build-system]
@@ -37,7 +37,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fathom", "src/pipelinebench"]
+packages = ["src/changelens", "src/pipelinebench"]
 
 [tool.ruff]
 line-length = 120

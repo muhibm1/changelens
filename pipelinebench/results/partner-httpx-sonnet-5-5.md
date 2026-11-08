@@ -2,7 +2,7 @@
 
 Ten merged pull requests from [encode/httpx](https://github.com/encode/httpx), chosen because each removes,
 moves or re-signs definitions (found by `changed_definitions` over the last 400 commits). Each was reviewed with
-`fathom review --git <commit>^` on a checkout of the commit, with an `fathom.yaml` that names only a database, so
+`changelens review --git <commit>^` on a checkout of the commit, with an `changelens.yaml` that names only a database, so
 there is no platform graph: these are plain code reviews. All ten changes were merged by the httpx maintainers,
 so a warning is at best a fair question to the author and at worst a false alarm.
 
@@ -37,6 +37,6 @@ announced `+` for spaces, but its point is the reserved characters left unescape
 One intermediate prompt also flagged a constructor restructuring that keeps behaviour ("an unrequested
 refactor"); the system prompt now says a restructuring the model judges to keep behaviour is not a finding.
 
-To rerun: clone httpx, write `db: .fathom/graph.duckdb` to an untracked `fathom.yaml` in it, then for each commit
-`git checkout <commit>` and `fathom review --git <commit>^ --provider anthropic --model claude-sonnet-5-5 --format json`
+To rerun: clone httpx, write `db: .changelens/graph.duckdb` to an untracked `changelens.yaml` in it, then for each commit
+`git checkout <commit>` and `changelens review --git <commit>^ --provider anthropic --model claude-sonnet-5-5 --format json`
 (to review without the commit message, pass the same diff with `--diff-file` instead of `--git`).

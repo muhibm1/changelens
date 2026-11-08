@@ -1,0 +1,74 @@
+# Weekly (Mondays), or by hand: ingest run history, watch landed changes, draft constraints from
+# ledger patterns and open a pull request. A human merges it; ChangeLens never does.
+name: changelens-propose
+
+on:
+  schedule:
+    # Weekly rather than nightly to save Actions minutes; ledger patterns move slowly.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install
+        run: |
+          uv venv .venv
+          uv pip install -e ".[fixture]"
+      - name: Parse the dbt project
+        working-directory: fixture/dbt_project
+        env:
+          PIPELINEBENCH_DB: warehouse.duckdb
+        run: ../../.venv/bin/dbt parse --profiles-dir . -q
+      - name: Sync, watch, propose
+        run: |
+          .venv/bin/changelens sync
+          .venv/bin/changelens postflight --summary
+          .venv/bin/changelens propose --write
+      - name: Open a pull request with the proposals
+        id: cpr
+        # Opening the pull request needs the repository setting "Allow GitHub Actions to create and
+        # approve pull requests". Without it the branch is still pushed and the next step says so.
+        continue-on-error: true
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: changelens/proposals
+          title: "ChangeLens: proposed constraints from ledger evidence"
+          commit-message: "Propose constraints from ledger patterns"
+          body: |
+            ChangeLens drafted these constraints from the ledger (SLA misses, failures after changes, postmortems without a matching constraint, verdicts that under-called). Each file cites the events it was drawn from.
+
+            Merging a file is the approval. Edit the severity or scope first if the default is wrong; delete the file to reject it.
+          add-paths: fixture/changelens/constraints/proposed/*.yaml
+          delete-branch: true
+      - name: Say where the proposals are
+        if: always()
+        env:
+          OUTCOME: ${{ steps.cpr.outcome }}
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+          COMPARE: ${{ github.server_url }}/${{ github.repository }}/compare/main...changelens/proposals
+        run: |
+          if [ -n "$PR_URL" ]; then
+            echo "Proposals: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$OUTCOME" = "failure" ]; then
+            {
+              echo "The proposals were pushed to \`changelens/proposals\`, but Actions may not open pull requests in this repository."
+              echo "Open one by hand: $COMPARE"
+              echo "Or allow it once: Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No new proposals this week." >> "$GITHUB_STEP_SUMMARY"
+          fi

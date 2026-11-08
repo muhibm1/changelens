@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from fathom.changes import collect_changes, ops_from_intent
-from fathom.constraints import load_constraints
-from fathom.risk import RiskModel
-from fathom.verdict import preflight, to_markdown
+from changelens.changes import collect_changes, ops_from_intent
+from changelens.constraints import load_constraints
+from changelens.risk import RiskModel
+from changelens.verdict import preflight, to_markdown
 
 ROOT = Path(__file__).resolve().parents[1]
 FCT_ORDERS = ROOT / "fixture" / "dbt_project" / "models" / "marts" / "fct_orders.sql"
@@ -17,7 +17,7 @@ ORDERS_DAG = ROOT / "fixture" / "dags" / "orders_pipeline.py"
 
 @pytest.fixture(scope="module")
 def constraints():
-    cs, problems = load_constraints(ROOT / "fixture" / "fathom" / "constraints")
+    cs, problems = load_constraints(ROOT / "fixture" / "changelens" / "constraints")
     assert not problems
     return cs
 
@@ -112,7 +112,7 @@ def test_verdict_is_idempotent_and_recorded(synced_store, constraints):
 def test_markdown_render(synced_store, constraints, tmp_path):
     _, v = run(synced_store, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
     md = to_markdown(v)
-    assert md.startswith("**Fathom pre-flight: BLOCK**") and "CON-031" in md and "diff:" not in md
+    assert md.startswith("**ChangeLens pre-flight: BLOCK**") and "CON-031" in md and "diff:" not in md
     # checks and their arguments read as words, not Python dicts, in a PR comment
     assert "{'" not in md and "['" not in md
     assert "- `get_approval` (from: team/finance-data; for: CON-031)" in md
@@ -126,12 +126,12 @@ def test_markdown_unresolved_reads_as_words(synced_store, constraints, tmp_path)
 
 
 def test_markdown_says_when_the_graph_was_never_synced(tmp_path, constraints):
-    from fathom.store import Store
+    from changelens.store import Store
 
     empty = Store(tmp_path / "empty.duckdb")
     _, v = run(empty, constraints, tmp_path, intent="drop the discount_pct column from fct_orders")
     md = to_markdown(v)
-    assert "graph never synced" in md and "Run `fathom sync` first." in md
+    assert "graph never synced" in md and "Run `changelens sync` first." in md
 
 
 def test_risk_factors_are_transparent(synced_store, constraints, tmp_path):
@@ -170,10 +170,10 @@ def test_prose_is_ignored_and_a_deleted_unknown_model_says_why(synced_store, con
 
 
 def test_schema_files_and_singular_tests_map_to_their_models(tmp_path):
-    from fathom.adapters.dbt import _patch_path, _singular_tests
-    from fathom.model import Node, NodeKind, Provenance
-    from fathom.resolver import PathResolver
-    from fathom.store import Store
+    from changelens.adapters.dbt import _patch_path, _singular_tests
+    from changelens.model import Node, NodeKind, Provenance
+    from changelens.resolver import PathResolver
+    from changelens.store import Store
 
     project = tmp_path / "warehouse"
     manifest = {
@@ -213,19 +213,19 @@ def test_an_intent_naming_the_diffs_change_adds_evidence_not_a_second_op(synced_
 
 
 def test_run_history_and_dbt_build_output_are_not_platform_changes():
-    from fathom.cli import _ignore
-    from fathom.config import load_config
+    from changelens.cli import _ignore
+    from changelens.config import load_config
 
-    out = _ignore(load_config(ROOT / "fathom.yaml"))
+    out = _ignore(load_config(ROOT / "changelens.yaml"))
     assert {"fixture/dbt_project/target", "fixture/runs/airflow_runs.jsonl", "fixture/runs/dbt/*.run_results.json", "fixture/runs/iceberg"} <= set(out)
 
 
 def test_a_config_with_no_platform_adapter_maps_no_file_and_raises_nothing(tmp_path):
-    from fathom.cli import _ignore
-    from fathom.config import FathomConfig
-    from fathom.store import Store
+    from changelens.cli import _ignore
+    from changelens.config import ChangeLensConfig
+    from changelens.store import Store
 
-    cfg = FathomConfig(root=tmp_path)  # a fathom.yaml naming only a database, as in an application repository
+    cfg = ChangeLensConfig(root=tmp_path)  # a changelens.yaml naming only a database, as in an application repository
     assert _ignore(cfg) == ["*"]
     (tmp_path / "main.go").write_text("package main\n")
     store = Store(tmp_path / "g.duckdb")
@@ -236,7 +236,7 @@ def test_a_config_with_no_platform_adapter_maps_no_file_and_raises_nothing(tmp_p
 
 
 def test_ignore_roots_and_globs():
-    from fathom.changes import ignored_path
+    from changelens.changes import ignored_path
 
     ign = ["fixture/runs/dbt/*.run_results.json", "fixture/dbt_project/target", "", "*.nothing-else"]
     assert ignored_path("fixture/runs/dbt/2026.run_results.json", ign)
@@ -246,10 +246,10 @@ def test_ignore_roots_and_globs():
 
 
 def test_a_task_change_reaches_the_tables_it_writes_and_their_readers():
-    from fathom.changes import ChangeOp, ChangeSet
-    from fathom.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
-    from fathom.store import Store
-    from fathom.verdict import affected_assets
+    from changelens.changes import ChangeOp, ChangeSet
+    from changelens.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
+    from changelens.store import Store
+    from changelens.verdict import affected_assets
 
     p = [Provenance("test", "unit")]
     s = Store(":memory:")
@@ -300,10 +300,10 @@ def test_repartitioning_to_the_same_key_reaches_nothing(synced_store, constraint
 def test_many_failed_runs_do_not_crowd_an_incident_out_of_history(tmp_path):
     from datetime import UTC, datetime, timedelta
 
-    from fathom.changes import ChangeOp, ChangeSet
-    from fathom.model import Event, EventKind
-    from fathom.store import Store
-    from fathom.verdict import _history
+    from changelens.changes import ChangeOp, ChangeSet
+    from changelens.model import Event, EventKind
+    from changelens.store import Store
+    from changelens.verdict import _history
 
     store = Store(tmp_path / "g.duckdb")
     now = datetime.now(UTC)
@@ -339,9 +339,9 @@ def test_an_unmapped_dbt_project_file_says_why_in_words(synced_store, constraint
 
 
 def test_a_changed_project_macro_modifies_the_models_that_call_it(tmp_path):
-    from fathom.adapters.dbt import _macro_paths
-    from fathom.model import Node, NodeKind, Provenance
-    from fathom.store import Store
+    from changelens.adapters.dbt import _macro_paths
+    from changelens.model import Node, NodeKind, Provenance
+    from changelens.store import Store
 
     project = tmp_path / "warehouse"
     manifest = {
@@ -362,7 +362,7 @@ def test_a_changed_project_macro_modifies_the_models_that_call_it(tmp_path):
 
 
 def test_a_documented_column_the_model_does_not_select_is_raised(synced_store, constraints, tmp_path):
-    from fathom.changes import NOT_SELECTED
+    from changelens.changes import NOT_SELECTED
 
     old = SCHEMA_YML.read_text()
     new = old.replace("  - name: fct_refunds\n    meta: { owner: team/finance-data, tier: 1 }\n", "  - name: fct_refunds\n    meta: { owner: team/finance-data, tier: 1 }\n    columns:\n      - name: reason\n      - name: refund_channel\n        tests: [not_null]\n")
@@ -381,17 +381,17 @@ def test_a_documented_column_the_model_does_not_select_is_raised(synced_store, c
 
 
 def test_a_model_whose_columns_jinja_stands_for_is_not_judged():
-    from fathom.changes import _produced
+    from changelens.changes import _produced
 
     assert _produced("select {{ dbt_utils.star(ref('a')) }} from {{ ref('a') }}", "m", {}) is None
     assert _produced("{{ config(post_hook=\"{{ grant() }}\") }}\nwith x as (select 1 as a) select * from x", "m", {}) == {"a"}
 
 
 def test_a_reader_that_gets_a_dropped_column_through_a_star_is_not_broken(synced_store):
-    from fathom.changes import ChangeOp, ChangeSet
-    from fathom.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
-    from fathom.store import Store
-    from fathom.verdict import column_readers
+    from changelens.changes import ChangeOp, ChangeSet
+    from changelens.model import Confidence, Edge, EdgeKind, Node, NodeKind, Provenance
+    from changelens.store import Store
+    from changelens.verdict import column_readers
 
     named = [e for e in synced_store.con.execute("SELECT json_extract(properties, '$.by_name') FROM edges WHERE kind = 'derives_from'").fetchall()]
     assert named and all(v[0] is not None for v in named), "every column lineage edge says whether the SQL names the column"
@@ -409,7 +409,7 @@ def test_a_reader_that_gets_a_dropped_column_through_a_star_is_not_broken(synced
 
 
 def test_intent_rename_in_every_word_order(synced_store):
-    from fathom.changes import ops_from_intent
+    from changelens.changes import ops_from_intent
 
     for text, to in [
         ("rename discount_pct to discount_rate in fct_orders", "discount_rate"),
