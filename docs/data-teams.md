@@ -1,6 +1,6 @@
-# Fathom for dbt teams
+# ChangeLens for dbt teams
 
-This is the release for data teams: what Fathom does on a dbt project, how to run it for two weeks without it blocking anything, and what it measured on a real warehouse's history. Every number below links to the result file it comes from.
+This is the release for data teams: what ChangeLens, data change review (currently Fathom), does on a dbt project, how to run it for two weeks without it blocking anything, and what it measured on a real warehouse's history. Every number below links to the result file it comes from.
 
 ## What it does on a pull request
 

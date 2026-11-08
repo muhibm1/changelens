@@ -1,12 +1,12 @@
-# Fathom
+# ChangeLens, data change review (currently Fathom)
 
-**The context layer for AI agents working on data platforms.** Before a coding agent or an engineer changes a dbt model or an Airflow DAG, Fathom tells it what depends on that change (column-level lineage), which rules apply (constraints written as code), who owns the affected assets, and what has broken there before. Then it checks the change against all of that and returns one cited verdict.
+**The context layer for AI agents working on data platforms.** Before a coding agent or an engineer changes a dbt model or an Airflow DAG, ChangeLens tells it what depends on that change (column-level lineage), which rules apply (constraints written as code), who owns the affected assets, and what has broken there before. Then it checks the change against all of that and returns one cited verdict.
 
-Code-context tools index what the repository says. Fathom indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. Every claim in a verdict carries an evidence id, the checks run in code that a model cannot override, and anything Fathom does not know is reported as "not recorded" rather than guessed.
+Code-context tools index what the repository says. ChangeLens indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. Every claim in a verdict carries an evidence id, the checks run in code that a model cannot override, and anything ChangeLens does not know is reported as "not recorded" rather than guessed.
 
-> Status: 0.2.0, the first release of Fathom as its own project. Tested on the bundled fixture platform and on [cal-itp/data-infra](https://github.com/cal-itp/data-infra), a public warehouse with 625 dbt models and 21 Airflow DAGs, and on [erp-data-platform](https://github.com/muhibm1/erp-data-platform), a finance warehouse on Postgres it was not built around (`pipelinebench/results/partner-erp-data-platform.md`). On PipelineBench, Fathom's own benchmark, language-model agents given Fathom's verdict made no forbidden call and got every escalation right (`pipelinebench/results/llm-agents.md`).
+> Status: 0.2.0, the first release of ChangeLens as its own project. Tested on the bundled fixture platform and on [cal-itp/data-infra](https://github.com/cal-itp/data-infra), a public warehouse with 625 dbt models and 21 Airflow DAGs, and on [ClearLedger, finance data platform (currently erp-data-platform)](https://github.com/muhibm1/erp-data-platform), a finance warehouse on Postgres it was not built around (`pipelinebench/results/partner-erp-data-platform.md`). On PipelineBench, ChangeLens's own benchmark, language-model agents given ChangeLens's verdict made no forbidden call and got every escalation right (`pipelinebench/results/llm-agents.md`).
 >
-> Fathom was originally part of Orion, a personal context layer, and was split out on 2026-10-25; the history before that date is Orion's.
+> ChangeLens was originally part of Orion, a personal context layer, and was split out on 2026-10-25; the history before that date is Orion's.
 
 ## What is in the box
 
@@ -22,12 +22,12 @@ Code-context tools index what the repository says. Fathom indexes what productio
 | `fathom ask` | Graph-scoped retrieval over postmortems, descriptions and constraint reasons. Every sentence cites a chunk; unknown returns "not recorded". |
 | `fathom postflight` | Closes the loop. For each verdict, finds the commit that landed it and watches the touched and affected assets for the next three runs; writes one `outcome_observed` event (clean, failed, sla_missed, incident) linked to the verdict. `--summary` prints predicted severity against observed outcome. |
 | `fathom propose` | Drafts constraints from ledger patterns (repeated SLA misses, failures after changes, postmortems with no matching constraint, verdicts that under-called) into `constraints/proposed/`. A weekly workflow opens them as a pull request; merging is the approval. |
-| `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, fathom), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps Fathom and the ground truth honest with each other. |
+| `pipelinebench` | The benchmark: sixty scenarios with hand-written ground truth, four context conditions (none, repo, rag, fathom), scripted / Claude / command agents, mechanical graders. `pipelinebench check-ground-truth` keeps ChangeLens and the ground truth honest with each other. |
 | `fixture/` | PipelineBench's fixture platform: a dbt project over DuckDB, three Airflow DAGs, CODEOWNERS, three postmortems, four constraints, and run history (an Airflow task-instance export, dbt `run_results.json` files, Iceberg table metadata with snapshots, a schema change and a partition-spec change). Realistic enough that the questions a verdict asks have non-trivial answers. |
 
 ## Quickstart
 
-On a dbt project, start with [Fathom for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
+On a dbt project, start with [ChangeLens for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
 
 Review a change in any git repository, with no setup beyond an API key:
 
