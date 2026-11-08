@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `fathom sync` on a dbt project with no `target/manifest.json` now prints one line naming the missing file and the command that builds it (`dbt parse --project-dir <project>`) and exits 1, instead of a Python traceback.
+
 ### BigQuery aggregates with an inline filter are parsed
 
 - `COUNT(DISTINCT x WHERE cond)`, which BigQuery accepts and sqlglot does not, is read as `COUNT(DISTINCT IF(cond, x, NULL))` before parsing, in the BigQuery dialect only. A changed model that uses it now yields typed ops and column lineage that includes the counted and the filter column, instead of a bare `modify` with a parse note (the two unparsed models in the cal-itp #5827 shadow study). Comments, `COUNT(*)`, and aggregates with IGNORE NULLS, ORDER BY or LIMIT are handled or left as written. When both versions of the SQL parse, the filter-change check compares their real WHERE clauses instead of a text span from the first WHERE, which had reported a filter change when only select columns moved.

@@ -144,13 +144,22 @@ def _all_lineage(jobs: list[tuple[str, str, dict[str, dict[str, str]], str]], ca
     return out
 
 
+class ManifestNotFoundError(FileNotFoundError):
+    """The dbt project has no ``target/manifest.json`` yet."""
+
+    def __init__(self, manifest_path: Path, project_dir: Path):
+        self.manifest_path = manifest_path
+        self.project_dir = project_dir
+        super().__init__(f"{manifest_path} not found; run `dbt parse` or `dbt build` first")
+
+
 def load(project_dir: Path, repo_root: Path, cache_path: Path | None = None) -> Emitted:
     """``cache_path``: where to keep column lineage between syncs, so a re-sync only recomputes changed models."""
     out = Emitted()
     target = project_dir / "target"
     manifest_path = target / "manifest.json"
     if not manifest_path.exists():
-        raise FileNotFoundError(f"{manifest_path} not found; run `dbt parse` or `dbt build` first")
+        raise ManifestNotFoundError(manifest_path, project_dir)
     manifest = json.loads(manifest_path.read_text())
     catalog_path = target / "catalog.json"
     catalog = json.loads(catalog_path.read_text()) if catalog_path.exists() else {"nodes": {}, "sources": {}}
