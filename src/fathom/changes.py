@@ -21,7 +21,7 @@ from typing import Any
 import yaml
 
 from .adapters.airflow import parse_bash_command, parse_dag_file
-from .lineage import dejinja, output_columns, schema_key
+from .lineage import dejinja, normalize_sql, output_columns, schema_key
 from .resolver import PathResolver, resolve_ref
 from .store import Store
 
@@ -79,7 +79,7 @@ def _select_items(sql: str, dialect: str = "duckdb") -> dict[str, str]:
     import sqlglot
 
     try:
-        expr = sqlglot.parse_one(sql, read=dialect)
+        expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
     except Exception:  # noqa: BLE001
         return {}
     items: dict[str, str] = {}
@@ -105,7 +105,7 @@ def literal_relations(sql: str, dialect: str, relations: dict[str, str]) -> dict
 
     found: dict[str, str] = {}
     try:
-        expr = sqlglot.parse_one(sql, read=dialect)
+        expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
         tables = [(t.sql(dialect=dialect, comments=False), [p.name for p in (t.args.get("catalog"), t.args.get("db"), t.this) if p is not None]) for t in expr.find_all(exp.Table)]
     except Exception:  # noqa: BLE001
         tables = []
@@ -149,6 +149,18 @@ def _literal_ops(asset: str, path: str, old_plain: str, new_plain: str, new_sql:
     return ops
 
 
+def _where_clauses(sql: str, dialect: str) -> list[str] | None:
+    """The sorted WHERE conditions of every select in the SQL, rendered in the dialect; None when it does not parse."""
+    import sqlglot
+    from sqlglot import exp
+
+    try:
+        expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
+    except Exception:  # noqa: BLE001
+        return None
+    return sorted(w.this.sql(dialect=dialect, comments=False).lower() for w in expr.find_all(exp.Where))
+
+
 def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str | None, schema: dict, dialect: str = "duckdb", relations: dict[str, str] | None = None) -> list[ChangeOp]:
     """``dialect`` is the warehouse's sqlglot dialect, as the dbt adapter recorded it; ``relations`` maps warehouse
     names to node ids (``PathResolver.relations``) for the hardcoded-name check."""
@@ -158,7 +170,7 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
     if old_sql is None:
         return [ChangeOp("add_asset", asset, evidence=ev)]
     ops: list[ChangeOp] = []
-    old_plain, new_plain = dejinja(old_sql, asset), dejinja(new_sql, asset)
+    old_plain, new_plain = normalize_sql(dejinja(old_sql, asset), dialect), normalize_sql(dejinja(new_sql, asset), dialect)
     literal = _literal_ops(asset, path, old_plain, new_plain, new_sql, dialect, relations)
     try:
         old_cols = output_columns(old_plain, schema, dialect)
@@ -183,10 +195,15 @@ def ops_from_sql_change(asset: str, path: str, old_sql: str | None, new_sql: str
     old_part, new_part = _partition_by(old_sql), _partition_by(new_sql)
     if old_part != new_part:
         ops.append(ChangeOp("change_partition", asset, details={"from": old_part, "to": new_part}, evidence=ev))
-    old_where = re.search(r"\bwhere\b(.*?)(\bgroup by\b|\border by\b|$)", old_plain, re.S | re.I)
-    new_where = re.search(r"\bwhere\b(.*?)(\bgroup by\b|\border by\b|$)", new_plain, re.S | re.I)
-    if (old_where.group(1).split() if old_where else None) != (new_where.group(1).split() if new_where else None):
-        ops.append(ChangeOp("change_filter", asset, details={"from": old_where.group(1).strip() if old_where else None, "to": new_where.group(1).strip() if new_where else None}, evidence=ev))
+    old_w, new_w = _where_clauses(old_plain, dialect), _where_clauses(new_plain, dialect)
+    if old_w is not None and new_w is not None:
+        if old_w != new_w:
+            ops.append(ChangeOp("change_filter", asset, details={"from": " AND ".join(old_w) or None, "to": " AND ".join(new_w) or None}, evidence=ev))
+    else:  # a side does not parse: the first WHERE to the next GROUP/ORDER BY, as text
+        old_where = re.search(r"\bwhere\b(.*?)(\bgroup by\b|\border by\b|$)", old_plain, re.S | re.I)
+        new_where = re.search(r"\bwhere\b(.*?)(\bgroup by\b|\border by\b|$)", new_plain, re.S | re.I)
+        if (old_where.group(1).split() if old_where else None) != (new_where.group(1).split() if new_where else None):
+            ops.append(ChangeOp("change_filter", asset, details={"from": old_where.group(1).strip() if old_where else None, "to": new_where.group(1).strip() if new_where else None}, evidence=ev))
     if not ops:
         ops.append(ChangeOp("modify", asset, details={"note": "no schema, filter or partition change detected"}, evidence=ev))
     return ops + literal

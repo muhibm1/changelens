@@ -64,10 +64,118 @@ class ColumnLineage:
 EPHEMERAL_PREFIX = "__dbt__cte__"
 
 
+_CALL_RE = re.compile(r"([A-Za-z_]\w*)\s*\(")
+_WORD_RE = re.compile(r"[A-Za-z_]\w*")
+_NOT_A_CALL = {"in", "exists", "as", "on", "and", "or", "not", "from", "join", "where", "select", "when", "then", "else", "by", "over", "using", "union", "intersect", "except", "all", "any", "some", "between", "case", "having"}
+
+
+def _skip_quoted(sql: str, i: int) -> int:
+    """The index after the string, quoted identifier or comment that starts at ``i``, or ``i`` if none does."""
+    if sql.startswith("--", i) or sql[i] == "#":
+        j = sql.find("\n", i)
+        return len(sql) if j < 0 else j
+    if sql.startswith("/*", i):
+        j = sql.find("*/", i + 2)
+        return len(sql) if j < 0 else j + 2
+    q = sql[i]
+    if q not in "'\"`":
+        return i
+    j = i + 1
+    while j < len(sql) and sql[j] != q:
+        j += 2 if sql[j] == "\\" else 1
+    return j + 1
+
+
+def _top_level_words(body: str) -> list[tuple[str, int]]:
+    """Words of ``body`` outside strings and nested parentheses, with their offsets."""
+    out, depth, i = [], 0, 0
+    while i < len(body):
+        c = body[i]
+        if (j := _skip_quoted(body, i)) != i:
+            i = j
+            continue
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        elif depth == 0 and (c.isalpha() or c == "_") and (i == 0 or not (body[i - 1].isalnum() or body[i - 1] in "_.")):
+            m = _WORD_RE.match(body, i)
+            out.append((m.group(0).lower(), i))
+            i = m.end()
+            continue
+        elif depth == 0 and c == ",":
+            out.append((",", i))
+        i += 1
+    return out
+
+
+def _has_line_comment(text: str) -> bool:
+    i = 0
+    while i < len(text):
+        j = _skip_quoted(text, i)
+        if j != i:
+            if text.startswith(("--", "#"), i):
+                return True
+            i = j
+        else:
+            i += 1
+    return False
+
+
+def bigquery_aggregate_filter(sql: str) -> str:
+    """BigQuery accepts a filter inside an aggregate call, ``COUNT(DISTINCT x WHERE cond)``, which sqlglot does not parse.
+    It is rewritten to the equivalent ``COUNT(DISTINCT IF(cond, x, NULL))`` (`COUNT(*)` becomes `COUNT(IF(cond, 1, NULL))`; this holds for the aggregates that skip NULLs, such as COUNT, SUM, AVG, MIN, MAX), nested calls
+    and string literals included. A call whose body holds a subquery, a top-level comma, IGNORE or RESPECT NULLS, ORDER BY or LIMIT is left as written. Comments are skipped like strings."""
+    out, i, n = [], 0, len(sql)
+    while i < n:
+        c = sql[i]
+        if (j := _skip_quoted(sql, i)) != i:
+            out.append(sql[i:j])
+            i = j
+            continue
+        m = _CALL_RE.match(sql, i) if (c.isalpha() or c == "_") and (i == 0 or not (sql[i - 1].isalnum() or sql[i - 1] in "_.")) else None
+        if not m or m.group(1).lower() in _NOT_A_CALL:
+            out.append(c)
+            i += 1
+            continue
+        depth, j = 1, m.end()
+        while j < n and depth:
+            if (k := _skip_quoted(sql, j)) != j:
+                j = k
+                continue
+            depth += (sql[j] == "(") - (sql[j] == ")")
+            j += 1
+        if depth:  # unbalanced: leave it to the parser
+            out.append(sql[i:])
+            break
+        body = bigquery_aggregate_filter(sql[m.end():j - 1])
+        words = _top_level_words(body)
+        names = [w for w, _ in words]
+        if "where" in names and not {"select", "from", "with", ",", "order", "limit", "having", "ignore", "respect"} & set(names[: names.index("where")]):
+            k = names.index("where")
+            at = words[k][1]
+            head, cond = body[:at], body[at + 5:]
+            if not {"order", "limit", "having", "group", "ignore", "respect"} & set(names[k + 1:]) and head.strip() and cond.strip():
+                lead = re.match(r"\s*(distinct\s+)?", head, re.I).group(0)
+                operand = "1" if head[len(lead):].strip() == "*" else head[len(lead):].strip()
+                cond = cond.strip()
+                if _has_line_comment(cond) or _has_line_comment(operand):  # a trailing line comment must not swallow the rest
+                    cond, operand = cond + "\n", operand + "\n"
+                body = f"{lead}IF({cond}, {operand}, NULL)"
+        out.append(m.group(0) + body + ")")
+        i = j
+    return "".join(out)
+
+
+def normalize_sql(sql: str, dialect: str) -> str:
+    """The one place model SQL is adjusted for a dialect before sqlglot parses it. Idempotent."""
+    return bigquery_aggregate_filter(sql) if dialect == "bigquery" and re.search(r"\bwhere\b", sql, re.I) else sql
+
+
 def parse_model(sql: str, dialect: str = "duckdb") -> exp.Expr:
     """Parse model SQL. dbt's compiled SQL inlines an ephemeral model as a ``__dbt__cte__<name>`` CTE; those CTEs are
     dropped and their references point at ``<name>`` again, so lineage stops at the ephemeral model as it does for raw SQL."""
-    expr = sqlglot.parse_one(sql, read=dialect)
+    expr = sqlglot.parse_one(normalize_sql(sql, dialect), read=dialect)
     for cte in list(expr.find_all(exp.CTE)):
         if cte.alias.startswith(EPHEMERAL_PREFIX):
             cte.pop()
