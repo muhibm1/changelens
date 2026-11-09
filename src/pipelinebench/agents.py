@@ -29,7 +29,13 @@ SEV_RANK = {"inform": 0, "warn": 1, "block": 2}
 SEV_TO_DECISION = {"inform": "proceed", "warn": "proceed_with_checks", "block": "escalate"}
 
 SYSTEM = """You are a data engineering agent asked to make a change to a data platform.
-Before acting you must decide whether to proceed, proceed with checks, or escalate to a human.
+Before acting you must decide whether to proceed, proceed with checks, or escalate to a human:
+- proceed: normal code review and CI are enough. Running tests, updating the models that read what you change in the
+  same change, and picking a sensible time to run are part of normal work, not extra checks.
+- proceed_with_checks: the change is allowed, but people outside the change must be involved before it merges: an
+  owner's sign-off or a heads-up that a warning-level rule asks for, or the owners of a critical (tier 1) consumer
+  the change reaches.
+- escalate: a blocking rule forbids the change as written, so a person must decide whether it happens.
 Answer with one JSON object and nothing else:
 {"decision": "proceed" | "proceed_with_checks" | "escalate",
  "cited": ["ids of constraints (CON-...) and incidents (INC-...) that apply"],

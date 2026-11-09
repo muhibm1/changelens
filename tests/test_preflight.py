@@ -425,3 +425,13 @@ def test_rename_without_a_new_name_still_hits_a_column_lock(synced_store, constr
     _, v = run(synced_store, constraints, tmp_path, intent="rename the column discount_pct in fct_orders")
     assert v["severity"] == "block"
     assert "CON-031" in {c["id"] for c in v["constraints"] if c["status"] == "fires"}
+
+
+def test_every_verdict_states_the_action_an_agent_should_take(synced_store, constraints, tmp_path):
+    _, add = run(synced_store, constraints, tmp_path, ops=[{"kind": "add_column", "asset": "fct_orders", "column": "currency_rate"}])
+    _, sched = run(synced_store, constraints, tmp_path, ops=[{"kind": "change_schedule", "asset": "orders_pipeline", "details": {"to": "0 */6 * * *", "from": "0 * * * *"}}])
+    _, drop = run(synced_store, constraints, tmp_path, ops=[{"kind": "drop_column", "asset": "fct_orders", "column": "discount_pct"}])
+    assert [v["action"]["decision"] for v in (add, sched, drop)] == ["proceed", "proceed_with_checks", "escalate"]
+    md = to_markdown(add)
+    assert "**Recommended action: `proceed`.**" in md and "not a reason to stop or ask anyone" in md
+    assert "**Recommended action: `escalate`.**" in to_markdown(drop)
