@@ -1,0 +1,24 @@
+# Proposed by ChangeLens from ledger evidence; merging this file is the approval.
+# task:finance_close.dbt_finance missed its SLA 2 times since 2026-10-10; it builds model:fct_refunds, model:fct_revenue
+id: CON-P31abc2
+scope:
+  assets:
+  - model:fct_refunds
+  - model:fct_revenue
+rule:
+  kind: freshness_sla
+  minutes: 30
+severity: warn
+reason: task:finance_close.dbt_finance missed its SLA 2 times in the last 90 days
+  (latest 2026-10-13); changes that add work upstream of what it builds should be
+  flagged.
+source: event:ev_f292cc60c6c1
+approvers:
+- team/finance-data
+status: proposed
+proposed_by: changelens propose
+proposed_at: '2026-11-09T11:28:39.761919+00:00'
+pattern: repeated_sla_miss
+evidence:
+- event:ev_78dbc605c406
+- event:ev_f292cc60c6c1

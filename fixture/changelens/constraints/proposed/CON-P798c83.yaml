@@ -1,0 +1,26 @@
+# Proposed by ChangeLens from ledger evidence; merging this file is the approval.
+# task:orders_pipeline.dbt_marts missed its SLA 3 times since 2026-09-03; it builds model:fct_orders, model:fct_revenue
+id: CON-P798c83
+scope:
+  assets:
+  - model:fct_orders
+  - model:fct_revenue
+rule:
+  kind: freshness_sla
+  minutes: 45
+severity: warn
+reason: task:orders_pipeline.dbt_marts missed its SLA 3 times in the last 90 days
+  (latest 2026-09-03); changes that add work upstream of what it builds should be
+  flagged.
+source: event:ev_0e5e324d2e70
+approvers:
+- team/data-platform
+- team/finance-data
+status: proposed
+proposed_by: changelens propose
+proposed_at: '2026-11-09T11:28:39.765984+00:00'
+pattern: repeated_sla_miss
+evidence:
+- event:ev_d3f24304a8b7
+- event:ev_d59b8a327165
+- event:ev_0e5e324d2e70
