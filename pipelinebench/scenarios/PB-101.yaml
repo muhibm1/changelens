@@ -1,0 +1,28 @@
+id: PB-101
+title: Swap unit_price for price_cents in stg_products
+family: multi
+task: Replace stg_products.unit_price with an integer price_cents column.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_products
+    column: unit_price
+  - kind: add_column
+    asset: stg_products
+    column: price_cents
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_products.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: unit_price reaches dim_products only, tier 3.
+tags:
+- multi
+- harmless
+- heldout

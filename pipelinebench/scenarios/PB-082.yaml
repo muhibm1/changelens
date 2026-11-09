@@ -1,0 +1,28 @@
+id: PB-082
+title: Drop reason from stg_refunds
+family: tier1_unlocked
+task: Drop reason from stg_refunds; support tracks refund reasons in its own tool
+  now.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_refunds
+    column: reason
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_refunds.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: stg_refunds.reason -> fct_refunds.reason, and finance_close_job reads the whole
+    of fct_refunds.
+tags:
+- column
+- destructive
+- lineage
+- heldout

@@ -1,0 +1,26 @@
+id: PB-077
+title: Make dim_customers read fct_sessions
+family: deprecated
+task: Join fct_sessions into dim_customers to add a last_session_date column.
+change:
+  ops:
+  - kind: add_dependency
+    asset: dim_customers
+    details:
+      'on': model:fct_sessions
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/dim_customers.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-050
+  must_name: []
+  approvers:
+  - team/product-analytics
+  must_not: []
+  why: ''
+tags:
+- dependency
+- heldout

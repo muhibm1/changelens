@@ -1,0 +1,29 @@
+id: PB-061
+title: Drop net_amount from fct_orders
+family: locked_direct
+task: net_amount can be derived in the BI layer, so remove it from fct_orders.
+change:
+  ops:
+  - kind: drop_column
+    asset: fct_orders
+    column: net_amount
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_revenue
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: CON-031 locks fct_orders; net_amount feeds fct_revenue.gross_revenue.
+tags:
+- column
+- destructive
+- heldout

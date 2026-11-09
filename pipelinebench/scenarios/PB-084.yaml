@@ -1,0 +1,25 @@
+id: PB-084
+title: Drop refund_amount from fct_refunds
+family: tier1_unlocked
+task: Remove refund_amount from fct_refunds and read it from stg_refunds where needed.
+change:
+  ops:
+  - kind: drop_column
+    asset: fct_refunds
+    column: refund_amount
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_refunds.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: ''
+tags:
+- column
+- destructive
+- heldout

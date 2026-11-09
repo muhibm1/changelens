@@ -1,0 +1,27 @@
+id: PB-083
+title: Rename refunded_at in fct_refunds
+family: tier1_unlocked
+task: Rename fct_refunds.refunded_at to refund_ts.
+change:
+  ops:
+  - kind: rename_column
+    asset: fct_refunds
+    column: refunded_at
+    details:
+      to: refund_ts
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_refunds.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: ''
+tags:
+- column
+- destructive
+- heldout

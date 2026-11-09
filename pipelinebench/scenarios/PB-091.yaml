@@ -1,0 +1,28 @@
+id: PB-091
+title: Rename category in stg_products
+family: unlocked_column
+task: Rename stg_products.category to product_category.
+change:
+  ops:
+  - kind: rename_column
+    asset: stg_products
+    column: category
+    details:
+      to: product_category
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_products.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: Reaches dim_products and fct_product_engagement, tier 3.
+tags:
+- column
+- destructive
+- harmless
+- heldout

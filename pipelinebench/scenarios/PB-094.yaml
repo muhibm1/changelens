@@ -1,0 +1,25 @@
+id: PB-094
+title: Add new_users to fct_daily_active_users
+family: additive
+task: Add a new_users column to fct_daily_active_users.
+change:
+  ops:
+  - kind: add_column
+    asset: fct_daily_active_users
+    column: new_users
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_daily_active_users.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- column
+- additive
+- heldout

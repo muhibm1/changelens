@@ -1,0 +1,31 @@
+id: PB-063
+title: Retype order_id in fct_orders
+family: locked_direct
+task: Store fct_orders.order_id as varchar so it can hold the new prefixed ids.
+change:
+  ops:
+  - kind: change_type
+    asset: fct_orders
+    column: order_id
+    details:
+      to: varchar
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - dash_revenue_weekly
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: ''
+tags:
+- column
+- destructive
+- heldout

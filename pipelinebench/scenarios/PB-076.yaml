@@ -1,0 +1,30 @@
+id: PB-076
+title: Shift orders_pipeline to quarter past
+family: schedule
+task: Start orders_pipeline at 15 minutes past each hour to avoid the top-of-hour
+  rush.
+change:
+  ops:
+  - kind: change_schedule
+    asset: orders_pipeline
+    details:
+      to: 15 * * * *
+      from: 0 * * * *
+  intent: null
+  files:
+  - fixture/dags/orders_pipeline.py
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-040
+  must_name:
+  - finance_close
+  approvers:
+  - team/finance-data
+  - team/data-platform
+  must_not: []
+  why: ''
+tags:
+- schedule
+- heldout

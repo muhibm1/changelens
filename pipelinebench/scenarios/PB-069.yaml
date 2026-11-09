@@ -1,0 +1,31 @@
+id: PB-069
+title: Redefine payment_count in int_order_payments
+family: locked_via_lineage
+task: Count distinct payment ids in int_order_payments.payment_count to ignore duplicate
+  rows.
+change:
+  ops:
+  - kind: change_expression
+    asset: int_order_payments
+    column: payment_count
+  intent: null
+  files:
+  - fixture/dbt_project/models/intermediate/int_order_payments.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_orders
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: ''
+tags:
+- column
+- destructive
+- lineage
+- heldout

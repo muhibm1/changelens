@@ -1,0 +1,26 @@
+id: PB-096
+title: Backfill raw_events at 00:30 UTC
+family: backfill
+task: Kick off a 2-day raw_events backfill at 00:30 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: raw_events
+    details:
+      at: '2026-10-20T00:30:00+00:00'
+      days: 2
+  intent: null
+  files: []
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: Outside the CON-022 window.
+tags:
+- backfill
+- harmless
+- heldout

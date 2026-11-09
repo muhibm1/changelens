@@ -70,9 +70,11 @@ def check(directory: Path = typer.Option(SCENARIOS, "--dir"), config: Path | Non
 
 @app.command("run")
 def run_cmd(
-    agent: list[str] = typer.Option(["scripted"], "--agent", help="scripted | claude[:model] | command:<exe>"),
+    agent: list[str] = typer.Option(["scripted"], "--agent", help="scripted | claude[:model] | claude-code[:model] | command:<exe>"),
     condition: list[str] = typer.Option(["all"], "--condition", help="none | repo | rag | changelens | all"),
     seeds: int = typer.Option(1, "--seeds"),
+    split: str = typer.Option("all", "--split", help="dev (PB-001..060) | heldout (tagged heldout; score only a frozen version) | all"),
+    scenario: list[str] = typer.Option([], "--scenario", help="Only these scenario ids."),
     name: str | None = typer.Option(None, "--name", help="Results file name (default: timestamp)."),
     directory: Path = typer.Option(SCENARIOS, "--dir"),
     out: Path = typer.Option(RESULTS, "--out"),
@@ -87,6 +89,13 @@ def run_cmd(
     root, store = _store(config, need_graph=bool({"rag", "changelens"} & set(conds)))
     agents = [make_agent(a) for a in agent]
     scenarios = load_scenarios(directory)
+    if split not in ("dev", "heldout", "all"):
+        console.print(f"[red]unknown split {split}; use dev, heldout or all[/red]")
+        raise typer.Exit(2)
+    if split != "all":
+        scenarios = [s for s in scenarios if ("heldout" in s.tags) == (split == "heldout")]
+    if scenario:
+        scenarios = [s for s in scenarios if s.id in set(scenario)]
     with console.status("running") as status:
         res = run(scenarios, agents, conds, repo_root=root, store=store, seeds=seeds, progress=lambda a, c, s, g: status.update(f"{a} / {c} / {s}: {g['decided']} ({'ok' if g['decision_correct'] else 'wrong'})"))
     j, m = write_results(res, out, name)

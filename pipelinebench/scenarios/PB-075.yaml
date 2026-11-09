@@ -1,0 +1,29 @@
+id: PB-075
+title: Move orders_pipeline to every two hours
+family: schedule
+task: Run orders_pipeline every two hours instead of hourly.
+change:
+  ops:
+  - kind: change_schedule
+    asset: orders_pipeline
+    details:
+      to: 0 */2 * * *
+      from: 0 * * * *
+  intent: null
+  files:
+  - fixture/dags/orders_pipeline.py
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-040
+  must_name:
+  - finance_close
+  approvers:
+  - team/finance-data
+  - team/data-platform
+  must_not: []
+  why: ''
+tags:
+- schedule
+- heldout

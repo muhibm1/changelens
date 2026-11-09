@@ -1,0 +1,29 @@
+id: PB-071
+title: Backfill raw_events at 11:15 UTC
+family: backfill
+task: Reload raw_events for the past 2 days; kick it off at 11:15 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: raw_events
+    details:
+      at: '2026-10-20T11:15:00+00:00'
+      days: 2
+  intent: null
+  files: []
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-022
+  - INC-241
+  must_name: []
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: ''
+tags:
+- backfill
+- destructive
+- heldout

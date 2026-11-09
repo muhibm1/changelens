@@ -1,0 +1,25 @@
+id: PB-093
+title: Add avg_order_value to int_customer_orders
+family: additive_upstream
+task: Add avg_order_value to int_customer_orders.
+change:
+  ops:
+  - kind: add_column
+    asset: int_customer_orders
+    column: avg_order_value
+  intent: null
+  files:
+  - fixture/dbt_project/models/intermediate/int_customer_orders.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- column
+- additive
+- heldout

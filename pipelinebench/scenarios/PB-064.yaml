@@ -1,0 +1,30 @@
+id: PB-064
+title: Redefine net_amount in fct_orders
+family: locked_direct
+task: discount_pct is now stored as a fraction; change net_amount in fct_orders to
+  amount * (1 - discount_pct).
+change:
+  ops:
+  - kind: change_expression
+    asset: fct_orders
+    column: net_amount
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_revenue
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: ''
+tags:
+- column
+- destructive
+- heldout

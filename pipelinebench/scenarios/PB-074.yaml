@@ -1,0 +1,34 @@
+id: PB-074
+title: Add a column and drop currency in fct_revenue
+family: multi
+task: 'In one PR: add refund_total to fct_revenue and drop its currency column, since
+  everything is USD.'
+change:
+  ops:
+  - kind: add_column
+    asset: fct_revenue
+    column: refund_total
+  - kind: drop_column
+    asset: fct_revenue
+    column: currency
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_revenue.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - finance_close_job
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: The add is allowed; the drop is not.
+tags:
+- multi
+- destructive
+- contract
+- heldout

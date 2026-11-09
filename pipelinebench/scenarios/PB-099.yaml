@@ -1,0 +1,25 @@
+id: PB-099
+title: Backfill dim_products at noon
+family: backfill
+task: Rebuild dim_products at 12:00 UTC after the price fix.
+change:
+  ops:
+  - kind: backfill
+    asset: dim_products
+    details:
+      at: '2026-10-20T12:00:00+00:00'
+  intent: null
+  files: []
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: Reaches fct_product_engagement, tier 3.
+tags:
+- backfill
+- harmless
+- heldout

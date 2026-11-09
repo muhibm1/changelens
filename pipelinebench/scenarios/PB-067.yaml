@@ -1,0 +1,32 @@
+id: PB-067
+title: Rename order_id in stg_orders
+family: locked_via_lineage
+task: Rename stg_orders.order_id to id, the convention in the new staging style guide.
+change:
+  ops:
+  - kind: rename_column
+    asset: stg_orders
+    column: order_id
+    details:
+      to: id
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_orders
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: stg_orders.order_id -> int_order_payments.order_id -> fct_orders.order_id.
+tags:
+- column
+- destructive
+- lineage
+- heldout

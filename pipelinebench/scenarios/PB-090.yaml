@@ -1,0 +1,26 @@
+id: PB-090
+title: Drop email from stg_customers
+family: unlocked_column
+task: Remove email from stg_customers; nothing downstream selects it.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_customers
+    column: email
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_customers.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: No column lineage leaves email.
+tags:
+- column
+- destructive
+- harmless
+- heldout

@@ -1,0 +1,26 @@
+id: PB-081
+title: Retune the churn threshold
+family: approval
+task: Lower the churn cutoff in mart_churn_scores from 60 to 45 days since the last
+  order.
+change:
+  ops:
+  - kind: modify
+    asset: mart_churn_scores
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/mart_churn_scores.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-061
+  must_name: []
+  approvers:
+  - team/growth-analytics
+  must_not: []
+  why: ''
+tags:
+- modify
+- approval
+- heldout

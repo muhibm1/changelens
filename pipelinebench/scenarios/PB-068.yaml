@@ -1,0 +1,32 @@
+id: PB-068
+title: Retype currency in stg_orders
+family: locked_via_lineage
+task: Make stg_orders.currency a char(3) instead of varchar.
+change:
+  ops:
+  - kind: change_type
+    asset: stg_orders
+    column: currency
+    details:
+      to: char(3)
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_orders.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - fct_revenue
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: ''
+tags:
+- column
+- destructive
+- lineage
+- heldout

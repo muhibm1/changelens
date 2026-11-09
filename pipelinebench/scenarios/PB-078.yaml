@@ -1,0 +1,24 @@
+id: PB-078
+title: Change session duration in fct_sessions
+family: deprecated
+task: Compute duration_seconds in fct_sessions in milliseconds instead.
+change:
+  ops:
+  - kind: modify
+    asset: fct_sessions
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_sessions.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-050
+  must_name: []
+  approvers:
+  - team/product-analytics
+  must_not: []
+  why: ''
+tags:
+- modify
+- heldout
