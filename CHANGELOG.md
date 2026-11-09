@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Every verdict states the action an agent should take (2026-11-09)
+
+- A pre-flight verdict now carries `action`, a decision (`proceed`, `proceed_with_checks` or `escalate`, one to one with `inform`, `warn`, `block`) and one sentence on what it means, shown under the summary as "Recommended action". Agents given a correct verdict had still answered `proceed_with_checks` on safe changes.
+- The `schedule_off_hours` check appears only when a backfill lands inside a blocked window; a backfill already off-hours is no longer told to move.
+- PipelineBench gains 42 held-out scenarios (PB-061 to PB-102, `--split heldout`), a `claude-code[:model]` agent that runs on a subscription, and decision definitions in the agent prompt. Held-out accuracy with ChangeLens: Sonnet 5.5 0.69 to 1.00, Haiku 5.5 0.60 to 0.93, no unsafe moves (`pipelinebench/results/action-accuracy.md`).
+
 - `changelens sync` on a dbt project with no `target/manifest.json` now prints one line naming the missing file and the command that builds it (`dbt parse --project-dir <project>`) and exits 1, instead of a Python traceback.
 
 ### BigQuery aggregates with an inline filter are parsed

@@ -1,6 +1,6 @@
 # PipelineBench
 
-Does context make agents safer on data pipelines? Fifty proposed changes to the fixture platform, each with ground truth written from the platform's own rules, four context conditions, pluggable agents, mechanical graders.
+Does context make agents safer on data pipelines? A hundred and two proposed changes to the fixture platform (60 for development, 42 held out), each with ground truth written from the platform's own rules, four context conditions, pluggable agents, mechanical graders.
 
 ## What is measured
 
@@ -33,6 +33,7 @@ Ground truth lives in `src/pipelinebench/generate.py` and is derived by hand fro
 | --- | --- |
 | `scripted` | deterministic: follows a verdict when given one, otherwise keyword-matches constraints and incidents that mention the changed assets. The floor, and the proof the harness measures the context rather than the model. |
 | `claude[:model]` | the Anthropic Messages API through ChangeLens's own provider (no SDK; `CHANGELENS_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`, and a dollar cap in `CHANGELENS_API_CAP`) |
+| `claude-code[:model]` | the same prompt through the signed-in command-line client (`claude -p`, no tools), on a subscription; spends no API credit |
 | `command:<exe>` | any executable that reads the prompt JSON on stdin and writes a decision JSON on stdout, so an OpenHands, Codex or in-house agent sits in the same harness |
 
 ## Running it
@@ -75,16 +76,18 @@ Language-model agents, one seed (`results/llm-agents.md`):
 | Haiku 5.5 | rag | 0.44 | 0.16 | 0.93 | 0.81 | 0.60 |
 | Haiku 5.5 | changelens | 0.58 | 0.00 | 1.00 | 1.00 | 0.83 |
 
+**Update, 2026-11-09 (`results/action-accuracy.md`).** The low accuracy had three causes: the verdict never named the action, it told safe off-hours backfills to "schedule off-hours", and the agent prompt never defined the three decisions. With all three fixed, on 42 new held-out scenarios (PB-061 to PB-102, written and committed before any fix was tried, scored once), accuracy with ChangeLens rose from 0.69 to 1.00 for Sonnet 5.5 and from 0.60 to 0.93 for Haiku 5.5, with no unsafe moves. The new definitions also lift the other conditions (Sonnet with the whole repository reaches 0.86), so read the rows together. The table above is the original run.
+
 Neither model proceeded on a change it had to escalate, in any condition. Without the verdict they escalate 10 to 18 of the 30 safe changes; with it, 1 or 2, and they get every escalation right. Accuracy stays near 0.6 because neither model will answer plain `proceed` on a safe change; it says `proceed_with_checks`. The write-up has the per-condition counts, two follow-up experiments, and the limits (one seed; the fixture has 18 models, 3 DAGs, 3 postmortems and 6 constraints).
 
 ## Layout
 
 ```
-pipelinebench/scenarios/PB-001.yaml ...   the sixty scenarios (generated; edit generate.py, not these)
+pipelinebench/scenarios/PB-001.yaml ...   60 development and 42 held-out scenarios (generated; edit generate.py, not these)
 pipelinebench/results/                    results JSON and markdown reports
 src/pipelinebench/
   scenarios.py    Scenario, Change, Expected; known_ids
-  generate.py     the sixty scenarios and their ground truth, by hand
+  generate.py     the scenarios and their ground truth, by hand
   conditions.py   none / repo / rag / changelens context builders
   agents.py       scripted, claude, command; Decision parsing
   grader.py       mechanical grading and aggregation

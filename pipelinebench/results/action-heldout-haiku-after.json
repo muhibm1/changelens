@@ -1,0 +1,1302 @@
+{
+ "benchmark": "PipelineBench",
+ "version": "0.1.0",
+ "ran_at": "2026-11-09T05:58:07.487048+00:00",
+ "seconds": 296.9,
+ "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+ "scenarios": 42,
+ "seeds": 1,
+ "cells": [
+  {
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "scenarios": 42,
+   "accuracy": 0.929,
+   "unsafe_rate": 0.0,
+   "cite_recall": 1.0,
+   "name_recall": 1.0,
+   "approvers_ok": 1.0,
+   "fabrication_rate": 0.0,
+   "score": 0.971
+  }
+ ],
+ "usage": {
+  "claude-code:claude-haiku-5-5": {
+   "input_tokens": 768202,
+   "output_tokens": 37925,
+   "errors": 0
+  }
+ },
+ "details": [
+  {
+   "scenario": "PB-061",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_c28691470504a6b0 is a block: CON-031 (columns_locked) fires because dropping fct_orders.net_amount reaches the locked fct_revenue directly, and a similar drop caused INC-230. Do not merge as written; a person from team/finance-data must decide, and fct_revenue still "
+  },
+  {
+   "scenario": "PB-062",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_4592edafddf50030 returns block: CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close, and two tier 1 consumers (dash_revenue_weekly, finance_close_job) are reached. The same kind of change caused INC-230 on 202"
+  },
+  {
+   "scenario": "PB-063",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_cc394c1d8f2d8482) returned a block: changing fct_orders.order_id to varchar reaches the locked fct_revenue columns under CON-031, and three tier 1 finance assets are downstream. The change should not go ahead as written; team/finance-data must decide, and the recommende"
+  },
+  {
+   "scenario": "PB-064",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_af363b6722c48df4 is BLOCK (risk 74/100): the change_expression on fct_orders.net_amount reaches the locked fct_revenue columns under CON-031, and three tier 1 consumers sit downstream. Do not merge as written; team/finance-data must decide, after fct_orders+ tests ar"
+  },
+  {
+   "scenario": "PB-065",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens returned a block verdict (pf_5ed5c4d200a601f8). CON-031 fires because dropping int_order_payments.discount_pct reaches locked fct_revenue through fct_orders, and the same kind of drop caused INC-230. The change should not be made as written, and a person on team/finance-data needs to deci"
+  },
+  {
+   "scenario": "PB-066",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_0782a56d940c1f69, block, risk 74) fires CON-031 because changing stg_payments.paid_amount to float reaches the locked fct_revenue columns through fct_orders, and 5 of the 7 affected assets are tier 1. The change should not be made as written; a person on team/finance-da"
+  },
+  {
+   "scenario": "PB-067",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_customer_orders",
+    "model:int_order_payments",
+    "model:dim_customers",
+    "model:fct_orders",
+    "dashboard:dash_customer_health",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "report:ml_churn_training",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_b9741774abb56985) returned a block: CON-031 (columns_locked) fires because the rename reaches the locked fct_revenue contract through fct_orders, and INC-230 was a similar change that broke the revenue dashboard. The rename should not merge as written; a person from tea"
+  },
+  {
+   "scenario": "PB-068",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:stg_orders",
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The change to stg_orders.currency (varchar to char(3)) fires blocking constraint CON-031 because it reaches the locked fct_revenue contract through fct_orders, and it touches five tier 1 consumers. Do not make this change as written. A person on team/finance-data must decide whether it proceeds, and"
+  },
+  {
+   "scenario": "PB-069",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_59cbb2815f858816 is a block. CON-031 (columns_locked) fires because the change_expression on int_order_payments.payment_count reaches fct_revenue through fct_orders, and fct_revenue is a public contract read by finance close. Do not make this change as written. Hand "
+  },
+  {
+   "scenario": "PB-070",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_edb5327bbdba8be7) returned severity block: CON-014 (block) requires event_date as the partition key, but this change would make it session_id, and the same kind of repartition caused INC-214 six hours of pipeline downtime on 2026-07-01. The change should not be made as "
+  },
+  {
+   "scenario": "PB-071",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-022 is a blocking no_backfill_window rule, and the 11:15 UTC start falls inside the blocked 06:00-20:00 UTC window. Daytime backfills of raw_events took the shared spark_pool and starved the hourly orders pipeline in INC-241 on 2026-09-03, so the change should not run as written. A person on tea"
+  },
+  {
+   "scenario": "PB-072",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_12eed81c4d04b51e) returned a block: the 2026-10-20 17:00 UTC three-day backfill of raw.raw_events falls inside the no-backfill window 06:00-20:00 UTC under CON-022, which is the same kind of change that caused INC-241. Do not run it as written; a team/data-platform pers"
+  },
+  {
+   "scenario": "PB-073",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The ChangeLens pre-flight (verdict pf_fa8c11adfd90f784) returned a block: CON-022 forbids daytime backfills, and this 19:59 UTC backfill of raw.raw_events falls inside the blocked 06:00-20:00 UTC window. The same kind of change caused INC-241, so the change should not run as written. A person on tea"
+  },
+  {
+   "scenario": "PB-074",
+   "family": "multi",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_e009046c2f08145b returns severity block: CON-031 (columns_locked) fires because dropping fct_revenue.currency reaches a locked public contract directly, and the same kind of change caused INC-230. Do not make the change as written; hand it to team/finance-data to dec"
+  },
+  {
+   "scenario": "PB-075",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_7038aa142c16a508) returned warn with risk 2/100 and no tier-1 consumers, and the change is allowed. CON-040 fires because finance_close waits on orders_pipeline and the 06:00 close would move, so both owning teams must sign off before merging. INC-241 is on the same ass"
+  },
+  {
+   "scenario": "PB-076",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "ChangeLens pre-flight (pf_01b020f19d0de101) returned warn, risk 2/100, with no blocking constraint and no tier 1 consumers. CON-040 fires because finance_close waits on orders_pipeline and the 06:00 close would move, so the change can proceed only after team/finance-data and team/data-platform sign "
+  },
+  {
+   "scenario": "PB-077",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-050",
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:ml_churn_training",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/product-analytics"
+   ],
+   "rationale": "The ChangeLens pre-flight (pf_ef793c09284210dc) gives severity warn, risk 4/100, and no tier 1 consumers or blocking constraints. CON-050 fires because fct_sessions is deprecated, so team/product-analytics sign-off is needed, and run_tests on dim_customers+ must pass before merge; the 7 affected ass"
+  },
+  {
+   "scenario": "PB-078",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-050",
+    "INC-214"
+   ],
+   "affected": [
+    "dashboard:dash_product_analytics",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/product-analytics"
+   ],
+   "rationale": "ChangeLens pre-flight (pf_6629fe363d6a838f) returns warn, not block: the modify on fct_sessions fires CON-050 (deprecated asset, approver team/product-analytics) and reaches 8 downstream assets, none tier 1. Before merging, run tests for fct_sessions+ and get product-analytics sign-off; INC-214 is o"
+  },
+  {
+   "scenario": "PB-079",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "ChangeLens returned a warn-level verdict: CON-061 requires growth-analytics sign-off because mart_churn_scores feeds the churn model, and the rename has no recorded approval yet. Run tests on mart_churn_scores+ and get that sign-off before merging. Nothing blocks the change, and no tier 1 consumers "
+  },
+  {
+   "scenario": "PB-080",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "mart_churn_scores",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "The ChangeLens pre-flight (verdict pf_fb1e314934c48d51) is warn-level with risk 0/100 and no blocking rule, so the change is allowed. CON-061 requires growth-analytics sign-off because mart_churn_scores feeds the churn model (ml_churn_training), and no approval is recorded yet; run tests for mart_ch"
+  },
+  {
+   "scenario": "PB-081",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "ChangeLens pre-flight (pf_8fd458def1deaab4) returns WARN with risk 4/100 and no tier 1 consumers, so the change is allowed but not on normal review alone. Before merging, run tests for mart_churn_scores+ and get growth-analytics sign-off for CON-061, since the churn model (ml_churn_training) must be"
+  },
+  {
+   "scenario": "PB-082",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "model:fct_refunds",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens returned severity warn with action proceed_with_checks, and no block constraint applies. Dropping stg_refunds.reason reaches two tier 1 finance consumers, and fct_refunds still selects that column, so team/finance-data must sign off after fct_refunds is updated and stg_refunds+ tests pass"
+  },
+  {
+   "scenario": "PB-083",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "model:fct_refunds",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "No blocking constraint applies (block_constraint=0), so the rename is allowed. Pre-flight warns because the rename reaches the tier 1 report finance_close_job and a same-kind change caused INC-230, so team/finance-data must sign off and be told before merge, and run_tests on fct_refunds+ must pass. "
+  },
+  {
+   "scenario": "PB-084",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230",
+    "pf_aa12a1b0720528a6"
+   ],
+   "affected": [
+    "model:fct_refunds",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens returned a warn verdict (risk 58/100, action proceed_with_checks, no blocking constraint). Dropping fct_refunds.refund_amount reaches tier 1 finance_close_job and finance_close.export_close, both owned by team/finance-data, and a similar drop of discount_pct caused INC-230. Before merging"
+  },
+  {
+   "scenario": "PB-085",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "model:fct_refunds"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The ChangeLens pre-flight (verdict pf_0533329b8e8a2f9f) returned warn with no blocking constraint, so the backfill is allowed. Because it reaches the tier 1 consumer finance_close_job, team/finance-data must be told and must sign off before merge, and the fct_refunds+ tests should run. INC-230 was a"
+  },
+  {
+   "scenario": "PB-086",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "CON-061",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "model:stg_orders",
+    "model:int_customer_orders",
+    "model:int_order_payments",
+    "model:dim_customers",
+    "model:fct_orders",
+    "dashboard:dash_customer_health",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_refunds",
+    "model:fct_revenue",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "report:ml_churn_training",
+    "task:finance_close.export_close",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "ChangeLens pre-flight is WARN (risk 49, verdict pf_cdb5c52ec88cac8c), not a block: the backfill reaches 15 downstream assets, 6 of them tier 1, and repeats the pattern of INC-241. Before merging, run tests for stg_orders+ and notify team/finance-data (owner of the tier 1 finance consumers, and the a"
+  },
+  {
+   "scenario": "PB-087",
+   "family": "partition",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_payments",
+    "task:orders_pipeline.load_orders",
+    "model:int_order_payments",
+    "task:orders_pipeline.dbt_staging",
+    "model:fct_orders",
+    "task:orders_pipeline.dbt_marts",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_refunds",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The ChangeLens pre-flight (verdict pf_81bf0742e46020d7) is severity warn with no blocking constraint: CON-031 is satisfied by this change, and the earlier incidents INC-230 and INC-241 are not from this kind of change. Before merging, notify team/finance-data, the owner of the tier 1 finance consume"
+  },
+  {
+   "scenario": "PB-088",
+   "family": "partition",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "model:stg_refunds",
+    "task:orders_pipeline.load_orders",
+    "model:fct_refunds",
+    "task:orders_pipeline.dbt_staging",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:orders_pipeline.dbt_marts",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "ChangeLens pre-flight verdict pf_cb9ba19d339f1e2b is WARN (risk 50/100) with action proceed_with_checks, and no blocking constraint applies. The partition change on raw.raw_refunds reaches 9 downstream assets, including two tier 1 consumers (fct_refunds, finance_close_job), and it is a destructive, "
+  },
+  {
+   "scenario": "PB-089",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:int_customer_orders",
+    "model:dim_customers",
+    "dashboard:dash_customer_health",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens verdict pf_208815dca933f743 is severity inform with action proceed: no blocking constraint, no tier 1 consumer, and no incident history on this path, so no sign-off is required. The two listed checks (update int_customer_orders, which still selects stg_customers.first_name, and run tests "
+  },
+  {
+   "scenario": "PB-090",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight (pf_5bf966a538979568) found no downstream readers, no tier-1 consumers, no block constraints, and no related incidents, so it returns inform severity with a risk score of 15. The only check is routine: run tests for stg_customers+. No constraint or incident IDs were supplie"
+  },
+  {
+   "scenario": "PB-091",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:stg_products",
+    "model:dim_products",
+    "model:fct_product_engagement",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens verdict pf_e07cf1eb85a98e6d is severity inform with no tier 1 consumers, no block constraint, and no warning-level rule firing, so no owner sign-off or heads-up is required. The required work is normal review: update dim_products in the same change, which still selects stg_products.catego"
+  },
+  {
+   "scenario": "PB-092",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:fct_product_engagement",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens pre-flight verdict pf_bbceb0be14020f36 is severity inform with risk 17/100, no tier 1 consumers, no block constraints, and no incidents from this kind of change, so no rule fires and no owner sign-off is needed. Before merging, update fct_product_engagement in the same change (it still se"
+  },
+  {
+   "scenario": "PB-093",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight (verdict pf_5d16908d25e788d0) scores risk 0/100 with no constraints, no block rules, no tier-1 consumers, no incident history, and no downstream readers, so no sign-off is needed. The only check is the routine test run for int_customer_orders+, which belongs in normal revie"
+  },
+  {
+   "scenario": "PB-094",
+   "family": "additive",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens pre-flight pf_21fe31de2d5c70d5 scored risk 0/100 with severity inform, no constraints, no tier-1 consumers, and no downstream readers. INC-214 is on the same asset but was not from this kind of change, so it does not block. Normal review and CI (run_tests on fct_daily_active_users+) cover"
+  },
+  {
+   "scenario": "PB-095",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "CON-014",
+    "INC-214",
+    "CON-050",
+    "CON-061"
+   ],
+   "affected": [
+    "source_table:raw.raw_events",
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-022 is a block-level no-backfill-window rule that INC-241 produced; the verdict marks it satisfied and the op starts at 23:30 UTC, but the verdict does not define the window or say when the run actually executes, and it is currently about 05:53 UTC. Before running, team/data-platform (the CON-02"
+  },
+  {
+   "scenario": "PB-096",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "CON-014",
+    "CON-050",
+    "CON-061",
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "No blocking rule fires and the ChangeLens verdict is proceed, but CON-022 (block) is the rule INC-241 broke with a backfill of this same asset, and its approver is team/data-platform, so they should get a heads-up before the run. Confirm the start time first: 2026-10-20 is before today (2026-11-09),"
+  },
+  {
+   "scenario": "PB-097",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "dag:events_pipeline"
+   ],
+   "approvers": [],
+   "rationale": "The pre-flight verdict (pf_bf26f3ecdffaaf2b) is inform severity with risk 0/100, no constraints, no readers, and no downstream assets reached, so no rule fires. The two past incidents on events_pipeline (INC-241, INC-214) are marked as not the same kind of change. The only asset touched is events_pi"
+  },
+  {
+   "scenario": "PB-098",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight (verdict pf_f4f3ab607b371ed3, severity inform, risk 0/100) finds no constraints, no checks, no tier-1 consumers and no downstream assets reached by a modify on events_pipeline, so no owner sign-off is required. The earlier incidents on this asset (INC-241, INC-214) came fro"
+  },
+  {
+   "scenario": "PB-099",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "model:fct_product_engagement",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight (verdict pf_b3d746823a9b4370) rates the dim_products backfill as inform, risk 2/100, with no constraints, no block rules, no tier 1 consumers, and no incident on this path. The two reached assets are tier 2 and tier 3, and the only check is the routine run_tests on dim_prod"
+  },
+  {
+   "scenario": "PB-100",
+   "family": "distractor",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:ml_churn_training",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "The change only adds column descriptions to dim_customers in marts/schema.yml, so it is not a feature change and no op violates CON-061, which is a warn-level rule that requires growth-analytics sign-off for feature changes because mart_churn_scores feeds the churn model. ChangeLens says proceed and"
+  },
+  {
+   "scenario": "PB-101",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "pf_a32534f583f0e448"
+   ],
+   "affected": [
+    "model:dim_products"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens returned verdict pf_a32534f583f0e448 at inform severity with risk 16/100, no constraints, no tier 1 consumers, and no owner sign-off required. The change reaches only model:dim_products (tier 3, team/product-analytics), so the change should update dim_products to stop selecting stg_produc"
+  },
+  {
+   "scenario": "PB-102",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-haiku-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens verdict pf_03c3995dacc657e5 (inform, risk 0/100) lists no constraints, no incidents, no tier-1 consumers, and no downstream readers for adding stg_orders.channel and stg_payments.fee. Only routine tests on stg_orders+ and stg_payments+ are needed, which is normal CI. No owner sign-off is "
+  }
+ ]
+}
