@@ -629,6 +629,7 @@ def test_a_removed_method_with_a_typed_caller_elsewhere_is_a_finding(synced_stor
     assert r["symbols"][0]["owner"] == "Client"
 
 
+@needs_parser
 def test_receivers_typed_by_a_field_or_a_declared_return_are_linked(tmp_path):
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     for d in ("app", "other", "web", "gosvc"):
