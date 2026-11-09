@@ -39,6 +39,10 @@ jobs:
         run: |
           uv venv .venv
           uv pip install -e ".[fixture,dev,syntax]"
+      - name: Fetch the tree-sitter grammars
+        # The language pack downloads grammars on first use; fetching them here makes a failed download fail the
+        # job by name, instead of quietly skipping every parser test.
+        run: .venv/bin/python -c "import tree_sitter_language_pack as t; t.download(['python', 'javascript', 'typescript', 'tsx', 'go', 'rust', 'ruby'])"
       - name: Lint
         run: .venv/bin/ruff check src tests
       - name: Build the fixture platform
