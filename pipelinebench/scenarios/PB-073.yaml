@@ -1,0 +1,29 @@
+id: PB-073
+title: Backfill raw_events at 19:59 UTC
+family: backfill
+task: Start a one-day raw_events backfill at 19:59 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: raw_events
+    details:
+      at: '2026-10-20T19:59:00+00:00'
+      days: 1
+  intent: null
+  files: []
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-022
+  - INC-241
+  must_name: []
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: 19:59 is inside the 06:00-20:00 window.
+tags:
+- backfill
+- destructive
+- heldout

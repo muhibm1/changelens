@@ -179,8 +179,11 @@ def _checks(store: Store, cs: ChangeSet, affected: dict[str, dict[str, Any]], hi
             notify.setdefault(n["owner"], []).append(nid)
     for owner, assets in sorted(notify.items()):
         checks.append({"kind": "notify_owner", "owner": owner, "assets": assets, "evidence": [f"node:{a}" for a in assets]})
-    if any(o.kind == "backfill" for o in cs.ops):
-        checks.append({"kind": "schedule_off_hours", "evidence": [f"constraint:{h.constraint.id}" for h in hits if h.constraint.rule.kind == "no_backfill_window"] or ["ops"]})
+    # Only a backfill that lands inside a blocked window is asked to move; one already off-hours, or on an asset no
+    # window covers, was told to "schedule off-hours" before, and agents read that as a gate on a safe change.
+    window_hits = [h for h in hits if h.status == "fires" and h.constraint.rule.kind == "no_backfill_window"]
+    if window_hits:
+        checks.append({"kind": "schedule_off_hours", "evidence": [f"constraint:{h.constraint.id}" for h in window_hits]})
     if any(o.from_intent for o in cs.ops):
         checks.append({"kind": "confirm_resolution", "note": "ops were resolved from intent; confirm the assets before acting", "evidence": ["intent"]})
     if cs.unresolved:
@@ -257,6 +260,32 @@ def _fingerprint(store: Store, cs: ChangeSet, constraints: list[Constraint], ris
     return hashlib.sha1(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()[:16]
 
 
+# What a verdict asks an agent to do, in the three decisions an agent acts on. The severity alone left that to the
+# agent's reading, and models read "inform, run tests" as "proceed with checks" (pipelinebench/results/accuracy.md).
+ACTIONS = {
+    "inform": (
+        "proceed",
+        "Go ahead. No rule fires and no owner needs to sign off or be told. Anything listed under checks (running tests, "
+        "updating a model in the same change) is part of normal review and CI, not a reason to stop or ask anyone.",
+    ),
+    "warn": (
+        "proceed_with_checks",
+        "The change is allowed, but not on normal review alone: before merging, do the listed checks that involve people "
+        "(get the named sign-off, tell the named owners). Nothing here blocks it.",
+    ),
+    "block": (
+        "escalate",
+        "A blocking rule fires. Do not make this change as written; hand it to a person (the listed approvers) to decide.",
+    ),
+}
+
+
+def action(sev: str) -> dict[str, str]:
+    """The recommended agent decision for a severity, with what it means."""
+    decision, meaning = ACTIONS[sev]
+    return {"decision": decision, "meaning": meaning}
+
+
 def preflight(
     store: Store,
     cs: ChangeSet,
@@ -328,6 +357,7 @@ def preflight(
         "background_events": background,
         "risk": risk.to_dict(),
         "checks": checks,
+        "action": action(sev),
         "summary": "",
     }
     tiers_recorded = store.con.execute("SELECT count(*) FROM nodes WHERE tier IS NOT NULL").fetchone()[0] > 0
@@ -368,6 +398,8 @@ def to_markdown(v: dict[str, Any]) -> str:
     as_of = v["graph_as_of"]
     synced = f"graph as of {as_of:%Y-%m-%d %H:%M} UTC" if isinstance(as_of, datetime) else (f"graph as of {as_of}" if as_of else "graph never synced")
     lines = [f"**ChangeLens pre-flight: {sev}** (risk {v['risk']['score']}/100, verdict `{v['verdict_id']}`, {synced})", "", v["summary"], ""]
+    act = v.get("action") or action(v["severity"])
+    lines += [f"**Recommended action: `{act['decision']}`.** {act['meaning']}", ""]
     if not as_of:
         lines += ["The graph has never been synced, so no asset can be known. Run `changelens sync` first.", ""]
     if v["change"]["ops"]:

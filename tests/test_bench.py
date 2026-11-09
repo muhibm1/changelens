@@ -12,9 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "pipelinebench" / "scenarios"
 
 
-def test_sixty_scenarios_with_consistent_ground_truth():
+def test_sixty_dev_scenarios_and_a_held_out_set_with_consistent_ground_truth():
     scenarios = load_scenarios(SCENARIOS)
-    assert len(scenarios) == 60
+    assert len(scenarios) == 102
+    assert [s.id for s in scenarios if "heldout" not in s.tags] == [f"PB-{i:03d}" for i in range(1, 61)]
+    assert len([s for s in scenarios if "heldout" in s.tags]) == 42
     ids = known_ids(ROOT / "fixture")
     for s in scenarios:
         assert s.change.ops or s.change.intent, s.id

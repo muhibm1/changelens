@@ -1,0 +1,24 @@
+id: PB-085
+title: Backfill fct_refunds at 14:00
+family: backfill
+task: Rebuild fct_refunds for October at 14:00 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: fct_refunds
+    details:
+      at: '2026-10-20T14:00:00+00:00'
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - finance_close_job
+  approvers: []
+  must_not: []
+  why: No window covers fct_refunds, but the rebuild reaches the tier-1 close export.
+tags:
+- backfill
+- heldout

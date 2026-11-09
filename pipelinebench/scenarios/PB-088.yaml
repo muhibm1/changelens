@@ -1,0 +1,26 @@
+id: PB-088
+title: Repartition raw_refunds by refunded_at
+family: partition
+task: Partition raw_refunds by refunded_at to speed up the monthly close query.
+change:
+  ops:
+  - kind: change_partition
+    asset: raw_refunds
+    details:
+      to: refunded_at
+      from: null
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - fct_refunds
+  approvers: []
+  must_not: []
+  why: ''
+tags:
+- partition
+- destructive
+- heldout

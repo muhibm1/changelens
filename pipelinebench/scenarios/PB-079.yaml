@@ -1,0 +1,29 @@
+id: PB-079
+title: Rename churn_score in mart_churn_scores
+family: approval
+task: Rename mart_churn_scores.churn_score to churn_probability.
+change:
+  ops:
+  - kind: rename_column
+    asset: mart_churn_scores
+    column: churn_score
+    details:
+      to: churn_probability
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/mart_churn_scores.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-061
+  must_name: []
+  approvers:
+  - team/growth-analytics
+  must_not: []
+  why: ''
+tags:
+- column
+- destructive
+- approval
+- heldout

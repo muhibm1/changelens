@@ -1,0 +1,24 @@
+id: PB-098
+title: Raise retries on events_pipeline
+family: schedule
+task: Set retries=5 and a 10 minute retry_delay on events_pipeline.
+change:
+  ops:
+  - kind: modify
+    asset: events_pipeline
+  intent: null
+  files:
+  - fixture/dags/events_pipeline.py
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- dag
+- harmless
+- heldout

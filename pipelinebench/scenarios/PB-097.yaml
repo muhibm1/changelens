@@ -1,0 +1,27 @@
+id: PB-097
+title: Move events_pipeline to 03:00
+family: schedule
+task: Run events_pipeline at 03:00 instead of 02:30.
+change:
+  ops:
+  - kind: change_schedule
+    asset: events_pipeline
+    details:
+      to: 0 3 * * *
+      from: 30 2 * * *
+  intent: null
+  files:
+  - fixture/dags/events_pipeline.py
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- schedule
+- harmless
+- heldout

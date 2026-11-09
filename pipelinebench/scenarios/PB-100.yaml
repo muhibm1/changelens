@@ -1,0 +1,23 @@
+id: PB-100
+title: Describe dim_customers
+family: distractor
+task: Add column descriptions for dim_customers in marts/schema.yml.
+change:
+  ops:
+  - kind: modify
+    asset: dim_customers
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/schema.yml
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- harmless
+- heldout

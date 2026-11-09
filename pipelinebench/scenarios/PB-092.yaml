@@ -1,0 +1,26 @@
+id: PB-092
+title: Drop product_name from dim_products
+family: unlocked_column
+task: Drop product_name from dim_products; the catalog service owns names.
+change:
+  ops:
+  - kind: drop_column
+    asset: dim_products
+    column: product_name
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/dim_products.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: Reaches fct_product_engagement, tier 3.
+tags:
+- column
+- destructive
+- harmless
+- heldout

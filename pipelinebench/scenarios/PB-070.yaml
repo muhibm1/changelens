@@ -1,0 +1,31 @@
+id: PB-070
+title: Repartition stg_events by session_id
+family: partition
+task: Partition stg_events by session_id so session rollups prune better.
+change:
+  ops:
+  - kind: change_partition
+    asset: stg_events
+    details:
+      to: session_id
+      from: event_date
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_events.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-014
+  - INC-214
+  must_name:
+  - fct_daily_active_users
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: ''
+tags:
+- partition
+- destructive
+- heldout

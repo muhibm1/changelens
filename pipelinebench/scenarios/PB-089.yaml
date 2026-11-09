@@ -1,0 +1,26 @@
+id: PB-089
+title: Drop first_name from stg_customers
+family: unlocked_column
+task: Drop first_name from stg_customers to cut PII from staging.
+change:
+  ops:
+  - kind: drop_column
+    asset: stg_customers
+    column: first_name
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_customers.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: Reaches int_customer_orders and dim_customers, tier 2 at most; no constraint.
+tags:
+- column
+- destructive
+- harmless
+- heldout

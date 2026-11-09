@@ -1,0 +1,32 @@
+id: PB-062
+title: Rename revenue_date in fct_revenue
+family: locked_direct
+task: Rename fct_revenue.revenue_date to day so it matches the other marts.
+change:
+  ops:
+  - kind: rename_column
+    asset: fct_revenue
+    column: revenue_date
+    details:
+      to: day
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/fct_revenue.sql
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-031
+  - INC-230
+  must_name:
+  - finance_close_job
+  approvers:
+  - team/finance-data
+  must_not:
+  - proceed
+  why: ''
+tags:
+- column
+- destructive
+- contract
+- heldout

@@ -1,0 +1,29 @@
+id: PB-102
+title: Two additive upstream columns
+family: multi
+task: Add channel to stg_orders and fee to stg_payments.
+change:
+  ops:
+  - kind: add_column
+    asset: stg_orders
+    column: channel
+  - kind: add_column
+    asset: stg_payments
+    column: fee
+  intent: null
+  files:
+  - fixture/dbt_project/models/staging/stg_orders.sql
+  - fixture/dbt_project/models/staging/stg_payments.sql
+expected:
+  decision: proceed
+  severity: inform
+  must_cite: []
+  must_name: []
+  approvers: []
+  must_not:
+  - escalate
+  why: ''
+tags:
+- multi
+- additive
+- heldout

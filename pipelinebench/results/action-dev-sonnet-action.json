@@ -1,0 +1,1822 @@
+{
+ "benchmark": "PipelineBench",
+ "version": "0.1.0",
+ "ran_at": "2026-11-09T05:23:00.081962+00:00",
+ "seconds": 501.9,
+ "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+ "scenarios": 60,
+ "seeds": 1,
+ "cells": [
+  {
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "scenarios": 60,
+   "accuracy": 0.817,
+   "unsafe_rate": 0.017,
+   "cite_recall": 1.0,
+   "name_recall": 1.0,
+   "approvers_ok": 1.0,
+   "fabrication_rate": 0.0,
+   "score": 0.917
+  }
+ ],
+ "usage": {
+  "claude-code:claude-sonnet-5-5": {
+   "input_tokens": 1501418,
+   "output_tokens": 36637,
+   "errors": 0
+  }
+ },
+ "details": [
+  {
+   "scenario": "PB-001",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping fct_orders.discount_pct fires blocking constraint CON-031 (locked finance contract) and reaches the tier 1 dash_revenue_weekly dashboard. The same change caused INC-230 on 2026-08-18, so 'nothing selects it' is wrong. team/finance-data must decide before this goes ahead."
+  },
+  {
+   "scenario": "PB-002",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping fct_orders.status fires the blocking constraint CON-031 (locked finance contract) and reaches the tier 1 dashboard dash_revenue_weekly. The same kind of change caused INC-230, so a person from team/finance-data must decide before it is made."
+  },
+  {
+   "scenario": "PB-003",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 (block) fires because fct_orders feeds the locked fct_revenue contract. The rename reaches the tier 1 dash_revenue_weekly dashboard, and the same kind of change caused INC-230 on 2026-08-18. Do not apply as written; team/finance-data must sign off, and tests on fct_orders+ should run first."
+  },
+  {
+   "scenario": "PB-004",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "finance_close.export_close",
+    "orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 is a blocking columns_locked rule: fct_revenue columns are a public contract read by finance close. The type change reaches two tier 1 assets (dash_revenue_weekly, finance_close_job) and can't be undone by a rerun. Don't make it as written. Get team/finance-data sign-off and run tests on fct"
+  },
+  {
+   "scenario": "PB-005",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "finance_close.export_close",
+    "orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping fct_revenue.order_count fires blocking constraint CON-031 (fct_revenue columns are a public contract read by finance close). It reaches two tier 1 assets, and the same kind of change caused INC-230, so team/finance-data must decide before anything is changed."
+  },
+  {
+   "scenario": "PB-006",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "finance_close.export_close",
+    "orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close, and changing collected_revenue reaches two tier 1 assets (dash_revenue_weekly, finance_close_job). The change should not be made as written; team/finance-data must sign off, and tests on fc"
+  },
+  {
+   "scenario": "PB-007",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 is a blocking rule: fct_revenue is a locked public contract read by finance close, and it still selects fct_orders.paid_amount. The same kind of change (dropping a column from fct_orders) caused INC-230, and the drop can't be undone by a rerun, so team/finance-data must approve before this g"
+  },
+  {
+   "scenario": "PB-008",
+   "family": "locked_add",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Adding a column to fct_orders reaches no downstream assets, and CON-031 (fct_revenue columns locked) is satisfied because no existing column changes. The earlier incidents INC-241 and INC-230 were different kinds of change, so only the routine run_tests on fct_orders+ is needed and no sign-off is re"
+  },
+  {
+   "scenario": "PB-009",
+   "family": "locked_add",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Adding refund_total is additive and reaches no downstream assets. CON-031 (columns_locked on fct_revenue) is in scope but satisfied, because no op removes or changes an existing column. INC-230 was a dropped column on fct_orders, not an added one. Run the routine run_tests on fct_revenue+ as part of"
+  },
+  {
+   "scenario": "PB-010",
+   "family": "locked_direct",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "finance_close.export_close",
+    "orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "CON-031 (columns_locked, block) fires because fct_revenue columns are a public contract read by finance close. Renaming currency to ccy is not reversible by rerun, reaches 2 tier 1 assets, and matches INC-230. This needs team/finance-data sign-off, and run_tests on fct_revenue+ should be done before"
+  },
+  {
+   "scenario": "PB-011",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping stg_orders.discount_pct fires the blocking constraint CON-031 (locked fct_revenue contract) and reaches 5 tier-1 assets. The same kind of change caused INC-230, and int_order_payments still reads the column. Hand to team/finance-data for sign-off, and update the readers, run tests on stg_or"
+  },
+  {
+   "scenario": "PB-012",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping stg_orders.currency fires blocking constraint CON-031 (fct_revenue is a locked public contract read by finance close) and reaches 5 tier-1 assets. The same kind of change caused INC-230, and int_order_payments (no owner) still selects the column. Hand this to team/finance-data for sign-off "
+  },
+  {
+   "scenario": "PB-013",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Casting int_order_payments.amount to float fires the blocking constraint CON-031, which locks fct_revenue columns as a public contract read by finance close. It also reaches 4 tier-1 assets, and the change is not reversible by rerun, so a person must decide. team/finance-data must sign off, and team"
+  },
+  {
+   "scenario": "PB-014",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "model:int_order_payments",
+    "model:fct_orders",
+    "dashboard:dash_revenue_weekly",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping stg_payments.paid_amount is destructive and reaches 5 tier 1 assets, including fct_revenue, whose columns are locked by blocking constraint CON-031. The same kind of change caused INC-230, and int_order_payments still reads the column. It needs team/finance-data sign-off and cannot be made "
+  },
+  {
+   "scenario": "PB-015",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens pre-flight shows no downstream assets, no constraints, no incident history, and no required approvers for dropping stg_payments.payment_method (risk 15/100, from the destructive op only). Run the routine tests on stg_payments+ as part of normal CI."
+  },
+  {
+   "scenario": "PB-016",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "escalate",
+   "decision_correct": false,
+   "unsafe": true,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "model:int_customer_orders",
+    "model:dim_customers",
+    "dashboard:dash_customer_health",
+    "model:mart_churn_scores",
+    "task:orders_pipeline.dbt_test",
+    "report:ml_churn_training"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "The preflight says proceed, but region reaches mart_churn_scores through a column edge. CON-061 requires growth-analytics sign-off for feature changes there so the churn model is retrained in step. The constraint shows 'satisfied' only because no op was matched to it (ops is empty), not because anyo"
+  },
+  {
+   "scenario": "PB-017",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-050",
+    "INC-214"
+   ],
+   "affected": [
+    "model:int_sessions",
+    "model:fct_sessions",
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "Risk is low (18/100), no tier 1 consumers, and no constraint is violated. CON-014 and CON-050 are satisfied, and INC-214 was a repartition, not a rename. The rename is not reversible by rerun, so int_sessions, which still selects session_id by name, must be updated in the same change. Tests must als"
+  },
+  {
+   "scenario": "PB-018",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dim_customers",
+    "dash_customer_health",
+    "mart_churn_scores",
+    "orders_pipeline.dbt_test",
+    "ml_churn_training"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "No tier 1 assets are reached and no block constraint fires, but the drop is irreversible. dim_customers still selects order_count, so it must be updated in the same change, and tests should run on int_customer_orders+. CON-061 is marked satisfied, but the material shows no recorded approval. mart_ch"
+  },
+  {
+   "scenario": "PB-019",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens reports risk 0/100 with no downstream assets, no constraints, and no incident history for adding stg_orders.channel. Normal CI applies, including running tests for stg_orders+, and no sign-off is needed."
+  },
+  {
+   "scenario": "PB-020",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_revenue_weekly",
+    "orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping stg_orders.status fires blocking constraint CON-031, because fct_orders feeds the locked fct_revenue contract. It reaches 3 tier 1 assets, and int_order_payments still selects the column. The same kind of change caused INC-230, so this needs team/finance-data sign-off and should not be made"
+  },
+  {
+   "scenario": "PB-021",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Repartitioning raw_events from event_date to ingest_ts violates blocking constraint CON-014. The same change caused INC-214, a six-hour pipeline outage, so it needs team/data-platform sign-off before anyone makes it. INC-241 is a related earlier incident on the same asset. The change reaches 10 down"
+  },
+  {
+   "scenario": "PB-022",
+   "family": "partition",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-022",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The change sets partitioning on raw_events to event_date, which is already its key (from and to are identical), so it is a no-op that reaches no downstream assets. CON-014 and CON-022 are in scope but satisfied, and INC-214 and INC-241 were different kinds of change (ingest_ts repartition, daytime b"
+  },
+  {
+   "scenario": "PB-023",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Repartitioning raw.raw_events from event_date to ingest_ts fires blocking constraint CON-014. The same change caused INC-214, a six-hour pipeline outage, so team/data-platform must decide. The ops were resolved from intent only (confidence 0.7), so the assets need confirming. Downstream owners team/"
+  },
+  {
+   "scenario": "PB-024",
+   "family": "partition",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "CON-061",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "stg_orders",
+    "orders_pipeline.load_orders",
+    "int_customer_orders",
+    "int_order_payments",
+    "orders_pipeline.dbt_staging",
+    "dim_customers",
+    "fct_orders",
+    "orders_pipeline.dbt_marts",
+    "dash_customer_health",
+    "dash_revenue_weekly",
+    "fct_refunds",
+    "fct_revenue",
+    "mart_churn_scores",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "ml_churn_training",
+    "finance_close.export_close",
+    "finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Partitioning raw_orders reaches 18 downstream assets, 6 of them tier 1, and it is not reversible by rerun. Nothing blocks it: CON-031 and CON-061 are satisfied, and INC-230 and INC-241 were not caused by this kind of change. Tell team/finance-data before merging, since fct_refunds, fct_revenue, dash"
+  },
+  {
+   "scenario": "PB-025",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The backfill is set for 09:00 UTC, inside the CON-022 blocked window (06:00-20:00 UTC). A daytime backfill of raw_events caused INC-241 by starving the hourly orders pipeline. This is a blocking rule, so it needs team/data-platform sign-off and should be rescheduled off-hours. INC-214 is also on raw"
+  },
+  {
+   "scenario": "PB-026",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The backfill at 13:30 UTC falls inside the CON-022 blocked window (06:00-20:00 UTC), which is a block-severity rule. The same kind of change caused INC-241 when it starved the hourly orders pipeline. It should not run as written, so team/data-platform needs to approve it or reschedule it off-hours. "
+  },
+  {
+   "scenario": "PB-027",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The backfill at 19:45 UTC falls inside the CON-022 blocked window (06:00-20:00 UTC), and a daytime backfill of raw_events already starved the hourly orders pipeline in INC-241. Do not run it as written. Data-platform must sign off, and the run should be rescheduled off-hours."
+  },
+  {
+   "scenario": "PB-028",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241",
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens issued proceed (risk 18, no tier 1 consumers, no constraint violated, no sign-off needed). The same kind of change caused INC-241, when a daytime backfill starved the orders pipeline, and CON-022 forbids daytime backfills. So I will run the recommended schedule_off_hours check and keep th"
+  },
+  {
+   "scenario": "PB-029",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [],
+   "rationale": "The backfill reaches 10 downstream assets, none tier 1, and no constraint is violated. CON-022 bars daytime backfills because INC-241 showed they starve the hourly orders pipeline, so the 03:00 UTC start has to stay off-hours for the whole 7-day run. No sign-off is required."
+  },
+  {
+   "scenario": "PB-030",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens finds no blocking constraint violated and no tier 1 assets, so no sign-off is needed. INC-241 was a daytime backfill of this same asset that starved the hourly orders pipeline, and CON-022 forbids daytime backfills. Run it in an off-hours window and confirm the 05:59 UTC start falls insid"
+  },
+  {
+   "scenario": "PB-031",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-241",
+    "INC-230"
+   ],
+   "affected": [
+    "dashboard:dash_revenue_weekly",
+    "model:fct_refunds",
+    "model:fct_revenue",
+    "task:orders_pipeline.dbt_test",
+    "report:finance_close_job",
+    "task:finance_close.export_close",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The backfill reaches 8 downstream assets, 4 of them tier 1, and the same kind of change caused INC-241 when a daytime backfill starved the orders pipeline. CON-031 is satisfied and nothing blocks the change, so it can go ahead once fct_orders+ tests pass, team/finance-data is notified, and the run i"
+  },
+  {
+   "scenario": "PB-032",
+   "family": "backfill",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-050",
+    "CON-061",
+    "INC-214"
+   ],
+   "affected": [
+    "fct_daily_active_users",
+    "fct_product_engagement",
+    "int_sessions",
+    "dash_product_analytics",
+    "fct_sessions",
+    "mart_churn_scores",
+    "dash_customer_health",
+    "ml_churn_training",
+    "orders_pipeline.dbt_test",
+    "finance_close.wait_for_orders"
+   ],
+   "approvers": [],
+   "rationale": "ChangeLens rates this low risk (5/100) with no tier 1 consumers, and all three constraints are satisfied. INC-214 was a repartitioning, not a backfill, so it doesn't block this change. Run tests on stg_events+ and schedule the backfill off-hours first. No sign-off is required. One thing to check: th"
+  },
+  {
+   "scenario": "PB-033",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "CON-040 (schedule_locked, warn) fires because finance_close waits on orders_pipeline, so moving to every six hours could shift the 06:00 close. Get sign-off from team/finance-data and team/data-platform before merging. INC-241 was a backfill starvation, not a schedule change, so it does not block th"
+  },
+  {
+   "scenario": "PB-034",
+   "family": "schedule",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-040",
+    "INC-241"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Changing orders_pipeline from hourly to daily reaches dag:finance_close, which waits on it, and fires CON-040 (warn, schedule_locked) because it can move the 06:00 close. Get sign-off from team/finance-data and team/data-platform, and confirm the ops resolved from intent. INC-241 was caused by a bac"
+  },
+  {
+   "scenario": "PB-035",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens finds no downstream assets, no constraints and no readers, with a risk score of 0. The earlier incidents INC-241 and INC-214 were a backfill and a repartition, not schedule changes, so I'm not citing them. The run moves earlier, so downstream data would only arrive sooner."
+  },
+  {
+   "scenario": "PB-036",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens finds no downstream assets, no constraints and no required approvers, so nothing blocks the change. But finance_close already missed its SLA twice (2026-10-10 and 2026-10-13, both at 06:55, events ev_78dbc605c406 and ev_f292cc60c6c1) when its run began around 06:03. Moving it an hour late"
+  },
+  {
+   "scenario": "PB-037",
+   "family": "schedule",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-040"
+   ],
+   "affected": [
+    "dag:finance_close"
+   ],
+   "approvers": [],
+   "rationale": "Setting retries=3 in default_args is a small, rerunnable change that doesn't alter the schedule. CON-040 (schedule lock on the 06:00 close) is satisfied, and the one downstream asset, dag:finance_close, is not tier 1. INC-241 was a backfill starvation, not this kind of change, so no sign-off is need"
+  },
+  {
+   "scenario": "PB-038",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-050"
+   ],
+   "affected": [
+    "dashboard:dash_product_analytics"
+   ],
+   "approvers": [
+    "team/product-analytics"
+   ],
+   "rationale": "The change builds on fct_sessions, which CON-050 marks as deprecated (warn severity). It reaches one tier 2 downstream asset and no tier 1 assets, so it is allowed. Before merging, run tests for fct_product_engagement+ and get sign-off from team/product-analytics. Consider fct_daily_active_users or "
+  },
+  {
+   "scenario": "PB-039",
+   "family": "deprecated",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-050",
+    "CON-061",
+    "INC-214"
+   ],
+   "affected": [
+    "dashboard:dash_product_analytics",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/product-analytics",
+    "team/growth-analytics"
+   ],
+   "rationale": "The change reaches 8 downstream assets, none tier 1, and builds on fct_sessions, which CON-050 marks as deprecated. Before merging, run tests on fct_sessions+ and get product-analytics sign-off. INC-214 was a repartitioning, not this kind of change. Tell growth-analytics because mart_churn_scores fe"
+  },
+  {
+   "scenario": "PB-040",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Adding tenure_days to mart_churn_scores reaches no downstream assets in the graph, and no incidents are tied to this kind of change. CON-061 fires as a warning because the table trains the churn model (ml_churn_training), so run tests for mart_churn_scores+ and get team/growth-analytics sign-off so "
+  },
+  {
+   "scenario": "PB-041",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders",
+    "task:finance_close.dbt_finance",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "CON-061 (warn) requires growth-analytics sign-off because mart_churn_scores trains the churn model, so the model can be retrained in step. No tier 1 consumers are affected and no incidents match this kind of change, so run tests on mart_churn_scores+ and get the approval before merging."
+  },
+  {
+   "scenario": "PB-042",
+   "family": "approval",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-061"
+   ],
+   "affected": [
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/growth-analytics"
+   ],
+   "rationale": "Dropping sessions_30d is irreversible by rerun but reaches only 3 downstream assets, none tier 1, and no incident is tied to this kind of change. CON-061 (warn) requires growth-analytics sign-off so the churn model is retrained in step, and that approval is not yet recorded. Run tests on mart_churn_"
+  },
+  {
+   "scenario": "PB-043",
+   "family": "additive",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens reports risk 0/100 and says the new dim_customers.tenure column reaches no downstream assets. No constraints or incidents apply, and no one needs to sign off. The earlier run_failed and sla_missed events are background noise and not tied to this kind of change. Running tests on dim_custom"
+  },
+  {
+   "scenario": "PB-044",
+   "family": "multi",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "CON-040",
+    "INC-230"
+   ],
+   "affected": [
+    "dag:finance_close",
+    "dashboard:dash_revenue_weekly",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "CON-031 is a blocking rule: dropping fct_orders.discount_pct reaches a locked asset and the tier 1 dashboard dash_revenue_weekly. The same change caused INC-230. The schedule change also fires CON-040, because it moves the 06:00 finance_close. Both changes need human sign-off, and bundling them in o"
+  },
+  {
+   "scenario": "PB-045",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "Both changes only add columns. ChangeLens finds no downstream assets or readers, and CON-031 (fct_revenue columns locked) is satisfied because nothing is dropped or renamed. INC-230 and INC-241 were different kinds of change. Run tests on fct_orders+ and fct_revenue+ before merging, and check that f"
+  },
+  {
+   "scenario": "PB-046",
+   "family": "multi",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight (pf_5c8c2cec3d0106da) shows no downstream assets, no constraints, no incident history and no readers. The only risk is that the column drop is destructive, which scores 15/100. Run the routine tests on stg_payments+ as part of normal CI."
+  },
+  {
+   "scenario": "PB-047",
+   "family": "multi",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "CON-022",
+    "INC-214",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "Two blocking constraints fire. CON-014 requires event_date as the partition key, and the same repartition caused INC-214. CON-022 blocks backfills from 06:00 to 20:00 UTC, and the 10:00 UTC backfill matches the daytime backfill that caused INC-241. Do not make this change as written. Hand it to team"
+  },
+  {
+   "scenario": "PB-048",
+   "family": "distractor",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [
+    "dim_products",
+    "fct_product_engagement",
+    "dash_product_analytics"
+   ],
+   "approvers": [],
+   "rationale": "Adding a description to stg_products in schema.yml is a metadata-only change. ChangeLens reports risk 3/100 with severity inform, no tier 1 consumers, and no constraints or incidents. Running tests on stg_products+ is routine CI and needs no sign-off."
+  },
+  {
+   "scenario": "PB-049",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed_with_checks",
+   "decision_correct": false,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 0.6,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens finds no downstream assets, constraints, incidents or readers for dim_products.unit_price, so no sign-off is needed. The drop is not reversible by rerun, so run the routine tests on dim_products+ before merging."
+  },
+  {
+   "scenario": "PB-050",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "report:finance_close_job",
+    "task:finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Renaming fct_refunds.reason reaches the tier 1 finance_close_job report and the export_close task, both owned by team/finance-data. A column change caused INC-230 on 2026-08-18. No blocking constraints apply, so the change can go ahead once finance-data is told and signs off, and run_tests passes on"
+  },
+  {
+   "scenario": "PB-051",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "int_customer_orders",
+    "int_order_payments",
+    "dim_customers",
+    "fct_orders",
+    "dash_customer_health",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "mart_churn_scores",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "ml_churn_training",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Renaming stg_orders.amount fires the blocking rule CON-031, because it reaches the locked fct_revenue contract through fct_orders and fct_revenue. It reaches 12 downstream assets, 5 of them tier 1. INC-230 was the same kind of change and broke the weekly revenue dashboard. int_customer_orders and in"
+  },
+  {
+   "scenario": "PB-052",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "int_order_payments",
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Changing paid_amount so refunds count as negative alters values, which is not reversible by rerun. It reaches fct_revenue, a locked public contract read by finance close, so blocking constraint CON-031 fires. A person from team/finance-data must sign off. Tests on stg_payments+ and notifying the own"
+  },
+  {
+   "scenario": "PB-053",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230",
+    "INC-241"
+   ],
+   "affected": [
+    "int_customer_orders",
+    "int_order_payments",
+    "dim_customers",
+    "fct_orders",
+    "dash_customer_health",
+    "dash_revenue_weekly",
+    "fct_revenue",
+    "mart_churn_scores",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "ml_churn_training",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Changing stg_orders.order_date to timestamp fires the blocking CON-031 (columns_locked) because it reaches fct_orders and fct_revenue, a public contract read by finance close. It also reaches 5 tier 1 assets, so team/finance-data must sign off before anyone makes the change. INC-230 is the source of"
+  },
+  {
+   "scenario": "PB-054",
+   "family": "locked_via_lineage",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "fct_orders",
+    "dash_revenue_weekly",
+    "fct_refunds",
+    "orders_pipeline.dbt_test",
+    "finance_close_job",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data",
+    "team/data-platform"
+   ],
+   "rationale": "Dropping int_order_payments.customer_id fires the blocking constraint CON-031 (locked fct_revenue contract, fed by fct_orders). fct_orders still selects the column, and the same kind of change caused INC-230. It reaches 4 tier-1 assets, so team/finance-data must sign off and team/data-platform must "
+  },
+  {
+   "scenario": "PB-055",
+   "family": "partition",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test",
+    "task:finance_close.wait_for_orders"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "CON-014 is a blocking constraint that requires stg_events to be partitioned by event_date, and repartitioning by ingest_ts is the same change that caused the six-hour outage in INC-214. Do not apply it as written. Hand it to team/data-platform for sign-off, and run tests on stg_events+ if they appro"
+  },
+  {
+   "scenario": "PB-056",
+   "family": "backfill",
+   "expected": "escalate",
+   "decided": "escalate",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-022",
+    "INC-241"
+   ],
+   "affected": [
+    "model:stg_events",
+    "model:fct_daily_active_users",
+    "model:fct_product_engagement",
+    "model:int_sessions",
+    "dashboard:dash_product_analytics",
+    "model:fct_sessions",
+    "model:mart_churn_scores",
+    "dashboard:dash_customer_health",
+    "report:ml_churn_training",
+    "task:orders_pipeline.dbt_test"
+   ],
+   "approvers": [
+    "team/data-platform"
+   ],
+   "rationale": "The backfill at 06:00 UTC falls inside the blocked window of CON-022 (06:00-20:00 UTC). The same kind of change caused INC-241 by starving the hourly orders pipeline. Do not run it as written. Get team/data-platform sign-off and reschedule it off-hours."
+  },
+  {
+   "scenario": "PB-057",
+   "family": "backfill",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-031",
+    "INC-230"
+   ],
+   "affected": [
+    "dash_revenue_weekly",
+    "finance_close_job",
+    "finance_close.export_close",
+    "orders_pipeline.dbt_test",
+    "finance_close.wait_for_orders",
+    "finance_close.dbt_finance"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "The backfill is allowed but reaches two tier 1 assets, dash_revenue_weekly and finance_close_job, both owned by finance-data. CON-031 (columns locked) is satisfied because a backfill doesn't change columns, and INC-230 was a column drop, not a backfill. Run tests on fct_revenue+, schedule the backfi"
+  },
+  {
+   "scenario": "PB-058",
+   "family": "tier1_unlocked",
+   "expected": "proceed_with_checks",
+   "decided": "proceed_with_checks",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "INC-230"
+   ],
+   "affected": [
+    "fct_refunds",
+    "finance_close_job",
+    "finance_close.export_close"
+   ],
+   "approvers": [
+    "team/finance-data"
+   ],
+   "rationale": "Dropping stg_refunds.refund_amount is allowed (no blocking constraints), but fct_refunds still selects it and two tier 1 assets (fct_refunds, finance_close_job) are downstream. The same kind of change caused INC-230. Update fct_refunds to read from the payments processor, run tests on stg_refunds+, "
+  },
+  {
+   "scenario": "PB-059",
+   "family": "unlocked_column",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [
+    "CON-014",
+    "INC-214"
+   ],
+   "affected": [],
+   "approvers": [],
+   "rationale": "The ChangeLens pre-flight shows the drop reaches no downstream assets, no constraint is violated, and no owner sign-off is needed. CON-014 (partition key) is satisfied, and INC-214 was a repartitioning incident, not a column drop. Run the routine tests on stg_events+ as part of normal CI."
+  },
+  {
+   "scenario": "PB-060",
+   "family": "additive_upstream",
+   "expected": "proceed",
+   "decided": "proceed",
+   "decision_correct": true,
+   "unsafe": false,
+   "cite_recall": 1.0,
+   "fabricated": [],
+   "name_recall": 1.0,
+   "approvers_ok": true,
+   "score": 1.0,
+   "agent": "claude-code:claude-sonnet-5-5",
+   "condition": "changelens",
+   "seed": 0,
+   "cited": [],
+   "affected": [],
+   "approvers": [],
+   "rationale": "ChangeLens reports risk 0/100 for adding stg_payments.fee, with no downstream assets, no constraints, no incident history, and no required approvers. Running tests for stg_payments+ is routine CI and doesn't change the decision."
+  }
+ ]
+}

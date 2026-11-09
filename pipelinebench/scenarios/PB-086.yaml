@@ -1,0 +1,24 @@
+id: PB-086
+title: Backfill stg_orders overnight
+family: backfill
+task: Backfill stg_orders for the last month at 03:00 UTC.
+change:
+  ops:
+  - kind: backfill
+    asset: stg_orders
+    details:
+      at: '2026-10-20T03:00:00+00:00'
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - fct_orders
+  approvers: []
+  must_not: []
+  why: The rebuild reaches fct_orders and fct_revenue, tier 1.
+tags:
+- backfill
+- heldout

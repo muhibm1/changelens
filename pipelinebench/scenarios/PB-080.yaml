@@ -1,0 +1,27 @@
+id: PB-080
+title: Add region_code to mart_churn_scores
+family: approval
+task: Add a region_code feature to mart_churn_scores.
+change:
+  ops:
+  - kind: add_column
+    asset: mart_churn_scores
+    column: region_code
+  intent: null
+  files:
+  - fixture/dbt_project/models/marts/mart_churn_scores.sql
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite:
+  - CON-061
+  must_name: []
+  approvers:
+  - team/growth-analytics
+  must_not: []
+  why: ''
+tags:
+- column
+- additive
+- approval
+- heldout

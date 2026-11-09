@@ -1,0 +1,29 @@
+id: PB-072
+title: Backfill raw_events at 17:00 UTC
+family: backfill
+task: Backfill three days of raw_events at 17:00 UTC after the vendor fix lands.
+change:
+  ops:
+  - kind: backfill
+    asset: raw_events
+    details:
+      at: '2026-10-20T17:00:00+00:00'
+      days: 3
+  intent: null
+  files: []
+expected:
+  decision: escalate
+  severity: block
+  must_cite:
+  - CON-022
+  - INC-241
+  must_name: []
+  approvers:
+  - team/data-platform
+  must_not:
+  - proceed
+  why: ''
+tags:
+- backfill
+- destructive
+- heldout

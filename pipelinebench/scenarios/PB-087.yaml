@@ -1,0 +1,26 @@
+id: PB-087
+title: Repartition raw_payments by paid_at
+family: partition
+task: Partition raw_payments by paid_at.
+change:
+  ops:
+  - kind: change_partition
+    asset: raw_payments
+    details:
+      to: paid_at
+      from: null
+  intent: null
+  files: []
+expected:
+  decision: proceed_with_checks
+  severity: warn
+  must_cite: []
+  must_name:
+  - fct_orders
+  approvers: []
+  must_not: []
+  why: No constraint, but a destructive change whose lineage reaches tier-1 models.
+tags:
+- partition
+- destructive
+- heldout
