@@ -41,7 +41,7 @@ review:
   model: claude-haiku-5-5
 ```
 
-The `anthropic` provider spends API credit and refuses to start without a dollar cap: set `CHANGELENS_API_CAP` (the reviewer workflow sets 25 cents a run). `claude-code` answers on a Claude subscription instead and needs neither a key nor a cap.
+The `anthropic` provider spends API credit and refuses to start without a spending cap: set `CHANGELENS_API_CAP` (the reviewer workflow sets one for each run). `claude-code` uses the local `claude` command line instead and needs neither a key nor a cap.
 
 Run `dbt parse` so `target/manifest.json` exists, then `changelens sync`. On cal-itp/data-infra (625 models), the first sync takes 2 minutes 9 seconds and a re-sync takes 13 seconds (`pipelinebench/results/partner-calitp-dbt.md`).
 
