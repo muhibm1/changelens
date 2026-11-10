@@ -4,7 +4,7 @@ These runs were made on 2026-10-23 with Sonnet 5.5 through the `claude-code` pro
 
 | run | set | recall | in file | warns/case | input tokens (cache write + read) | out | wall |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| four lenses (main, 2026-10-20, runs 2 and 3) | held-out 45 | 0.556–0.644 | 0.711 | | ~8.2–9.1M | ~350k | |
+| four lenses (main, 2026-10-20, runs 2 and 3) | held-out 45 | 0.556-0.644 | 0.711 | | ~8.2-9.1M | ~350k | |
 | `--agent`, answers whenever it likes | held-out 45 | 0.333 | 0.444 | 0.89 | 2.29M | 71k | 6 min |
 | `--agent`, opening turn must call tools | tuning 50 | 0.24 | 0.46 | 0.92 | 4.71M | 92k | 8 min |
 
@@ -48,10 +48,10 @@ Then the held-out set, three runs of the last build, never tuned on ([heldout-so
 
 | held-out 45, 3 runs | escalation recall | detection recall | in file | inform only | other warns/case |
 | --- | --- | --- | --- | --- | --- |
-| four lenses | 0.615 (0.578–0.644) | 0.741 (0.733–0.756) | 0.719 | 5.0 | 0.99 |
-| sweep | **0.637** (0.622–0.644) | **0.763** (0.711–0.800) | 0.771 | 4.3 | 1.07 |
+| four lenses | 0.615 (0.578-0.644) | 0.741 (0.733-0.756) | 0.719 | 5.0 | 0.99 |
+| sweep | **0.637** (0.622-0.644) | **0.763** (0.711-0.800) | 0.771 | 4.3 | 1.07 |
 
-On held-out, the sweep matches the four lenses: its mean is one case higher, and the two ranges overlap. It is also cheaper. A held-out run took about 9.5 minutes at `--jobs 4`. The first, cold-cache run used 4.99M input tokens (2.70M cache write, 2.29M read) and 189k output. The second and third runs reused the cached prefixes, at 0.92M written and 4.2–4.5M read. The tuning-set run used 11% fewer input tokens and 28% fewer output tokens than the four lenses. An agent run averages 2.2 turns, 4.7 suspects and about 2.5 tool calls, mostly grep and read. `code_search` was called twice in 135 cases.
+On held-out, the sweep matches the four lenses: its mean is one case higher, and the two ranges overlap. It is also cheaper. A held-out run took about 9.5 minutes at `--jobs 4`. The first, cold-cache run used 4.99M input tokens (2.70M cache write, 2.29M read) and 189k output. The second and third runs reused the cached prefixes, at 0.92M written and 4.2-4.5M read. The tuning-set run used 11% fewer input tokens and 28% fewer output tokens than the four lenses. An agent run averages 2.2 turns, 4.7 suspects and about 2.5 tool calls, mostly grep and read. `code_search` was called twice in 135 cases.
 
 What did not work: telling the agent that a suspect that holds is a `warn`. It moved detection more than escalation. Several right findings still end at `inform`, by the model's own choice or through the second reading's "did not confirm". These two are the next lever, together with false alarms: "other warns per case" is 1.07 against 0.99, and this build has not been run on the replay (noise) eval.
 

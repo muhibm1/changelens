@@ -11,7 +11,7 @@ The question: does ChangeLens give the right answer on a warehouse it was not bu
 Two problems showed up, and one is fixed in ChangeLens:
 
 - **Fixed: every postmortem pointed at a source ChangeLens could not find.** The postmortems name sources the way an engineer thinks of them, by warehouse schema (`source:raw.load_runs`), while dbt names them by source (`odoo.load_runs`). ChangeLens now also matches `<schema>.<table>` when exactly one source fits; two candidates stay unresolved and are listed. Before the fix, three of the four incidents lost their source and `sync` printed three `unresolved asset` warnings; after it, none.
-- **Reported, not fixed: column lineage stops at `select r.*`.** The `latest()` macro selects `r.*` from the source. Without a catalog ChangeLens does not know a source's columns, so staging columns show no upstream (`← —`), and `stg_deals` (which joins two such CTEs) logs `Unknown column: odoo_id`. With `dbt docs generate` against a live warehouse the catalog supplies the columns. ChangeLens says what it could not trace rather than guessing.
+- **Reported, not fixed: column lineage stops at `select r.*`.** The `latest()` macro selects `r.*` from the source. Without a catalog ChangeLens does not know a source's columns, so staging columns show no upstream (`← none`), and `stg_deals` (which joins two such CTEs) logs `Unknown column: odoo_id`. With `dbt docs generate` against a live warehouse the catalog supplies the columns. ChangeLens says what it could not trace rather than guessing.
 
 ## Verdicts
 

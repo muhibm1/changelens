@@ -139,7 +139,7 @@ def explain(
     if out["columns"]:
         console.print("[bold]columns[/]")
         for c in out["columns"]:
-            src = ", ".join(d["name"] for d in c["derives_from"]) or "—"
+            src = ", ".join(d["name"] for d in c["derives_from"]) or "none"
             used = len(c["used_by"])
             console.print(f"  {c['name']:<24} ← {src}   (used by {used} downstream column{'s' if used != 1 else ''})")
     if out["constraints"]:

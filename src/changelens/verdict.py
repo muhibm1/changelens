@@ -406,7 +406,7 @@ def to_markdown(v: dict[str, Any]) -> str:
         lines.append("**Change**")
         for o in v["change"]["ops"]:
             col = f".{o['column']}" if o.get("column") else ""
-            lines.append(f"- `{o['kind']}` {_short(o['asset'])}{col}" + (f" ({o['details']})" if o.get("details") else "") + f" — {', '.join(o['evidence'])}")
+            lines.append(f"- `{o['kind']}` {_short(o['asset'])}{col}" + (f" ({o['details']})" if o.get("details") else "") + f": {', '.join(o['evidence'])}")
         lines.append("")
     if v["change"]["unresolved"]:
         lines.append("**Unresolved**")
@@ -420,7 +420,7 @@ def to_markdown(v: dict[str, Any]) -> str:
         lines.append("**Affected**")
         for a in v["affected"]:
             tier = f"tier {a['tier']}" if a["tier"] is not None else "tier unset"
-            lines.append(f"- {a['asset']} ({tier}, {a['owner'] or 'no owner'}, {a['hops']} hop{'s' if a['hops'] != 1 else ''} via {a['via']}) — {', '.join(a['evidence'])}")
+            lines.append(f"- {a['asset']} ({tier}, {a['owner'] or 'no owner'}, {a['hops']} hop{'s' if a['hops'] != 1 else ''} via {a['via']}): {', '.join(a['evidence'])}")
         lines.append("")
     firing = [c for c in v["constraints"] if c["status"] == "fires"]
     if firing:
@@ -438,7 +438,7 @@ def to_markdown(v: dict[str, Any]) -> str:
             h = rows[0]
             kinds = ", ".join(dict.fromkeys(r["kind"] for r in rows))
             title = f": {h['title']}" if h["title"] else ""
-            lines.append(f"- {h['occurred_at']:%Y-%m-%d} {h['ref'] or ''} ({kinds}){title} ({h['relevance']}) — {', '.join(r['event'] for r in rows)}")
+            lines.append(f"- {h['occurred_at']:%Y-%m-%d} {h['ref'] or ''} ({kinds}){title} ({h['relevance']}): {', '.join(r['event'] for r in rows)}")
         lines.append("")
     if v.get("background_events"):
         counts: dict[str, int] = {}
