@@ -227,3 +227,73 @@ def test_coalesce_inside_a_case_condition_is_not_a_removed_default():
     old = {M: "select case when coalesce(a, 0) > 0 then 'x' end as k from {{ ref('t') }}\n"}
     new = {M: "select case when a > 0 then 'x' end as k from {{ ref('t') }}\n"}
     assert "coalesce_removed" not in rules(run(old, new))
+
+
+# ---- v3: references, casts, joins ------------------------------------------------------------------------
+def test_column_missing_from_a_referenced_model_warns():
+    old = {"models/home.sql": "select claim_id from {{ ref('base') }}\n", M: "select 1 as x\n"}
+    sql = "select s.claim_id from {{ ref('base') }} s\nwhere not exists (select 1 from {{ ref('home') }} h where h.claim_id2 = s.claim_id)\n"
+    found = run(old, {**old, M: sql})
+    assert "unresolved_column" in rules(found, "warn")
+    ok = run(old, {**old, M: sql.replace("claim_id2", "claim_id")})
+    assert "unresolved_column" not in rules(ok)
+
+
+def test_alias_not_in_scope_warns_but_struct_access_on_a_source_does_not():
+    base = {"models/base.sql": "select claim_id, code from {{ source('a', 'b') }}\n"}
+    bad = {**base, M: "select s.claim_id from {{ ref('base') }} s\nwhere med.code in ('1')\n"}
+    assert "unresolved_alias" in rules(run(base, bad), "warn")
+    struct = {M: "select header.timestamp from {{ source('ext', 'raw') }}\n"}
+    assert "unresolved_alias" not in rules(run({}, struct))
+
+
+def test_cast_of_a_text_literal_to_a_number_warns():
+    old = {M: "select a from {{ ref('t') }}\n"}
+    assert "cast_of_text_literal" in rules(run(old, {M: "select a from {{ ref('t') }} where try_cast('hcpcs_code' as integer) is not null\n"}), "warn")
+    assert "cast_of_text_literal" not in rules(run(old, {M: "select a from {{ ref('t') }} where try_cast('12' as integer) is not null\n"}))
+
+
+def test_cast_in_join_condition_and_concat_key():
+    old = {M: "select a from {{ ref('t') }}\n"}
+    sql = "select a from {{ ref('t') }} x join {{ ref('u') }} y on cast(x.code as numeric) = cast(y.code as numeric)\n"
+    assert "cast_in_join_condition" in rules(run(old, {M: sql}), "inform")
+    assert "cast_in_join_condition" not in rules(run(old, {M: sql.replace("cast(x.code as numeric) = cast(y.code as numeric)", "x.code = y.code")}))
+    key = "select a || b || c as k from {{ ref('t') }}\n"
+    assert "concat_key_with_nulls" in rules(run(old, {M: key}), "inform")
+    assert "concat_key_with_nulls" not in rules(run(old, {M: "select concat(a, b, c) as k from {{ ref('t') }}\n"}))
+
+
+def test_inner_join_added_on_a_left_joined_table():
+    old = {M: "select 1 as x\n"}
+    sql = "select a.id from {{ ref('a') }} a\nleft join {{ ref('b') }} b on a.id = b.id\ninner join {{ ref('c') }} c on b.cid = c.id\n"
+    assert "inner_join_after_left_join" in rules(run(old, {M: sql}), "inform")
+    assert "inner_join_after_left_join" not in rules(run(old, {M: sql.replace("left join", "inner join")}))
+
+
+def test_join_on_columns_outside_a_declared_key_informs():
+    schema = "models:\n  - name: dim\n    columns:\n      - name: dim_pk\n        tests: [unique]\n"
+    old = {SCHEMA: schema, M: "select 1 as x\n"}
+    sql = "select f.id from {{ ref('fact') }} f left join {{ ref('dim') }} d on f.block_id = d.block_id\n"
+    new = {**old, M: sql, "models/dim.sql": "select 1 as dim_pk, 2 as block_id\n"}
+    assert "join_on_non_key" in rules(run(old, new), "inform")
+    assert "join_on_non_key" not in rules(run(old, {**new, M: sql.replace("f.block_id = d.block_id", "f.block_id = d.dim_pk")}))
+
+
+def test_group_by_gaining_a_column_informs():
+    old = {M: "with g as (select a, count(*) n from {{ ref('t') }} group by a)\nselect * from g\n"}
+    new = {M: "with g as (select a, b, count(*) n from {{ ref('t') }} group by a, b)\nselect * from g\n"}
+    assert "group_by_key_changed" in rules(run(old, new), "inform")
+
+
+def test_jinja_if_else_branches_still_parse():
+    sql = "select a from {{ ref('t') }}\n{% if target.type == 'duckdb' %}\nwhere try_cast('x' as integer) is not null\n{% else %}\nwhere {{ safe_cast('x', 'int') }} is not null\n{% endif %}\n"
+    assert "cast_of_text_literal" in rules(run({M: "select a from {{ ref('t') }}\n"}, {M: sql}))
+
+
+def test_same_rule_in_many_files_is_a_sweep_and_listed_once():
+    old = {f"models/m{i}.sql": "select distinct a from {{ ref('t') }}\n" for i in range(6)}
+    new = {k: "select a from {{ ref('t') }}\n" for k in old}
+    files = parse(_diff(old, new))
+    res = check_change_full(files, TextView(new, old))
+    assert len([f for f in res.findings if f.rule == "distinct_removed"]) == 1
+    assert any(n["rule"] == "distinct_removed" for n in res.unresolved)

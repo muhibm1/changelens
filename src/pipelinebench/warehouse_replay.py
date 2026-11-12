@@ -27,7 +27,7 @@ from typing import Any
 import yaml
 
 from changelens.diffparse import parse
-from changelens.warehouse_rules import RULES_VERSION, Finding, GitView, check_change
+from changelens.warehouse_rules import RULES_VERSION, Finding, GitView, check_change_full
 
 # history-calitp.yaml has no category field; these are read by hand from each entry's `bug` sentence there.
 HISTORY_CATEGORIES = {
@@ -58,14 +58,15 @@ def load_bugs(paths: list[Path]) -> list[dict[str, Any]]:
     return bugs
 
 
-def review_commit(repo: Path, commit: str) -> tuple[list[Finding], float]:
-    """Findings for ``commit`` reviewed against its first parent, and the seconds that took."""
+def review_commit(repo: Path, commit: str) -> tuple[list[Finding], float, list[dict[str, Any]]]:
+    """Findings and unresolved notes for ``commit`` reviewed against its first parent, and the seconds that took."""
     t = time.monotonic()
     parent = git(repo, "rev-parse", f"{commit}^").strip()
     full = git(repo, "rev-parse", commit).strip()
     diff = git(repo, "diff", "-M", "--unified=3", "--no-color", parent, full, "--", "*.sql", "*.yml", "*.yaml")
     files = parse(diff)
-    return check_change(files, GitView(repo, parent, full)), time.monotonic() - t
+    res = check_change_full(files, GitView(repo, parent, full))
+    return res.findings, time.monotonic() - t, res.unresolved
 
 
 def _overlaps(f: Finding, span: dict[str, Any]) -> bool:
@@ -94,14 +95,23 @@ def score_bug(bug: dict[str, Any], findings: list[Finding]) -> dict[str, Any]:
     }
 
 
+def model_dirs(repo: Path) -> list[str]:
+    """Where the repository's dbt projects keep models: ``<dir of every dbt_project.yml ever added>/models``, else ``models``."""
+    out = git(repo, "log", "--all", "--format=", "--name-only", "--", "dbt_project.yml", "*/dbt_project.yml").split()
+    roots = sorted({str(Path(p).parent) for p in out if "dbt_packages" not in p and "integration_tests" not in p and "/target/" not in p})
+    dirs = [("" if r == "." else r + "/") + "models" for r in roots]
+    return dirs or ["models"]
+
+
 def ordinary_commits(repo: Path, exclude: set[str], n: int, seed: int) -> list[str]:
-    """``n`` commits sampled with ``seed`` from the non-merge commits that touch model SQL or schema files."""
-    out = git(repo, "log", "--no-merges", "--format=%H", "--", "warehouse/models/*.sql", "warehouse/models/*.yml").split()
+    """``n`` commits sampled with ``seed`` from the non-merge commits that touch model SQL or schema files of the repo's own dbt projects."""
+    specs = [f"{d}/*{ext}" for d in model_dirs(repo) for ext in (".sql", ".yml")]
+    out = git(repo, "log", "--no-merges", "--format=%H", "--", *specs).split()
     pool = sorted(c for c in out if not any(c.startswith(e) for e in exclude))
     return random.Random(seed).sample(pool, min(n, len(pool)))
 
 
-def _one(args: tuple[Path, str]) -> tuple[list[Finding], float]:
+def _one(args: tuple[Path, str]) -> tuple[list[Finding], float, list[dict[str, Any]]]:
     return review_commit(*args)
 
 
@@ -113,13 +123,14 @@ def run(repo: Path, labels: list[Path], sample: int, seed: int, out: Path | None
         bug_results = list(pool.map(_one, [(repo, str(b["commit"])) for b in bugs]))
         commits = ordinary_commits(repo, exclude, sample, seed)
         ord_results = list(pool.map(_one, [(repo, c) for c in commits], chunksize=4))
-    for b, (findings, secs) in zip(bugs, bug_results, strict=True):
+    for b, (findings, secs, notes) in zip(bugs, bug_results, strict=True):
         row = score_bug(b, findings)
+        row["hit_note"] = any(n.get("line") is not None and any(n["path"] == sp["path"] and sp["line"] - 1 <= n["line"] <= (sp.get("end_line") or sp["line"]) + 1 for sp in b["expect"]) for n in notes)
         row["seconds"] = round(secs, 2)
         row["all_findings"] = [f"{f.rule}:{f.severity}:{f.path}:{f.line}" for f in findings]
         res["bugs"].append(row)
-    for c, (findings, secs) in zip(commits, ord_results, strict=True):
-        res["ordinary"].append({"commit": c[:10], "seconds": round(secs, 2), "findings": [{"rule": f.rule, "severity": f.severity, "path": f.path, "line": f.line, "title": f.title} for f in findings]})
+    for c, (findings, secs, notes) in zip(commits, ord_results, strict=True):
+        res["ordinary"].append({"commit": c[:10], "seconds": round(secs, 2), "notes": len(notes), "findings": [{"rule": f.rule, "severity": f.severity, "path": f.path, "line": f.line, "title": f.title} for f in findings]})
     res["summary"] = summarise(res)
     if out:
         out.mkdir(parents=True, exist_ok=True)
@@ -138,6 +149,7 @@ def summarise(res: dict[str, Any]) -> dict[str, Any]:
 
     for b in scope:
         b["hit_any"] = b["hit_location"] or b["hit_word"]
+        b["hit_with_notes"] = b["hit_any"] or b["hit_note"]
     ordinary = res["ordinary"]
     n = len(ordinary) or 1
     warn = [r for r in ordinary if any(f["severity"] == "warn" for f in r["findings"])]
@@ -147,6 +159,7 @@ def summarise(res: dict[str, Any]) -> dict[str, Any]:
         "in_scope_bugs": len(scope),
         "recall_location_or_word": rate(scope, "hit_any"),
         "recall_location_only": rate(scope, "hit_location"),
+        "recall_with_unresolved_notes": rate(scope, "hit_with_notes"),
         "recall_location_warn_only": rate(scope, "hit_location_warn"),
         "by_category": {c: {"bugs": len(rows), "location_or_word": rate(rows, "hit_any"), "location_only": rate(rows, "hit_location")} for c, rows in sorted(by_cat.items())},
         "ordinary_commits": len(ordinary),
@@ -171,7 +184,7 @@ def main() -> None:
     ap.add_argument("--show", help="print the findings for one commit and stop")
     a = ap.parse_args()
     if a.show:
-        findings, _ = review_commit(a.repo, a.show)
+        findings, _, _ = review_commit(a.repo, a.show)
         for f in findings:
             print(f"[{f.severity}] {f.rule} {f.path}:{f.line}\n    {f.title}\n    {f.body[:400]}\n    unresolved={f.unresolved}")
         return

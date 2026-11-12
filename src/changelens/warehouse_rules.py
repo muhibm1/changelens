@@ -299,14 +299,33 @@ def _scan_jinja(raw: str) -> list[tuple[str, str]]:
     return out
 
 
-def dejinja(raw: str, macros: dict[str, Macro] | None = None, *, unknown: str = "NULL") -> str:
+def dejinja(raw: str, macros: dict[str, Macro] | None = None, *, unknown: str = "NULL", branch: int | None = None) -> str:
     """``raw`` as plain SQL with every line kept where it was: ``ref()`` and ``source()`` become table names, a simple
     macro is written out, any other expression becomes ``unknown`` and blocks and comments become blanks."""
     macros = macros or {}
     pieces = []
+    live: list[bool] = []  # one entry per open {% if %}: is the branch being read the one to keep (``branch``: 0 the first, 1 the else)
+    arm: list[int] = []
     for kind, src in _scan_jinja(raw):
         pad = "\n" * src.count("\n")
-        if kind == "text":
+        if kind == "block" and branch is not None:
+            word = re.match(r"\{%-?\s*(\w+)", src)
+            w = word.group(1) if word else ""
+            if w == "if":
+                arm.append(0)
+                live.append(branch == 0)
+            elif w == "elif" and arm:
+                arm[-1] += 1
+                live[-1] = False
+            elif w == "else" and arm:
+                arm[-1] += 1
+                live[-1] = branch == 1
+            elif w == "endif" and arm:
+                arm.pop()
+                live.pop()
+        if kind != "block" and branch is not None and live and not all(live):
+            pieces.append(re.sub(r"[^\n]", " ", src))
+        elif kind == "text":
             pieces.append(src)
         elif kind in ("comment", "block"):
             pieces.append(re.sub(r"[^\n]", " ", src))
@@ -347,8 +366,10 @@ def _last_line(node: exp.Expression | None) -> int | None:
 
 def parse_sql(raw: str, macros: dict[str, Macro] | None = None) -> tuple[exp.Expression | None, str | None]:
     """(tree, dialect) or (None, None). The text is tried with unknown Jinja as NULL, then as nothing, in each dialect."""
-    for unknown in ("NULL", ""):
-        text = dejinja(raw, macros, unknown=unknown)
+    for unknown, branch in (("NULL", None), ("", None), ("NULL", 0), ("NULL", 1)):
+        text = dejinja(raw, macros, unknown=unknown, branch=branch)
+        if branch is not None and "{%" not in raw:
+            continue
         for d in DIALECTS:
             try:
                 tree = sqlglot.parse_one(text, read=d)
@@ -784,6 +805,16 @@ def _value_coalesces(e: exp.Expression) -> int:
     return n
 
 
+def _hunk_span(fd: FileDiff, pattern: str) -> tuple[int | None, int | None]:
+    """The new-file lines of the hunk that deletes a line matching ``pattern``; the first changed line when none does."""
+    for h in fd.hunks:
+        if any(op == "-" and re.search(pattern, text) for op, _, text in h.lines):
+            nums = [n for _, n, _ in h.lines if n is not None]
+            if nums:
+                return min(nums), max(nums)
+    return fd.first_changed_line(), None
+
+
 def _added_lines(fd: FileDiff) -> set[int]:
     return {n for h in fd.hunks for op, n, _ in h.lines if op == "+" and n is not None}
 
@@ -898,13 +929,13 @@ class Checker:
             missing = sorted(k - cols)
             forgotten = sorted(c for c in missing if left is not None and c in left)
             if not forgotten:
-                self.note(fd.path, j.line, "join_fanout", f"join to {j.rel} uses {sorted(cols)} of its declared key {sorted(k)}; {missing} are not on the left side, so the omission may be intended")
+                self.add(Finding("join_covers_part_of_key", "row_count_change", "inform", fd.path, j.line, f"join to {j.rel} uses part of its key", f"{fd.path}:{j.line} joins `{j.rel}` ({text}) on {sorted(cols)}. {decl} declares rows unique on {sorted(k)}, so a left row matches every row of `{j.rel}` that differs only in {missing} and the join can fan out. {missing} are not columns of the left side, so the omission may be intended.", evidence=ev, unresolved=[f"{missing} are not on the left side; if only one row of {j.rel} exists per {sorted(cols)}, a unique test on them would say so"]))
                 return
             self.add(Finding("join_covers_part_of_key", "row_count_change", "warn", fd.path, j.line, f"join to {j.rel} uses part of its key", f"{fd.path}:{j.line} joins `{j.rel}` ({text}) on {sorted(cols)}. {decl} declares rows unique on {sorted(k)}; the join leaves out {missing}" + (f", and the left side has {forgotten} too, so it looks left out by mistake" if forgotten else "") + ". One left row can match several right rows (one per value of the missing column) and the result fans out.", evidence=ev, unresolved=[] if forgotten else [f"the left side's columns {'are unknown' if left is None else 'do not include ' + str(missing)}, so the omission may be intended"]))
             return
         dated = sorted(c for k in keys.keys for c in k if DATE_LIKE.search(c) and c not in cols)
         if not dated:
-            self.note(fd.path, j.line, "join_on_non_key", f"join to {j.rel} on {sorted(cols) or 'no column of it'}, which are not declared unique there ({decl} declares {[sorted(k) for k in keys.keys[:3]]}); the join can fan out if they repeat")
+            self.add(Finding("join_on_non_key", "row_count_change", "inform", fd.path, j.line, f"join to {j.rel} on columns that are not its key", f"{fd.path}:{j.line} joins `{j.rel}` ({text}) on {sorted(cols) or 'no column of it'}, but {decl} declares rows unique on {', '.join(str(sorted(k)) for k in keys.keys[:3])}. Nothing recorded makes {sorted(cols)} unique in `{j.rel}`, so a left row can match several rows and the join can fan out.", evidence=ev, unresolved=[f"{sorted(cols)} are not declared unique in {j.rel}; if they are unique in practice, a unique test on them would say so"]))
             return
         self.add(Finding("join_on_non_key", "row_count_change", "warn", fd.path, j.line, f"join to {j.rel} on columns that are not its key", f"{fd.path}:{j.line} joins `{j.rel}` ({text}) on {sorted(cols) or 'no column of it'}, but {decl} declares rows unique on {', '.join(str(sorted(k)) for k in keys.keys[:3])}. Nothing recorded makes {sorted(cols)} unique in `{j.rel}`, so a left row can match several rows and the join can fan out" + (f"; its key includes {dated[:2]}, which the ON clause does not constrain, so every {dated[0]} of the same {sorted(cols)[0] if cols else 'key'} matches" if dated else "") + ".", evidence=ev, unresolved=[f"{sorted(cols)} are not declared unique in {j.rel}; if they are unique in practice, a unique test on them would say so"]))
 
@@ -943,14 +974,16 @@ class Checker:
             if any(f.cols & c for c in added_cols) or (f.cols and not f.cols <= {c.lower() for c in _all_columns(new)}):
                 continue
             line = _new_line_for_old(fd, f.line)
+            if line is None:
+                continue
             if rewritten:
                 self.note(fd.path, line, "filter_removed", f"the condition `{_quote(f.text, 80)}` is not in the new file, but most of the file was rewritten, so it may have moved")
                 continue
             self.add(Finding("filter_removed", "row_count_change", "warn", fd.path, line, f"filter removed: {_quote(f.text, 80)}", f"The change removes the condition `{_quote(f.text, 120)}` (it was at line {f.line} of the old file) and nothing in the new file filters on {sorted(f.cols) or 'the same columns'}. Rows it used to exclude now pass through, so the row count rises.", evidence=[f"hunk:{fd.path}:{line}"] if line else []))
         for what, o, n in (("SELECT DISTINCT", old.distincts, new.distincts), ("UNION DISTINCT", old.unions_distinct, new.unions_distinct)):
             if n < o:
-                line = fd.first_changed_line()
-                self.add(Finding("distinct_removed", "row_count_change", "warn", fd.path, line, f"{what} removed", f"The new file has {n} {what} where the old one had {o}. Duplicate rows that were collapsed now remain, so the row count rises unless something else deduplicates them.", evidence=[f"hunk:{fd.path}:{line}"] if line else []))
+                line, end = _hunk_span(fd, r"(?i)\bdistinct\b")
+                self.add(Finding("distinct_removed", "row_count_change", "warn", fd.path, line, f"{what} removed", f"The new file has {n} {what} where the old one had {o}. Duplicate rows that were collapsed now remain, so the row count rises unless something else deduplicates them.", end_line=end, evidence=[f"hunk:{fd.path}:{line}"] if line else []))
         # dedup (QUALIFY): changed key, removed, added
         old_d = Counter((d.func, d.partition) for d in old.dedups)
         new_d = Counter((d.func, d.partition) for d in new.dedups)
@@ -979,6 +1012,9 @@ class Checker:
             gone_k, came_k = sorted(ok[0] - keys), sorted(keys - ok[0])
             old_cols = {x.split(".")[-1] for x in ok[0]}
             lost = [k for k in (doc.unique_keys if doc else []) if {c.lower() for c in k} <= old_cols and not {c.lower() for c in k} <= {x.split(".")[-1] for x in keys}] if doc else []
+            if not lost and came_k and not gone_k and scope != "<final>":
+                self.add(Finding("group_by_key_changed", "row_count_change", "inform", fd.path, line, f"GROUP BY of {scope} now also groups by {came_k}", f"{fd.path}:{line} adds {came_k} to the GROUP BY of `{scope}`. A group whose rows differ in {came_k[0]} is split in several, so `{scope}` has more rows per original key and anything that joins it expecting one row per key can fan out.", evidence=[f"hunk:{fd.path}:{line}"], unresolved=["no declared unique key says whether the grain was meant to change"]))
+                continue
             if not lost:
                 self.note(fd.path, line, "group_by_key_changed", f"GROUP BY of {scope}: " + (f"no longer {gone_k}" if gone_k else "") + (f" now also {came_k}" if came_k else "") + "; no declared unique key says whether the grain was meant to change")
                 continue
@@ -1041,7 +1077,7 @@ class Checker:
                 olds = [x for x in olds_all if x[0] == scope] or olds_all
                 nc = _cast_of(e)
                 oc = _cast_of(olds[0][1]) if olds else None
-                if nc and oc and (oc[1] != nc[1] or oc[0] != nc[0]) and _in_changed(fd, line):
+                if nc and oc and "NULL" not in (oc[1], nc[1]) and (oc[1] != nc[1] or oc[0] != nc[0]) and _in_changed(fd, line):
                     self.add(Finding("cast_changed", "nullability_or_cast", "warn", fd.path, line, f"cast of {alias} changed from {oc[0]} {oc[1]} to {nc[0]} {nc[1]}", f"{fd.path}:{line} casts `{alias}` with {nc[0]}(... AS {nc[1]}) where it was {oc[0]}(... AS {oc[1]}). A different target type changes which values survive the cast and which become NULL or fail, and every reader of `{alias}` sees the new type.", evidence=[f"hunk:{fd.path}:{line}"]))
                 elif nc and not any(not isinstance(x[1], exp.Column) for x in olds) and nc[0] == "SAFE_CAST" and nc[1].split("(")[0] in TEMPORAL and (doc is None or alias not in doc.columns or not doc.columns[alias].not_null) and _in_added(fd, line) and line and "safe_cast" in text_lines[line - 1].lower():
                     safe.append((alias, nc[1], line))
@@ -1175,6 +1211,123 @@ class Checker:
                 self.note(fd.path, line, "sql_stopped_parsing", "model SQL parsed before and does not now, but it uses Jinja control flow the rules cannot expand")
                 return
             self.add(Finding("sql_stopped_parsing", "other", "warn", fd.path, line, "model SQL no longer parses", f"{fd.path} parsed before this change and does not parse now (read as {', '.join(d or 'generic' for d in DIALECTS)} with Jinja set aside). A syntax error in the changed lines would fail the build.", evidence=[f"hunk:{fd.path}:{line}"], unresolved=["Jinja the rules cannot expand may be the cause"]))
+
+    # ---- references and casts the SQL itself contradicts ---------------------------------------------------
+    def _source_columns(self, rel: exp.Expression, new: Facts) -> set[str] | None:
+        """Lower-cased columns a FROM or JOIN source exposes, or None when they cannot be told."""
+        if isinstance(rel, exp.Subquery):
+            got = _output_names(rel.this, self.repo, new.ctes, 1)
+        elif isinstance(rel, exp.Table):
+            if rel.name in new.ctes:
+                got = _output_names(new.ctes[rel.name], self.repo, new.ctes, 1)
+            else:
+                got = _model_columns(rel.name, self.repo, 1)
+        else:
+            got = None
+        return {c.lower() for c in got} if got is not None else None
+
+    def _doc_columns(self, rel: exp.Expression) -> list[str]:
+        """Columns the schema files document for the model a source reads."""
+        d = self.repo.schema.get(_rel_name(rel)[0]) if isinstance(rel, exp.Table) else None
+        return list(d.columns) if d else []
+
+    def references(self, fd: FileDiff, new: Facts) -> None:
+        """A qualified column the SQL cannot resolve: its alias is not in scope, or the source it names has no such column."""
+        if new.tree is None:
+            return
+        for sel in new.tree.find_all(exp.Select):
+            scope: dict[str, exp.Expression | None] = {}
+            node: exp.Expression | None = sel
+            while node is not None:  # the aliases visible here: this SELECT's own and those of the queries around it
+                if isinstance(node, exp.Select):
+                    rels = [r for r in [_from(node)] + [j.this for j in node.args.get("joins") or []] if r is not None]
+                    for r in rels:
+                        for a in {_rel_name(r)[1], _rel_name(r)[0]} - {""}:
+                            scope.setdefault(a.lower(), r)
+                        if not isinstance(r, exp.Table | exp.Subquery):
+                            scope.setdefault((getattr(r, "alias", "") or "").lower(), None)
+                    for lat in node.args.get("laterals") or []:
+                        scope.setdefault((getattr(lat, "alias", "") or "").lower(), None)
+                node = node.parent
+            own = [r for r in [_from(sel)] + [j.this for j in sel.args.get("joins") or []] if r is not None]
+            cols = {id(r): self._source_columns(r, new) for r in own}
+            for col in sel.find_all(exp.Column):
+                if col.find_ancestor(exp.Select) is not sel or not col.table or col.args.get("db") or isinstance(col.this, exp.Star):
+                    continue
+                line = _line(col)
+                if not _in_added(fd, line):
+                    continue
+                q, name = col.table.lower(), col.name.lower()
+                if q in scope:
+                    rel = scope[q]
+                    got = next((cols[id(r)] for r in own if id(r) == id(rel)), None) if rel is not None else None
+                    if got is not None and name not in got and rel is not None:
+                        src = _rel_name(rel)[0] or _rel_name(rel)[1]
+                        self.add(Finding("unresolved_column", "other", "warn", fd.path, line, f"`{col.table}.{col.name}`: `{src}` has no column {col.name}", f"{fd.path}:{line} reads `{col.table}.{col.name}`, but `{src}` produces {sorted(got)[:12]}{' ...' if len(got) > 12 else ''} and no column called `{col.name}`. The query fails or reads the wrong column.", evidence=[f"hunk:{fd.path}:{line}"]))
+                    continue
+                known_cols = {c.lower() for r in own for c in (self._doc_columns(r) or [])} | {x.name.lower() for x in new.tree.find_all(exp.Column) if not x.table} | {a.alias.lower() for a in new.tree.find_all(exp.Alias)}
+                from_models = all(isinstance(r, exp.Table) and (r.name in new.ctes or self.repo.model_facts(r.name) is not None) for r in own)
+                if own and from_models and not any(q in c for c in cols.values() if c) and q not in known_cols and not any(q == _rel_name(r)[0].lower() for r in own):
+                    self.add(Finding("unresolved_alias", "other", "warn", fd.path, line, f"`{col.table}` is not a table alias in scope for `{col.table}.{col.name}`", f"{fd.path}:{line} reads `{col.table}.{col.name}`, but the query's sources are {sorted(a for a in scope if a)} and none is called `{col.table}`, so the reference does not resolve.", evidence=[f"hunk:{fd.path}:{line}"]))
+
+    def literal_casts(self, fd: FileDiff, new: Facts) -> None:
+        """A cast of a string literal that cannot be that type (always NULL or an error), a cast in a join condition and a ``||`` key with nullable parts."""
+        if new.tree is None:
+            return
+        for c in new.tree.find_all(exp.Cast, exp.TryCast):
+            line = _line(c)
+            if not _in_added(fd, line):
+                continue
+            to = c.args.get("to")
+            typ = to.this.name if isinstance(to, exp.DataType) and hasattr(to.this, "name") else ""
+            lit = c.this
+            if isinstance(lit, exp.Literal) and lit.is_string and typ in NUMERIC | {"INT", "INTEGER", "BIGINT"} and not re.fullmatch(r"\s*[-+]?\d+(\.\d+)?\s*", lit.name):
+                self.add(Finding("cast_of_text_literal", "nullability_or_cast", "warn", fd.path, line, f"the text '{_quote(lit.name, 30)}' is cast to {typ}", f"{fd.path}:{line} casts the string literal '{_quote(lit.name, 40)}' to {typ}. A literal that is not a number gives NULL (or an error), so the condition it sits in never matches; the column of that name was probably meant.", evidence=[f"hunk:{fd.path}:{line}"]))
+        for j in new.tree.find_all(exp.Join):
+            on = j.args.get("on")
+            if on is None or not _in_added(fd, _line(on)):
+                continue
+            casts = [c for c in on.find_all(exp.Cast, exp.TryCast) if isinstance(c.this, exp.Column) and isinstance(c.args.get("to"), exp.DataType) and c.args["to"].this.name in NUMERIC | {"INT", "INTEGER", "BIGINT"}]
+            sides = {c.this.table or c.this.name for c in casts}
+            if len(casts) >= 2 and len(sides) >= 2 and not any(isinstance(c, exp.TryCast) for c in casts):
+                self.add(Finding("cast_in_join_condition", "nullability_or_cast", "inform", fd.path, _line(on), "both sides of a join are cast to a number", f"{fd.path}:{_line(on)} casts {sorted(sides)} to a number inside the ON clause. A value that is not numeric (a code with a letter in it) fails the cast, or becomes NULL and drops out of the join.", evidence=[f"hunk:{fd.path}:{_line(on)}"]))
+        for d in new.tree.find_all(exp.DPipe):
+            if isinstance(d.parent, exp.DPipe):
+                continue
+            line = _line(d)
+            if not _in_added(fd, line):
+                continue
+            parts: list[exp.Expression] = []
+            stack = [d]
+            while stack:
+                x = stack.pop()
+                if isinstance(x, exp.DPipe):
+                    stack += [x.left, x.right]
+                else:
+                    parts.append(x)
+            cols = [p for p in parts if isinstance(p, exp.Column)]
+            if len(cols) >= 3 and len(cols) == len([p for p in parts if not isinstance(p, exp.Literal)]):
+                self.add(Finding("concat_key_with_nulls", "nullability_or_cast", "inform", fd.path, line, "a value built with || from columns that can be null", f"{fd.path}:{line} joins {[c.name for c in cols]} with `||` and no COALESCE. A NULL in any one of them makes the whole value NULL, so a key built this way stops matching for those rows.", evidence=[f"hunk:{fd.path}:{line}"]))
+
+    def inner_after_left(self, fd: FileDiff, new: Facts) -> None:
+        """An INNER JOIN added after a LEFT JOIN, on a column of the left-joined side: rows the LEFT JOIN kept without a match are dropped again."""
+        if new.tree is None:
+            return
+        for sel in new.tree.find_all(exp.Select):
+            lefts: set[str] = set()
+            for j in sel.args.get("joins") or []:
+                rel, alias = _rel_name(j.this)
+                kind = _join_kind(j)
+                on = j.args.get("on")
+                line = _line(on) or _line(j.this)
+                if kind == "inner" and on is not None and _in_added(fd, line):
+                    used = {c.table.lower() for c in on.find_all(exp.Column) if c.table} & lefts - {alias.lower()}
+                    if used:
+                        self.add(Finding("inner_join_after_left_join", "row_count_change", "inform", fd.path, line, f"INNER JOIN to {rel or alias} on a LEFT-joined table", f"{fd.path}:{line} inner joins `{rel or alias}` on a column of {sorted(used)}, which an earlier LEFT JOIN may leave NULL. Rows whose LEFT JOIN found no match are dropped here, so the LEFT JOIN no longer keeps them.", evidence=[f"hunk:{fd.path}:{line}"]))
+                if kind in ("left", "full"):
+                    lefts.add(alias.lower())
+                    if rel:
+                        lefts.add(rel.lower())
 
     def hardcoded(self, fd: FileDiff, new: Facts) -> None:
         """A table typed as ``project.dataset.table`` where ``ref()`` or ``source()`` belongs."""
@@ -1402,6 +1555,9 @@ def check_change_full(files: list[FileDiff], view: View, *, repo: Repo | None = 
             old = extract(fd.path, old_raw, repo.macros) if old_raw is not None else None
             chk.parse_and_syntax(fd, old, new)
             chk.hardcoded(fd, new)
+            chk.references(fd, new)
+            chk.literal_casts(fd, new)
+            chk.inner_after_left(fd, new)
             chk.surrogate_key(fd, new)
             chk.bare_filter_macro(fd, new)
             if not new.parsed:
@@ -1441,6 +1597,34 @@ def check_change_full(files: list[FileDiff], view: View, *, repo: Repo | None = 
             drop.add(id(f))
             chk.note(f.path, f.line, f.rule, f"a dedup over {sorted(part)} " + ("left this file and a file in the same change gained one" if f.rule == "dedup_removed" else "arrived here and a file in the same change lost one") + ", so it moved")
     chk.out = [f for f in chk.out if id(f) not in drop]
+    # the same rule in many files of one change is a sweep (a rename, a macro swap): one finding and a note, not one per file
+    by_rule: dict[str, list[Finding]] = {}
+    for f in chk.out:
+        by_rule.setdefault(f.rule, []).append(f)
+    swept: set[int] = set()
+    for rule, fs in by_rule.items():
+        if len({f.path for f in fs}) >= 5 and rule not in ("documented_column_not_selected",):
+            for f in fs[1:]:
+                swept.add(id(f))
+            chk.note(fs[0].path, fs[0].line, rule, f"{rule} also fires in {len({f.path for f in fs}) - 1} other files of this change; the change repeats one edit across files, so only the first is listed")
+    chk.out = [f for f in chk.out if id(f) not in swept]
+    # joins that only lack a recorded key are one remark per file, spanning the joins, not one finding each
+    merged: dict[tuple[str, str], Finding] = {}
+    keep: list[Finding] = []
+    for f in chk.out:
+        if f.rule in ("join_on_non_key", "join_covers_part_of_key") and f.severity == "inform" and f.line is not None:
+            first = merged.get((f.rule, f.path))
+            if first is None:
+                merged[(f.rule, f.path)] = f
+                keep.append(f)
+                continue
+            first.end_line = max(first.end_line or first.line or 0, f.end_line or f.line)
+            first.line = min(first.line or f.line, f.line)
+            first.body += f" Also {f.title.split(' on ')[0].split(' uses ')[0]} at line {f.line}."
+            first.evidence = list(dict.fromkeys(first.evidence + f.evidence))
+            continue
+        keep.append(f)
+    chk.out = keep
     seen: set[tuple[str, str, int | None, str]] = set()
     out = []
     for f in chk.out:
