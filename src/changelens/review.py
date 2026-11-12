@@ -43,6 +43,7 @@ from .risk import RiskModel
 from .store import Store
 from .symbols import LINKED, SymbolChange, is_linked, symbol_changes
 from .verdict import preflight
+from .warehouse_rules import GitView, check_change_full
 
 SEVERITIES = ("inform", "warn", "block")
 RANK = {s: i for i, s in enumerate(SEVERITIES)}
@@ -122,6 +123,8 @@ class ReviewContext:
     callees: list[Callee] = field(default_factory=list)  # definitions elsewhere in the repository of what the added lines call
     callee_search: bool = True  # False when the repository could not be searched for them
     code: CodeContext = field(default_factory=CodeContext)  # owners, sensitive areas and fix history of the changed files
+    warehouse: list[dict[str, Any]] = field(default_factory=list)  # findings of the deterministic dbt rules (changelens.warehouse_rules)
+    warehouse_unresolved: list[dict[str, Any]] = field(default_factory=list)  # what those rules could not establish
     observed: dict[str, str] = field(default_factory=dict)  # "path:line" -> text of a line an agent's tool showed, so the second reading sees what a ref cites
 
 
@@ -186,6 +189,13 @@ def gather(store: Store, repo_root: Path, diff_text: str, *, constraints: list[C
     ctx.callees, ctx.callee_search = callees(files, search_root or repo_root, {**(repo_files or {}), **new_text})
     ctx.known["ref"].update(f"{c.path}:{c.line}" for c in ctx.callees)
     ctx.secrets = secret_findings(files)
+    if base_ref and any(f.path.endswith((".sql", ".yml", ".yaml")) for f in files):
+        try:
+            res = check_change_full(files, GitView(repo_root, base_ref, None))
+            ctx.warehouse = [f.to_review() for f in res.findings]
+            ctx.warehouse_unresolved = res.unresolved
+        except Exception as e:  # noqa: BLE001 - the review still runs without these rules, and says so
+            ctx.warehouse_unresolved = [{"path": None, "line": None, "rule": "warehouse_rules", "reason": f"the dbt rules did not run: {e}"}]
     ctx.code = code_context(repo_root, files, areas or [], base_ref, history=history)
     for kind, ids in ctx.code.known().items():
         ctx.known.setdefault(kind, set()).update(ids)
@@ -869,7 +879,7 @@ def validate(candidates: list[dict[str, Any]], ctx: ReviewContext) -> list[dict[
 
 def code_findings(ctx: ReviewContext) -> list[dict[str, Any]]:
     """Findings that need no platform graph: committed credentials, sensitive areas the change falls in, and removed symbols the diff leaves referenced."""
-    out = list(ctx.secrets) + area_findings(ctx.code)
+    out = list(ctx.secrets) + area_findings(ctx.code) + list(ctx.warehouse)
     for sc in ctx.symbols:
         if sc.kind != "removed" or not sc.linked_outside:
             continue
@@ -1086,7 +1096,7 @@ def review(store: Store, repo_root: Path, provider: Provider, *, constraints: li
         "findings": valid,
         "uncertain": [m for m in model if m["status"] == "uncertain"],
         "rejected": [m for m in model if m["status"] == "rejected"],
-        "unresolved": v.get("change", {}).get("unresolved", []),
+        "unresolved": v.get("change", {}).get("unresolved", []) + ctx.warehouse_unresolved,
         "omitted": omitted,
         "symbols": [sc.to_dict() for sc in ctx.symbols],
         "context": ctx.code.to_dict(),
