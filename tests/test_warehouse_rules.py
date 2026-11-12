@@ -199,3 +199,31 @@ def test_finding_converts_to_review_shape():
     old = {M: "select distinct a from {{ ref('t') }}\n"}
     f = run(old, {M: "select a from {{ ref('t') }}\n"})[0].to_review()
     assert f["source"] == "deterministic" and f["path"] == M and f["evidence"]
+
+
+# ---- refactors and moves stay silent ----------------------------------------------------------------------
+def test_dedup_moved_to_another_file_is_silent():
+    q = "qualify row_number() over (partition by id order by ts desc) = 1\n"
+    old = {"models/a.sql": f"select * from {{{{ ref('t') }}}}\n{q}", "models/b.sql": "select * from {{ ref('a') }}\n"}
+    new = {"models/a.sql": "select * from {{ ref('t') }}\n", "models/b.sql": f"select * from {{{{ ref('a') }}}}\n{q}"}
+    assert not rules(run(old, new)) & {"dedup_removed", "dedup_added"}
+    assert "dedup_removed" in rules(run(old, {**new, "models/b.sql": new["models/b.sql"].replace("id order", "k order")}))
+
+
+def test_content_hash_dedup_is_not_a_finding():
+    old = {M: "select * from {{ ref('t') }}\n"}
+    new = {M: "select * from {{ ref('t') }}\nqualify row_number() over (partition by _content_hash order by ts desc) = 1\n"}
+    assert "dedup_added" not in rules(run(old, new))
+
+
+def test_rewritten_file_does_not_report_a_moved_filter():
+    body = "".join(f"  c{i},\n" for i in range(10))
+    old = {M: f"select\n{body}  a\nfrom {{{{ ref('t') }}}}\nwhere is_current\n"}
+    new = {M: "select a, is_current from {{ ref('u') }}\n"}
+    assert "filter_removed" not in rules(run(old, new))
+
+
+def test_coalesce_inside_a_case_condition_is_not_a_removed_default():
+    old = {M: "select case when coalesce(a, 0) > 0 then 'x' end as k from {{ ref('t') }}\n"}
+    new = {M: "select case when a > 0 then 'x' end as k from {{ ref('t') }}\n"}
+    assert "coalesce_removed" not in rules(run(old, new))

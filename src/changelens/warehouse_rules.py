@@ -40,7 +40,7 @@ from sqlglot import exp
 from .diffparse import FileDiff
 from .warehouse_schema import ColumnDoc, ModelDoc, SchemaIndex, build_index, parse_schema
 
-RULES_VERSION = "warehouse-rules-v1"
+RULES_VERSION = "warehouse-rules-v2"
 DIALECTS = ("bigquery", "snowflake", "duckdb", None)
 MAX_DEPTH = 4
 TEMPORAL = {"TIMESTAMP", "DATE", "DATETIME", "TIME", "TIMESTAMPTZ", "TIMESTAMPNTZ", "TIMESTAMPLTZ"}
@@ -769,6 +769,21 @@ def _new_line_for_old(fd: FileDiff, old_line: int | None) -> int | None:
     return old_line + delta
 
 
+def _value_coalesces(e: exp.Expression) -> int:
+    """COALESCEs that shape the value a column holds; one inside a CASE or IF condition only steers a branch."""
+    n = 0
+    for c in e.find_all(exp.Coalesce):
+        node, in_cond = c, False
+        while node.parent is not None and node is not e:
+            par = node.parent
+            if (isinstance(par, exp.If) and node.arg_key == "this") or (isinstance(par, exp.Case) and node.arg_key == "this") or isinstance(par, exp.Where | exp.Join):
+                in_cond = True
+                break
+            node = par
+        n += 0 if in_cond else 1
+    return n
+
+
 def _added_lines(fd: FileDiff) -> set[int]:
     return {n for h in fd.hunks for op, n, _ in h.lines if op == "+" and n is not None}
 
@@ -801,6 +816,8 @@ class Checker:
         self.files = files
         self.out: list[Finding] = []
         self.unresolved: list[dict[str, Any]] = []
+        self.dedup_gone: list[tuple[str, frozenset[str]]] = []  # (path, partition) of every dedup a file lost
+        self.dedup_came: list[tuple[str, frozenset[str]]] = []  # (path, partition) of every dedup a file gained
 
     def add(self, f: Finding) -> None:
         self.out.append(f)
@@ -895,6 +912,13 @@ class Checker:
         d = self.repo.schema.get(rel)
         return f"`{d.path}`" if d else f"`{rel}`'s definition"
 
+    @staticmethod
+    def _rewritten(fd: FileDiff, old: Facts) -> bool:
+        """Most of the old file's lines are gone: a refactor or rewrite, where matching old and new pieces one by one is unreliable."""
+        total = sum(1 for ln in old.raw.splitlines() if ln.strip())
+        gone = sum(1 for h in fd.hunks for op, _, text in h.lines if op == "-" and text.strip())
+        return fd.status != "added" and total >= 8 and gone * 5 >= total * 2
+
     def row_shape(self, fd: FileDiff, old: Facts, new: Facts) -> None:
         """Removed filters, DISTINCT, QUALIFY and UNION DISTINCT; changed dedup and GROUP BY keys; added dedups."""
         # filters: a conjunct that is gone and not merely edited (an added conjunct on the same columns); a bounded date
@@ -906,6 +930,7 @@ class Checker:
             literal = all(isinstance(x, (exp.Literal, exp.Cast, exp.Column, exp.Identifier, exp.Var, exp.CurrentDate, exp.Paren, exp.Neg, exp.GT, exp.GTE, exp.LT, exp.LTE, exp.Between)) for x in f.node.walk())
             return not (ranged and literal)
 
+        rewritten = self._rewritten(fd, old)
         old_f = Counter(f.text for f in old.filters if real(f))
         new_f = Counter(f.text for f in new.filters if real(f))
         gone = old_f - new_f
@@ -918,6 +943,9 @@ class Checker:
             if any(f.cols & c for c in added_cols) or (f.cols and not f.cols <= {c.lower() for c in _all_columns(new)}):
                 continue
             line = _new_line_for_old(fd, f.line)
+            if rewritten:
+                self.note(fd.path, line, "filter_removed", f"the condition `{_quote(f.text, 80)}` is not in the new file, but most of the file was rewritten, so it may have moved")
+                continue
             self.add(Finding("filter_removed", "row_count_change", "warn", fd.path, line, f"filter removed: {_quote(f.text, 80)}", f"The change removes the condition `{_quote(f.text, 120)}` (it was at line {f.line} of the old file) and nothing in the new file filters on {sorted(f.cols) or 'the same columns'}. Rows it used to exclude now pass through, so the row count rises.", evidence=[f"hunk:{fd.path}:{line}"] if line else []))
         for what, o, n in (("SELECT DISTINCT", old.distincts, new.distincts), ("UNION DISTINCT", old.unions_distinct, new.unions_distinct)):
             if n < o:
@@ -929,6 +957,12 @@ class Checker:
         removed = [d for d in old.dedups if (old_d - new_d)[(d.func, d.partition)] > 0]
         added = [d for d in new.dedups if (new_d - old_d)[(d.func, d.partition)] > 0]
         paired = min(len(removed), len(added))
+        self.dedup_gone += [(fd.path, d.partition) for d in removed[paired:]]
+        self.dedup_came += [(fd.path, d.partition) for d in added[paired:]]
+        if rewritten and (removed or added):
+            for d in removed + added:
+                self.note(fd.path, d.line, "dedup_changed", f"a dedup over {sorted(d.partition)} differs between the old and new file, but most of the file was rewritten, so it may have moved")
+            removed, added, paired = [], [], 0
         for o, n in zip(removed[:paired], added[:paired], strict=False):
             self.add(Finding("dedup_key_changed", "row_count_change", "warn", fd.path, n.line, f"dedup key changed from {sorted(o.partition)} to {sorted(n.partition)}", f"The QUALIFY that keeps one row per key partitions by {sorted(n.partition)} ({n.func}) where it was {sorted(o.partition)} ({o.func}). A different key changes which rows are dropped and how many survive.", evidence=[f"hunk:{fd.path}:{n.line}"]))
         for o in removed[paired:]:
@@ -943,7 +977,8 @@ class Checker:
             if ok is None or ok[0] == keys:
                 continue
             gone_k, came_k = sorted(ok[0] - keys), sorted(keys - ok[0])
-            lost = [k for k in (doc.unique_keys if doc else []) if not {c.lower() for c in k} <= {x.split(".")[-1] for x in keys}] if doc else []
+            old_cols = {x.split(".")[-1] for x in ok[0]}
+            lost = [k for k in (doc.unique_keys if doc else []) if {c.lower() for c in k} <= old_cols and not {c.lower() for c in k} <= {x.split(".")[-1] for x in keys}] if doc else []
             if not lost:
                 self.note(fd.path, line, "group_by_key_changed", f"GROUP BY of {scope}: " + (f"no longer {gone_k}" if gone_k else "") + (f" now also {came_k}" if came_k else "") + "; no declared unique key says whether the grain was meant to change")
                 continue
@@ -984,6 +1019,9 @@ class Checker:
             reasons.append(f"the partition key leaves out {ids[:3]}, which looks like the identifier of the rows being deduplicated, so rows with different {ids[0]} that share the partition key are dropped")
         if ties:
             reasons.append(f"{d.func} keeps every row tied for first, so it does not guarantee one row per key")
+        if part and all(re.search(r"(^|_)hash$", c.lower().strip("`")) for c in part):
+            self.note(fd.path, d.line, "dedup_added", f"a dedup was added over {sorted(part)}, a content hash, so it removes only rows that are identical")
+            return
         if not reasons or not part:
             self.note(fd.path, d.line, "dedup_added", f"a dedup was added over {sorted(part) or 'the whole table'}; no unique key is recorded for {stem}, so whether that is its grain cannot be checked")
             return
@@ -997,8 +1035,8 @@ class Checker:
         text_lines = new.raw.splitlines()
         for alias, items in new.projections.items():
             olds_all = old.projections.get(alias, [])
-            o_co = sum(len(list(x[1].find_all(exp.Coalesce))) for x in olds_all)
-            n_co = sum(len(list(x[1].find_all(exp.Coalesce))) for x in items)
+            o_co = sum(_value_coalesces(x[1]) for x in olds_all)
+            n_co = sum(_value_coalesces(x[1]) for x in items)
             for scope, e, line in items:
                 olds = [x for x in olds_all if x[0] == scope] or olds_all
                 nc = _cast_of(e)
@@ -1007,7 +1045,9 @@ class Checker:
                     self.add(Finding("cast_changed", "nullability_or_cast", "warn", fd.path, line, f"cast of {alias} changed from {oc[0]} {oc[1]} to {nc[0]} {nc[1]}", f"{fd.path}:{line} casts `{alias}` with {nc[0]}(... AS {nc[1]}) where it was {oc[0]}(... AS {oc[1]}). A different target type changes which values survive the cast and which become NULL or fail, and every reader of `{alias}` sees the new type.", evidence=[f"hunk:{fd.path}:{line}"]))
                 elif nc and not any(not isinstance(x[1], exp.Column) for x in olds) and nc[0] == "SAFE_CAST" and nc[1].split("(")[0] in TEMPORAL and (doc is None or alias not in doc.columns or not doc.columns[alias].not_null) and _in_added(fd, line) and line and "safe_cast" in text_lines[line - 1].lower():
                     safe.append((alias, nc[1], line))
-            if olds_all and o_co > n_co and any(_in_changed(fd, ln) for _, _, ln in items):
+            if olds_all and o_co > n_co and any(_in_changed(fd, ln) for _, _, ln in items) and self._rewritten(fd, old):
+                self.note(fd.path, next((ln for _, _, ln in items if _in_changed(fd, ln)), None), "coalesce_removed", f"`{alias}` lost a COALESCE, but most of the file was rewritten, so it may have moved")
+            elif olds_all and o_co > n_co and any(_in_changed(fd, ln) for _, _, ln in items):
                 line = next((ln for _, _, ln in items if _in_changed(fd, ln)), None)
                 self.add(Finding("coalesce_removed", "nullability_or_cast", "warn", fd.path, line, f"COALESCE removed from {alias}", f"{fd.path}:{line} computes `{alias}` without the COALESCE/IFNULL the old file had around it, so rows whose input is NULL now produce NULL (and a sum, comparison or join downstream drops or mis-handles them).", evidence=[f"hunk:{fd.path}:{line}"]))
         if safe:
@@ -1385,6 +1425,22 @@ def check_change_full(files: list[FileDiff], view: View, *, repo: Repo | None = 
     for name in sorted(names):
         if repo.schema.get(name) is not None:
             chk.documented_for_model(name, sql_fds.get(name), yml_fds)
+    # a dedup that left one file and appeared in another file of the same change moved, it was not dropped
+    came = Counter((p, k) for p, k in ((p, frozenset(x.split(".")[-1].lower() for x in part)) for p, part in chk.dedup_came))
+    gone = Counter((p, k) for p, k in ((p, frozenset(x.split(".")[-1].lower() for x in part)) for p, part in chk.dedup_gone))
+    drop: set[int] = set()
+    for f in chk.out:
+        if f.rule not in ("dedup_removed", "dedup_added"):
+            continue
+        m = re.search(r"\[(.*?)\]", f.title)
+        part = frozenset(x.strip(" '\"").lower() for x in m.group(1).split(",") if x.strip()) if m else frozenset()
+        other = came if f.rule == "dedup_removed" else gone
+        hit = next((k for k in other if k[1] == part and k[0] != f.path and other[k] > 0), None)
+        if hit:
+            other[hit] -= 1
+            drop.add(id(f))
+            chk.note(f.path, f.line, f.rule, f"a dedup over {sorted(part)} " + ("left this file and a file in the same change gained one" if f.rule == "dedup_removed" else "arrived here and a file in the same change lost one") + ", so it moved")
+    chk.out = [f for f in chk.out if id(f) not in drop]
     seen: set[tuple[str, str, int | None, str]] = set()
     out = []
     for f in chk.out:
