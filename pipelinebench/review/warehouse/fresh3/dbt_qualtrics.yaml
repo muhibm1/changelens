@@ -1,0 +1,22 @@
+# dbt_qualtrics: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_qualtrics): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_qualtrics
+url: https://github.com/fivetran/dbt_qualtrics
+bugs:
+  - commit: 76b2220883
+    parent: 206d4ecb38
+    title: "Response tests passing"
+    fix: f732e0f576
+    fix_title: "Fix null question_type in qualtrics__response (v1.3.2) (#32)"
+    bug: "the question join adds response.sub_question_key = question.sub_question_key, but sub_question_key is null for questions without sub-questions, and NULL never equals NULL, so those responses get null question_type, question_description and block fields"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: [sub_question_key, "null", question_type]
+    expect: [{path: models/qualtrics__response_breakdown.sql, line: 76}]

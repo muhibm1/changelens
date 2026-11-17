@@ -1,0 +1,32 @@
+# dbt_shopify_holistic_reporting: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_shopify_holistic_reporting): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_shopify_holistic_reporting
+url: https://github.com/fivetran/dbt_shopify_holistic_reporting
+bugs:
+  - commit: "3f5325932c"
+    parent: "b0f9cc031c"
+    title: "star snowflake check"
+    fix: "951ccf34b7"
+    fix_title: "source relation fixes"
+    bug: "the dbt_utils.star calls now pass relation_alias and prefix as one-element lists such as ['shopify_customers'] instead of strings, so the generated column list is prefixed with the list's text rather than the table alias and the models do not compile"
+    category: other
+    in_scope: true
+    must_mention: ["relation_alias", "dbt_utils.star"]
+    expect:
+      - {path: "models/shopify_holistic_reporting__customer_enhanced.sql", line: 28}
+      - {path: "models/shopify_holistic_reporting__customer_enhanced.sql", line: 33}
+      - {path: "models/shopify_holistic_reporting__daily_customer_campaign_flow.sql", line: 26}
+      - {path: "models/shopify_holistic_reporting__daily_customer_campaign_flow.sql", line: 29}
+  - commit: "fc01f5ddaa"
+    parent: "2897c4d7b0"
+    title: "more updates"
+    fix: "6ded3f3006"
+    fix_title: "got the wrong field"
+    bug: "the new `sum(sum_subtotal) as sum_subtotal,` line ends with a comma, and the order adjustment block that follows starts with its own leading comma, so the select has two commas in a row when shopify__using_order_adjustment is on and a trailing comma before FROM when it is off"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "sum_subtotal"]
+    expect:
+      - {path: "models/intermediate/int__daily_shopify_customer_orders.sql", line: 72, end_line: 75}

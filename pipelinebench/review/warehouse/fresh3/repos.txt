@@ -1,0 +1,13 @@
+/home/user/fresh-repos/aspects-dbt https://github.com/openedx/aspects-dbt
+/home/user/fresh-repos/bigquery-etl https://github.com/mozilla/bigquery-etl
+/home/user/fresh-repos/dbt_apple_store https://github.com/fivetran/dbt_apple_store
+/home/user/fresh-repos/dbt_hubspot https://github.com/fivetran/dbt_hubspot
+/home/user/fresh-repos/dbt_jira https://github.com/fivetran/dbt_jira
+/home/user/fresh-repos/dbt_netsuite https://github.com/fivetran/dbt_netsuite
+/home/user/fresh-repos/dbt_qualtrics https://github.com/fivetran/dbt_qualtrics
+/home/user/fresh-repos/dbt_quickbooks https://github.com/fivetran/dbt_quickbooks
+/home/user/fresh-repos/dbt_recharge https://github.com/fivetran/dbt_recharge
+/home/user/fresh-repos/dbt_salesforce https://github.com/fivetran/dbt_salesforce
+/home/user/fresh-repos/dbt_servicenow https://github.com/fivetran/dbt_servicenow
+/home/user/fresh-repos/dbt_stripe https://github.com/fivetran/dbt_stripe
+/home/user/fresh-repos/dbt_zendesk https://github.com/fivetran/dbt_zendesk

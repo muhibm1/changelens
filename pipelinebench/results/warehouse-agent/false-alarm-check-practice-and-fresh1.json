@@ -1,0 +1,394 @@
+[
+ {
+  "source": "fresh3",
+  "repo": "aspects-dbt",
+  "commit": "5fb3aa80ec",
+  "finding": "[documented_column_not_selected] aspects/models/enrollment/enrollments_by_day.sql:20 enrollments_by_day no longer select",
+  "verdict": "REAL",
+  "reason": "enrollments_by_day.sql no longer selects object_id (removed in diff) while enrollment/schema.yml:13 still documents it"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[broken_reference_or_syntax] models/apple_store__territory_report.sql:84 territory_report: reporting_grain reads nonexis",
+  "verdict": "REAL",
+  "reason": "territory_report.sql:84 selects from pre_rg but the CTE is pre_reporting_grain (line 66); country_codes CTE is never defined yet joined at lines 139-142"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[broken_reference_or_syntax] models/apple_store__overview_report.sql:110 overview_report: pre_reporting_grain references",
+  "verdict": "REAL",
+  "reason": "overview_report.sql:110-117 unions from crashes/downloads/usage but CTEs are app_crashes/downloads_daily/install_deletions; alias d. used at 141 while join alias is dd (169)"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[broken_reference_or_syntax] models/apple_store__overview_report.sql:189 overview_report: subscription joins use rg.app_",
+  "verdict": "REAL",
+  "reason": "overview_report.sql:189 joins on rg.app_name but reporting_grain (123-128) only selects date_day, app_id, source_relation"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[broken_reference_or_syntax] models/apple_store__device_report.sql:129 device_report: pre_rg first branch selects from a",
+  "verdict": "REAL",
+  "reason": "device_report.sql:129 first pre_rg branch reads app_store_device, but that CTE was renamed impressions_and_page_views (line 9)"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[nullability_or_cast] models/apple_store__territory_report.sql:106 territory_report: active_devices read from install_de",
+  "verdict": "REAL",
+  "reason": "territory_report.sql:106-107 reads install_deletions.active_devices which that CTE does not output; sessions_activity (51-63) outputs active_devices_lip_30_days"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_apple_store",
+  "commit": "6746c2b946",
+  "finding": "[broken_reference_or_syntax] models/apple_store__device_report.sql:112 device_report subscription_events: stray comma an",
+  "verdict": "REAL",
+  "reason": "device_report.sql:110-120 select list ends with 'source_relation,' then loop emits leading ', ' giving ',,'; group_by(3) with five non-aggregated columns"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_hubspot",
+  "commit": "5e5084eca2",
+  "finding": "[schema_contract] models/marketing/hubspot__email_sends.sql:35 hubspot__email_sends.was_deferred renamed but marketing.y",
+  "verdict": "REAL",
+  "reason": "SQL renamed was_deffered to was_deferred but models/marketing/marketing.yml:86 still documents was_deffered (the commit touched only the SQL)"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_jira",
+  "commit": "24b0000807",
+  "finding": "[broken_reference_or_syntax] models/intermediate/field_history/int_jira__pivot_daily_field_history.sql:8 pivot_daily_fie",
+  "verdict": "REAL",
+  "reason": "pivot_daily_field_history.sql: group by removed with max() aggregates beside date_day, issue_id; it also reads date_day/field_name/last_value that the rewritten daily_field_history no longer outputs"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_jira",
+  "commit": "24b0000807",
+  "finding": "[dropped_or_renamed_column_with_readers] models/intermediate/field_history/int_jira__daily_field_history.sql:14 daily_fi",
+  "verdict": "REAL",
+  "reason": "int_jira__daily_field_history.sql final selects only field_id, issue_id, field_value, valid_* ; date_day, field_name, last_value, last_updated_at dropped while pivot still reads them"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_netsuite",
+  "commit": "0867d9d3a4",
+  "finding": "[row_count_change] models/netsuite2/intermediate/base/int_netsuite2__transaction_lines.sql:15 Flipping multibook default",
+  "verdict": "FALSE",
+  "reason": "Default flipped true to false by design (commit titled 'change multibook default'); the false default is still in HEAD in int_netsuite2__transaction_lines.sql:1, so not an accidental defect"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_quickbooks",
+  "commit": "333df6e6d2",
+  "finding": "[broken_reference_or_syntax] models/quickbooks__expenses_sales_enhanced.sql:12 expenses_sales_enhanced refs nonexistent ",
+  "verdict": "REAL",
+  "reason": "quickbooks__expenses_sales_enhanced.sql:12 refs int_quickbooks__sales_union; only int_quickbooks__sales_detail_union exists at this commit"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_quickbooks",
+  "commit": "333df6e6d2",
+  "finding": "[row_count_change] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:118 invoice_double_entry fa",
+  "verdict": "REAL",
+  "reason": "invoice_double_entry.sql:~108-116 joins bundle_items per bundle then invoice_bundles on invoice_id+item_id only, so lines multiply per component and across same-bundle lines"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_quickbooks",
+  "commit": "333df6e6d2",
+  "finding": "[row_count_change] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:136 invoice_double_entry ne",
+  "verdict": "REAL",
+  "reason": "invoice_double_entry.sql:136 new AND coalesce(invoice_bundles.item_id, sales_item_item_id, item_id) is not null drops lines that have only account_id, which the first predicate kept"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_quickbooks",
+  "commit": "333df6e6d2",
+  "finding": "[broken_reference_or_syntax] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:93 invoice_double",
+  "verdict": "REAL",
+  "reason": "invoice_double_entry.sql:~93 account_id expression in the bundle branch ends with a comma and the else branch is skipped, yielding 'account_id, from invoices'"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_quickbooks",
+  "commit": "333df6e6d2",
+  "finding": "[business_logic] models/double_entry_transactions/int_quickbooks__credit_memo_double_entry.sql:43 credit_memo_double_ent",
+  "verdict": "REAL",
+  "reason": "credit_memo_double_entry.sql:43 coalesce(sales_item_account_id, income_account_id) drops the old CASE branch that used discount_account_id for discount lines"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_recharge",
+  "commit": "3dbef01bc3",
+  "finding": "[row_count_change] models/intermediate/int_recharge__customer_daily_rollup.sql:17 int_recharge__customer_daily_rollup: i",
+  "verdict": "REAL",
+  "reason": "int_recharge__customer_daily_rollup.sql:17 filter created_at >= calendar.date_day is inverted; later history changed it to <= (HEAD line 22)"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_recharge",
+  "commit": "06c2ac2cf1",
+  "finding": "[business_logic] models/intermediate/int_recharge__calendar_spine.sql:19 calendar_spine end_date is exclusive, so the la",
+  "verdict": "REAL",
+  "reason": "int_recharge__calendar_spine.sql:19-20 passes max(created_at) as date_spine end_date, which dbt_utils excludes; recharge__daily_overview left joins from the spine so the last charge day is lost; HEAD still passes the max date unchanged"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_salesforce",
+  "commit": "3b60759cb0",
+  "finding": "[broken_reference_or_syntax] models/history/salesforce_history.yml:1 salesforce_history.yml missing `models:` key, so th",
+  "verdict": "REAL",
+  "reason": "models/history/salesforce_history.yml:1-3 has version: 2 then an indented '- name:' list with no models: key; PyYAML raises 'mapping values are not allowed here' so the unique tests are not defined"
+ },
+ {
+  "source": "fresh3",
+  "repo": "dbt_stripe",
+  "commit": "4b8d33a379",
+  "finding": "[schema_contract] .buildkite/scripts/run_models.sh:22 CI disable flags still use old var names (using_invoices etc.), no",
+  "verdict": "REAL",
+  "reason": ".buildkite/scripts/run_models.sh:22 still passes using_invoices/using_payment_method/using_subscriptions, and README.md:74-76 documents them, while models and dbt_project.yml now read stripe__using_*"
+ },
+ {
+  "source": "run3",
+  "repo": "data-infra",
+  "commit": "3877850ed3",
+  "finding": "[nullability_or_cast] warehouse/models/staging/gtfs_guidelines/stg_gtfs_guidelines__no_validation_errors_in_last_30_days",
+  "verdict": "UNCLEAR",
+  "reason": "no_validation_errors_in_last_30_days.sql:33 NULL status depends on whether validation_errors_by_day has rows for every feed/date; the fact table cross-joins codes with n_notices 0 only over dates in the notices table, so not decidable without data"
+ },
+ {
+  "source": "run3",
+  "repo": "data-infra",
+  "commit": "3877850ed3",
+  "finding": "[business_logic] warehouse/models/staging/gtfs_guidelines/stg_gtfs_guidelines__no_validation_errors_in_last_30_days.sql:",
+  "verdict": "FALSE",
+  "reason": "no_validation_errors_in_last_30_days.sql:39 ROWS BETWEEN 30 PRECEDING AND CURRENT ROW is 31 rows including today; this is an inclusive-window convention, no spec in the repo requires 29 PRECEDING, and the rolling window was removed a week later"
+ },
+ {
+  "source": "run3",
+  "repo": "tuva",
+  "commit": "73121e2eca",
+  "finding": "[schema_contract] models/input_layer/input_layer__eligibility.yml:6 input_layer__eligibility uniqueness key omits payer,",
+  "verdict": "UNCLEAR",
+  "reason": "input_layer__eligibility.yml:6-10 test key person_id+enrollment dates; whether dual coverage or multi-source rows legitimately share it depends on data and the grain is not documented here"
+ },
+ {
+  "source": "run3",
+  "repo": "tuva",
+  "commit": "73121e2eca",
+  "finding": "[schema_contract] models/input_layer/input_layer__provider_attribution.yml:6 input_layer__provider_attribution uniquenes",
+  "verdict": "UNCLEAR",
+  "reason": "input_layer__provider_attribution.yml:6-10 test key person_id+year_month+data_source; whether multiple payers/plans per month occur depends on data"
+ },
+ {
+  "source": "run3",
+  "repo": "tuva",
+  "commit": "73121e2eca",
+  "finding": "[schema_contract] models/input_layer/input_layer__medical_claim.yml:100 bill_type_code / revenue_center_code length-betw",
+  "verdict": "REAL",
+  "reason": "input_layer__medical_claim.yml:100-102 and 119-121 pass min_value/max_value as list items; fixed 13 minutes later by e83785c4 ('Typo lists --> dictionary in tests')"
+ },
+ {
+  "source": "run3",
+  "repo": "tuva",
+  "commit": "73121e2eca",
+  "finding": "[business_logic] models/input_layer/input_layer__medical_claim.yml:11 Model-level unique_within_record test compares cla",
+  "verdict": "REAL",
+  "reason": "input_layer__medical_claim.yml:11 expect_select_column_values_to_be_unique_within_record on [claim_id, claim_type] only asserts the two values in a row differ, not what the comment states"
+ },
+ {
+  "source": "run3",
+  "repo": "ol-data-platform",
+  "commit": "3e579239b6",
+  "finding": "[broken_reference_or_syntax] src/ol_dbt/models/staging/mitxonline/_stg_mitxonline__models.yml:997 course_to_department Y",
+  "verdict": "REAL",
+  "reason": "_stg_mitxonline__models.yml:997 renamed to stg_mitxonline_app_postgres_courses_course_to_department, but the model file is stg__mitxonline__app__postgres__courses_course_to_department; relationships to: ref points at a nonexistent model"
+ },
+ {
+  "source": "run3",
+  "repo": "spellbook",
+  "commit": "089dd063ea",
+  "finding": "[row_count_change] models/_sector/nft/trades/chains/old/nft_old_base_trades.sql:10 Solana magiceden/opensea trades remov",
+  "verdict": "REAL",
+  "reason": "nft_old_base_trades.sql drops magiceden/opensea solana events; nft_base_trades.sql (list lines 13-25) has no nft_solana_base_trades and no later commit adds it, so Solana rows leave nft.base_trades"
+ },
+ {
+  "source": "run3",
+  "repo": "spellbook",
+  "commit": "7ca8b9d32b",
+  "finding": "[business_logic] models/lido/liquidity/ethereum/lido_liquidity_ethereum_maverick_pools.sql:159 maverick pool_liquidity c",
+  "verdict": "REAL",
+  "reason": "lido_liquidity_ethereum_maverick_pools.sql:155-162 window PARTITION BY pool ORDER BY time resolves to b.pool/b.time of the LEFT JOIN (equality join, next_time unused), null on non-event days, so cumulative reserves are 0 on those days"
+ },
+ {
+  "source": "run3",
+  "repo": "spellbook",
+  "commit": "7ca8b9d32b",
+  "finding": "[nullability_or_cast] models/lido/liquidity/ethereum/lido_liquidity_ethereum_curve_steth_frxeth_pool.sql:239 curve_steth",
+  "verdict": "REAL",
+  "reason": "lido_liquidity_ethereum_curve_steth_frxeth_pool.sql:239 joins sparse steth_balances (92-98) with d.day = b.time and no next_time; days without transfers get NULL main_token_reserve, unlike the range joins used for frxeth_balances"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "33032aed28",
+  "finding": "[schema_contract] dbt/models/staging/github/stg_github__schema.yml:147 stg_github__pull_request_merge_events.type reuses",
+  "verdict": "REAL",
+  "reason": "stg_github__schema.yml:147 *type alias copies the github_events accepted_values list; merge events hard-code 'PULL_REQUEST_MERGED' (stg_github__pull_request_merge_events.sql), not in that list"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "33032aed28",
+  "finding": "[documented_column_not_selected] dbt/models/staging/github/stg_github__schema.yml:31 repo.id / repo.name / actor.id / ac",
+  "verdict": "REAL",
+  "reason": "stg_github__schema.yml:31 etc. anchors named repo.id/repo.name/actor.id/actor.login reused in models that output repository_id/repository_name/actor_id/actor_login, so not_null tests target nonexistent columns"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "33032aed28",
+  "finding": "[schema_contract] dbt/models/staging/oss-directory/stg_ossd__schema.yml:206 stg_ossd__repositories_by_project._cq_source",
+  "verdict": "REAL",
+  "reason": "stg_ossd__schema.yml:206 reuses &_cq_source_name (accepted ['oss-directory']) for repositories_by_project, whose repos.* come from current_repositories where the same file accepts ['github-resolve-repos']"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "4a7dee823d",
+  "finding": "[broken_reference_or_syntax] dbt/models/marts/events/github_metrics.sql:29 StarsForksRepos GROUP BY ap.project_id refere",
+  "verdict": "REAL",
+  "reason": "github_metrics.sql:29 GROUP BY ap.project_id but the CTE has no alias ap"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "4a7dee823d",
+  "finding": "[broken_reference_or_syntax] dbt/models/marts/events/github_metrics.sql:57 Activity CTE reads bucket_day, which int_even",
+  "verdict": "REAL",
+  "reason": "github_metrics.sql:57 reads bucket_day; int_events_to_project outputs only project_id, time, event_type, to_id, from_id, amount"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "4a7dee823d",
+  "finding": "[business_logic] dbt/models/marts/events/github_metrics.sql:59 issues_opened and pull_requests_opened filter on event ty",
+  "verdict": "REAL",
+  "reason": "github_metrics.sql:59,61 match ISSUE_OPENED/PULL_REQUEST_OPENED; the only event names in the repo are ISSUE_CREATED/PULL_REQUEST_CREATED (int_devs.sql:14-18)"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "4a7dee823d",
+  "finding": "[row_count_change] dbt/models/marts/events/github_metrics.sql:86 Inner joins to the three metric CTEs drop projects that",
+  "verdict": "REAL",
+  "reason": "github_metrics.sql:84-86 INNER JOINs to Activity (180-day window), StarsForksRepos and Contributors drop projects lacking recent events, repos or devs from a project summary"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "4a7dee823d",
+  "finding": "[business_logic] dbt/models/marts/events/github_metrics.sql:44 avg_active_devs_6_months is distinct devs over 6 months d",
+  "verdict": "REAL",
+  "reason": "github_metrics.sql:44-48 header says average active devs per month, but code is COUNT(DISTINCT from_id) over the window divided by 6"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "c86f69bc30",
+  "finding": "[row_count_change] dbt/models/github_push_events.sql:16 github_push_events lacks a PushEvent type filter :: The model is",
+  "verdict": "REAL",
+  "reason": "github_push_events.sql:16 selects from github_events (all event types, github_events.sql has no type filter) with no PushEvent WHERE; later stg_github__push_events adds WHERE type = PushEvent"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "842e6e6bbf",
+  "finding": "[broken_reference_or_syntax] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:62 collection_contributors",
+  "verdict": "REAL",
+  "reason": "github_metrics_by_collection.sql:47,62 outer query uses pbc.collection_id but pbc exists only in the subquery; fixed next in fcf2ac9d (d.collection_id)"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "842e6e6bbf",
+  "finding": "[nullability_or_cast] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:49 collection_contributors: TIMES",
+  "verdict": "REAL",
+  "reason": "github_metrics_by_collection.sql:49 TIMESTAMP bucket_month (int_devs) compared with DATE; fixed in fcf2ac9d with CAST AS TIMESTAMP"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "842e6e6bbf",
+  "finding": "[nullability_or_cast] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:75 collection_activity: e.time (T",
+  "verdict": "REAL",
+  "reason": "github_metrics_by_collection.sql:75 e.time (timestamp per int_events.sql:28) compared with DATE_ADD(CURRENT_DATE()); fixed in fcf2ac9d"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "842e6e6bbf",
+  "finding": "[business_logic] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:36 collection_stars_forks_repos: stars",
+  "verdict": "UNCLEAR",
+  "reason": "github_metrics_by_collection.sql:36-38 SUM of star_count over repo-by-project joined to projects-by-collection double counts only if a repo belongs to several projects in a collection, which needs data"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[broken_reference_or_syntax] dbt/models/intermediate/contributors/int_devs.sql:3 int_devs.repository_source selects e.to",
+  "verdict": "REAL",
+  "reason": "int_devs.sql:3 selects e.to_namespace from int_events_to_project, which does not output it (int_events_to_project.sql:4-9)"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[row_count_change] dbt/models/marts/repository_metrics/repository_metrics_by_project.sql:148 repository_metrics_by_proje",
+  "verdict": "REAL",
+  "reason": "repository_metrics_by_project.sql:148 driver changed from projects LEFT JOINs to project_repos_summary (non-fork repos inner joined), so projects without non-fork repos no longer appear"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[broken_reference_or_syntax] dbt/models/intermediate/contributors/int_users.sql:3 int_users selects e.to_namespace, whic",
+  "verdict": "REAL",
+  "reason": "int_users.sql:3 selects e.to_namespace from int_events_to_project, which does not output it"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[broken_reference_or_syntax] dbt/models/marts/repository_metrics/repository_metrics_by_collection.sql:125 collection_act",
+  "verdict": "REAL",
+  "reason": "repository_metrics_by_collection.sql:125 reads e.to_namespace from int_events_to_project, which does not output it"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[broken_reference_or_syntax] dbt/models/marts/repository_metrics/repository_metrics_by_project.sql:112 activity_cte read",
+  "verdict": "REAL",
+  "reason": "repository_metrics_by_project.sql:112 reads to_namespace from int_events_to_project, which does not output it"
+ },
+ {
+  "source": "run3",
+  "repo": "opensource-observer",
+  "commit": "6df3d9f009",
+  "finding": "[dropped_or_renamed_column_with_readers] hasura/metadata/databases/cloudsql/tables/github_metrics_by_project.yaml:2 Hasu",
+  "verdict": "REAL",
+  "reason": "hasura tables/github_metrics_by_project.yaml:2, tables.yaml:3-4 and docs/docs/integrate/data-science.md:55 still use github_metrics_* names after the rename"
+ }
+]

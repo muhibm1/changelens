@@ -1,0 +1,36 @@
+# dbt_stripe: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_stripe): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_stripe
+url: https://github.com/fivetran/dbt_stripe
+bugs:
+  - commit: fb473e94a7
+    parent: bc9f555063
+    title: "invoice details model"
+    fix: 2e533a663c
+    fix_title: "fix fanout in invoice details"
+    bug: "the invoice_line_item CTE groups by invoice_id, source_relation, plan_id and price_id, but stripe__invoice_details joins it on invoice_id and source_relation only, so an invoice with lines on several plans or prices appears once per plan and price"
+    category: row_count_change
+    in_scope: true
+    must_mention: [invoice_line_item, price_id, fan]
+    expect:
+      - {path: models/stripe__invoice_details.sql, line: 15, end_line: 24}
+      - {path: models/stripe__invoice_details.sql, line: 107, end_line: 109}
+  - commit: "6189002586"
+    parent: 56c24d76a9
+    title: "backwards compat"
+    fix: 85b2a0a936
+    fix_title: "schema and rm incorrect logic in customer overview"
+    bug: "the backwards compatibility change applies the cents to dollars division by 100.0 to total_sales_count, total_refund_count, sales_count_this_month and refund_count_this_month, which are counts, not amounts"
+    category: business_logic
+    in_scope: false
+    must_mention: [count, "100"]
+    expect:
+      - {path: models/stripe__customer_overview.sql, line: 156, end_line: 157}
+      - {path: models/stripe__customer_overview.sql, line: 163, end_line: 164}

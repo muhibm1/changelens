@@ -1,0 +1,52 @@
+# queries-basedosdados: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/basedosdados/queries-basedosdados): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: queries-basedosdados
+url: https://github.com/basedosdados/queries-basedosdados
+bugs:
+  - commit: "634b3324ce"
+    parent: "a24f11dd7f"
+    title: "feat: re insert standart incremental logic"
+    fix: "bea6821b95"
+    fix_title: "fix sih missing where clause"
+    bug: "the new incremental block places the date comparison directly after the FROM clause (or the final join condition) with no WHERE keyword, so both models produce invalid SQL on incremental runs"
+    category: other
+    in_scope: true
+    must_mention: ["where", "is_incremental"]
+    expect:
+      - {path: "models/br_ms_sih/br_ms_sih__aihs_reduzidas.sql", line: 331, end_line: 333}
+      - {path: "models/br_ms_sih/br_ms_sih__servicos_profissionais.sql", line: 105, end_line: 107}
+  - commit: "4c9aa9208c"
+    parent: "c6835f0c35"
+    title: "feat: add where config, modify incremental logic"
+    fix: "34262eba0a"
+    fix_title: "adjust where filter in agencia.sql"
+    bug: "the comment says the filter removes header and footer rows whose values are all null, but the code is `where fone = '00000nan'`, which keeps only those junk rows and drops every real agency"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["fone", "00000nan"]
+    expect:
+      - {path: "models/br_bcb_agencia/br_bcb_agencia__agencia.sql", line: 199, end_line: 202}
+  - commit: "42251f608e"
+    parent: "77438dd561"
+    title: "feat: fix typo and incremental logic dtypes"
+    fix: "3132607500"
+    fix_title: "fix: ambiguity issue in incremental materilization logic"
+    bug: "the final query is `select *` over the CTE left joined to {{ this }} as materialized in incremental runs, so the result carries the materialized table's columns as well, duplicating every column name and changing the model's schema"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["select *", "materialized"]
+    expect:
+      - {path: "models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql", line: 225, end_line: 229}
+  - commit: "42251f608e"
+    parent: "77438dd561"
+    title: "feat: fix typo and incremental logic dtypes"
+    fix: "bb20583373"
+    fix_title: "fix CTE table names"
+    bug: "the incremental join condition references sia_add_municipios.ano and sia_add_municipios.mes, but the final query selects from producao_ambulatorial, so sia_add_municipios is not in scope and incremental runs fail"
+    category: other
+    in_scope: true
+    must_mention: ["sia_add_municipios", "producao_ambulatorial"]
+    expect:
+      - {path: "models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql", line: 226, end_line: 232}

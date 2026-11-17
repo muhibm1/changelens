@@ -1,0 +1,34 @@
+# dbt_quickbooks: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_quickbooks): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_quickbooks
+url: https://github.com/fivetran/dbt_quickbooks
+bugs:
+  - commit: cb81ebc391
+    parent: 858d7ab42a
+    title: "final updates"
+    fix: "2500350295"
+    fix_title: "bugfix/duplicate-double-entry-records"
+    bug: "bundle_income_accounts selects distinct account_id, parent_income_account_id and bundle_id, so a bundle whose items carry several income accounts has several rows, and the left join to invoice_lines on bundle_id alone duplicates the invoice double entry lines"
+    category: row_count_change
+    in_scope: true
+    must_mention: [bundle_income_accounts, bundle_id, duplicate]
+    expect:
+      - {path: models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql, line: 58, end_line: 73}
+      - {path: models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql, line: 109, end_line: 110}
+  - commit: c121265adb
+    parent: 3742edbfea
+    title: "variable changes"
+    fix: 1d5083cdb6
+    fix_title: "ap_ar estimate fix"
+    bug: "int_quickbooks__invoice_join wraps estimate_total_amount and estimate_status in an if using_estimate block with no else, so with estimates disabled the columns are not produced, while quickbooks__ap_ar_enhanced still selects invoice_join.estimate_status and invoice_join.estimate_total_amount"
+    category: dropped_or_renamed_column_with_readers
+    in_scope: true
+    must_mention: [estimate_total_amount, using_estimate, quickbooks__ap_ar_enhanced]
+    expect: [{path: models/intermediate/int_quickbooks__invoice_join.sql, line: 84, end_line: 87}]

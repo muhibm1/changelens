@@ -1,0 +1,29 @@
+# dbt_mixpanel: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_mixpanel): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_mixpanel
+url: https://github.com/fivetran/dbt_mixpanel
+bugs:
+  - commit: "ab877baf08"
+    parent: "598ed23b08"
+    title: "working on monthly events"
+    fix: "19ebd2b79e"
+    fix_title: "monthly event fixes'"
+    bug: "previous_month_with_event is computed as lag(people_id) instead of lag(date_month), so the later dateadd and datediff comparisons against date_month operate on a user id and the repeat and return user counts are wrong"
+    category: other
+    in_scope: true
+    must_mention: ["previous_month_with_event", "people_id", "lag"]
+    expect:
+      - {path: "models/mixpanel_monthly_events.sql", line: 21}
+  - commit: "ab877baf08"
+    parent: "598ed23b08"
+    title: "working on monthly events"
+    fix: "19ebd2b79e"
+    fix_title: "monthly event fixes'"
+    bug: "the churn columns use lag(...) over (partition by date_month, event_type order by date_month), but monthly_metrics has one row per month and event type, so each partition holds a single row and every lag, and with it every churn count, is null"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["lag", "date_month", "partition"]
+    expect:
+      - {path: "models/mixpanel_monthly_events.sql", line: 68, end_line: 72}

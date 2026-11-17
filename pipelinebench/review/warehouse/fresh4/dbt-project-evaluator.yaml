@@ -1,0 +1,40 @@
+# dbt-project-evaluator: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt-project-evaluator): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt-project-evaluator
+url: https://github.com/dbt-labs/dbt-project-evaluator
+bugs:
+  - commit: "756d380b6a"
+    parent: "d3fc295e6d"
+    title: "add new fct_duplicate_sources model and integration test"
+    fix: "8cdb77cd53"
+    fix_title: "add missing filter"
+    bug: "the new fct_duplicate_sources model ends with a bare select from source_duplicates and never calls the filter_exceptions() macro that every other fct model in models/marts/dag applies, so rows the user has listed as exceptions are still reported and the is_empty test fails on them"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["filter_exceptions", "fct_duplicate_sources"]
+    expect:
+      - {path: "models/marts/dag/fct_duplicate_sources.sql", line: 22}
+  - commit: "53c6fb6c60"
+    parent: "4edf16bc53"
+    title: "import CTE and join with stg_nodes"
+    fix: "0bfa709d93"
+    fix_title: "Inner join with stg_nodes instead of right join"
+    bug: "int_all_columns is meant to hold one row for each column, but it now right joins stg_columns to stg_nodes, so every node with no documented columns adds a row whose column name, description and data type are all null"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["right join", "stg_nodes", "null"]
+    expect:
+      - {path: "models/marts/core/int_all_columns.sql", line: 54, end_line: 55}
+  - commit: "69eeec1414"
+    parent: "3b6104898d"
+    title: "model_type_prefix and model_type_folder NULL for non-model resource_type"
+    fix: "9dd4aa7db0"
+    fix_title: "sql style fixes"
+    bug: "the new CASE expression is closed with `end as as model_type_prefix`, a doubled AS that does not parse, so int_all_graph_resources fails to build"
+    category: other
+    in_scope: true
+    must_mention: ["as as", "model_type_prefix"]
+    expect:
+      - {path: "models/marts/core/int_all_graph_resources.sql", line: 50}

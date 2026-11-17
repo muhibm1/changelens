@@ -1,0 +1,18 @@
+# teamster: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/TEAMSchools/teamster): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: teamster
+url: https://github.com/TEAMSchools/teamster
+bugs:
+  - commit: "1349c00a5a"
+    parent: "b9f272b824"
+    title: "more courses"
+    fix: "a2482f0f2c"
+    fix_title: "fix(dbt): fix missing comma and drop dead Algebra I logic in csgf_hs_enrollment"
+    bug: "the new 'Alg 1' entry in the transfer course IN list has no trailing comma, so BigQuery concatenates it with the next literal into 'Alg 1ALG I CP', which matches nothing, and both Alg 1 and ALG I CP transfer grades are silently excluded"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "Alg 1"]
+    expect:
+      - {path: "src/dbt/kipptaf/models/csgf/staging/stg_csgf__hs_enrollment.sql", line: 48, end_line: 49}

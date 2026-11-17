@@ -1,0 +1,40 @@
+# dbt-data-reliability: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/elementary-data/dbt-data-reliability): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt-data-reliability
+url: https://github.com/elementary-data/dbt-data-reliability
+bugs:
+  - commit: "12af730125"
+    parent: "57dce9f256"
+    title: "Created 'job_run_results' view."
+    fix: "e3820ed36e"
+    fix_title: "Fixes to the 'job_run_results' view."
+    bug: "the new job_run_results view groups by name, id and run_id, which are only output aliases defined after the CTE, while the CTE selects job_name, job_id and job_run_id; the cast_as_timestamp calls are also passed run_started_at and run_completed_at as undefined Jinja variables instead of quoted column names, so the view does not compile to valid SQL"
+    category: other
+    in_scope: true
+    must_mention: ["group by", "job_name"]
+    expect:
+      - {path: "models/edr/run_results/job_run_results.sql", line: 12, end_line: 16}
+  - commit: "a74fc552fd"
+    parent: "843371fa1e"
+    title: "Added an alerts model."
+    fix: "1869b95741"
+    fix_title: "Joining with 'dbt_sources' on 'alerts_dbt_source_freshness'."
+    bug: "a missing comma after max_loaded_at makes the select read `max_loaded_at snapshotted_at as detected_at`, so alerts_dbt_source_freshness does not parse and the max_loaded_at column is lost"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "max_loaded_at"]
+    expect:
+      - {path: "models/edr/alerts/alerts_dbt_source_freshness.sql", line: 9, end_line: 10}
+  - commit: "240d7ba519"
+    parent: "5f296601b9"
+    title: "changed tables logic"
+    fix: "667333e497"
+    fix_title: "fixed bug in tables alerts"
+    bug: "tables_removed is an anti-join (pre left join cur where cur.full_table_name is null) but takes detected_at from cur.dbt_updated_at, which is always null on those rows, so every table_removed change has a null detected_at"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["detected_at", "tables_removed", "null"]
+    expect:
+      - {path: "models/models/sources_schema_changes/schema_changes/tables_changes.sql", line: 38, end_line: 47}

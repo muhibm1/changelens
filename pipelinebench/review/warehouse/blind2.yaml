@@ -1,0 +1,352 @@
+# Blind set 2: real warehouse bugs from two more public SQL warehouses, located at the commit that introduced them.
+# Hold these back like blind.yaml: do not use them to tune ChangeLens; score them only when a version is frozen.
+# Written by hand from public upstream history by a labeller who did not read or run ChangeLens. Each bug was found
+# from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit
+# and its message were read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields as in dev.yaml: commit and parent are the introducing commit and its parent; fix is the later repair;
+# expect gives lines in the introducing commit's own version of each file (each span was printed back from
+# `git show <commit>:<path>` before it was written here); category is from the closed list in README.md; in_scope is
+# true when lineage, schema or row-count reasoning can see the bug from the diff.
+#
+# README2 (notes for this file)
+#
+# Repositories (both cloned in full, anonymously, into a scratch folder outside every other repository):
+#   - duneanalytics/spellbook (https://github.com/duneanalytics/spellbook): Dune's community dbt project on Trino.
+#     7,522 commits, 8,132 SQL files at HEAD, 623 MB clone. 13 bugs.
+#   - opensource-observer/opensource-observer (https://github.com/opensource-observer/opensource-observer): the
+#     archived Open Source Observer data pipeline, dbt (warehouse/dbt, BigQuery) and later SQLMesh
+#     (warehouse/oso_sqlmesh and warehouse/metrics_mesh, Trino). 4,657 commits, 523 SQL files at HEAD (about 400 of
+#     them warehouse models), 286 MB clone. 12 bugs. Note: SQLMesh models are plain SQL with a MODEL() header in
+#     place of dbt config and YAML; grain() and audits() play the role of dbt tests.
+#   Tried and not used: opensource-observer/oso now holds 4 commits (history moved to the repo above);
+#   dagster-io/dagster-open-platform has 961 commits but only 67 SQL files; FlipsideCrypto/ethereum-models asks for a
+#   sign-in (private or gone).
+#
+# Method: exactly as README.md. Fix candidates: message matches fix, revert, hotfix, wrong, duplicate, fanout, null,
+# filter, missing, incorrect or dedup; at most six SQL or YAML files under a models/ path; at most 300 changed lines
+# (603 spellbook and 196 OSO candidates). git blame on the fix's parent over every removed or replaced line; kept
+# candidates whose main introducing commit changed under 400 lines (324 and 137). About 90 were then read by hand.
+#
+# Rejected after reading (examples, not exhaustive):
+#   - cause in a different commit from the one blame named: spellbook ac922815d8 (labels_eth_stakers reads `address`;
+#     the column was renamed upstream in 5c21d4d0a, 1,225 lines), 81d61121eb (worldcoin reads creation_tx_hash;
+#     renamed upstream in 73ba7276d, 5,231 lines), 3c5ab7550e (block_month line added later), 13b52581fd (1inch
+#     second_side flag added later); OSO 4cf307d7ef (the inner join existed before the blamed rewrite).
+#   - introducer over 400 lines: spellbook ec3d7be04 "[CoW] Migrate Trades Table" drops block_number, which the
+#     schema still documents (fixed by b590acc4cc); a clean documented_column_not_selected, but 705 lines (460 of them
+#     verbatim _legacy copies), so rejected by the rule. Spellbook 081b6595df "Reapply solana transfers" (stray comma
+#     and an unresolved call_block_slot; fixes 0e511dd0dd, 0157ea277d) is 412 lines, also rejected.
+#   - faulty line moved, not written, by the blamed commit: spellbook 50deff1fe8 (paraswap call_success filter missing
+#     before too), 0d51502cbe (airswap `tx.block_time =` filter existed before 7f9936360b).
+#   - cause not visible in the diff: duplicates in raw sources (spellbook a5864f6119, ecba180f67, 3e6b431dc8,
+#     014adca1c7, 5726ec3583, 49d15619c3); intent unclear or a naming choice (OSO c575e85026 models_v0 column names,
+#     c74cf94eab key_metrics metric column, fac8c284c4 grant metrics filter, spellbook e801a5fee2 date bound added on
+#     purpose); fix mostly reorders logic (spellbook 11f1d347ec pumpswap).
+#   - performance or dialect only: spellbook b0bb51e33d (null skew), 30c019fa8d, f012ac30d4 (Spark casts in string
+#     concatenation); OSO 721bbed027's regex escaping half (only its join half is labelled).
+#   - near-duplicate of a kept pattern, left out for variety: OSO a1b0129e85 (bigint SUM overflow in
+#     int_events_daily__blockchain, same class as afcf49844c). It is valid and can be added as a spare.
+#
+# Counts by category (25 bugs, 23 in scope):
+#   row_count_change 11 | nullability_or_cast 5 | schema_contract 3 | other 3 | business_logic 2 (out of scope)
+#   dropped_or_renamed_column_with_readers 1 | documented_column_not_selected 0
+#   By repo: spellbook 13 (11 in scope), opensource-observer 12 (12 in scope).
+#
+# Honest limits:
+#   - No documented_column_not_selected bug survived the method. The one clean case (CoW block_number) failed the
+#     400-line rule. A scripted search for small fixes that add back a column the parent YAML documents found only
+#     feature additions or upstream renames.
+#   - Shared commits: spellbook 8d4db5edf8 introduces two bugs (Blur currency addresses, Fantasy chain argument) and
+#     OSO a1c7ea770f introduces two (integer division, bigint overflow); each is fixed by its own commit.
+#   - Spellbook d8631db9d7 is itself a fix commit that introduced the 7-day CI filters it says to revert.
+#   - OSO b3e8522d8d: the fix (a8b7dcf1f3) only adds SELECT DISTINCT; the label names the join that lets a repo match
+#     the repo_stats row of every project that owns it. The fix shows duplicates; that the join is their only source
+#     is the labeller's reading.
+#   - Spellbook 92ac3cf0cd: the 2025-only bounds the same fix removed were intended by the author (the PR says 2025
+#     only), so only the token_id grouping is labelled.
+#   - Several nullability_or_cast bugs depend on the engine (Trino integer division, BIGINT and INTEGER overflow,
+#     DECIMAL(38,0) range); the types are visible in the SQL but a reviewer has to know Trino's rules.
+#   - Line spans for whole statements give the line a reviewer should point at, not every line involved.
+repos:
+  - repo: spellbook
+    url: https://github.com/duneanalytics/spellbook
+    bugs:
+      - commit: 3fe4c53883
+        parent: a3ed5316b2
+        title: "Update Ethereum `gas.fees` for EIP4844 (#6441)"
+        fix: f4e5f7f281
+        fix_title: "fix join (#6487)"
+        bug: "blobs_submissions is inner joined to every transaction, so gas_ethereum_fees keeps only blob (type 3) transactions and drops every other Ethereum transaction"
+        category: row_count_change
+        in_scope: true
+        must_mention: [blobs_submissions, INNER JOIN, dropped]
+        expect: [{path: dbt_subprojects/daily_spellbook/models/_sector/gas/fees/ethereum/gas_ethereum_fees.sql, line: 58}]
+      - commit: ae95c0cb6f
+        parent: 160c64f01f
+        title: "Integrate aggregator markers in x2y2 (#2466)"
+        fix: b6dcf92695
+        fix_title: "[Easy] Fix X2Y2 duplicates (#2681)"
+        bug: "the final select of x2y2_ethereum_events drops DISTINCT while it still left joins NFT transfers and aggregator markers, so trades that match several rows come out duplicated"
+        category: row_count_change
+        in_scope: true
+        must_mention: [DISTINCT, duplicate, x2y2_ethereum_events]
+        expect: [{path: models/x2y2/ethereum/x2y2_ethereum_events.sql, line: 103}]
+      - commit: d11441a776
+        parent: 19fe942df1
+        title: "Avalanche gas spell (#1751)"
+        fix: fef9e44c49
+        fix_title: "patch for prices duplication (#2296)"
+        bug: "prices.usd is joined on minute and symbol = 'AVAX' only, without the blockchain, so every AVAX price row for that minute (one per chain) matches and each transaction fans out"
+        category: row_count_change
+        in_scope: true
+        must_mention: [prices, blockchain, symbol, fan]
+        expect: [{path: models/gas/avalanche_c/gas_avalanche_c_fees.sql, line: 55, end_line: 56}]
+      - commit: 843fbf8c2e
+        parent: dff4f03f2d
+        title: "Eigenlayer: add slashing withdrawal events support (#8543)"
+        fix: 24e5198dca
+        fix_title: "fix(eigenlayer): cast scaledShares as UINT256 to avoid DECIMAL(38,0) overflow (#9675)"
+        bug: "scaledShares are uint256 amounts but are cast to DECIMAL(38,0), which overflows for large share values and fails the model"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [DECIMAL(38,0), uint256, overflow, shares]
+        expect: [{path: dbt_subprojects/daily_spellbook/models/_projects/eigenlayer/ethereum/eigenlayer_ethereum_slashing_withdrawal_queued_flattened.sql, line: 28}]
+      - commit: af426a2c86
+        parent: 04c3dfe98e
+        title: "Proof of reserve labels (#1950)"
+        fix: c5be7caf37
+        fix_title: "Fix column names in cex labels tables (#1953)"
+        bug: "lower(address) is selected with no alias in labels_cex_ethereum and the new labels_cex_bnb, so the address column is renamed to an engine-generated name while labels_cex unions them and the schema and downstream labels read address"
+        category: dropped_or_renamed_column_with_readers
+        in_scope: true
+        must_mention: [address, alias, lower]
+        expect:
+          - {path: models/labels/cex/labels_cex_bnb.sql, line: 7}
+          - {path: models/labels/cex/labels_cex_ethereum.sql, line: 7}
+      - commit: 51261dfbec
+        parent: 0b0ff1b8f5
+        title: "Dex trades performance (#1454)"
+        fix: 524b20813a
+        fix_title: "Fix typo in time filter (#1518)"
+        bug: "the incremental branch filters the inner joined transactions with tx.block_time = date_trunc('day', now() - 1 week), an equality to one midnight instant, so incremental runs match almost no transactions and drop nearly all new trades"
+        category: row_count_change
+        in_scope: true
+        must_mention: [block_time, "=", incremental, dropped]
+        expect:
+          - {path: models/uniswap/ethereum/uniswap_v2_ethereum_trades.sql, line: 80}
+          - {path: models/uniswap/ethereum/uniswap_v1_ethereum_trades.sql, line: 100}
+      - commit: f0fb5b6a22
+        parent: b1a1af840b
+        title: "T-32182 Migrate shibaswap (#4013)"
+        fix: 4d8f27744a
+        fix_title: "Fix bug causing wrong token_bought_amount_raw (#4284)"
+        bug: "the DuneSQL migration changes the bought-side CASE test from amount0Out = 0 to amount1Out = 0, so token_bought_amount_raw and token_bought_address pick the wrong side of every swap"
+        category: business_logic
+        in_scope: false
+        must_mention: [amount0Out, amount1Out, token_bought_amount_raw]
+        expect:
+          - {path: models/shibaswap/ethereum/shibaswap_ethereum_trades.sql, line: 26}
+          - {path: models/shibaswap/ethereum/shibaswap_ethereum_trades.sql, line: 29}
+      - commit: d8631db9d7
+        parent: 9297a9f902
+        title: "fix(polymarket): fix duplicate accumulation in market_trades (#9515)"
+        fix: c4f843ebac
+        fix_title: "fix(polymarket): revert temporary CI date filters accidentally left in #9515 (#9516)"
+        bug: "temporary 7-day filters marked 'TODO: revert before merge' are merged into market_trades and into the full-refresh branch of positions, so a rebuild keeps only the last week of history"
+        category: row_count_change
+        in_scope: true
+        must_mention: [7 day, filter, TODO, full refresh]
+        expect:
+          - {path: dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_market_trades.sql, line: 104}
+          - {path: dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_positions.sql, line: 183}
+      - commit: a2f3b3ba78
+        parent: 7091991f1b
+        title: "feat: add Tempo DEXs (#9506)"
+        fix: 191c217703
+        fix_title: "Fix tempo_exchange merge key collisions in base trades (#9545)"
+        bug: "evt_index is a ROW_NUMBER per transaction computed separately in the exact-in and exact-out CTEs and then unioned, so a transaction with both kinds of swap yields two rows with the same (tx_hash, evt_index) merge key"
+        category: schema_contract
+        in_scope: true
+        must_mention: [unique_key, evt_index, ROW_NUMBER, collision]
+        expect:
+          - {path: dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql, line: 8}
+          - {path: dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql, line: 25}
+          - {path: dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql, line: 45}
+          - {path: dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql, line: 75}
+      - commit: 19b2de5d3d
+        parent: 873a767827
+        title: "Init berachain dex (#7647)"
+        fix: a1d1f25c94
+        fix_title: "Fix dex_berachain_base_trades.sql (#7657)"
+        bug: "dex_berachain_base_trades calls add_tx_columns with blockchain = 'base', so berachain trades are inner joined to base.transactions instead of berachain.transactions and almost none survive"
+        category: other
+        in_scope: true
+        must_mention: [base, berachain, transactions, add_tx_columns]
+        expect: [{path: dbt_subprojects/dex/models/trades/berachain/dex_berachain_base_trades.sql, line: 45}]
+      - commit: 92ac3cf0cd
+        parent: "1678656e18"
+        title: "feat(polymarket): add OHLCV hourly model with forward-fill (#9532)"
+        fix: bb5c4abda0
+        fix_title: "fix(polymarket): remove 2025-only bounds from ohlcv_hourly (#9562)"
+        bug: "market_bounds groups by condition_id, token_outcome and token_id, but token_id is max(asset_id) per hour in sparse_ohlcv and can differ between hours, so one outcome gets several bound rows and the hour spine is duplicated"
+        category: row_count_change
+        in_scope: true
+        must_mention: [market_bounds, token_id, group by, duplicate]
+        expect:
+          - {path: dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_ohlcv_hourly.sql, line: 73}
+          - {path: dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_ohlcv_hourly.sql, line: 77}
+      - commit: 8d4db5edf8
+        parent: e7df88a542
+        title: "Blur & Fantasy trades (#6091)"
+        fix: eec58277e5
+        fix_title: "fix (#6252)"
+        bug: "fantasy_blast_base_trades calls add_nft_tx_data with 'base' instead of 'blast', so Blast trades are inner joined to base.transactions and are dropped"
+        category: other
+        in_scope: true
+        must_mention: [base, blast, transactions, add_nft_tx_data]
+        expect: [{path: models/_sector/nft/trades/chains/blast/platforms/fantasy_blast_base_trades.sql, line: 94}]
+      - commit: 8d4db5edf8
+        parent: e7df88a542
+        title: "Blur & Fantasy trades (#6091)"
+        fix: 74d40ed918
+        fix_title: "Blur on Blast Fix (#6251)"
+        bug: "the Blur on Blast model hardcodes the Ethereum WETH and Blur pool addresses as currency_contract, so Blast trades carry mainnet token addresses and get no price"
+        category: business_logic
+        in_scope: false
+        must_mention: [currency_contract, Ethereum, WETH, blast]
+        expect: [{path: models/_sector/nft/trades/chains/blast/platforms/blur_blast_base_trades.sql, line: 98}]
+  - repo: opensource-observer
+    url: https://github.com/opensource-observer/opensource-observer
+    bugs:
+      - commit: 11559bcd3a
+        parent: c195f4f6b0
+        title: "fix(sqlmesh): resolve min_by commits (#3319)"
+        fix: 6e476d4fde
+        fix_title: "fix: use sha for github commits dedupe"
+        bug: "the rewrite replaces GROUP BY repository_id, sha with ROW_NUMBER partitioned by repository_id and push_id and keeps rn = 1, so a push with several commits keeps only one of them"
+        category: row_count_change
+        in_scope: true
+        must_mention: [push_id, sha, ROW_NUMBER, dropped]
+        expect: [{path: warehouse/oso_sqlmesh/models/staging/github/stg_github__distinct_main_commits.sql, line: 44}]
+      - commit: ac09920d33
+        parent: e90e315b08
+        title: "fix(sqlmesh): fix project to project mappings (#5079)"
+        fix: 721bbed027
+        fix_title: "fix: join condition (#5080)"
+        bug: "WHERE p2p.is_best_match = TRUE is applied after LEFT JOIN int_project_to_projects__coresignal, which turns it into an inner join and drops every venture event whose company has no project match"
+        category: row_count_change
+        in_scope: true
+        must_mention: [is_best_match, LEFT JOIN, WHERE, dropped]
+        expect: [{path: warehouse/oso_sqlmesh/models/intermediate/events/venture/coresignal/int_events__coresignal_venture.sql, line: 79, end_line: 83}]
+      - commit: b3e8522d8d
+        parent: 4d78571519
+        title: "simplify directory `int` models (#1380)"
+        fix: a8b7dcf1f3
+        fix_title: "fix: duplicated stars/forks on repo stats (#1891)"
+        bug: "repo_stats is grouped by project_id and artifact_id but joined on artifact_id alone, so a repository owned by several projects matches the stats row of each and its row is duplicated"
+        category: row_count_change
+        in_scope: true
+        must_mention: [repo_stats, project_id, artifact_id, duplicate]
+        expect: [{path: warehouse/dbt/models/intermediate/metrics/int_repo_metrics_by_project.sql, line: 60, end_line: 61}]
+      - commit: a1c7ea770f
+        parent: "5603265537"
+        title: "refactor(sqlmesh): consolidate superchain tx and tr-level events (#4918)"
+        fix: 5cffe450b5
+        fix_title: "hotfix: cast share of transactions parameters to doubles before dividing (#4959)"
+        bug: "share_of_transaction_gas divides an integer gas_used_trace by an integer SUM, so Trino does integer division and the share is 0 for every trace but a sole one"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [integer division, share_of_transaction_gas, DOUBLE]
+        expect: [{path: warehouse/oso_sqlmesh/models/intermediate/events/blockchain/superchain/int_events__superchain_internal_transactions.sql, line: 45, end_line: 49}]
+      - commit: a1c7ea770f
+        parent: "5603265537"
+        title: "refactor(sqlmesh): consolidate superchain tx and tr-level events (#4918)"
+        fix: afcf49844c
+        fix_title: "hotfix(sqlmesh): cast to double before multiplication (#4958)"
+        bug: "l2_gas_fee multiplies gas_used_tx by gas_price_tx (wei) as BIGINT and casts to DOUBLE only afterwards, so the product overflows BIGINT before the cast"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [overflow, BIGINT, gas_price_tx, CAST]
+        expect: [{path: warehouse/oso_sqlmesh/models/intermediate/events/blockchain/superchain/int_events__superchain_internal_transactions.sql, line: 42}]
+      - commit: 66162843d6
+        parent: 6a835da125
+        title: "feat(sqlmesh): add gitcoin funding events (#3976)"
+        fix: 39e441591a
+        fix_title: "fix(sqlmesh): missing round ids (#4002)"
+        bug: "matching rows are inner joined to a rounds CTE built only from donations with a non-null round_id, so matching payouts for rounds with no such donation are dropped"
+        category: row_count_change
+        in_scope: true
+        must_mention: [rounds, matching, inner join, round_id]
+        expect:
+          - {path: warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql, line: 40}
+          - {path: warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql, line: 59, end_line: 61}
+      - commit: 76605da5d7
+        parent: d4056d4ddc
+        title: "feat(sqlmesh): add initial oracle models (#5282)"
+        fix: 0c6145e42a
+        fix_title: "fix: trace address casting (#5292)"
+        bug: "trace_address is a comma-separated path such as '0,1,2' but is cast to DOUBLE, which fails or loses the value for every nested trace"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [trace_address, CAST, DOUBLE]
+        expect: [{path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/oracles/int_optimism_oracle_events.sql, line: 38}]
+      - commit: e9afbabd33
+        parent: 4c19181b62
+        title: "data: remaining directory mart models to sqlmesh (#2828)"
+        fix: 095bed2b6e
+        fix_title: "fix: @oso_id should take in columns, not strings (#2829)"
+        bug: "@oso_id is passed the string literals 'artifact_source' and 'artifact_source_id' (and 'user_source', 'user_source_id') instead of the columns, so every row gets the same artifact_id and user_id"
+        category: schema_contract
+        in_scope: true
+        must_mention: [oso_id, string literal, artifact_id, unique]
+        expect:
+          - {path: warehouse/metrics_mesh/models/intermediate/directory/int_artifacts.sql, line: 70}
+          - {path: warehouse/metrics_mesh/models/intermediate/directory/int_artifacts_by_user.sql, line: 118}
+          - {path: warehouse/metrics_mesh/models/intermediate/directory/int_artifacts_by_user.sql, line: 123}
+      - commit: 2666fbec6a
+        parent: 98148ecddd
+        title: "feat(sqlmesh): chain metrics models (#4623)"
+        fix: 6d5f153224
+        fix_title: "fix(sqlmesh): small bug in union statement for chain metrics (#4660)"
+        bug: "oso_metrics selects sample_date, chain, metric_name, source, amount while the other branches select sample_date, source, chain, metric_name, amount, and they are unioned with SELECT *, so the OSO rows put chain in source and the other columns shift"
+        category: other
+        in_scope: true
+        must_mention: [UNION, column order, source, chain]
+        expect:
+          - {path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/chain-metrics/int_chain_metrics.sql, line: 39, end_line: 43}
+          - {path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/chain-metrics/int_chain_metrics.sql, line: 52}
+      - commit: 3c5e6981dd
+        parent: 432c4b4933
+        title: "feat(sqlmesh): expose retro-funding specific metrics in their own mart model (#3631)"
+        fix: d19be15bc8
+        fix_title: "fix(sqlmesh): grains (#3637)"
+        bug: "both models declare grain (project_id, sample_date) but emit one row per metric_name for each project and date, so the declared grain is not unique"
+        category: schema_contract
+        in_scope: true
+        must_mention: [grain, metric_name, unique]
+        expect:
+          - {path: warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_relational_metrics_by_project.sql, line: 6}
+          - {path: warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_summary_metrics_by_project.sql, line: 6}
+      - commit: 81cfdabc56
+        parent: dd77c9d462
+        title: "feat(sqlmesh): artifacts_by_project for crypto-ecosystems (#4736)"
+        fix: 050c5a2483
+        fix_title: "fix(sqlmesh): fix crypto-ecosystems where clause (#4760)"
+        bug: "WHERE b.branch_name IS NOT NULL sits in the shared parsed_artifacts CTE, so repositories without a branch are dropped from the ecosystem-level mappings too, not only from the branch-level ones"
+        category: row_count_change
+        in_scope: true
+        must_mention: [branch_name, eco_name, filter, dropped]
+        expect: [{path: warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql, line: 29}]
+      - commit: 79826412ed
+        parent: df52e9efb3
+        title: "fix(sqlmesh): a few rounding and distinct by issues (#5417)"
+        fix: eda38670e8
+        fix_title: "hotfix(sqlmesh): enforce cast to double upstream (#5418)"
+        bug: "TVL, TVS and userops totals in US dollars and counts are cast to INTEGER (32-bit), which overflows for chain totals above about 2.1 billion and truncates fractions"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [INTEGER, overflow, tvl]
+        expect:
+          - {path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_chain.sql, line: 74}
+          - {path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_chain.sql, line: 77, end_line: 80}
+          - {path: warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_chain.sql, line: 83}

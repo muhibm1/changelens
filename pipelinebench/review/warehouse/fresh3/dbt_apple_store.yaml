@@ -1,0 +1,24 @@
+# dbt_apple_store: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_apple_store): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_apple_store
+url: https://github.com/fivetran/dbt_apple_store
+bugs:
+  - commit: 0b3b9d5b69
+    parent: 5bd65a831e
+    title: "subscription model"
+    fix: 955784a174
+    fix_title: "bugfix/nulls-in-state-join (#18)"
+    bug: "reporting_grain is joined to subscription_summary and subscription_events with reporting_grain.state = ...state, and state is null for most countries, so those rows never match and their subscription metrics come back null or zero"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: [state, "null", join]
+    expect:
+      - {path: models/apple_store__subscription_report.sql, line: 65}
+      - {path: models/apple_store__subscription_report.sql, line: 72}

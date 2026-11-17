@@ -728,5 +728,38 @@ def usage_path():
     print(usage.path() or "off")
 
 
+@app.command("warehouse-review")
+def warehouse_review(
+    commit: str = typer.Argument("HEAD", help="The commit to review against its first parent."),
+    repo: Path = typer.Option(Path("."), "--repo", help="The warehouse repository (dbt, SQLMesh or plain SQL)."),
+    model: str = typer.Option("sonnet", "--model", help="Model for the three specialist reviewers."),
+    verify_model: str = typer.Option("opus", "--verify-model", help="Model for the skeptical pass that decides each finding."),
+    fmt: str = typer.Option("text", "--format", help="text | json | markdown"),
+    fail_on: str = typer.Option("bug", "--fail-on", help="Exit 1 when a finding at this level exists: bug | risk | never."),
+):
+    """Agent review of a warehouse commit: specialist reviewers propose, a skeptical pass confirms. Runs on the Claude Code login."""
+    from .warehouse_agent import review as agent_review
+
+    res = agent_review(repo.resolve(), commit, model=model, verify_model=verify_model)
+    if res.error:
+        typer.echo(f"review failed, not a clean result: {res.error}", err=True)
+        raise typer.Exit(2)
+    if fmt == "json":
+        print(_json(res.to_json()))
+    else:
+        bold = "**" if fmt == "markdown" else ""
+        if not res.findings:
+            print("No findings.")
+        for f in res.findings:
+            print(f"{'- ' if fmt == 'markdown' else ''}{bold}[{f.severity}] {f.path}:{f.line}{bold} {f.title}")
+            print(f"    {f.explanation}")
+            if f.verify_reason:
+                print(f"    checked: {f.verify_reason}")
+        print(f"\n{len(res.findings)} findings ({sum(1 for f in res.findings if f.severity == 'bug')} confirmed), {len(res.rejected)} rejected, {res.seconds}s")
+    levels = {"bug": {"bug"}, "risk": {"bug", "risk"}, "never": set()}
+    if any(f.severity in levels.get(fail_on, {"bug"}) for f in res.findings):
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()

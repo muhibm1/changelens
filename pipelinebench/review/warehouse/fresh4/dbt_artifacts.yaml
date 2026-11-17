@@ -1,0 +1,64 @@
+# dbt_artifacts: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/brooklyn-data/dbt_artifacts): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_artifacts
+url: https://github.com/brooklyn-data/dbt_artifacts
+bugs:
+  - commit: "1338d9a3ab"
+    parent: "7623f43fe8"
+    title: "Capturing exposures data (#18) (#21)"
+    fix: "f0272bb6dd"
+    fix_title: "missing comma and wrong ref (#23) (#25)"
+    bug: "fct_dbt__exposures_updates has no comma between the exposures_record and model_updates CTEs, and the final CTE selects from `exposures e`, a CTE that does not exist (the latest exposures are in exposures_latest), so the model cannot compile"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "exposures"]
+    expect:
+      - {path: "models/fct_dbt__exposures_updates.sql", line: 11}
+      - {path: "models/fct_dbt__exposures_updates.sql", line: 51}
+  - commit: "25a2c0b0eb"
+    parent: "fbb0aa61b2"
+    title: "Snowflake compatibility"
+    fix: "853a1e7483"
+    fix_title: "Fix exposure model"
+    bug: "while the other staging models wrap depends_on_nodes in parse_json, stg_dbt__snapshots gets `depends_on_nodes,depends_on_nodes,`, selecting the same column twice, so the view has a duplicate column name"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["depends_on_nodes", "duplicate"]
+    expect:
+      - {path: "models/staging/stg_dbt__snapshots.sql", line: 17}
+  - commit: "d270a3a2fa"
+    parent: "0823adfbe1"
+    title: "Add fct_dbt__critical_path (#2)"
+    fix: "dd5e64fe28"
+    fix_title: "Fix empty fct_dbt__latest_full_model_executions bug by filtering for 'run' execution_commands"
+    bug: "latest_full takes the most recent run result with no selected models and no full refresh, with no filter on execution_command, so when the latest invocation was a dbt test, seed or other non-run command the join to model executions finds nothing and fct_dbt__latest_full_model_executions comes back empty"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["execution_command", "latest_full"]
+    expect:
+      - {path: "models/fct_dbt__latest_full_model_executions.sql", line: 15, end_line: 21}
+  - commit: "fce586ff17"
+    parent: "f0272bb6dd"
+    title: "Documented the fact and the staging exposure models according to the convention."
+    fix: "a7e86f9ccb"
+    fix_title: "Change exposures model to fix uniqueness check issue"
+    bug: "schemas.yml declares a unique test on dim_dbt__exposures.manifest_model_id, but that model flattens depends_on_nodes into output_feeds, one row per model an exposure depends on, so manifest_model_id repeats for every exposure with more than one feed and the test fails"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["manifest_model_id", "unique", "output_feeds"]
+    expect:
+      - {path: "models/schemas.yml", line: 129, end_line: 135}
+  - commit: "834074abc8"
+    parent: "59fa506290"
+    title: "Add fields used for thread viz (#3)"
+    fix: "85c61120ce"
+    fix_title: "Fix null run times for ephemeral models"
+    bug: "total_node_runtime now comes from left joins to latest_executions and is coalesced to 0 in only one branch; the recursive search_path adds all_needed_dependencies.total_node_runtime to the running total without a coalesce, so a model with no execution (an ephemeral model) makes the whole critical path total null"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["total_node_runtime", "null", "coalesce"]
+    expect:
+      - {path: "models/fct_dbt__critical_path.sql", line: 165}
+      - {path: "models/fct_dbt__critical_path.sql", line: 68}

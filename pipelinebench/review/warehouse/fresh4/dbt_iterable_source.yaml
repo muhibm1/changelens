@@ -1,0 +1,18 @@
+# dbt_iterable_source: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_iterable_source): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_iterable_source
+url: https://github.com/fivetran/dbt_iterable_source
+bugs:
+  - commit: "9b4c1a577b"
+    parent: "07d151a669"
+    title: "add unique_event_id"
+    fix: "85260b51ce"
+    fix_title: "wrong field name"
+    bug: "unique_event_id is built from event_id, an alias defined in the same select (the source column is _fivetran_id), so the surrogate key references a column the source table does not have and fails on warehouses that do not resolve lateral aliases"
+    category: other
+    in_scope: true
+    must_mention: ["event_id", "unique_event_id", "_fivetran_id"]
+    expect:
+      - {path: "models/stg_iterable__event.sql", line: 33}

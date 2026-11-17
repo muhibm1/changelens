@@ -1,0 +1,121 @@
+# cal-itp/data-infra development set: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/cal-itp/data-infra): each bug was found from
+# a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit
+# was read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# These ten are in addition to the six already in history-calitp.yaml (34716dcc27, b111f6f570, f26b2970ab,
+# 39cdaa1dd, 6a9eae65a2, 0dfe3b65e7), which are not repeated here.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that repairs it;
+# expect gives the lines in the introducing commit's version of each file; category is from the closed list in
+# README.md; in_scope is true when lineage, schema or row-count reasoning can see the bug from the diff.
+repo: calitp
+url: https://github.com/cal-itp/data-infra
+bugs:
+  - commit: 232cdc0aff
+    parent: 65e8b047de
+    title: "Add agency information to fct_payments_rides_v2 (#3008)"
+    fix: ec8d93bec9
+    fix_title: "fix join on feed_key (#3014)"
+    bug: "the dim_agency join compares r.feed_key to itself instead of to a.feed_key, so every ride matches the agency row of every feed version and fans out"
+    category: row_count_change
+    in_scope: true
+    must_mention: [feed_key, dim_agency, fan]
+    expect: [{path: warehouse/models/mart/payments/fct_payments_rides_v2.sql, line: 147, end_line: 149}]
+  - commit: c8bf4a71c4
+    parent: 92b1297357
+    title: "remove prefix from fct_annual_service_modes"
+    fix: a53099f87f
+    fix_title: "add missing column rename"
+    bug: "the rename leaves `sum_scheduled_vehicles_passenger_car_revenue_miles AS,` with no alias, so the column scheduled_vehicles_passenger_car_revenue_miles is never produced and the select does not parse"
+    category: other
+    in_scope: true
+    must_mention: [alias, scheduled_vehicles_passenger_car_revenue_miles]
+    expect: [{path: warehouse/models/mart/ntd/fct_annual_service_modes.sql, line: 50}]
+  - commit: 6aca9aefe8
+    parent: e56d910e13
+    title: "add more keying to underlying rt messages models (#2725)"
+    fix: 3b7a302a21
+    fix_title: "fix column name reference (#2731)"
+    bug: "the YAML anchor documents and tests schedule_dataset_key on the three RT messages models, but their SQL selects schedule_gtfs_dataset_key, so the documented column and its relationships test point at a column that does not exist"
+    category: documented_column_not_selected
+    in_scope: true
+    must_mention: [schedule_dataset_key, schedule_gtfs_dataset_key]
+    expect:
+      - {path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml, line: 175, end_line: 180}
+      - {path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml, line: 292}
+      - {path: warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml, line: 974}
+  - commit: 4a46a99373
+    parent: 680a2d6db1
+    title: "Add CTEs and optimize fct_daily_rt_feed_validation_notices"
+    fix: 663d7819f2
+    fix_title: "Add missing key column to fct_daily_rt_feed_validation_notices"
+    bug: "the refactor drops the surrogate key column from the final select, while _mart_gtfs_quality.yml still documents key as the model's primary key with unique and not_null tests"
+    category: documented_column_not_selected
+    in_scope: true
+    must_mention: [key, primary key, dropped]
+    expect:
+      - {path: warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql, line: 57, end_line: 58}
+      - {path: warehouse/models/mart/gtfs_quality/_mart_gtfs_quality.yml, line: 17, end_line: 23}
+  - commit: 32c1f7677f
+    parent: bfbc6a8075
+    title: "Initial authorisations modeling (#2954)"
+    fix: 3491334c85
+    fix_title: "Payments: Remove over-aggressive file deduping (#2990)"
+    bug: "qualify_dedupe_lp_files keeps only the latest file per instance and export date (DENSE_RANK = 1), so rows that arrive only in an earlier file for the same date are silently dropped"
+    category: row_count_change
+    in_scope: true
+    must_mention: [dedup, DENSE_RANK, dropped rows]
+    expect:
+      - {path: warehouse/macros/littlepay_staging_transforms.sql, line: 35, end_line: 43}
+      - {path: warehouse/models/staging/payments/littlepay/stg_littlepay__authorisations.sql, line: 44}
+  - commit: 04a3a21f0e
+    parent: 9b16b09748
+    title: "Add fct_create_expiring_gtfs_issues model and Airtable source (#5011)"
+    fix: 8300b421d5
+    fix_title: "Deduplicating the organization name (#5062)"
+    bug: "expiring datasets are inner joined to dim_provider_gtfs_data on the schedule dataset key alone, and that table has a row per service and organization, so one expiring dataset produces several issue rows"
+    category: row_count_change
+    in_scope: true
+    must_mention: [dim_provider_gtfs_data, schedule_gtfs_dataset_key, duplicate]
+    expect: [{path: warehouse/models/mart/transit_database/fct_create_expiring_gtfs_issues.sql, line: 74, end_line: 75}]
+  - commit: 9c3ac72c52
+    parent: 1b436b64bf
+    title: "Modify `mart_ad_hoc.fct_scheduled_service_by_daypart` -> `mart_gtfs.fct_monthly_route_service_by_timeofday` (#3298)"
+    fix: 0e047a80d7
+    fix_title: "Fix primary key for `fct_monthly_route_service_by_timeofday`  (#3302)"
+    bug: "the surrogate key hashes source_record_id, route_id, month, year and time_of_day, but the model groups by nine columns including day_type and the route names, so key is not unique and its primary key tests fail"
+    category: schema_contract
+    in_scope: true
+    must_mention: [key, day_type, grain, unique]
+    expect:
+      - {path: warehouse/models/mart/gtfs/fct_monthly_route_service_by_timeofday.sql, line: 92}
+      - {path: warehouse/models/mart/gtfs/fct_monthly_route_service_by_timeofday.sql, line: 97}
+  - commit: 8a26f18e3b
+    parent: 219319c780
+    title: "feat(mart_gtfs_quality): Adds a query that produces gtfs rt and vp completeness for use in reports (#3424)"
+    fix: 2e59f85075
+    fix_title: "Update fct_daily_trip_updates_vehicle_positions_completeness.sql (#4505)"
+    bug: "the feed map is joined on schedule_feed_key only, not also on date, so each scheduled trip matches the map row of every day the feed was active and fans out"
+    category: row_count_change
+    in_scope: true
+    must_mention: [schedule_feed_key, date, fan]
+    expect: [{path: warehouse/models/mart/gtfs_quality/fct_daily_trip_updates_vehicle_positions_completeness.sql, line: 26, end_line: 27}]
+  - commit: 62fee45e9f
+    parent: a791586b06
+    title: "Updates to scrape_ntd.py to also handle the ridership excel notebook and load it to a bucket"
+    fix: 363812cd0d
+    fix_title: "Updates sql to Remove duplicate entries"
+    bug: "the intermediate model reads a hardcoded personal staging table (cal-itp-data-infra-staging.vb_staging) instead of ref() to the staging model, so it reads a developer's table outside the dbt graph"
+    category: other
+    in_scope: true
+    must_mention: [ref, hardcoded, vb_staging]
+    expect: [{path: warehouse/models/intermediate/ntd/int_ntd__monthly_ridership_with_adjustments_upt.sql, line: 3}]
+  - commit: 11ec0ee750
+    parent: "8005934648"
+    title: "Payments: Summarized authorisations model  (#3001)"
+    fix: dda9f86a5e
+    fix_title: "Take most recent authorisation with non-null status for aggregation (#3052)"
+    bug: "the latest authorisation per aggregation is picked by timestamp alone, so a newest row with a null status wins and the aggregation reports no authorisation status"
+    category: business_logic
+    in_scope: false
+    must_mention: [status, null, latest]
+    expect: [{path: warehouse/models/intermediate/payments/int_payments__authorisations_summarized.sql, line: 16}]

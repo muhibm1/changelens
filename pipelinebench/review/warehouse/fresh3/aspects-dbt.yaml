@@ -1,0 +1,46 @@
+# aspects-dbt: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/openedx/aspects-dbt): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: aspects-dbt
+url: https://github.com/openedx/aspects-dbt
+bugs:
+  - commit: 874b13ed95
+    parent: 8f363b6b8a
+    title: "feat: migrate aspects dictionaries to dbt"
+    fix: deac3b23d8
+    fix_title: "fix: use left outer join for user_pii"
+    bug: "user_pii selects from external_id right outer joined to most_recent_user_profile, so external ids without a matching profile row are dropped and profiles without an xapi external id produce rows with a null external_user_id, a primary key column of the dictionary"
+    category: row_count_change
+    in_scope: true
+    must_mention: [right outer join, external_id, dropped]
+    expect: [{path: models/base/user_pii.sql, line: 80, end_line: 85}]
+  - commit: f1883be79a
+    parent: 2e86e13591
+    title: "fix: remove course_run from problem_engagement tables"
+    fix: 2948f0fc3d
+    fix_title: "fix: correct column names"
+    bug: "the change renames the output of section_problem_engagement and subsection_problem_engagement from section_subsection_problem_engagement to engagement_level, but fact_problem_engagement still selects section_subsection_problem_engagement from both, and its new \"subsection\" and \"section\" literals are double quoted identifiers rather than strings"
+    category: dropped_or_renamed_column_with_readers
+    in_scope: true
+    must_mention: [section_subsection_problem_engagement, engagement_level, fact_problem_engagement]
+    expect:
+      - {path: models/problems/section_problem_engagement.sql, line: 152}
+      - {path: models/problems/subsection_problem_engagement.sql, line: 134}
+      - {path: models/problems/fact_problem_engagement.sql, line: 6}
+      - {path: models/problems/fact_problem_engagement.sql, line: 16}
+  - commit: f474f40023
+    parent: 6e53552d9e
+    title: "feat: use parameterized view to fix memory issue"
+    fix: 0271c6ef86
+    fix_title: "fix: fix bad concat"
+    bug: "the final select builds org and course_key with concat(course_data.org, range.org) and concat(course_data.course_key, range.course_key) instead of coalescing them, so matched rows get the value twice joined together and the output keys no longer match any course"
+    category: other
+    in_scope: true
+    must_mention: [concat, coalesce, course_key]
+    expect: [{path: models/video/watched_video_duration.sql, line: 109, end_line: 110}]
