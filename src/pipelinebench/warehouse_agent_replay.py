@@ -167,7 +167,10 @@ def run(repos: list[tuple[Path, list[Path]]], sample: int, seed: int, model: str
         k = _key(repo, commit, model, verify)
         if k in cache and not cache[k].get("error"):
             return item, cache[k]
-        r = review(repo, commit, model=model, verify=verify, effort=effort).to_json()
+        try:
+            r = review(repo, commit, model=model, verify=verify, effort=effort).to_json()
+        except Exception as e:  # noqa: BLE001 - one broken commit is recorded as an error, never stops the replay
+            r = {"findings": [], "seconds": 0.0, "error": f"{type(e).__name__}: {e}"[:500]}
         with _lock:
             cache[k] = r
             if cache_path:

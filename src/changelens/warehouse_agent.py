@@ -413,6 +413,7 @@ def _check_site(site: dict[str, Any], cwd: Path, message: str, diff: str, model:
         return {"verdict": "unknown", "grain": "", "evidence": f"check failed: {e}"[:300]}, 0
 
 
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 CHUNK_FILES = 4
 MAX_CHUNKS = 3
 
@@ -455,8 +456,11 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
 
     t0 = time.monotonic()
     res = AgentResult()
-    parent = _git(repo, "rev-parse", f"{commit}^").strip()
     full = _git(repo, "rev-parse", commit).strip()
+    try:
+        parent = _git(repo, "rev-parse", f"{full}^").strip()
+    except subprocess.CalledProcessError:
+        parent = EMPTY_TREE  # a root commit: review everything it adds
     message = _git(repo, "log", "-1", "--format=%s%n%n%b", full).strip()[:2000]
     diff = change_diff(repo, parent, full)
     rule_findings: list[Any] = []
