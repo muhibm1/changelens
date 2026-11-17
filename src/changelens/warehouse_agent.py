@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-AGENT_VERSION = "wa-5"
+AGENT_VERSION = "wa-6"
 DIFF_CHARS = 90_000
 
 FINDING = {
@@ -175,7 +175,10 @@ Verdicts:
   joined side's grain, as the repository documents (tests, grain, keys), builds (GROUP BY, QUALIFY, the key it
   constructs) or plainly holds (a per-run, per-feed, per-version or per-platform table repeating a natural id), is
   wider than the join key; data is not needed. For a dropped or missing column it is enough that a reader, test or
-  YAML entry names it.
+  YAML entry names it. For lost rows it is enough that the change adds an INNER join, or a WHERE on the right-hand
+  table of a LEFT join, to a side that the repository shows can lack the key (no relationships test, an optional or
+  differently sourced table, names matched as text across sources), in a model whose documented purpose covers
+  those rows.
 - "risk": a real concern you could neither confirm nor rule out from the repository.
 - "reject": the repository shows it does not hold (the joined side is unique on the key, the column is selected
   after all, the reader does not exist, the NULL is handled), it is style or speculation, or it predates the commit.
@@ -410,6 +413,42 @@ def _check_site(site: dict[str, Any], cwd: Path, message: str, diff: str, model:
         return {"verdict": "unknown", "grain": "", "evidence": f"check failed: {e}"[:300]}, 0
 
 
+CHUNK_FILES = 4
+MAX_CHUNKS = 3
+
+
+def _split_files(numbered: str) -> list[tuple[str, str]]:
+    """The numbered diff cut into (path, that file's diff) pairs, in diff order."""
+    parts: list[tuple[str, str]] = []
+    cur: list[str] = []
+    path = ""
+    for ln in numbered.splitlines():
+        if ln.startswith("diff --git "):
+            if cur:
+                parts.append((path, "\n".join(cur)))
+            cur = [ln]
+            path = ln.split(" b/", 1)[-1]
+        else:
+            cur.append(ln)
+    if cur:
+        parts.append((path, "\n".join(cur)))
+    return parts
+
+
+def _chunks(numbered: str) -> list[str]:
+    """The diff as one part, or for a commit touching many files, up to MAX_CHUNKS parts of about CHUNK_FILES files each.
+
+    A reviewer given twelve files tends to find two problems and stop; giving each reviewer a few files keeps the
+    attention on every file. Files past the last chunk go into it, so nothing is dropped."""
+    files = _split_files(numbered)
+    if len(files) <= CHUNK_FILES:
+        return [numbered]
+    groups = [files[i : i + CHUNK_FILES] for i in range(0, len(files), CHUNK_FILES)]
+    if len(groups) > MAX_CHUNKS:
+        groups = groups[: MAX_CHUNKS - 1] + [sum(groups[MAX_CHUNKS - 1 :], [])]
+    return ["\n".join(d for _, d in g) for g in groups]
+
+
 def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract"), deep_sites: bool = False) -> AgentResult:
     """Review ``commit`` against its first parent: specialist passes propose findings, a skeptical pass decides them."""
     from concurrent.futures import ThreadPoolExecutor
@@ -437,18 +476,31 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
     try:
         snapshot(repo, full, tmp)
 
-        def one(name: str) -> tuple[str, dict[str, Any], int]:
-            prompt = BASE_PROMPT.format(focus=FOCUS[name], hints=_hints(rule_findings), message=message, diff=numbered)
+        chunks = _chunks(numbered)
+        all_files = [p for p, _ in _split_files(numbered)]
+
+        def one(job: tuple[str, str]) -> tuple[str, dict[str, Any], int]:
+            name, part = job
+            if len(chunks) > 1:
+                part = (
+                    f"This commit changes {len(all_files)} files: {', '.join(all_files)}.\n"
+                    "Below is the part you are responsible for; review these files closely (you may read any other file).\n" + part
+                )
+            prompt = BASE_PROMPT.format(focus=FOCUS[name], hints=_hints(rule_findings), message=message, diff=part)
             out, turns = _claude(prompt, tmp, GRAIN_SCHEMA if name == "grain" else REVIEW_SCHEMA, model, effort, timeout)
             return name, out, turns
 
-        with ThreadPoolExecutor(len(passes)) as pool:
-            outs = list(pool.map(one, passes))
+        jobs = [(name, part) for part in chunks for name in passes]
+        with ThreadPoolExecutor(min(len(jobs), 6)) as pool:
+            outs = list(pool.map(one, jobs))
+        audit: list[dict[str, Any]] = []
+        for name, out, _ in outs:
+            if name == "grain":
+                audit += out.get("audit", [])
+        res.audit = audit
         found: list[tuple[str, AgentFinding]] = []
         for name, out, turns in outs:
             res.turns += turns
-            if name == "grain":
-                res.audit = out.get("audit", [])
             found += [(name, f) for f in _parse(out, name)]
         sites = _sites(res.audit) if deep_sites else []
         if sites:
@@ -460,7 +512,7 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
                 if out.get("verdict") in ("fans_out", "drops_rows", "keeps_duplicates") and out.get("finding"):
                     found += [("site", f) for f in _parse({"findings": [out["finding"]]}, "site")]
         res.candidates = len(found)
-        res.findings = _merge(found)[:15]
+        res.findings = _merge(found)[:24]
         if verify and res.findings:
             listing = "\n".join(f"{i}: [{f.category}] {f.path}:{f.line} {f.title}\n   {f.explanation}\n   evidence: {f.evidence}" for i, f in enumerate(res.findings))
             vout, vturns = _claude(VERIFY_PROMPT.format(message=message, diff=numbered, findings=listing), tmp, VERIFY_SCHEMA, verify_model or model, effort, timeout)

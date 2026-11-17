@@ -125,6 +125,13 @@ def test_score_strict_needs_the_labelled_file() -> None:
     assert rep.score_bug(bug, [_f(line=40, severity="risk")])["hit_risk_only"]
 
 
+def test_large_commits_are_reviewed_in_chunks_without_dropping_files() -> None:
+    d = "\n".join(f"diff --git a/f{i}.sql b/f{i}.sql\n--- a/f{i}.sql\n+++ b/f{i}.sql\n@@ -1 +1 @@\n    1 +x" for i in range(14))
+    chunks = wa._chunks(d)
+    assert [c.count("diff --git") for c in chunks] == [4, 4, 6]
+    assert wa._chunks("diff --git a/a.sql b/a.sql\n+x") == ["diff --git a/a.sql b/a.sql\n+x"]
+
+
 def test_merge_folds_near_duplicates() -> None:
     a, b, c = _f(line=10), _f(line=12), _f(line=12, category="other")
     assert rep._findings({"findings": []}) == []
