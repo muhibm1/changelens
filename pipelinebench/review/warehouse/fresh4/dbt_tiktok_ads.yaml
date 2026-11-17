@@ -1,0 +1,35 @@
+# dbt_tiktok_ads: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_tiktok_ads): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_tiktok_ads
+url: https://github.com/fivetran/dbt_tiktok_ads
+bugs:
+  - commit: "8117b59b5e"
+    parent: "bbcb54c020"
+    title: "add more ids to unique tests"
+    fix: "e79c20ee26"
+    fix_title: "fix advertiser_id unique test"
+    bug: "the unique_combination_of_columns tests on four report models gain a column named advertiser, but the models expose advertiser_id, so the tests reference a column that does not exist"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["advertiser", "advertiser_id"]
+    expect:
+      - {path: "models/tiktok_ads.yml", line: 72}
+      - {path: "models/tiktok_ads.yml", line: 162}
+      - {path: "models/tiktok_ads.yml", line: 247}
+      - {path: "models/tiktok_ads.yml", line: 312}
+  - commit: "7925ea3c90"
+    parent: "54c907155a"
+    title: "add some columns, add pass thru"
+    fix: "3c648e5f53"
+    fix_title: "fix aggregation for metric"
+    bug: "the passthrough metric loops add each hourly metric as a bare column to selects that aggregate with sum() and group by the dimension columns only, so as soon as a passthrough metric is configured the query fails because the metric is neither aggregated nor grouped"
+    category: other
+    in_scope: true
+    must_mention: ["passthrough", "sum", "group by"]
+    expect:
+      - {path: "models/tiktok_ads__account_report.sql", line: 42, end_line: 43}
+      - {path: "models/tiktok_ads__ad_group_report.sql", line: 59, end_line: 60}
+      - {path: "models/tiktok_ads__ad_report.sql", line: 66, end_line: 67}
+      - {path: "models/tiktok_ads__campaign_report.sql", line: 44, end_line: 45}

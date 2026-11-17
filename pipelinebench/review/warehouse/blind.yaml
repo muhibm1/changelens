@@ -1,0 +1,276 @@
+# Blind set: real warehouse bugs from two public dbt projects, located at the commit that introduced them.
+# Hold these back: do not use them to tune ChangeLens; score them only when a version is frozen.
+# Written by hand from the public upstream history: each bug was found from a later fix commit, the fixed lines
+# were traced with git blame on the fix's parent, and the introducing commit was read to confirm it added the
+# faulty lines. Never derived from ChangeLens's output.
+# Fields as in dev.yaml: commit and parent are the introducing commit and its parent; fix is the later repair;
+# expect gives lines in the introducing commit's version of each file; category is from the closed list in
+# README.md; in_scope is true when lineage, schema or row-count reasoning can see the bug from the diff.
+repos:
+  - repo: tuva
+    url: https://github.com/tuva-health/tuva
+    bugs:
+      - commit: b0c7722a66
+        parent: d58eec0d24
+        title: "added filter for encounter fields; removed a redundant ed_classification model"
+        fix: 18e39fa284
+        fix_title: "Fixed ED Classification Duplicates Bug (#333)"
+        bug: "the summary left joins ccsr__long_condition_category on encounter and diagnosis code, which holds several CCSR categories per code, so encounters are duplicated"
+        category: row_count_change
+        in_scope: true
+        must_mention: [ccsr__long_condition_category, duplicate, encounter_id]
+        expect:
+          - {path: models/ed_classification/final/ed_classification__summary.sql, line: 18, end_line: 19}
+          - {path: models/ed_classification/final/ed_classification__summary.sql, line: 43, end_line: 45}
+      - commit: ffa41cdba1
+        parent: 0ff25ef6a4
+        title: "changing npi column to id; adding description/names to code columns"
+        fix: 3a6dff465a
+        fix_title: "bug fix for multiple org names in one encounter (#524)"
+        bug: "the facility CTE joins terminology__provider and groups by encounter and provider_organization_name, so an encounter with facility ids under different organization names yields one row per name and fans out the summary"
+        category: row_count_change
+        in_scope: true
+        must_mention: [provider_organization_name, group by, encounter_id]
+        expect:
+          - {path: models/claims_preprocessing/acute_inpatient/final/acute_inpatient__summary.sql, line: 82, end_line: 87}
+          - {path: models/claims_preprocessing/emergency_department/final/emergency_department__summary.sql, line: 83, end_line: 88}
+      - commit: ffa41cdba1
+        parent: 0ff25ef6a4
+        title: "changing npi column to id; adding description/names to code columns"
+        fix: 9cefd85937
+        fix_title: "Fixing ref in emergency_department__summary.sql to reference staging table rather than input_layer."
+        bug: "the emergency department summary reads ref('eligibility') from the input layer instead of its own emergency_department__stg_eligibility staging model, bypassing the staging layer in the lineage"
+        category: other
+        in_scope: true
+        must_mention: [eligibility, emergency_department__stg_eligibility, input layer]
+        expect: [{path: models/claims_preprocessing/emergency_department/final/emergency_department__summary.sql, line: 76}]
+      - commit: 118e818ac8
+        parent: ab91d8b389
+        title: "Pmpm updates (#284)"
+        fix: 593d40710d
+        fix_title: "Fixing PMPM prep join issue (#568)"
+        bug: "member months now carry data_source, but the four service-category pivots are joined on patient, month, payer and plan only, so a member present in two data sources fans out"
+        category: row_count_change
+        in_scope: true
+        must_mention: [data_source, join, fan]
+        expect: [{path: models/financial_pmpm/final/financial_pmpm__pmpm_prep.sql, line: 68, end_line: 87}]
+      - commit: 7a5660c0a9
+        parent: f220574382
+        title: "adding fallback steps, fixing bad terminology join"
+        fix: cc3df24bfa
+        fix_title: "fixing bad term join"
+        bug: "the Medicare specialty code join casts both sides to numeric, but the codes are two-character strings that can be alphanumeric, so those rows fail the cast and drop out of the inner join"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [specialty_code, cast, numeric]
+        expect: [{path: models/tuva_provider_attribution/intermediate/provider_attribution__provider_classification.sql, line: 30, end_line: 31}]
+      - commit: 85f2183839
+        parent: 3a6e4dfbbd
+        title: "Update safe_cast to try_cast for duckdb (#645)"
+        fix: 19f50c9109
+        fix_title: "Fix portable office-based surgery HCPCS casting (#1403)"
+        bug: "on duckdb and databricks the filter is try_cast('hcpcs_code' as integer), casting the string literal rather than the column, so it is always null and the model returns no rows"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [try_cast, hcpcs_code, literal]
+        expect: [{path: models/claims_preprocessing/service_category/intermediate/service_category__office_based_surgery_professional.sql, line: 11}]
+      - commit: ccf6a06f80
+        parent: d6e77c8959
+        title: "Performance improvements for `claims_preprocessing.member_months` (#1088)"
+        fix: c20ba04d3f
+        fix_title: "Revert \"Performance improvements for `claims_preprocessing.member_mon… (#1123)"
+        bug: "the rewrite drops SELECT DISTINCT and swaps dense_rank for row_number, so overlapping eligibility spans produce duplicate member months, each with its own member_month_key"
+        category: row_count_change
+        in_scope: true
+        must_mention: [distinct, row_number, member_month_key]
+        expect: [{path: models/claims_preprocessing/claims_enrollment/claims_enrollment__member_months.sql, line: 31, end_line: 56}]
+      - commit: ca51597d90
+        parent: "1262028007"
+        title: "Dqi mart join fix (#630)"
+        fix: 25f491b3d4
+        fix_title: "fixing divide by 0 issue (#648)"
+        bug: "cost_per_day and thirty_day_equivalent_cost divide paid_amount by days_supply with no guard, so a zero days_supply fails the query or yields an invalid value"
+        category: other
+        in_scope: false
+        must_mention: [days_supply, divide by zero]
+        expect: [{path: models/data_quality/dqi/mart_review/final/mart_review__pharmacy.sql, line: 24, end_line: 27}]
+      - commit: 19f041823d
+        parent: e61e5589b6
+        title: "Adding revenue codes to hospice IP"
+        fix: 685c2e15a5
+        fix_title: "Bug fix"
+        bug: "the new revenue code filter references med.revenue_center_code but the medical claim table is aliased s in this model, so the column reference does not resolve"
+        category: other
+        in_scope: true
+        must_mention: [alias, revenue_center_code]
+        expect: [{path: models/claims_preprocessing/service_category/intermediate/service_category__inpatient_hospice_institutional.sql, line: 16}]
+      - commit: 86d7356107
+        parent: e7cab0a4d9
+        title: "Referencing home health directly instead of bill type codes associated."
+        fix: 685c2e15a5
+        fix_title: "Bug fix"
+        bug: "the NOT EXISTS subquery reads hhi.claim_id2, a column service_category__home_health_institutional does not have (it selects claim_id)"
+        category: schema_contract
+        in_scope: true
+        must_mention: [claim_id2, service_category__home_health_institutional]
+        expect: [{path: models/claims_preprocessing/service_category/intermediate/service_category__outpatient_hospice_institutional.sql, line: 20}]
+      - commit: b9e6ef9358
+        parent: 215f37fd2c
+        title: "fixed bug in normalized eligibility (#317)"
+        fix: bd220669c3
+        fix_title: "Fix date normalization (#443)"
+        bug: "patient_id_key concatenates data_source, payer, plan and the enrollment dates with ||, so a null in any part makes the whole join key null and those eligibility rows lose their normalized dates"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [patient_id_key, null, concatenat]
+        expect:
+          - {path: models/claims_preprocessing/normalized_input/staging/normalized_input__stg_eligibility.sql, line: 3}
+          - {path: models/claims_preprocessing/normalized_input/intermediate/normalized_input__int_eligibility_dates_normalize.sql, line: 4}
+
+  - repo: ol-data-platform
+    url: https://github.com/mitodl/ol-data-platform
+    bugs:
+      - commit: 393673fa08
+        parent: e0c3276c84
+        title: "Create engagement afact models (#1529)"
+        fix: 9f86531a99
+        fix_title: "Fix duplicates in dbt models caused by dim_course_content joins that didn't include courserun_readable_id (#1969)"
+        bug: "page and problem engagement join the course structure on block id alone, but a block id repeats across course runs, so each event matches every run's structure row and fans out"
+        category: row_count_change
+        in_scope: true
+        must_mention: [block, courserun_readable_id, fan]
+        expect:
+          - {path: src/ol_dbt/models/dimensional/afact_course_page_engagement.sql, line: 38, end_line: 39}
+          - {path: src/ol_dbt/models/dimensional/afact_problem_engagement.sql, line: 39, end_line: 40}
+      - commit: 5cbaf30194
+        parent: 4314f61953
+        title: "adds other platforms to afact video table (#1565)"
+        fix: 9f86531a99
+        fix_title: "Fix duplicates in dbt models caused by dim_course_content joins that didn't include courserun_readable_id (#1969)"
+        bug: "the video fact walks the course_content hierarchy by content_block_pk and parent_block_id without courserun_readable_id, so parents shared across runs fan out the rows"
+        category: row_count_change
+        in_scope: true
+        must_mention: [parent_block_id, courserun_readable_id, fan]
+        expect: [{path: src/ol_dbt/models/dimensional/afact_video_engagement.sql, line: 62, end_line: 76}]
+      - commit: 5be68ca420
+        parent: 32941ff6f2
+        title: "add product readable id's for coupons without orders (#1603)"
+        fix: db190bce20
+        fix_title: "fix duplicate issue on all coupons mart (#1606)"
+        bug: "the new pull_product_nonorders CTE is left joined on coupon_id for every coupon, including coupons that already matched a product through orders, so those coupons get extra rows"
+        category: row_count_change
+        in_scope: true
+        must_mention: [pull_product_nonorders, coupon_id, duplicate]
+        expect: [{path: src/ol_dbt/models/marts/mitxpro/marts__mitxpro_all_coupons.sql, line: 245, end_line: 246}]
+      - commit: fc88ec0f9c
+        parent: 4eb03e0337
+        title: "create mart for MITx Online enrollments and demographics (#878)"
+        fix: b2222d0638
+        fix_title: "resolve the duplicates in marts__mitxonline_course_enrollments (#1659)"
+        bug: "enrollments are left joined to users on user_mitxonline_username = user_username, which is not unique in the users model, so an enrollment can match several user rows"
+        category: row_count_change
+        in_scope: true
+        must_mention: [user_username, join, duplicate]
+        expect: [{path: src/ol_dbt/models/marts/mitxonline/marts__mitxonline_course_enrollments.sql, line: 29}]
+      - commit: e0c3276c84
+        parent: 6da2a99830
+        title: "Creating dim_video and dim_problem (#1528)"
+        fix: dc16a447d6
+        fix_title: "fix duplicates in dim_problem (#1773)"
+        bug: "problem type metadata is joined on block_id only, so a problem block id that appears in several course runs picks up every run's metadata row and dim_problem has duplicate keys"
+        category: row_count_change
+        in_scope: true
+        must_mention: [problem_type_metadata, block_id, courserun_readable_id]
+        expect: [{path: src/ol_dbt/models/dimensional/dim_problem.sql, line: 102, end_line: 103}]
+      - commit: 5120acad9e
+        parent: b00a2a45d7
+        title: "add course run title to org reporting (#2154)"
+        fix: d9ef543ffb
+        fix_title: "fix: aggregate courserun_title in organization_administration_report (#2163)"
+        bug: "adding courserun_title to the group by of enroll_data splits a course run with more than one title into several rows per learner, changing the grain the later joins assume"
+        category: row_count_change
+        in_scope: true
+        must_mention: [courserun_title, group by, grain]
+        expect: [{path: src/ol_dbt/models/reporting/organization_administration_report.sql, line: 64, end_line: 69}]
+      - commit: 2a681eaa9e
+        parent: 57623308c4
+        title: "add orders report with product name (#2577)"
+        fix: ad395fde85
+        fix_title: "fix orders-with-product-report join (#2661)"
+        bug: "orders are joined to marts__combined__products on product_readable_id alone, but the combined products mart holds a row per platform, so a readable id shared across platforms duplicates the order"
+        category: row_count_change
+        in_scope: true
+        must_mention: [product_readable_id, platform, fan]
+        expect: [{path: src/ol_dbt/models/reporting/orders_with_product_report.sql, line: 61, end_line: 62}]
+      - commit: acb6594ecd
+        parent: 3c2300c674
+        title: "update enrollment to dim tables (#2292)"
+        fix: 0f81dae654
+        fix_title: "fix join to course for enrollment reporting table (#2348)"
+        bug: "the report inner joins course on course_run.course_fk, so enrollments whose run has no matching course (a null or unresolved course_fk) are silently dropped"
+        category: row_count_change
+        in_scope: true
+        must_mention: [inner join, course_fk, dropped]
+        expect: [{path: src/ol_dbt/models/reporting/enrollment_detail_report.sql, line: 227, end_line: 228}]
+      - commit: e174d87554
+        parent: a43f9536eb
+        title: "feat(dimensional): add Residential grades to tfact_grade (#3012)"
+        fix: c44749a048
+        fix_title: "fix(dbt): keep one Residential grade per learner and course run in tfact_grade (#3049)"
+        bug: "Residential grades are unioned straight from int__mitxresidential__courserun_grades, which keeps grades Open edX deleted, so a learner can have two grades for one run and the fact's grain breaks"
+        category: row_count_change
+        in_scope: true
+        must_mention: [residential, duplicate, user_id, courserun_readable_id]
+        expect: [{path: src/ol_dbt/models/dimensional/tfact_grade.sql, line: 57, end_line: 70}]
+      - commit: f9cce066d7
+        parent: 5d0fbf0b54
+        title: "fix duplicated SDS program learners (#926)"
+        fix: 4c03658258
+        fix_title: "fix(dbt): keep one MicroMasters certificate per learner per SDS track (#3058)"
+        bug: "the dedup partitions certificates by user and micromasters_program_id and keeps the first by title, which also collapses distinct Statistics and Data Science tracks, so a learner with two tracks keeps only one"
+        category: row_count_change
+        in_scope: true
+        must_mention: [row_number, partition, track]
+        expect:
+          - {path: src/ol_dbt/models/intermediate/micromasters/subqueries/__micromasters_program_certificates_non_dedp.sql, line: 9, end_line: 10}
+          - {path: src/ol_dbt/models/intermediate/micromasters/subqueries/__micromasters_program_certificates_non_dedp.sql, line: 65}
+      - commit: a6cf6c7465
+        parent: 062e839ae6
+        title: "add dim_discount table and related foreign key references for discount management (#2147)"
+        fix: e2c87bd3f8
+        fix_title: "fix(dimensional): fix dim_discount grain mismatch causing tfact_order fan-out (#2411)"
+        bug: "discount_pk hashes source_discount_id, discount_code and platform_code, but consumers join on source_discount_id and platform_code, so a discount whose code changed has several rows and tfact_order fans out"
+        category: row_count_change
+        in_scope: true
+        must_mention: [discount_pk, discount_code, grain, tfact_order]
+        expect: [{path: src/ol_dbt/models/dimensional/dim_discount.sql, line: 75}]
+      - commit: 0bed7cbde7
+        parent: c6841bd5ae
+        title: "feat(learn): add integrations__learn__program_certificates model (#2591)"
+        fix: 4c0e20b63c
+        fix_title: "fix(dbt): TYPE_MISMATCH error in integrations__learn__program_certificate (#2611)"
+        bug: "last_modified coalesces program_completion_timestamp, a string upstream, with current_timestamp, so the two arguments have different types and the model fails with TYPE_MISMATCH"
+        category: nullability_or_cast
+        in_scope: true
+        must_mention: [program_completion_timestamp, coalesce, timestamp]
+        expect: [{path: src/ol_dbt/models/integrations/learn/integrations__learn__program_certificates.sql, line: 62, end_line: 63}]
+      - commit: 2f8e7603ed
+        parent: 8f6148ab58
+        title: "feat: add program certificates to tfact_certificate and improve watermark (#2209)"
+        fix: efcd756a6d
+        fix_title: "fix: correct condition in tfact_certificate to use max_activity_on (#2210)"
+        bug: "the watermark CTE now exposes max_activity_on, but the incremental filter still reads w.max_created_on, a column that no longer exists"
+        category: dropped_or_renamed_column_with_readers
+        in_scope: true
+        must_mention: [max_created_on, max_activity_on, watermark]
+        expect: [{path: src/ol_dbt/models/dimensional/tfact_certificate.sql, line: 274}]
+      - commit: 90b7ae3654
+        parent: 4c5bb6f0ac
+        title: "xPRO order int table (#817)"
+        fix: a808eb1604
+        fix_title: "fix: rename product_is_visible_in_bulk_form to is_private (#884)"
+        bug: "the YAML renames the documented column to product_is_visible_in_bulk_form, with a not_null test, while int__mitxpro__ecommerce_product still selects product_is_private"
+        category: documented_column_not_selected
+        in_scope: true
+        must_mention: [product_is_visible_in_bulk_form, product_is_private]
+        expect: [{path: src/ol_dbt/models/intermediate/mitxpro/_int_mitxpro__models.yml, line: 843}]

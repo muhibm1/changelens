@@ -1,0 +1,1129 @@
+{
+ "agent": "wa-6",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "756d380b6a",
+   "title": "add new fct_duplicate_sources model and integration test",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt-project-evaluator.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/dag/dag.yml:9 fct_duplicate_sources YAML uses misspelled key `descritption`"
+   ],
+   "findings": [
+    "[bug] models/marts/dag/dag.yml:9 fct_duplicate_sources YAML uses misspelled key `descritption`"
+   ],
+   "repo": "dbt-project-evaluator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about a misspelled `descritption` key in dag.yml. The labelled bug is that fct_duplicate_sources never calls the filter_exceptions() macro. These are different defects, so no finding matches."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "53c6fb6c60",
+   "title": "import CTE and join with stg_nodes",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt-project-evaluator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/int_all_columns.sql:52 int_all_columns drops all source columns because stg_nodes has no sources",
+    "models/marts/core/int_all_columns.sql:54 int_all_columns: RIGHT join adds NULL-name phantom column rows for nodes with no columns"
+   ],
+   "findings": [
+    "[bug] models/marts/core/int_all_columns.sql:52 int_all_columns drops all source columns because stg_nodes has no sources",
+    "[bug] models/marts/core/int_all_columns.sql:54 int_all_columns: RIGHT join adds NULL-name phantom column rows for nodes with no columns"
+   ],
+   "repo": "dbt-project-evaluator",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: the RIGHT join from stg_nodes in int_all_columns.sql:54 adds rows with NULL name, description and data type for nodes with no documented columns. Finding 0 is about a different consequence, source columns being dropped."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "69eeec1414",
+   "title": "model_type_prefix and model_type_folder NULL for non-model resource_type",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt-project-evaluator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/int_all_graph_resources.sql:50 int_all_graph_resources model_type_prefix alias has duplicated 'as as'"
+   ],
+   "findings": [
+    "[bug] models/marts/core/int_all_graph_resources.sql:50 int_all_graph_resources model_type_prefix alias has duplicated 'as as'"
+   ],
+   "repo": "dbt-project-evaluator",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line and names the duplicated 'as as' before model_type_prefix. It gives the same mechanism: invalid SQL that stops int_all_graph_resources from building."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1338d9a3ab",
+   "title": "Capturing exposures data (#18) (#21)",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_artifacts.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/fct_dbt__exposures_updates.sql:11 fct_dbt__exposures_updates: missing comma between CTEs",
+    "models/fct_dbt__exposures_updates.sql:51 fct_dbt__exposures_updates selects from undefined CTE 'exposures'"
+   ],
+   "findings": [
+    "[bug] models/fct_dbt__exposures_updates.sql:11 fct_dbt__exposures_updates: missing comma between CTEs",
+    "[bug] models/fct_dbt__exposures_updates.sql:51 fct_dbt__exposures_updates selects from undefined CTE 'exposures'",
+    "[bug] models/incremental/dim_dbt__exposures.sql:4 dim_dbt__exposures: unique_key manifest_model_id is not unique after flatten"
+   ],
+   "repo": "dbt_artifacts",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the labelled bug's second half: the final CTE selects from undefined `exposures e` instead of exposures_latest, so the model fails to compile. The labelled bug combines this with the missing comma (finding 0). Finding 1 matches the same model, line 51 and mechanism, and names the exact fix, so it is the best match. Finding 0 only covers the comma half."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "25a2c0b0eb",
+   "title": "Snowflake compatibility",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "dbt_artifacts.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/staging/stg_dbt__snapshots.sql:17 stg_dbt__snapshots selects depends_on_nodes twice and skips parse_json"
+   ],
+   "findings": [
+    "[bug] models/staging/stg_dbt__snapshots.sql:17 stg_dbt__snapshots selects depends_on_nodes twice and skips parse_json",
+    "[risk] models/staging/stg_dbt__tests.sql:15 stg_dbt__tests.depends_on_nodes: parse_json applied to a column that is already ARRAY on Snowflake"
+   ],
+   "repo": "dbt_artifacts",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. In stg_dbt__snapshots.sql line 17, `depends_on_nodes,depends_on_nodes,` selects the column twice, which gives a duplicate column name, and parse_json is skipped. Finding 1 is about a different issue, a double parse_json in stg_dbt__tests."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d270a3a2fa",
+   "title": "Add fct_dbt__critical_path (#2)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_artifacts.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/fct_dbt__critical_path.sql:126 critical_path anchor includes source/non-model dependencies, so paths can end in a source id",
+    "[risk] models/fct_dbt__critical_path.sql:60 critical_path: NULL execution_time for models with no execution row poisons total_time and wins the ORDER BY DESC"
+   ],
+   "repo": "dbt_artifacts",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding matches the labelled bug. The labelled bug is in fct_dbt__latest_full_model_executions.sql:15. latest_full has no filter on execution_command, so when the latest invocation was a test or seed, the join finds nothing and the model comes back empty. Finding 0 is about source nodes in the critical_path anchor. Finding 1 is about NULL execution_time in critical_path. Both are in fct_dbt__critical_path.sql and describe different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "fce586ff17",
+   "title": "Documented the fact and the staging exposure models according to the convention.",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "dbt_artifacts.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/schemas.yml:132 dim_dbt__exposures.manifest_model_id declared unique but model has one row per exposure feed"
+   ],
+   "findings": [
+    "[bug] models/schemas.yml:132 dim_dbt__exposures.manifest_model_id declared unique but model has one row per exposure feed"
+   ],
+   "repo": "dbt_artifacts",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: a unique test on dim_dbt__exposures.manifest_model_id, but the model flattens depends_on_nodes into one row per feed, so manifest_model_id repeats for exposures with multiple feeds and the test fails."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "834074abc8",
+   "title": "Add fields used for thread viz (#3)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt_artifacts.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/schemas.yml:32 fct_dbt__latest_full_model_executions documents query_completed_ats, but the model selects query_completed_at",
+    "[risk] models/staging/stg_dbt__model_executions.sql:31 stg_dbt__model_executions.thread_id: fragile parse of thread_id string into an integer",
+    "[risk] models/incremental/fct_dbt__model_executions.sql:52 incremental fct_dbt__model_executions: columns renamed/added with no on_schema_change or full refresh"
+   ],
+   "repo": "dbt_artifacts",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings identify the labelled bug. The labelled bug is the null critical path total in fct_dbt__critical_path caused by an uncoalesced total_node_runtime for models with no execution. Finding 0 is a YAML column typo. Finding 1 is a thread_id parse risk. Finding 2 is an incremental schema-change risk. Finding 2 mentions that fct_dbt__critical_path reads total_node_runtime, but it describes a schema migration failure, not the null propagation from the left join."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "12af730125",
+   "title": "Created 'job_run_results' view.",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt-data-reliability.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/edr/run_results/job_run_results.sql:16 job_run_results GROUP BY uses non-existent columns name, id, run_id",
+    "models/edr/run_results/job_run_results.sql:12 job_run_results: run_started_at / run_completed_at passed unquoted to cast_as_timestamp"
+   ],
+   "findings": [
+    "[bug] models/edr/run_results/job_run_results.sql:16 job_run_results GROUP BY uses non-existent columns name, id, run_id",
+    "[bug] models/edr/run_results/job_run_results.sql:12 job_run_results: run_started_at / run_completed_at passed unquoted to cast_as_timestamp"
+   ],
+   "repo": "dbt-data-reliability",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 describes one half of the labelled bug exactly. run_started_at and run_completed_at are passed unquoted to cast_as_timestamp, so Jinja treats them as undefined variables and the view renders invalid SQL. It is also at line 12, the labelled location. Finding 0 covers the other half, the GROUP BY on name, id and run_id, so it would also match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a74fc552fd",
+   "title": "Added an alerts model.",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt-data-reliability.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/edr/alerts/alerts_dbt_source_freshness.sql:9 alerts_dbt_source_freshness: missing comma after max_loaded_at breaks the select"
+   ],
+   "findings": [
+    "[bug] models/edr/alerts/alerts_dbt_source_freshness.sql:9 alerts_dbt_source_freshness: missing comma after max_loaded_at breaks the select"
+   ],
+   "repo": "dbt-data-reliability",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line. It names the same defect: the missing comma after max_loaded_at makes the select read `max_loaded_at snapshotted_at as detected_at`. It also says the model fails to parse and that max_loaded_at is not exposed under its own name."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "240d7ba519",
+   "title": "changed tables logic",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt-data-reliability.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/models/sources_schema_changes/schema_changes/tables_changes.sql:43 tables_changes.detected_at is NULL for every table_removed row",
+    "models/models/sources_schema_changes/schema_changes/tables_changes.sql:69 tables_changes: join on bare table name never matches columns full_table_name, so table_schema is always NULL"
+   ],
+   "findings": [
+    "[bug] models/models/sources_schema_changes/schema_changes/tables_changes.sql:43 tables_changes.detected_at is NULL for every table_removed row",
+    "[bug] models/models/sources_schema_changes/schema_changes/tables_changes.sql:69 tables_changes: join on bare table name never matches columns full_table_name, so table_schema is always NULL"
+   ],
+   "repo": "dbt-data-reliability",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in tables_removed, an anti-join of pre left join cur, detected_at is taken from cur.dbt_updated_at, which is always NULL on those rows, so every table_removed change has a NULL detected_at. Finding 1 is about a different defect, a join on bare table name that leaves table_schema NULL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8117b59b5e",
+   "title": "add more ids to unique tests",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "dbt_tiktok_ads.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/tiktok_ads.yml:72 unique test on ad_report references nonexistent column `advertiser`",
+    "models/tiktok_ads.yml:162 unique test on ad_group_report references nonexistent column `advertiser`",
+    "models/tiktok_ads.yml:247 unique test on campaign_report references nonexistent column `advertiser`",
+    "models/tiktok_ads.yml:312 unique test on url_report references nonexistent column `advertiser`"
+   ],
+   "findings": [
+    "[bug] models/tiktok_ads.yml:72 unique test on ad_report references nonexistent column `advertiser`",
+    "[bug] models/tiktok_ads.yml:162 unique test on ad_group_report references nonexistent column `advertiser`",
+    "[bug] models/tiktok_ads.yml:247 unique test on campaign_report references nonexistent column `advertiser`",
+    "[bug] models/tiktok_ads.yml:312 unique test on url_report references nonexistent column `advertiser`"
+   ],
+   "repo": "dbt_tiktok_ads",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the labelled defect: the unique_combination_of_columns test on ad_report (models/tiktok_ads.yml:72) references `advertiser`, which doesn't exist because the model exposes advertiser_id. Findings 1-3 describe the same defect on the other three report models, so they also match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7925ea3c90",
+   "title": "add some columns, add pass thru",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_tiktok_ads.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/tiktok_ads__ad_report.sql:66 Passthrough metrics emitted unaggregated and outside GROUP BY in ad/account/ad_group/campaign/url reports"
+   ],
+   "findings": [
+    "[bug] models/tiktok_ads.yml:4 tiktok_ads__ad_adapter deleted but its YAML (unique ad_id/date_day test) and README entry remain",
+    "[bug] models/tiktok_ads__ad_report.sql:66 Passthrough metrics emitted unaggregated and outside GROUP BY in ad/account/ad_group/campaign/url reports"
+   ],
+   "repo": "dbt_tiktok_ads",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 describes the same defect: the passthrough metric loop adds bare `{{ metric }}` columns that are neither aggregated nor in the GROUP BY, so the query fails once a passthrough var is set. It cites ad_report.sql:66 and says the same pattern appears in the account, ad_group and campaign reports."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "9b4c1a577b",
+   "title": "add unique_event_id",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_iterable_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_iterable__event.sql:33 stg_iterable__event.unique_event_id references event_id, which does not exist in the fields CTE"
+   ],
+   "findings": [
+    "[bug] models/stg_iterable__event.sql:33 stg_iterable__event.unique_event_id references event_id, which does not exist in the fields CTE"
+   ],
+   "repo": "dbt_iterable_source",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. unique_event_id references event_id, which is only an alias defined in the same select list. The source column is _fivetran_id, so the surrogate key fails on warehouses that don't resolve lateral aliases."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3f5325932c",
+   "title": "star snowflake check",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_shopify_holistic_reporting.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/shopify_holistic_reporting__customer_enhanced.sql:28 customer_enhanced: dbt_utils.star called with list relation_alias/prefix",
+    "models/shopify_holistic_reporting__daily_customer_campaign_flow.sql:26 daily_customer_campaign_flow: dbt_utils.star called with list relation_alias/prefix"
+   ],
+   "findings": [
+    "[bug] models/shopify_holistic_reporting__customer_enhanced.sql:28 customer_enhanced: dbt_utils.star called with list relation_alias/prefix",
+    "[bug] models/shopify_holistic_reporting__daily_customer_campaign_flow.sql:26 daily_customer_campaign_flow: dbt_utils.star called with list relation_alias/prefix"
+   ],
+   "repo": "dbt_shopify_holistic_reporting",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is on customer_enhanced.sql:28 and describes the same defect. dbt_utils.star is passed list values for relation_alias and prefix instead of strings. The list text ends up in the generated column expressions, and the model fails to compile. Finding 1 covers the other model, daily_customer_campaign_flow, so it also matches the labelled bug in part. But finding 0 matches fully and also covers the first listed location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fc01f5ddaa",
+   "title": "more updates",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_shopify_holistic_reporting.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/int__daily_shopify_customer_orders.sql:72 int__daily_shopify_customer_orders: trailing comma after sum_subtotal creates a double comma"
+   ],
+   "findings": [
+    "[bug] models/intermediate/int__daily_shopify_customer_orders.sql:72 int__daily_shopify_customer_orders: trailing comma after sum_subtotal creates a double comma"
+   ],
+   "repo": "dbt_shopify_holistic_reporting",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The trailing comma after sum(sum_subtotal) produces a double comma when the order adjustment block is enabled and a trailing comma before FROM when it is disabled."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ab877baf08",
+   "title": "working on monthly events",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_mixpanel.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/mixpanel_monthly_events.sql:68 mixpanel_monthly_events churn columns: lag partitioned by date_month is always NULL",
+    "models/mixpanel_monthly_events.sql:21 previous_month_with_event is lag(people_id), so repeat and return users are computed on an id, not a month"
+   ],
+   "findings": [
+    "[bug] models/mixpanel_monthly_events.sql:68 mixpanel_monthly_events churn columns: lag partitioned by date_month is always NULL",
+    "[bug] models/mixpanel_monthly_events.sql:53 monthly_metrics selects total_monthly_active_users, a non-aggregated column not in the GROUP BY",
+    "[bug] models/mixpanel_monthly_events.sql:21 previous_month_with_event is lag(people_id), so repeat and return users are computed on an id, not a month"
+   ],
+   "repo": "dbt_mixpanel",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 points to models/mixpanel_monthly_events.sql:21 and names the same defect: previous_month_with_event is lag(people_id) instead of lag(date_month). It also says the dateadd and datediff comparisons then operate on a user id, so the repeat and return counts are wrong. That matches the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ab877baf08",
+   "title": "working on monthly events",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt_mixpanel.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/mixpanel_monthly_events.sql:68 mixpanel_monthly_events churn columns: lag partitioned by date_month is always NULL",
+    "models/mixpanel_monthly_events.sql:53 monthly_metrics selects total_monthly_active_users, a non-aggregated column not in the GROUP BY",
+    "models/mixpanel_monthly_events.sql:21 previous_month_with_event is lag(people_id), so repeat and return users are computed on an id, not a month"
+   ],
+   "findings": [
+    "[bug] models/mixpanel_monthly_events.sql:68 mixpanel_monthly_events churn columns: lag partitioned by date_month is always NULL",
+    "[bug] models/mixpanel_monthly_events.sql:53 monthly_metrics selects total_monthly_active_users, a non-aggregated column not in the GROUP BY",
+    "[bug] models/mixpanel_monthly_events.sql:21 previous_month_with_event is lag(people_id), so repeat and return users are computed on an id, not a month"
+   ],
+   "repo": "dbt_mixpanel",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the churn lag() is partitioned by date_month, event_type over a one-row-per-partition monthly_metrics, so lag is always NULL and all churn columns are NULL. It is at the same location, line 68."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fddbe5e0f8",
+   "title": "connector daily api calls model",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_fivetran_log.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_fivetran_log",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "634b3324ce",
+   "title": "feat: re insert standart incremental logic",
+   "category": "other",
+   "in_scope": true,
+   "source": "queries-basedosdados.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/br_ms_sih/br_ms_sih__aihs_reduzidas.sql:331 aihs_reduzidas incremental block lacks WHERE keyword",
+    "models/br_ms_sih/br_ms_sih__servicos_profissionais.sql:105 servicos_profissionais incremental block lacks WHERE keyword"
+   ],
+   "findings": [
+    "[bug] models/br_ms_sih/br_ms_sih__aihs_reduzidas.sql:331 aihs_reduzidas incremental block lacks WHERE keyword",
+    "[bug] models/br_ms_sih/br_ms_sih__servicos_profissionais.sql:105 servicos_profissionais incremental block lacks WHERE keyword"
+   ],
+   "repo": "queries-basedosdados",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the labelled defect: the incremental block in aihs_reduzidas.sql:331 has no WHERE keyword before the date comparison, so the compiled SQL is invalid on incremental runs. This is the same file, line and mechanism as the first location in the label. Finding 1 describes the same defect in servicos_profissionais.sql:105, the second location, so it would also match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4c9aa9208c",
+   "title": "feat: add where config, modify incremental logic",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "queries-basedosdados.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/br_bcb_agencia/br_bcb_agencia__agencia.sql:199 agencia: WHERE fone = '00000nan' keeps only placeholder rows and drops nearly all agencies"
+   ],
+   "findings": [
+    "[bug] models/br_bcb_agencia/br_bcb_agencia__agencia.sql:199 agencia: WHERE fone = '00000nan' keeps only placeholder rows and drops nearly all agencies",
+    "[risk] models/br_bcb_agencia/br_bcb_agencia__agencia.sql:226 agencia incremental: NOT IN against {{ this }} returns no rows if any ano/mes is NULL, and skips months already partly loaded",
+    "[bug] models/br_bcb_agencia/br_bcb_agencia__agencia.sql:150 agencia id_municipio: trailing space in '5218102 ' for portolandia (GO)",
+    "[risk] models/br_bcb_agencia/br_bcb_agencia__agencia.sql:3 agencia: row access policy pre/post hooks removed"
+   ],
+   "repo": "queries-basedosdados",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same defect at the same line: `WHERE fone = '00000nan'` keeps only the placeholder rows and drops every real agency. This contradicts the comment about removing all-null header and footer rows. The other findings cover different defects: the incremental NOT IN filter, a trailing space in an IBGE code, and removed row access policy hooks."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "42251f608e",
+   "title": "feat: fix typo and incremental logic dtypes",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "queries-basedosdados.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql:225 producao_ambulatorial incremental branch references sia_add_municipios outside its scope"
+   ],
+   "findings": [
+    "[bug] models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql:225 producao_ambulatorial incremental branch references sia_add_municipios outside its scope"
+   ],
+   "repo": "queries-basedosdados",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The final `select *` runs over the CTE left joined to `{{ this }}` (materialized) in incremental runs, so ano and mes appear twice. That duplicates column names and changes the schema. The finding also raises a scope error on the sia_add_municipios reference, but its duplicate-columns point matches the labelled mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "42251f608e",
+   "title": "feat: fix typo and incremental logic dtypes",
+   "category": "other",
+   "in_scope": true,
+   "source": "queries-basedosdados.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql:225 producao_ambulatorial incremental branch references sia_add_municipios outside its scope"
+   ],
+   "findings": [
+    "[bug] models/br_ms_sia/br_ms_sia__producao_ambulatorial.sql:225 producao_ambulatorial incremental branch references sia_add_municipios outside its scope"
+   ],
+   "repo": "queries-basedosdados",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The incremental join references sia_add_municipios.ano and sia_add_municipios.mes, but the final query selects from the new producao_ambulatorial CTE, so sia_add_municipios is out of scope and incremental runs fail. It is also on the same file and line (225 vs 226)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "29b775503d",
+   "title": "change dash var to end_date",
+   "category": "other",
+   "in_scope": true,
+   "source": "queries-rj-smtr.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dashboard_subsidio_sppo/sumario_subsidio_dia.sql:38 sumario_subsidio_dia: subquery missing closing parenthesis"
+   ],
+   "findings": [
+    "[bug] models/dashboard_subsidio_sppo/sumario_subsidio_dia.sql:38 sumario_subsidio_dia: subquery missing closing parenthesis",
+    "[bug] models/dashboard_subsidio_sppo/sumario_subsidio_dia_periodo.sql:48 sumario_subsidio_dia_periodo: viagem_planejada filter still subtracts 1 day while viagem filter no longer does"
+   ],
+   "repo": "queries-rj-smtr",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It points at sumario_subsidio_dia.sql:38 and says the new `DATE(...) AS v` line leaves the LEFT JOIN subquery's closing parenthesis missing, so the model does not parse. Finding 1 is about a different defect, the INTERVAL 1 DAY filter in sumario_subsidio_dia_periodo."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "29b775503d",
+   "title": "change dash var to end_date",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "queries-rj-smtr.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dashboard_subsidio_sppo/sumario_subsidio_dia_periodo.sql:48 sumario_subsidio_dia_periodo: viagem_planejada filter still subtracts one day from end_date"
+   ],
+   "findings": [
+    "[bug] models/dashboard_subsidio_sppo/sumario_subsidio_dia.sql:38 sumario_subsidio_dia: unbalanced parenthesis in subquery after edit",
+    "[bug] models/dashboard_subsidio_sppo/sumario_subsidio_dia_periodo.sql:48 sumario_subsidio_dia_periodo: viagem_planejada filter still subtracts one day from end_date"
+   ],
+   "repo": "queries-rj-smtr",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect in the same file and line. The viagem_planejada filter keeps DATE_SUB(end_date, INTERVAL 1 DAY) while the completed-trips filter moved to end_date. That drops the last day of planned trips and keeps its completed trips. Finding 0 is about a different model and a different defect, a parenthesis problem in sumario_subsidio_dia.sql."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8c50ecf6cc",
+   "title": "hotfix: add dates for 2023",
+   "category": "other",
+   "in_scope": true,
+   "source": "queries-rj-smtr.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/projeto_subsidio_sppo/subsidio_data_versao_efetiva.sql:58 valor_subsidio_por_km references nonexistent column `date` instead of `data`",
+    "models/projeto_subsidio_sppo/subsidio_data_versao_efetiva.sql:63 2023 dates added with NULL data_versao_trips/shapes/frequencies"
+   ],
+   "findings": [
+    "[bug] models/projeto_subsidio_sppo/subsidio_data_versao_efetiva.sql:58 valor_subsidio_por_km references nonexistent column `date` instead of `data`",
+    "[bug] models/projeto_subsidio_sppo/subsidio_data_versao_efetiva.sql:63 2023 dates added with NULL data_versao_trips/shapes/frequencies"
+   ],
+   "repo": "queries-rj-smtr",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the new 2023 branch in valor_subsidio_por_km at line 58 compares `date <= date(\"2023-01-06\")`, but the column is named `data`, so it references a nonexistent column. Finding 1 describes a different defect (missing 2023 version mappings)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fd7fee9491",
+   "title": "Add option to use refer in channel classification if mkt is null (#42)",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt-snowplow-unified.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/views/scratch/snowplow_unified_views_this_run.sql:97 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (views_this_run)"
+   ],
+   "findings": [
+    "[bug] models/sessions/scratch/snowplow_unified_sessions_this_run.sql:91 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (sessions_this_run)",
+    "[bug] models/views/scratch/snowplow_unified_views_this_run.sql:97 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (views_this_run)"
+   ],
+   "repo": "dbt-snowplow-unified",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 names the views model at line 97 and the same missing closing parenthesis in the new snowplow__use_refr_if_mkt_null branch, which stops the model compiling when the option is on. Finding 0 describes the same expression but in the sessions model, so it does not match the labelled location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fd7fee9491",
+   "title": "Add option to use refer in channel classification if mkt is null (#42)",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt-snowplow-unified.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sessions/scratch/snowplow_unified_sessions_this_run.sql:91 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (sessions_this_run)"
+   ],
+   "findings": [
+    "[bug] models/sessions/scratch/snowplow_unified_sessions_this_run.sql:91 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (sessions_this_run)",
+    "[bug] models/views/scratch/snowplow_unified_views_this_run.sql:97 Unbalanced parenthesis in seed join when snowplow__use_refr_if_mkt_null is true (views_this_run)"
+   ],
+   "repo": "dbt-snowplow-unified",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line (sessions_this_run.sql:91) and describes the same defect: the missing closing parenthesis in `lower(trim(coalesce(...))` in the new snowplow__use_refr_if_mkt_null branch, which breaks compilation when the option is on. Finding 1 describes the same bug in the views model, which is a different model."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1349c00a5a",
+   "title": "more courses",
+   "category": "other",
+   "in_scope": true,
+   "source": "teamster.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/dbt/kipptaf/models/csgf/staging/stg_csgf__hs_enrollment.sql:48 stg_csgf__hs_enrollment transfer_course_tags: missing comma after 'Alg 1' drops 'ALG I CP' rows"
+   ],
+   "findings": [
+    "[bug] src/dbt/kipptaf/models/csgf/staging/stg_csgf__hs_enrollment.sql:48 stg_csgf__hs_enrollment transfer_course_tags: missing comma after 'Alg 1' drops 'ALG I CP' rows"
+   ],
+   "repo": "teamster",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, the missing comma after 'Alg 1' in the course_name IN list, and the same mechanism: adjacent literals concatenate into 'Alg 1ALG I CP'. It also names the same effect: transfer grades for both Alg 1 and ALG I CP are silently dropped."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "dbt-project-evaluator",
+   "commit": "34bdd1fca8",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/marts/tests/intermediate/int_model_test_summary.sql:17 test_unique_count changed from a 0/1 flag to a count, which inflates primary_key_mixed_method_count :: The old expression was if(max(is_test_unique) = 'true', 1, 0), so it was always 0 or 1 per (direct_parent_id, column_name). The new sum(case when is_test_unique then 1 else 0 end) counts every unique test on the column. A column with two unique tests (for example a `unique` test plus a dbt_utils uni"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-project-evaluator",
+   "commit": "0d90888a04",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-project-evaluator",
+   "commit": "56c2035c58",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_artifacts",
+   "commit": "3d82175e66",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_artifacts",
+   "commit": "0a33d58326",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_artifacts",
+   "commit": "5fdb6fa0b4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-reliability",
+   "commit": "2e4d716efa",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-reliability",
+   "commit": "07ff04c632",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/system/configuration/edr_tables_config.sql:74 edr_tables_config.thread_number: ntile partitioned by full_table_name :: After the group by, each full_table_name has roughly one row per config_id (one per monitors set). ntile(4) partitioned by full_table_name therefore puts almost every row in bucket 1. The column is meant to spread tables across 4 threads, so nearly all tables end up in a single thread. The window sh"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 3
+  },
+  {
+   "repo": "dbt-data-reliability",
+   "commit": "494d0160d5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_tiktok_ads",
+   "commit": "5ec0b909be",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_tiktok_ads",
+   "commit": "0ea737b6ac",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_tiktok_ads",
+   "commit": "8cdf2089fd",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] .quickstart/quickstart.yml:26 quickstart supported_vars descriptions swapped between ad_group and ad hourly passthrough vars :: The new supported_vars entry for tiktok_ads__ad_group_hourly_passthrough_metrics says it adds AD_REPORT_HOURLY columns to the ad, advertiser and url reports. In the models that variable feeds the ad group hourly staging model and tiktok_ads__ad_group_report. The entry for tiktok_ads__ad_hourly_passt"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_iterable_source",
+   "commit": "fc08c9b16c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_iterable_source",
+   "commit": "33b11f5888",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_iterable_source",
+   "commit": "07d151a669",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_shopify_holistic_reporting",
+   "commit": "37959de523",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:9 int__daily_klaviyo_user_campaign_flow date_day truncates to month, collapsing daily grain :: The model is meant to be daily (named daily, column date_day), but date_trunc('month') groups all of a user's events in a month into one row. Daily counts and revenue are merged into monthly rows. The line also lacks a trailing comma after `as date_day`, so person_email is parsed as part of the alia",
+    "[broken_reference_or_syntax] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:33 int__daily_klaviyo_user_campaign_flow reads undefined CTE `events` and group_by(n=8) is mismatched :: The source CTE is named klaviyo_events but the query selects `from events`, so the model fails to compile or run. Because of the missing comma on line 9 the select list has only 7 dimension columns, so group_by(n=8) would group by the first aggregate (first_event_at). That would be invalid or wrong ",
+    "[broken_reference_or_syntax] models/intermediate/int__customer_info.sql:39 int__customer_info has no final SELECT after the surrogate_key CTE :: The model ends with the CTE `surrogate_key` and never selects from it, so the compiled SQL is invalid (a WITH clause without a main query) and the model fails to build. unique_customer_key is never output.",
+    "[row_count_change] models/intermediate/int__customer_info.sql:35 int__customer_info full outer join on lower(email) can fan out on repeated emails :: Shopify customers and Klaviyo persons are joined only on lowercased email. Neither side is shown to be unique on email, and case-differing duplicates, or several person_ids sharing an email, would multiply customer rows. Rows with null email never match and appear on both sides separately.",
+    "[broken_reference_or_syntax] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:9 int__daily_klaviyo_user_campaign_flow: missing comma after date_day merges it with person_email :: Line 9 ends without a comma, so the SQL reads `... as date_day person_email`. That is a syntax error or a mis-alias, and the person_email column is lost. The count of select columns for group_by(n=8) is also wrong.",
+    "[business_logic] models/orders_attribution.sql:42 orders_attribution SMS lookback uses case-sensitive LIKE on type :: The eligible-events filter lowercases type, but the lookback CASE uses `events.type like '%sms%'` without lower(). Klaviyo metric names are capitalised, such as 'Clicked SMS'. On case-sensitive warehouses those events get the 120-hour email window instead of the 24-hour SMS window, so SMS touches ar"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 3
+  },
+  {
+   "repo": "dbt_shopify_holistic_reporting",
+   "commit": "03b0387f56",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_shopify_holistic_reporting",
+   "commit": "4cb73d046a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_mixpanel",
+   "commit": "44b4f6ba92",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_mixpanel",
+   "commit": "0fd82bf4bf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_mixpanel",
+   "commit": "6f4c90681b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_log",
+   "commit": "42b29ee5fc",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/staging/stg_fivetran_log__credits_used.sql:1 stg_fivetran_log__credits_used can be disabled but the mart that refs it is not gated :: The staging model can now be turned off with fivetran_log_credits_used=false. fivetran_log__credit_mar_destination_history still does ref('stg_fivetran_log__credits_used') and left joins it, and it has no matching enabled config. With the flag off, the ref points at a disabled model and the dbt buil"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_log",
+   "commit": "0ac9bf8908",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_log",
+   "commit": "6fc4eff32c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-basedosdados",
+   "commit": "3b7cec3c97",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-basedosdados",
+   "commit": "0af047ba37",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/br_b3_cotacoes/schema.yml:33 dicionario documents id_coluna but the model outputs id_tabela :: schema.yml documents a column id_coluna for br_b3_cotacoes__dicionario. The model selects id_tabela, and no id_coluna exists. The documented contract does not match the output, and id_tabela is left undocumented. Any column-level test or doc on id_coluna would fail or be orphaned."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "queries-basedosdados",
+   "commit": "5f640e07b0",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/fundacao_lemann/ano_escola_serie_educacao_aprendizagem_adequada.sql:59 basico/proficiente_pandemia_PB bands shift only the lower bound, so the bands overlap and leave gaps :: insuficiente_pandemia_PB (lines 52-55) and avancado_pandemia_PB (73-76) use the shifted score (proficiencia_saeb - 16 or - 20). In basico_pandemia_PB and proficiente_pandemia_PB, the lower bound uses the shifted score but the upper bound still uses the raw proficiencia_saeb (for example `proficienci"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "queries-rj-smtr",
+   "commit": "381cac7190",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "queries-rj-smtr",
+   "commit": "0a550ac602",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-rj-smtr",
+   "commit": "58a0c7b852",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] models/veiculo/sppo_licenciamento.sql:52 sppo_licenciamento fans out per vehicle: join to aux vistoria on (id_veiculo, placa) without data :: aux_sppo_licenciamento_vistoria_atualizada is grouped by data, id_veiculo, placa. It UNION ALLs three CGLF files (2023, 2024, pendentes 2024), and each file carries its own data. A vehicle that appears in more than one file, or on more than one date, therefore has several rows in the aux model. The "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 3
+  },
+  {
+   "repo": "dbt-snowplow-unified",
+   "commit": "42a0f165ec",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/sessions/sessions.yml:160 sessions.yml: first_geo_country column entry deleted, leaving a duplicate description key :: The commit removed the `- name: first_geo_country` line and left its description line behind. Line 159 and line 160 are now two `description:` keys under mobile__app_set_id_scope. That is a duplicate YAML key, and the geo country description overwrites the app_set_id_scope description. The first_geo"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-snowplow-unified",
+   "commit": "1ddaa98aa2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-snowplow-unified",
+   "commit": "800ed47c2c",
+   "error": null,
+   "bug_findings": [
+    "[documented_column_not_selected] models/optional_modules/conversions/conversions.yml:39 snowplow_unified_conversions_this_run: YAML column names 'dvce_created_tstamp,' and 'as cv_type' are malformed :: The YAML declares a column `dvce_created_tstamp,` with a trailing comma and a column `as cv_type` with a stray 'as '. The model outputs `dvce_created_tstamp` and `cv_type`. The documented names match no real column, so docs and any column-level checks or contracts on them are wrong, and the real col",
+    "[documented_column_not_selected] models/optional_modules/conversions/conversions.yml:79 snowplow_unified_conversions: YAML column names 'dvce_created_tstamp,' and 'as cv_type' are malformed :: The incremental model's YAML repeats the malformed names `dvce_created_tstamp,` and `as cv_type`. The model is `select *` from the this_run table, so it outputs `dvce_created_tstamp` and `cv_type`. The documented columns do not exist, and the real ones are undocumented.",
+    "[business_logic] macros/field_extractions/get_app_context_fields.sql:32 Relation switch matches any project name containing 'snowplow', so real projects read the integration-test staging model :: The old check was an equality test against 'snowplow_unified_integration_tests'. The new check is `'integration_tests' not in project_name and 'snowplow' not in project_name`. project_name is the root project's name. Any production project whose name contains 'snowplow' (for example 'snowplow_unifie",
+    "[row_count_change] models/optional_modules/conversions/scratch/snowplow_unified_conversions_this_run.sql:18 conversions_this_run: event matching several conversion definitions yields duplicate event_id :: The scratch model unions one select per conversion definition, each filtered only by its own condition. An event that satisfies two definitions appears twice with different cv_type. The derived snowplow_unified_conversions declares unique_key='event_id' and event_id as primary key (described as 'uni"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    "24a232f Fix bigquery target name resolution",
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "teamster",
+   "commit": "4814fe40a0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "teamster",
+   "commit": "0c42ef335d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "teamster",
+   "commit": "72ed1a1e5b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 29,
+  "caught_judge_bug": "25/29 (86%)",
+  "caught_judge_bug_or_risk": "25/29 (86%)",
+  "caught_strict": "25/29 (86%)",
+  "caught_loose": "26/29 (90%)",
+  "risk_note_only": "0/29 (0%)",
+  "by_repo": {
+   "dbt-data-reliability": "3/3 (100%)",
+   "dbt-project-evaluator": "2/3 (67%)",
+   "dbt-snowplow-unified": "2/2 (100%)",
+   "dbt_artifacts": "3/5 (60%)",
+   "dbt_fivetran_log": "0/1 (0%)",
+   "dbt_iterable_source": "1/1 (100%)",
+   "dbt_mixpanel": "2/2 (100%)",
+   "dbt_shopify_holistic_reporting": "2/2 (100%)",
+   "dbt_tiktok_ads": "2/2 (100%)",
+   "queries-basedosdados": "4/4 (100%)",
+   "queries-rj-smtr": "3/3 (100%)",
+   "teamster": "1/1 (100%)"
+  },
+  "by_category": {
+   "nullability_or_cast": "2/3 (67%)",
+   "other": "16/16 (100%)",
+   "row_count_change": "3/6 (50%)",
+   "schema_contract": "4/4 (100%)"
+  },
+  "ordinary_commits": 36,
+  "false_alarm_share": "10/36 (28%)",
+  "false_alarm_share_excluding_later_fixed": "10/36 (28%)",
+  "commits_with_bug_or_risk": "13/36",
+  "false_alarm_by_repo": {
+   "dbt-data-reliability": "1/3",
+   "dbt-project-evaluator": "1/3",
+   "dbt-snowplow-unified": "2/3",
+   "dbt_artifacts": "0/3",
+   "dbt_fivetran_log": "1/3",
+   "dbt_iterable_source": "0/3",
+   "dbt_mixpanel": "0/3",
+   "dbt_shopify_holistic_reporting": "1/3",
+   "dbt_tiktok_ads": "1/3",
+   "queries-basedosdados": "2/3",
+   "queries-rj-smtr": "1/3",
+   "teamster": "0/3"
+  },
+  "errors": 0
+ }
+}

@@ -1,0 +1,22 @@
+# dbt_recharge: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_recharge): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_recharge
+url: https://github.com/fivetran/dbt_recharge
+bugs:
+  - commit: 5566ce38a3
+    parent: dec2cca340
+    title: "revisions"
+    fix: d28e6dd306
+    fix_title: "feature/update-joins"
+    bug: "subscriptions_charges left joins customers_charge_lines and then filters on customers_charge_lines.charge_created_at and subscription_cancelled_at in WHERE, which drops subscriptions with no charges and every active subscription whose subscription_cancelled_at is null"
+    category: row_count_change
+    in_scope: true
+    must_mention: [subscription_cancelled_at, charge_created_at, dropped]
+    expect: [{path: models/recharge__subscription_overview.sql, line: 43, end_line: 44}]

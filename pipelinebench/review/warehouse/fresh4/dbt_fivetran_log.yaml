@@ -1,0 +1,18 @@
+# dbt_fivetran_log: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_fivetran_log): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_fivetran_log
+url: https://github.com/fivetran/dbt_fivetran_log
+bugs:
+  - commit: "fddbe5e0f8"
+    parent: "617dab7f5a"
+    title: "connector daily api calls model"
+    fix: "e07a1937b8"
+    fix_title: "fix bug excluding first day api calls"
+    bug: "the date spine is joined to connectors on cast(spine.date_day as timestamp) >= set_up_at, so the day a connector was set up (midnight is earlier than the set-up timestamp) is excluded and its first day of API calls never appears"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["set_up_at", "first day"]
+    expect:
+      - {path: "models/fivetran_log_connector_daily_api_calls.sql", line: 69, end_line: 74}

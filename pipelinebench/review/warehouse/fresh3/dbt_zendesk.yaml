@@ -1,0 +1,48 @@
+# dbt_zendesk: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_zendesk): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_zendesk
+url: https://github.com/fivetran/dbt_zendesk
+bugs:
+  - commit: 62408f721e
+    parent: 4631e4b971
+    title: "ticket field updates"
+    fix: 370f50ecd2
+    fix_title: "user tags bug fix"
+    bug: "zendesk__ticket_enriched joins the raw stg_zendesk__user_tag table, one row per tag, for the requester, submitter and assignee, so each ticket repeats once per tag combination, and the inner joins for requester and submitter drop tickets whose users have no tags"
+    category: row_count_change
+    in_scope: true
+    must_mention: [stg_zendesk__user_tag, fan, tags]
+    expect:
+      - {path: models/zendesk__ticket_enriched.sql, line: 29, end_line: 32}
+      - {path: models/zendesk__ticket_enriched.sql, line: 117, end_line: 118}
+      - {path: models/zendesk__ticket_enriched.sql, line: 133, end_line: 134}
+      - {path: models/zendesk__ticket_enriched.sql, line: 140, end_line: 141}
+  - commit: 149477ada4
+    parent: b2297c16e6
+    title: "fix sla_breach_at calc"
+    fix: 40ce734e88
+    fix_title: "duplicate sla_breach_at field"
+    bug: "the change appends a second `... as sla_breach_at` expression to intercepted_periods_with_breach_flag_calculated, which already selects sla_breach_at a few lines above, so the CTE has two columns with the same name"
+    category: schema_contract
+    in_scope: true
+    must_mention: [sla_breach_at, duplicate]
+    expect:
+      - {path: models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql, line: 116, end_line: 119}
+      - {path: models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql, line: 128, end_line: 132}
+  - commit: 1ca031f3db
+    parent: 05455d2dc6
+    title: "bugfix/sla-investigations"
+    fix: 5d14860353
+    fix_title: "schedule filter applied back"
+    bug: "the change comments out the WHERE that limits the cross join of ticket SLA schedules with weeks to the weeks the target can span, so every SLA row is multiplied by every generated week"
+    category: row_count_change
+    in_scope: true
+    must_mention: [cross join, weeks, filter]
+    expect: [{path: models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql, line: 64, end_line: 66}]

@@ -1,0 +1,144 @@
+# bigquery-etl: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/mozilla/bigquery-etl): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: bigquery-etl
+url: https://github.com/mozilla/bigquery-etl
+bugs:
+  - commit: 083816ce2c
+    parent: 35a2d75e69
+    title: "[DO-2049] Add urlbar_events_daily_engagement_by_product_result_type (#7801)"
+    fix: 2e7a3160fc
+    fix_title: "fix unnesting duplicate count (#8290)"
+    bug: "the query cross joins UNNEST(results), so each urlbar event appears once per result row, and COUNTIF(is_clicked), COUNTIF(is_annoyed) and COUNTIF(is_terminal) then count the same event several times per product_result_type instead of counting distinct event_id"
+    category: row_count_change
+    in_scope: true
+    must_mention: [UNNEST, event_id, double count]
+    expect:
+      - {path: sql/moz-fx-data-shared-prod/firefox_desktop_derived/urlbar_events_daily_engagement_by_product_result_type_v1/query.sql, line: 23, end_line: 24}
+      - {path: sql/moz-fx-data-shared-prod/firefox_desktop_derived/urlbar_events_daily_engagement_by_product_result_type_v1/query.sql, line: 38, end_line: 40}
+  - commit: b98da3cfe6
+    parent: a132d631a6
+    title: "Add and incrementally populate a table for google ads campaign cost metrics (#3468)"
+    fix: "6978139496"
+    fix_title: "Add date to join (#3499)"
+    bug: "campaigns_with_persisted_ids has one row per date and campaign id, but the final select joins it to stats USING (id) only, so every stats day matches the campaign row of every date and the spend, impressions and clicks fan out"
+    category: row_count_change
+    in_scope: true
+    must_mention: [campaigns_with_persisted_ids, date, fan]
+    expect:
+      - {path: sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql, line: 32, end_line: 35}
+      - {path: sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql, line: 119, end_line: 122}
+  - commit: e57bc52fb3
+    parent: 5803fe141d
+    title: "feat(DENG-1233): new model app_store_funnel_v1 (firefox_ios) (#4083)"
+    fix: baa4889c64
+    fix_title: "correcting joins inside firefox_ios_derived/app_store_funnel_v1 which were unintentionally filtering out data (#4302)"
+    bug: "store_stats inner joins views_data to downloads_data on date and country_name and then inner joins static.country_codes_v1 by name, so any day and country present in only one report, or a territory name missing from the country table, is silently dropped"
+    category: row_count_change
+    in_scope: true
+    must_mention: [views_data, downloads_data, dropped]
+    expect: [{path: sql/moz-fx-data-shared-prod/firefox_ios_derived/app_store_funnel_v1/query.sql, line: 40, end_line: 47}]
+  - commit: 0b07b1a713
+    parent: ac005bc12f
+    title: "feat(DENG-3183): add views for deriving firefox ios retention metrics (#5304)"
+    fix: 30168b2b12
+    fix_title: "fix: firefox_ios.retention_v1 query using wrong field name in grouping (#5526)"
+    bug: "retention_v1 selects app_version but groups by app_display_version, a column the retention_clients view does not expose under that name, so the selected column is neither grouped nor aggregated and the query fails"
+    category: other
+    in_scope: true
+    must_mention: [app_version, app_display_version, group by]
+    expect:
+      - {path: sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql, line: 7}
+      - {path: sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql, line: 32}
+  - commit: e7cf0dc09e
+    parent: 35897a6b1e
+    title: "making sure device_id is hacked in fxa_log_auth_events and removed from fxa_log_content_events as the source table does not have this field (#3358)"
+    fix: f1afd93726
+    fix_title: "removed device_id duplication in fxa_log_auth_events query (#3361)"
+    bug: "the change adds a hashed TO_HEX(SHA256(...)) AS device_id but leaves the raw jsonPayload.fields.device_id in the same select, so fxa_log_auth_events_v1 outputs two columns named device_id and the unhashed id is still written"
+    category: schema_contract
+    in_scope: true
+    must_mention: [device_id, duplicate]
+    expect: [{path: sql/moz-fx-data-shared-prod/firefox_accounts_derived/fxa_log_auth_events_v1/query.sql, line: 5, end_line: 6}]
+  - commit: 4da81311a1
+    parent: dce350d0cf
+    title: "Break up clients_histogram_aggregates in Glam into smaller chunks."
+    fix: d7d2d63cb9
+    fix_title: "Fixing join in clients_histogram_aggregates_merged."
+    bug: "clients_histogram_aggregates_merged full outer joins old and new data, then filters both old_data.channel_enum and new_data.channel_enum in WHERE, which is never true for an unmatched side, so the full join becomes an inner join and clients present in only one side are dropped"
+    category: row_count_change
+    in_scope: true
+    must_mention: [FULL OUTER JOIN, channel_enum, "null"]
+    expect: [{path: sql/telemetry_derived/clients_histogram_aggregates_merged_v1/query.sql, line: 11, end_line: 14}]
+  - commit: 22c4091fb5
+    parent: 6b476b6d5f
+    title: "Add event ping fields to clients_daily and clients_last_seen (#1696)"
+    fix: 8f415cb7e9
+    fix_title: "Fix clients_daily_joined date filtering"
+    bug: "clients_daily_joined_v1 left joins clients_daily_event_v1 but then requires cde.submission_date = @submission_date in WHERE, which is null for clients with no event row, so the left join acts as an inner join and those clients are dropped"
+    category: row_count_change
+    in_scope: true
+    must_mention: [LEFT JOIN, cde.submission_date, dropped]
+    expect: [{path: sql/moz-fx-data-shared-prod/telemetry_derived/clients_daily_joined_v1/query.sql, line: 5, end_line: 11}]
+  - commit: 104ece82d9
+    parent: 5cf8d30153
+    title: "Add derived stub attribution logs (#4557)"
+    fix: 73b86960fc
+    fix_title: "Account for NULL handling in joins (#4590)"
+    bug: "new_downloads turns empty dl_token, ga_client_id and stub_session_id into NULL with nullify_string, and the lookup then full outer joins the history USING those three columns; NULL never equals NULL, so every triplet with a null part is appended again on each run and the lookup accumulates duplicate rows"
+    category: row_count_change
+    in_scope: true
+    must_mention: [nullify_string, FULL OUTER JOIN, duplicate]
+    expect:
+      - {path: sql/moz-fx-data-shared-prod/stub_attribution_service_derived/dl_token_ga_attribution_lookup_v1/query.sql, line: 12, end_line: 14}
+      - {path: sql/moz-fx-data-shared-prod/stub_attribution_service_derived/dl_token_ga_attribution_lookup_v1/query.sql, line: 32, end_line: 35}
+  - commit: e64a8e0e87
+    parent: 3a64a13f36
+    title: "Add incline exec dash submission_date based query (#843)"
+    fix: 0f4f2da157
+    fix_title: "Fix improper client counting from multiple joins (#883)"
+    bug: "counts cross joins the grouping-set arrays and also UNNEST(bucket_country(country)), so a Tier 1 client yields two bucketed_country rows; when country_group is 'Overall' both rows land in the same group and the client is counted twice in every Overall total"
+    category: row_count_change
+    in_scope: true
+    must_mention: [bucketed_country, country_group, double count]
+    expect:
+      - {path: sql/org_mozilla_firefox_derived/incline_executive_v1/query.sql, line: 93, end_line: 96}
+      - {path: sql/org_mozilla_firefox_derived/incline_executive_v1/query.sql, line: 136, end_line: 141}
+  - commit: 76a4bf797f
+    parent: a0232213b2
+    title: "Bug 1620663 - Part 1. Add active users_last_seen tables for CFR"
+    fix: 2555f355cb
+    fix_title: "Construct non-null join key for cfr_clients_last_seen query"
+    bug: "cfr_users_last_seen full joins today's rows to yesterday's USING (impression_id, client_id), but each row has one of the two ids null, and NULL never matches in a join, so the same user never merges with its previous state and appears as separate rows each day"
+    category: row_count_change
+    in_scope: true
+    must_mention: [impression_id, client_id, "null"]
+    expect: [{path: sql/messaging_system_derived/cfr_users_last_seen_v1/query.sql, line: 39, end_line: 42}]
+  - commit: 08c395ea90
+    parent: 25d0cc671d
+    title: "feat: set up queries for dev_amo_stats_dau and installs that can be accessed by amo/nonprod workgroup (#9284)"
+    fix: f4f47c945f
+    fix_title: "fix: correct the addon filter inside dev_amo_stats_dau_v1 (#9321)"
+    bug: "the WHERE clause is `submission_date = @submission_date AND addon_id IN (...) OR addon_id LIKE 'langpack-%'` without parentheses, so AND binds first and every langpack row from every date is selected regardless of submission_date"
+    category: row_count_change
+    in_scope: true
+    must_mention: [OR, submission_date, langpack]
+    expect: [{path: sql/moz-fx-data-shared-prod/addons_derived/dev_amo_stats_dau_v1/query.sql, line: 5, end_line: 20}]
+  - commit: 9bc35702e2
+    parent: 7b9a10c5d1
+    title: "feat(firefox_desktop): add safe_browsing_interstitials daily aggregate [MNTOR-5334] (#9789)"
+    fix: 6d65e34d3b
+    fix_title: "fix(firefox_desktop): coalesce null join keys in safe_browsing_interstitials (#9826)"
+    bug: "displays and actions are full outer joined USING normalized_channel and normalized_os, which are selected without IFNULL and can be null, so a group with a null channel or os never matches and splits into a displays-only row and an actions-only row, duplicating the key"
+    category: row_count_change
+    in_scope: true
+    must_mention: [normalized_channel, FULL OUTER JOIN, "null"]
+    expect:
+      - {path: sql/moz-fx-data-shared-prod/firefox_desktop_derived/safe_browsing_interstitials_v1/query.sql, line: 32, end_line: 33}
+      - {path: sql/moz-fx-data-shared-prod/firefox_desktop_derived/safe_browsing_interstitials_v1/query.sql, line: 170, end_line: 172}

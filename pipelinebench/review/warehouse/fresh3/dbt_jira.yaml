@@ -1,0 +1,34 @@
+# dbt_jira: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_jira): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_jira
+url: https://github.com/fivetran/dbt_jira
+bugs:
+  - commit: 2d27665f2c
+    parent: 546c99d623
+    title: "epic fun"
+    fix: 9b53642243
+    fix_title: "fix potential fanning out issue"
+    bug: "last_epic_link computes last_value over every epic link history row without collapsing to one row per issue, and issue_epics left joins it using issue_id, so each issue fans out to one row per epic link change"
+    category: row_count_change
+    in_scope: true
+    must_mention: [last_epic_link, issue_id, fan]
+    expect:
+      - {path: models/intermediate/jira__issue_epic.sql, line: 30, end_line: 37}
+      - {path: models/intermediate/jira__issue_epic.sql, line: 62}
+  - commit: 3fa22367fc
+    parent: 3717d32829
+    title: "fixed join"
+    fix: "2351301e38"
+    fix_title: "slugify and joins"
+    bug: "the batch_id surrogate key call passes var('jira_field_grain', 'field_id'), 'issue_id', 'updated_at'] with the opening bracket missing, so generate_surrogate_key gets a malformed list and the model does not compile"
+    category: other
+    in_scope: true
+    must_mention: [generate_surrogate_key, bracket, batch_id]
+    expect: [{path: models/intermediate/field_history/int_jira__agg_multiselect_history.sql, line: 32}]

@@ -1,0 +1,1011 @@
+{
+ "agent": "wa-6",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "874b13ed95",
+   "title": "feat: migrate aspects dictionaries to dbt",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "aspects-dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/base/course_names.sql:24 course_names selects display_name but dictionary field and consumers expect course_name"
+   ],
+   "repo": "aspects-dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about course_names.sql selecting display_name instead of course_name. The labelled bug is in user_pii.sql, where a right outer join drops external ids with no profile and gives null external_user_id. These are different models and different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f1883be79a",
+   "title": "fix: remove course_run from problem_engagement tables",
+   "category": "dropped_or_renamed_column_with_readers",
+   "in_scope": true,
+   "source": "aspects-dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/problems/subsection_problem_engagement.sql:134 subsection/section_problem_engagement output engagement_level, but fact_problem_engagement still selects section_subsection_problem_engagement"
+   ],
+   "findings": [
+    "[bug] models/problems/subsection_problem_engagement.sql:134 subsection/section_problem_engagement output engagement_level, but fact_problem_engagement still selects section_subsection_problem_engagement"
+   ],
+   "repo": "aspects-dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the rename of the output column to engagement_level in section and subsection_problem_engagement, while fact_problem_engagement still selects section_subsection_problem_engagement from both, so the column is missing. This matches the labelled bug's main mechanism. It does not mention the double-quoted literal issue, but the core defect is the same."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f474f40023",
+   "title": "feat: use parameterized view to fix memory issue",
+   "category": "other",
+   "in_scope": true,
+   "source": "aspects-dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/video/watched_video_duration.sql:109 watched_video_duration org/course_key are concatenated from both sides of the full join",
+    "models/video/watched_video_duration.sql:46 starts/ends filters keep only the first start and last end per actor and video"
+   ],
+   "findings": [
+    "[bug] models/video/watched_video_duration.sql:109 watched_video_duration org/course_key are concatenated from both sides of the full join",
+    "[risk] models/video/watched_video_duration.sql:129 left join changed to full join on course_key: range rows without a course_data match are now kept",
+    "[bug] models/video/watched_video_duration.sql:46 starts/ends filters keep only the first start and last end per actor and video",
+    "[risk] models/video/watched_video_duration.sql:1 config block removed, so watched_video_duration loses its xapi schema and engine settings"
+   ],
+   "repo": "aspects-dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same line: org and course_key are built by concatenating both sides of the full join, so matched rows are doubled (e.g. 'orgorg') and downstream keys no longer match any course."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "083816ce2c",
+   "title": "[DO-2049] Add urlbar_events_daily_engagement_by_product_result_type (#7801)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/firefox_desktop_derived/urlbar_events_daily_engagement_by_product_result_type_v1/query.sql:38 urlbar_impressions, urlbar_clicks and urlbar_annoyances overcount when an event has several results of one product_result_type"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/firefox_desktop_derived/urlbar_events_daily_engagement_by_product_result_type_v1/query.sql:38 urlbar_impressions, urlbar_clicks and urlbar_annoyances overcount when an event has several results of one product_result_type"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It points to the CROSS JOIN UNNEST(results) in the same query. It says COUNTIF on impressions, clicks and annoyances counts one row per result, not per distinct event, so metrics are inflated when an event has several results of one product_result_type. That is the labelled fan-out bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b98da3cfe6",
+   "title": "Add and incrementally populate a table for google ads campaign cost metrics (#3468)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql:119 stats joined to campaigns_with_persisted_ids on id only, fans out across dates",
+    "sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql:1 Incremental query has no submission_date filter"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql:119 stats joined to campaigns_with_persisted_ids on id only, fans out across dates",
+    "[bug] sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/init.sql:12 init.sql column campaign_spend_in_cents does not match query output campaign_spend_in_micros",
+    "[risk] sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql:25 campaign_history joined without current-version filter duplicates campaign rows",
+    "[bug] sql/moz-fx-data-shared-prod/fenix_derived/google_ads_campaign_cost_breakdowns_v1/query.sql:1 Incremental query has no submission_date filter"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at query.sql:119. Stats is joined to campaigns_with_persisted_ids on id only with no date condition. That fans out each stats row across every date, which inflates spend, impressions and clicks."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e57bc52fb3",
+   "title": "feat(DENG-1233): new model app_store_funnel_v1 (firefox_ios) (#4083)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/firefox_ios_derived/app_store_funnel_v1/query.sql:30 app_store_funnel_v1 store_stats uses inner JOINs, dropping date/country rows present on only one side"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/firefox_ios_derived/app_store_funnel_v1/query.sql:30 app_store_funnel_v1 store_stats uses inner JOINs, dropping date/country rows present on only one side"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: store_stats inner-joins views_data to downloads_data on (date, country_name), then inner-joins country_codes_v1 by name. Rows present on only one side, or with a territory name missing from the country table, are silently dropped. This matches the labelled bug's mechanism and location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0b07b1a713",
+   "title": "feat(DENG-3183): add views for deriving firefox ios retention metrics (#5304)",
+   "category": "other",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql:32 retention_v1 groups by app_display_version, but the view only exposes app_version"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/firefox_ios_derived/retention_v1/query.sql:32 retention_v1 groups by app_display_version, but the view only exposes app_version",
+    "[bug] sql/moz-fx-data-shared-prod/firefox_ios/retention_clients/view.sql:36 retention_clients selects clients_last_seen.app_name, which the CTE doesn't expose",
+    "[bug] sql/moz-fx-data-shared-prod/firefox_ios/retention_clients/view.sql:26 retention_clients attribution CTE selects nonexistent is_suspicious_device_profile"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the labelled bug: retention_v1 groups by app_display_version, which the retention_clients view doesn't expose (it aliases it as app_version). The selected app_version is therefore not grouped, and the query fails. Findings 1 and 2 are different defects in the view (app_name and is_suspicious_device_profile)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e7cf0dc09e",
+   "title": "making sure device_id is hacked in fxa_log_auth_events and removed from fxa_log_content_events as the source table does not have this field (#3358)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/firefox_accounts_derived/fxa_log_auth_events_v1/query.sql:5 fxa_log_auth_events_v1 selects device_id twice (raw and hashed)"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/firefox_accounts_derived/fxa_log_auth_events_v1/query.sql:5 fxa_log_auth_events_v1 selects device_id twice (raw and hashed)"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: fxa_log_auth_events_v1 selects device_id twice (raw jsonPayload.fields.device_id plus the new hashed one) on line 5, producing duplicate device_id columns and leaving the unhashed id exposed."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4da81311a1",
+   "title": "Break up clients_histogram_aggregates in Glam into smaller chunks.",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/telemetry_derived/clients_histogram_aggregates_merged_v1/query.sql:10 merged_v1: WHERE on both sides turns FULL OUTER JOIN into INNER JOIN"
+   ],
+   "findings": [
+    "[bug] sql/telemetry_derived/clients_histogram_aggregates_merged_v1/query.sql:10 merged_v1: WHERE on both sides turns FULL OUTER JOIN into INNER JOIN",
+    "[bug] sql/telemetry_derived/clients_histogram_aggregates_new_v1/query.sql:90 new_v1 app_version is STRING but declared INT64 and used in CONCAT for join_key",
+    "[risk] sql/telemetry_derived/clients_histogram_aggregates_old_v1/query.sql:6 old_v1 reads channel_enum from v1 rows written before the column existed"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect in the same model (merged_v1). The WHERE clause filters both sides' channel_enum, which turns the FULL OUTER JOIN into an INNER JOIN and drops clients present on only one side."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "22c4091fb5",
+   "title": "Add event ping fields to clients_daily and clients_last_seen (#1696)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/telemetry_derived/clients_daily_joined_v1/query.sql:9 clients_daily_joined_v1: WHERE on cde.submission_date turns LEFT JOIN into INNER JOIN"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/telemetry_derived/clients_daily_joined_v1/query.sql:9 clients_daily_joined_v1: WHERE on cde.submission_date turns LEFT JOIN into INNER JOIN",
+    "[bug] sql/moz-fx-data-shared-prod/telemetry_derived/clients_last_seen_joined_v1/query.sql:9 clients_last_seen_joined_v1: WHERE on cls_event.submission_date drops clients without event history"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names clients_daily_joined_v1 and the same mechanism: the WHERE on cde.submission_date turns the LEFT JOIN to clients_daily_event_v1 into an inner join, dropping clients with no event row. Finding 1 is the same pattern, but in a different model (clients_last_seen_joined_v1)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "104ece82d9",
+   "title": "Add derived stub attribution logs (#4557)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/stub_attribution_service_derived/dl_token_ga_attribution_lookup_v1/query.sql:32 dl_token_ga_attribution_lookup_v1: NULL triplet components never match in FULL OUTER JOIN USING, duplicating rows daily"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/stub_attribution_service_derived/dl_token_ga_attribution_lookup_v1/query.sql:32 dl_token_ga_attribution_lookup_v1: NULL triplet components never match in FULL OUTER JOIN USING, duplicating rows daily"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: nullify_string turns the triplet columns into NULL, the FULL OUTER JOIN USING on those three columns never matches NULL to NULL, and rows with a null part are re-added each run, so the lookup accumulates duplicates. It also points at line 32 of the same file."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e64a8e0e87",
+   "title": "Add incline exec dash submission_date based query (#843)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[bug] sql/org_mozilla_firefox_derived/incline_executive_v1/query.sql:47 fennec_client_info: WHERE on migrated_clients.submission_date turns LEFT JOIN into INNER",
+    "[risk] sql/org_mozilla_firefox_derived/migrated_clients_v1/init.sql:45 migrated_clients_v1: fennec_client_id != sentinel drops rows with NULL fennec_client_id",
+    "[risk] sql/org_mozilla_firefox_derived/incline_executive_v1/query.sql:145 counts: GROUP BY raw columns instead of the grouping-set columns",
+    "[risk] sql/org_mozilla_firefox_derived/migrated_clients_v1/metadata.yaml:14 migrated_clients_v1 is materialized with init.sql only and no query.sql, yet metadata promises daily updates",
+    "[bug] sql/org_mozilla_firefox_derived/incline_executive_v1/query.sql:69 fenix_client_info: WHERE migrated_clients.submission_date <= @submission_date drops non-migrated Fenix clients and contradicts the join condition",
+    "[bug] sql/org_mozilla_firefox_derived/migrated_clients_v1/init.sql:14 migrated_clients_v1: LEFT JOIN UNNEST of migration_versions inflates migration_ping_count"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding names the labelled defect: the cross join with UNNEST(bucket_country(country)) giving Tier 1 clients two rows that both fall into the 'Overall' group and double-count. Finding 2 is about the GROUP BY using raw columns instead of the grouping-set columns. It mentions multiplied counts only as a side effect, not the UNNEST fan-out. The other findings cover unrelated defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "76a4bf797f",
+   "title": "Bug 1620663 - Part 1. Add active users_last_seen tables for CFR",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/messaging_system_derived/cfr_users_last_seen_v1/query.sql:39 cfr_users_last_seen_v1 FULL JOIN USING (impression_id, client_id) duplicates rows when either key is NULL"
+   ],
+   "findings": [
+    "[bug] sql/messaging_system_derived/cfr_users_last_seen_v1/query.sql:39 cfr_users_last_seen_v1 FULL JOIN USING (impression_id, client_id) duplicates rows when either key is NULL"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. It says the FULL JOIN USING (impression_id, client_id) in cfr_users_last_seen_v1 never matches when one key is NULL. The same user therefore appears as separate rows each day and days_seen_bits stops accumulating. That matches the labelled mechanism. The finding says the NULL frequency is unconfirmed, but the defect it names is the same."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "08c395ea90",
+   "title": "feat: set up queries for dev_amo_stats_dau and installs that can be accessed by amo/nonprod workgroup (#9284)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/moz-fx-data-shared-prod/addons_derived/dev_amo_stats_dau_v1/query.sql:5 dev_amo_stats_dau_v1: OR addon_id LIKE langpack escapes the submission_date filter"
+   ],
+   "findings": [
+    "[bug] sql/moz-fx-data-shared-prod/addons_derived/dev_amo_stats_dau_v1/query.sql:5 dev_amo_stats_dau_v1: OR addon_id LIKE langpack escapes the submission_date filter"
+   ],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same file and line. The WHERE clause lacks parentheses, so AND binds tighter than OR. That leaves the langpack LIKE branch without the submission_date predicate, and every langpack row from every date is selected."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "9bc35702e2",
+   "title": "feat(firefox_desktop): add safe_browsing_interstitials daily aggregate [MNTOR-5334] (#9789)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "bigquery-etl.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery-etl",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0b3b9d5b69",
+   "title": "subscription model",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt_apple_store.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": true,
+   "matched": [
+    "models/intermediate/int_apple_store__sales_subscription_event_summary.sql:48 event summary groups by raw state, then maps null and '' to 'Not Available', so the key repeats"
+   ],
+   "findings": [
+    "[bug] models/intermediate/int_apple_store__sales_subscription_event_summary.sql:48 event summary groups by raw state, then maps null and '' to 'Not Available', so the key repeats",
+    "[risk] models/apple_store__subscription_report.sql:59 subscription_report joins on nullable keys (country, subscription_name, app_name) with plain equality",
+    "[bug] dbt_project.yml:44 models config keyed to 'apple_search_ads' but project is named 'apple_store'",
+    "[risk] models/intermediate/int_apple_store__sales_subscription_event_summary.sql:68 event_summary and subscription_summary: app joined on app_name instead of app_id",
+    "[risk] models/intermediate/int_apple_store__sales_subscription_summary.sql:29 subscription_summary: not aggregated, and state is normalized with no dedup",
+    "[risk] packages.yml:1 dbt_utils is used but not declared in packages.yml",
+    "[risk] models/apple_store__subscription_report.sql:59 Report joins on app_name while grain and unique test use app_id"
+   ],
+   "repo": "dbt_apple_store",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding names the labelled defect. That defect is the state join: reporting_grain.state is null for most countries, so the equality join to subscription_summary and subscription_events never matches. Finding 1 is the closest. It describes the same null-equality mechanism on the report joins, but for country, subscription_name and app_name, and it says state is already normalised to 'Not Available'. That is a different column and contradicts the labelled bug. Findings 0, 3, 4 and 6 describe duplicate or fan-out rows. Findings 2 and 5 are about project config and packages."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a994c3ef4f",
+   "title": "deal company",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_hubspot.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sales/hubspot__deals.sql:51 hubspot__deals joins deal_company on company_id instead of deal_id",
+    "models/sales/hubspot__deals.sql:23 companies CTE gated on hubspot_company_enabled, not the deal_company association var"
+   ],
+   "findings": [
+    "[bug] models/sales/hubspot__deals.sql:51 hubspot__deals joins deal_company on company_id instead of deal_id",
+    "[bug] models/sales/hubspot__deals.sql:23 companies CTE gated on hubspot_company_enabled, not the deal_company association var"
+   ],
+   "repo": "dbt_hubspot",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same line. hubspot__deals joins deal_company using company_id instead of deal_id, and deals has no company_id to join on. Finding 1 is about a different defect, the CTE gating on the wrong var."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2d27665f2c",
+   "title": "epic fun",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_jira.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/jira__issue_epic.sql:30 jira__issue_epic: last_epic_link not deduped, fans out issues per epic-link history row",
+    "models/intermediate/jira__issue_epic.sql:57 jira__issue_epic: epic_name and parent_is_epic referenced on last_epic_link, which does not have them",
+    "models/intermediate/jira__issue_epic.sql:44 jira__issue_epic: issue_parents.issue_name does not exist in jira__issue_type_parents",
+    "models/intermediate/jira__issue_epic.sql:34 jira__issue_epic: last_value window has no full frame, so it doesn't return the latest epic link"
+   ],
+   "findings": [
+    "[bug] models/intermediate/jira__issue_epic.sql:30 jira__issue_epic: last_epic_link not deduped, fans out issues per epic-link history row",
+    "[bug] models/intermediate/jira__issue_epic.sql:57 jira__issue_epic: epic_name and parent_is_epic referenced on last_epic_link, which does not have them",
+    "[bug] models/intermediate/jira__issue_epic.sql:44 jira__issue_epic: issue_parents.issue_name does not exist in jira__issue_type_parents",
+    "[bug] models/intermediate/jira__issue_epic.sql:34 jira__issue_epic: last_value window has no full frame, so it doesn't return the latest epic link"
+   ],
+   "repo": "dbt_jira",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: last_epic_link uses last_value as a window function without collapsing to one row per issue, and the left join to issue_epics on issue_id fans each issue out per history row. This matches the labelled bug at line 30. Finding 3 also mentions the fan-out, but its main claim is the missing frame, so finding 0 is the closer match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3fa22367fc",
+   "title": "fixed join",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_jira.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/field_history/int_jira__agg_multiselect_history.sql:32 agg_multiselect_history batch_id: malformed generate_surrogate_key call"
+   ],
+   "findings": [
+    "[bug] models/intermediate/field_history/int_jira__agg_multiselect_history.sql:32 agg_multiselect_history batch_id: malformed generate_surrogate_key call",
+    "[bug] models/jira__daily_issue_field_history.sql:129 jira__daily_issue_field_history: field_option join on field_name instead of the option id fans out rows",
+    "[bug] models/jira__daily_issue_field_history.sql:56 field_options_with_names: inner join of field_option to field on field_id can drop options"
+   ],
+   "repo": "dbt_jira",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line (int_jira__agg_multiselect_history.sql:32). It describes the same defect: the batch_id generate_surrogate_key call has a missing opening bracket, so the Jinja is malformed and the model fails to compile. Findings 1 and 2 describe different defects in a different model."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "21d48ef48b",
+   "title": "Apply persist-passthrough-column logic to end models in netsuite models",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_netsuite.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/netsuite/netsuite__balance_sheet.sql:145 balance_sheet CTA union branch: pass-through nulls loop uses wrong var, no comma, misaligned with first branch",
+    "models/netsuite/netsuite__balance_sheet.sql:57 balance_sheet account_number followed by double comma around persist_pass_through_columns"
+   ],
+   "findings": [
+    "[bug] models/netsuite/netsuite__balance_sheet.sql:145 balance_sheet CTA union branch: pass-through nulls loop uses wrong var, no comma, misaligned with first branch",
+    "[bug] models/netsuite/netsuite__balance_sheet.sql:57 balance_sheet account_number followed by double comma around persist_pass_through_columns"
+   ],
+   "repo": "dbt_netsuite",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in netsuite__balance_sheet. The replacement loop iterates accounts_pass_through_columns instead of balance_sheet_transaction_detail_columns. That repeats the account null columns and drops the configured transaction detail columns. Finding 1 is about a double comma around persist_pass_through_columns near line 57, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "76b2220883",
+   "title": "Response tests passing",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt_qualtrics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/qualtrics__response_breakdown.sql:76 response_breakdown question join on sub_question_key drops question attributes for non-sub-question responses"
+   ],
+   "findings": [
+    "[risk] models/intermediate/int_qualtrics__contact_mailing_lists.sql:68 int_qualtrics__contact_mailing_lists: duplicated ON clause in core_join",
+    "[bug] models/qualtrics__response_breakdown.sql:76 response_breakdown question join on sub_question_key drops question attributes for non-sub-question responses"
+   ],
+   "repo": "dbt_qualtrics",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at the same location. The sub_question_key equality join in qualtrics__response_breakdown.sql:76 uses NULL = NULL, which never matches. As a result, question_type, question_description and the block fields become NULL for responses to non-sub-question questions. Finding 0 is about a different model and a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "cb81ebc391",
+   "title": "final updates",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_quickbooks.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:109 invoice_double_entry: bundle_income_accounts joined on bundle_id alone can duplicate invoice lines"
+   ],
+   "findings": [
+    "[bug] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:109 invoice_double_entry: bundle_income_accounts joined on bundle_id alone can duplicate invoice lines",
+    "[risk] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:87 invoice_double_entry: amount no longer uses invoice_bundles amount, and the invoice_bundles CTE is now unused",
+    "[risk] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:93 invoice_double_entry: account_id coalesce prefers parent item income account over the item's own and drops the expense fallback",
+    "[risk] models/double_entry_transactions/int_quickbooks__purchase_double_entry.sql:29 purchase_double_entry: parent_expense_account_id takes precedence over the item's own expense_account_id"
+   ],
+   "repo": "dbt_quickbooks",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. bundle_income_accounts has several rows per bundle_id because it is distinct over account_id and parent_income_account_id. The left join on bundle_id alone then duplicates the invoice lines. It points to the same file and lines (109 and 58-73)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "c121265adb",
+   "title": "variable changes",
+   "category": "dropped_or_renamed_column_with_readers",
+   "in_scope": true,
+   "source": "dbt_quickbooks.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/int_quickbooks__invoice_join.sql:84 invoice_join estimate_total_amount/estimate_status conditionally dropped while ap_ar_enhanced reads them unconditionally"
+   ],
+   "findings": [
+    "[bug] models/quickbooks__general_ledger_by_period.sql:71 retained_earnings.period_beginning_balance loses its COALESCE",
+    "[bug] models/double_entry_transactions/int_quickbooks__bill_payment_double_entry.sql:6 bill_payment_double_entry enable flag switched from using_bill_payment to using_bill",
+    "[bug] models/double_entry_transactions/int_quickbooks__purchase_double_entry.sql:3 purchase and sales_receipt double_entry models lose their enabled() config",
+    "[bug] models/intermediate/int_quickbooks__expenses_union.sql:1 int_quickbooks__expenses_union loses its using_purchase enabled gate but still selects from a gated model",
+    "[bug] models/intermediate/int_quickbooks__sales_union.sql:1 int_quickbooks__sales_union loses its using_sales_receipt gate but its base branch is gated",
+    "[bug] models/intermediate/int_quickbooks__invoice_join.sql:84 invoice_join estimate_total_amount/estimate_status conditionally dropped while ap_ar_enhanced reads them unconditionally",
+    "[bug] models/quickbooks__general_ledger.sql:14 general_ledger: sales_receipt and bill_payment branches regated or ungated",
+    "[bug] packages.yml:7 packages.yml points to a local path ../dbt_quickbooks_source with odd indentation"
+   ],
+   "repo": "dbt_quickbooks",
+   "error": null,
+   "judge": {
+    "index": 5,
+    "reason": "Finding 5 names the same model (int_quickbooks__invoice_join), the same columns (estimate_total_amount, estimate_status), and the same mechanism. With using_estimate False the columns are not output, while quickbooks__ap_ar_enhanced still selects them unguarded, so the build fails on a missing column."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5566ce38a3",
+   "title": "revisions",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_recharge.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/intermediate/int_recharge__customer_details.sql:28 charge_aggs sums charge-level amounts over order-grain billing_history, inflating totals",
+    "[bug] models/intermediate/int_recharge__customer_details.sql:62 total_net_spend subtracts total_refunds from avg_amount_charged",
+    "[risk] integration_tests/dbt_project.yml:22 integration_tests order var switched to identifier mode",
+    "[risk] models/recharge__customer_daily_rollup.sql:38 customer_daily_rollup.total_charges sums charge_total_price per order, unfiltered by status"
+   ],
+   "repo": "dbt_recharge",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings mention recharge__subscription_overview.sql or the left join from subscriptions_charges to customers_charge_lines being turned into an inner join by WHERE filters on charge_created_at and subscription_cancelled_at. The four findings cover different defects: inflated charge sums in customer_details, the net-spend formula, the integration test var, and the daily rollup total_charges."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "1b026344ce",
+   "title": "add user role to opp enhanced model",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "dbt_salesforce.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/salesforce__opportunity_enhanced.sql:84 opportunity_enhanced user_role join compares user_id to user_role_id (wrong column)",
+    "models/salesforce__opportunity_enhanced.sql:84 opportunity_enhanced: user_role join is not inside the salesforce__user_role_enabled guard"
+   ],
+   "findings": [
+    "[bug] models/salesforce__opportunity_enhanced.sql:84 opportunity_enhanced user_role join compares user_id to user_role_id (wrong column)",
+    "[bug] models/salesforce__opportunity_enhanced.sql:84 opportunity_enhanced: user_role join is not inside the salesforce__user_role_enabled guard"
+   ],
+   "repo": "dbt_salesforce",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the user_role join in opportunity_enhanced compares opportunity_owner.user_id with user_role.user_role_id, so the role columns come back null or from the wrong role. Finding 1 is about a different defect, the join sitting outside the enabled guard."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a2bd63a9b7",
+   "title": "update user role data and join",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_salesforce.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/salesforce__opportunity_enhanced.sql:49 opportunity_enhanced: duplicate alias 'as position as owner_position' breaks compilation"
+   ],
+   "findings": [
+    "[bug] models/salesforce__opportunity_enhanced.sql:49 opportunity_enhanced: duplicate alias 'as position as owner_position' breaks compilation"
+   ],
+   "repo": "dbt_salesforce",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 targets the same line and defect: the duplicate alias 'as position as owner_position' on user_role.user_role_name makes the select invalid, so the model fails to compile."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2e39bb1c9b",
+   "title": "more updates",
+   "category": "other",
+   "in_scope": true,
+   "source": "dbt_servicenow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/servicenow__task_enhanced.sql:260 task_enhanced: every left join now has a second ON clause"
+   ],
+   "findings": [
+    "[bug] models/servicenow__problem_enhanced.sql:110 problem_enhanced: five sys_user joins have two consecutive ON clauses",
+    "[bug] models/servicenow__task_enhanced.sql:260 task_enhanced: every left join now has a second ON clause",
+    "[bug] models/servicenow.yml:741 problem_fix_communicator_manager_value has an empty doc() reference"
+   ],
+   "repo": "dbt_servicenow",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect in the same place: models/servicenow__task_enhanced.sql:260, where every left join has a second `on` for source_relation instead of `and`, so the model fails to compile. Finding 0 describes the same mechanism, but in problem_enhanced, which is a different model. Finding 2 is an unrelated doc() reference problem."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fb473e94a7",
+   "title": "invoice details model",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_stripe.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stripe__invoice_details.sql:107 stripe__invoice_details fans out: invoice_line_item pre-aggregated per plan_id/price_id but joined on invoice_id only",
+    "models/stripe__invoice_details.sql:1 stripe__invoice_details uses stripe__using_* vars that dbt_project.yml never defines"
+   ],
+   "findings": [
+    "[bug] models/stripe__invoice_details.sql:107 stripe__invoice_details fans out: invoice_line_item pre-aggregated per plan_id/price_id but joined on invoice_id only",
+    "[bug] models/intermediate/int_stripe__account_daily.sql:65 int_stripe__account_daily date_spine join has malformed cast and fails to compile",
+    "[risk] models/stripe__invoice_details.sql:84 does_table_exist('price') macro returns none and pricing.price_id/plan_id may not match stg_stripe__pricing or invoice_line_item",
+    "[bug] models/stripe.yml:287 stripe__invoice_line_items deleted but still documented and tested (unique invoice_line_item_id)",
+    "[bug] models/stripe__subscription_line_items.sql:7 stripe__subscription_line_items now reads invoice_details, losing invoice_line_item_id and its unique contract",
+    "[bug] models/stripe__invoice_details.sql:1 stripe__invoice_details uses stripe__using_* vars that dbt_project.yml never defines"
+   ],
+   "repo": "dbt_stripe",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect. The invoice_line_item CTE groups by invoice_id, source_relation, plan_id and price_id, but stripe__invoice_details joins on invoice_id and source_relation only. Each invoice therefore repeats once per plan or price."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6189002586",
+   "title": "backwards compat",
+   "category": "business_logic",
+   "in_scope": false,
+   "source": "dbt_stripe.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stripe__customer_overview.sql:156 stripe__customer_overview 'No Customer ID' branch divides count columns by 100",
+    "models/stripe__customer_overview.sql:151 stripe__convert_values logic inverted in customer_overview"
+   ],
+   "findings": [
+    "[bug] models/stripe__customer_overview.sql:156 stripe__customer_overview 'No Customer ID' branch divides count columns by 100",
+    "[bug] models/stripe__customer_overview.sql:151 stripe__convert_values logic inverted in customer_overview",
+    "[bug] models/intermediate/int_stripe__account_daily.sql:84 int_stripe__account_daily amount columns: convert_values flag inverted"
+   ],
+   "repo": "dbt_stripe",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: in stripe__customer_overview.sql the 'No Customer ID' branch divides total_sales_count, total_refund_count, sales_count_this_month and refund_count_this_month by 100.0, though they are counts rather than amounts. Finding 1 is about the inverted flag logic, and finding 2 is about a different model."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "62408f721e",
+   "title": "ticket field updates",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_zendesk.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/zendesk__ticket_enriched.sql:117 zendesk__ticket_enriched fans out and drops tickets via unaggregated user_tag joins",
+    "models/zendesk__ticket_enriched.sql:123 zendesk__ticket_enriched duplicates tickets on stg_zendesk__domain_name join by organization_id"
+   ],
+   "findings": [
+    "[bug] models/zendesk__ticket_enriched.sql:117 zendesk__ticket_enriched fans out and drops tickets via unaggregated user_tag joins",
+    "[bug] models/zendesk__ticket_enriched.sql:123 zendesk__ticket_enriched duplicates tickets on stg_zendesk__domain_name join by organization_id",
+    "[risk] models/zendesk__ticket_metrics.sql:72 ticket_metrics.is_multi_touch_resolution includes two-touch tickets and mishandles NULLs",
+    "[risk] models/enhancement_additions/int_zendesk__organization_tag_agg.sql:9 int_zendesk__organization_tag_agg calls fivetran_utils.string_agg, but fivetran_utils is not a declared package",
+    "[risk] models/zendesk__ticket_enriched.sql:162 ticket_enriched joins satisfaction_rating on ticket_id without dedup",
+    "[bug] models/zendesk__ticket_metrics.sql:66 ticket_metrics: total_agent_replies is filled from count_internal_comments",
+    "[bug] packages.yml:4 packages.yml points to a local ../dbt_zendesk_source path that the project cannot rely on"
+   ],
+   "repo": "dbt_zendesk",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It says zendesk__ticket_enriched joins the raw stg_zendesk__user_tag table, one row per user per tag, three times for requester, submitter and assignee. That repeats each ticket per tag and the joins multiply. It also says the inner joins on requester and submitter drop tickets whose users have no tags."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "149477ada4",
+   "title": "fix sla_breach_at calc",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "dbt_zendesk.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql:129 Duplicate sla_breach_at column in intercepted_periods_with_breach_flag_calculated"
+   ],
+   "findings": [
+    "[bug] models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql:129 Duplicate sla_breach_at column in intercepted_periods_with_breach_flag_calculated"
+   ],
+   "repo": "dbt_zendesk",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: a duplicate sla_breach_at column in intercepted_periods_with_breach_flag_calculated, caused by the commit adding a second expression while the earlier one at lines 116-119 remains. It cites the same model, column and mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1ca031f3db",
+   "title": "bugfix/sla-investigations",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dbt_zendesk.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql:64 weeks_cross_ticket_sla_applied: week-limiting filter commented out, every SLA row fans out to 208 weeks"
+   ],
+   "findings": [
+    "[bug] models/sla_policy/reply_time/int_zendesk__reply_time_business_hours.sql:64 weeks_cross_ticket_sla_applied: week-limiting filter commented out, every SLA row fans out to 208 weeks"
+   ],
+   "repo": "dbt_zendesk",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, the same commented-out WHERE that limited the cross join of SLA rows with weeks, and the same fan-out of every SLA row across all 208 weeks."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "aspects-dbt",
+   "commit": "3c719a2a66",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_apple_store",
+   "commit": "4e8e3f11c7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot",
+   "commit": "3afe3fbce0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_jira",
+   "commit": "24b0000807",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/intermediate/field_history/int_jira__pivot_daily_field_history.sql:7 pivot_daily_field_history: GROUP BY removed while selecting bare date_day and issue_id next to max() :: The commit deletes `group by 1,2`, but the select list still mixes non-aggregated date_day and issue_id with max(case ...) aggregates. The query is invalid (non-aggregated columns with no GROUP BY), so the model fails to build. If it did run, it would not return one row per issue per day."
+   ],
+   "later_fixed": [
+    "94743327 bug/too-many-partitions (#131)"
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_netsuite",
+   "commit": "47901f74db",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_qualtrics",
+   "commit": "52fae0b761",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_quickbooks",
+   "commit": "333df6e6d2",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:136 invoice_double_entry: new WHERE drops account-only invoice lines :: The added predicate requires coalesce(invoice_bundles.item_id, invoice_lines.sales_item_item_id, invoice_lines.item_id) to be non-null. A plain line that carries only invoice_lines.account_id (an account-based line with no item) has no item, and it has no bundle, so invoice_bundles.item_id is null t",
+    "[row_count_change] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:118 invoice_double_entry: bundle_items and invoice_bundles joins fan out invoice lines :: Each bundle invoice line is joined to every item in the bundle (bundle_items on bundle_id). That result is joined to invoice_bundles on invoice_id and item_id only, with no invoice_line_index or line key. If an invoice has two lines for the same bundle or for bundles that share an item, every line m",
+    "[broken_reference_or_syntax] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:93 invoice_join account_id leaves trailing comma before FROM :: With using_invoice_bundle true (the default), the new account_id expression ends with a comma. The next token after the Jinja block is `from invoices`, so the compiled SQL is `... as account_id, from invoices`. This is a syntax error and the model fails to build. The else branch has no trailing comm",
+    "[business_logic] models/double_entry_transactions/int_quickbooks__invoice_double_entry.sql:93 invoice account_id loses sales_item_account_id and parent income fallback :: The old logic fell back to items.parent_income_account_id for child items. The new coalesce uses only income_account_id, so lines whose item has no own income account get a NULL account_id. In addition, bundle_item_catch.income_account_id takes precedence over the line's own item account. The cast o",
+    "[business_logic] models/double_entry_transactions/int_quickbooks__credit_memo_double_entry.sql:43 credit_memo account_id no longer maps discount lines :: The old CASE sent discount lines (no item account, no item) to discount_account_id. The new coalesce(sales_item_account_id, items.income_account_id) never reads discount_account_id, so discount lines get a NULL account_id. The expense_account_id fallback is also gone.",
+    "[business_logic] models/double_entry_transactions/int_quickbooks__bill_double_entry.sql:30 bill payed_to_account_id drops income_account_id fallback :: The old logic used coalesce(items.expense_account_id, items.income_account_id) when the line had no expense account. The new coalesce uses only items.expense_account_id, so bill lines for items with only an income account now get a NULL payed_to_account_id.",
+    "[nullability_or_cast] models/double_entry_transactions/int_quickbooks__purchase_double_entry.sql:30 purchase_double_entry.payed_to_account_id loses income_account_id fallback :: The old logic fell back to coalesce(items.expense_account_id, items.income_account_id) when the line had no expense account. The new coalesce stops at items.expense_account_id. Item-based purchase lines whose item has only an income account now get a null payed_to_account_id. Those rows are still em",
+    "[nullability_or_cast] models/double_entry_transactions/int_quickbooks__vendor_credit_double_entry.sql:31 vendor_credit_double_entry.credit_account_id loses income_account_id fallback :: The previous fallback to items.income_account_id was removed. Vendor credit lines on items with no expense account now produce a NULL credit_account_id. The credit-side journal row then has a NULL account_id.",
+    "[broken_reference_or_syntax] models/quickbooks__expenses_sales_enhanced.sql:12 expenses_sales_enhanced refs nonexistent int_quickbooks__sales_union :: The commit renames quickbooks__sales_detail to int_quickbooks__sales_detail_union. The new model's `sales` CTE refs `int_quickbooks__sales_union`, which no model defines. dbt fails at compile time with a missing-node error, so the model and the project don't build. The `sales` CTE is only created wh"
+   ],
+   "later_fixed": [
+    null,
+    "c429a81 Fix joins, test errors.",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_recharge",
+   "commit": "f5d002afd5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce",
+   "commit": "3b60759cb0",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/history/salesforce_history.yml:1 salesforce_history.yml has no top-level `models:` key, so the model entries are invalid YAML :: The file has `version: 2` and then goes straight to `  - name: ...` list items that are indented. In YAML this is a parse error, because a sequence can't follow a scalar mapping value at that indentation. If it did parse, dbt would reject it because there is no `models:` key. dbt fails at project pa"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_servicenow",
+   "commit": "298657bc22",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe",
+   "commit": "31048a16e9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_zendesk",
+   "commit": "44bf982878",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 31,
+  "caught_judge_bug": "26/31 (84%)",
+  "caught_judge_bug_or_risk": "26/31 (84%)",
+  "caught_strict": "26/31 (84%)",
+  "caught_loose": "27/31 (87%)",
+  "risk_note_only": "2/31 (6%)",
+  "by_repo": {
+   "aspects-dbt": "2/3 (67%)",
+   "bigquery-etl": "10/12 (83%)",
+   "dbt_apple_store": "0/1 (0%)",
+   "dbt_hubspot": "1/1 (100%)",
+   "dbt_jira": "2/2 (100%)",
+   "dbt_netsuite": "1/1 (100%)",
+   "dbt_qualtrics": "1/1 (100%)",
+   "dbt_quickbooks": "2/2 (100%)",
+   "dbt_recharge": "0/1 (0%)",
+   "dbt_salesforce": "2/2 (100%)",
+   "dbt_servicenow": "1/1 (100%)",
+   "dbt_stripe": "1/1 (100%)",
+   "dbt_zendesk": "3/3 (100%)"
+  },
+  "by_category": {
+   "dropped_or_renamed_column_with_readers": "2/2 (100%)",
+   "nullability_or_cast": "2/3 (67%)",
+   "other": "7/7 (100%)",
+   "row_count_change": "13/17 (76%)",
+   "schema_contract": "2/2 (100%)"
+  },
+  "ordinary_commits": 12,
+  "false_alarm_share": "3/12 (25%)",
+  "false_alarm_share_excluding_later_fixed": "2/12 (17%)",
+  "commits_with_bug_or_risk": "3/12",
+  "false_alarm_by_repo": {
+   "aspects-dbt": "0/1",
+   "dbt_apple_store": "0/1",
+   "dbt_hubspot": "0/1",
+   "dbt_jira": "1/1",
+   "dbt_netsuite": "0/1",
+   "dbt_qualtrics": "0/1",
+   "dbt_quickbooks": "1/1",
+   "dbt_recharge": "0/1",
+   "dbt_salesforce": "1/1",
+   "dbt_servicenow": "0/1",
+   "dbt_stripe": "0/1",
+   "dbt_zendesk": "0/1"
+  },
+  "errors": 0
+ }
+}

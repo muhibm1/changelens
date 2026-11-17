@@ -1,0 +1,24 @@
+# dbt_netsuite: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_netsuite): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_netsuite
+url: https://github.com/fivetran/dbt_netsuite
+bugs:
+  - commit: 21d48ef48b
+    parent: df62f487b4
+    title: "Apply persist-passthrough-column logic to end models in netsuite models"
+    fix: e73579f531
+    fix_title: "Revert \"Apply persist-passthrough-column logic to end models in netsuite models\""
+    bug: "in netsuite__balance_sheet the block that added balance_sheet_transaction_detail_columns is replaced by a loop over accounts_pass_through_columns selecting null, so the configured transaction detail columns are no longer selected and the account pass-through names, already selected earlier, are repeated"
+    category: other
+    in_scope: true
+    must_mention: [balance_sheet_transaction_detail_columns, accounts_pass_through_columns, dropped]
+    expect:
+      - {path: models/netsuite/netsuite__balance_sheet.sql, line: 60}
+      - {path: models/netsuite/netsuite__balance_sheet.sql, line: 147, end_line: 152}

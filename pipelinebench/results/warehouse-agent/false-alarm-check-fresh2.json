@@ -1,0 +1,128 @@
+[
+ {
+  "repo": "dbt-project-evaluator",
+  "commit": "34bdd1fca8",
+  "finding": "[business_logic] models/marts/tests/intermediate/int_model_test_summary.sql:17 test_unique_count changed from a 0/1 flag",
+  "verdict": "REAL",
+  "reason": "int_model_test_summary.sql:17-22 at 34bdd1fca8: sum(case when is_test_unique) counts every unique test per column, where the old if(max()...) was capped at 1; line 56 adds it to the not_null flag and line 75 tests >=2, so two unique tests alone now mark the PK as tested. Edge case but a real semantic change."
+ },
+ {
+  "repo": "dbt-data-reliability",
+  "commit": "07ff04c632",
+  "finding": "[business_logic] models/system/configuration/edr_tables_config.sql:74 edr_tables_config.thread_number: ntile partitioned",
+  "verdict": "FALSE",
+  "reason": "edr_tables_config.sql:74: thread_number is never referenced anywhere at this WIP commit (git grep shows only the definition) and nothing documents its intended spread; no contract broken."
+ },
+ {
+  "repo": "dbt_tiktok_ads",
+  "commit": "8cdf2089fd",
+  "finding": "[business_logic] .quickstart/quickstart.yml:26 quickstart supported_vars descriptions swapped between ad_group and ad ho",
+  "verdict": "REAL",
+  "reason": ".quickstart/quickstart.yml:26-35: ad_group var description names AD_REPORT_HOURLY and the ad var names ADGROUP_REPORT_HOURLY, but stg_..ad_group_report_hourly.sql:60 consumes the ad_group var and the ad staging model consumes the ad var; descriptions swapped (doc-only)."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[business_logic] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:9 int__daily_klaviyo_user_campaign_flow d",
+  "verdict": "REAL",
+  "reason": "int__daily_klaviyo_user_campaign_flow.sql:9 uses date_trunc(month) for a model named daily with date_day, collapsing daily grain."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[broken_reference_or_syntax] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:33 int__daily_klaviyo_user_ca",
+  "verdict": "REAL",
+  "reason": "int__daily_klaviyo_user_campaign_flow.sql:33 selects from events but the only CTE is klaviyo_events, so the model fails to compile."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[broken_reference_or_syntax] models/intermediate/int__customer_info.sql:39 int__customer_info has no final SELECT after ",
+  "verdict": "REAL",
+  "reason": "int__customer_info.sql ends with the surrogate_key CTE and has no final select, so the SQL is invalid; file shown in full at 37959de523."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[row_count_change] models/intermediate/int__customer_info.sql:35 int__customer_info full outer join on lower(email) can ",
+  "verdict": "FALSE",
+  "reason": "int__customer_info.sql:35: email-keyed full outer join is the intended design; fan-out needs data on duplicate emails that nothing in the repo shows."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[broken_reference_or_syntax] models/intermediate/int__daily_klaviyo_user_campaign_flow.sql:9 int__daily_klaviyo_user_cam",
+  "verdict": "REAL",
+  "reason": "int__daily_klaviyo_user_campaign_flow.sql:9 has no comma after \"as date_day\", so person_email is parsed as its alias or a syntax error."
+ },
+ {
+  "repo": "dbt_shopify_holistic_reporting",
+  "commit": "37959de523",
+  "finding": "[business_logic] models/orders_attribution.sql:42 orders_attribution SMS lookback uses case-sensitive LIKE on type :: Th",
+  "verdict": "REAL",
+  "reason": "orders_attribution.sql:42 uses case-sensitive like %sms% while dbt_project.yml and the seeds show Klaviyo types are capitalised (\"Clicked SMS\", \"Received SMS\") and the events filter lowercases type, so SMS touches get the email lookback on case-sensitive warehouses."
+ },
+ {
+  "repo": "dbt_fivetran_log",
+  "commit": "42b29ee5fc",
+  "finding": "[broken_reference_or_syntax] models/staging/stg_fivetran_log__credits_used.sql:1 stg_fivetran_log__credits_used can be d",
+  "verdict": "REAL",
+  "reason": "stg_fivetran_log__credits_used.sql:1 adds enabled_vars gating but fivetran_log__credit_mar_destination_history.sql:26,41 still refs and joins it ungated; follow-up commit 8110618 later edited that mart."
+ },
+ {
+  "repo": "queries-basedosdados",
+  "commit": "0af047ba37",
+  "finding": "[schema_contract] models/br_b3_cotacoes/schema.yml:33 dicionario documents id_coluna but the model outputs id_tabela :: ",
+  "verdict": "REAL",
+  "reason": "schema.yml:33-34 documents id_coluna for br_b3_cotacoes__dicionario while br_b3_cotacoes__dicionario.sql selects id_tabela; the yml entry was added in this commit."
+ },
+ {
+  "repo": "queries-basedosdados",
+  "commit": "5f640e07b0",
+  "finding": "[business_logic] models/fundacao_lemann/ano_escola_serie_educacao_aprendizagem_adequada.sql:59 basico/proficiente_pandem",
+  "verdict": "REAL",
+  "reason": "ano_escola_serie_educacao_aprendizagem_adequada.sql basico/proficiente_pandemia_PB mix shifted lower bound with raw upper bound (e.g. LP serie 5 raw 200-215 matches neither basico nor proficiente), producing gaps inconsistent with adequado_pandemia_PB; overlap claim is wrong but the gaps are real."
+ },
+ {
+  "repo": "queries-rj-smtr",
+  "commit": "58a0c7b852",
+  "finding": "[row_count_change] models/veiculo/sppo_licenciamento.sql:52 sppo_licenciamento fans out per vehicle: join to aux vistori",
+  "verdict": "UNCLEAR",
+  "reason": "sppo_licenciamento.sql:52-60 joins the aux model (grouped by data,id_veiculo,placa) on (id_veiculo,placa) only, which would duplicate rows if a vehicle appears on several dates; whether the CGLF files carry multiple dates per vehicle needs data."
+ },
+ {
+  "repo": "dbt-snowplow-unified",
+  "commit": "42a0f165ec",
+  "finding": "[broken_reference_or_syntax] models/sessions/sessions.yml:160 sessions.yml: first_geo_country column entry deleted, leav",
+  "verdict": "REAL",
+  "reason": "sessions.yml:159-160 at 42a0f165ec: the \"- name: first_geo_country\" line (present at line 128 of parent) was removed, leaving a second description key under mobile__app_set_id_scope."
+ },
+ {
+  "repo": "dbt-snowplow-unified",
+  "commit": "800ed47c2c",
+  "finding": "[documented_column_not_selected] models/optional_modules/conversions/conversions.yml:39 snowplow_unified_conversions_thi",
+  "verdict": "REAL",
+  "reason": "conversions.yml:39-42 declares columns \"dvce_created_tstamp,\" and \"as cv_type\", which match no output column of the model."
+ },
+ {
+  "repo": "dbt-snowplow-unified",
+  "commit": "800ed47c2c",
+  "finding": "[documented_column_not_selected] models/optional_modules/conversions/conversions.yml:79 snowplow_unified_conversions: YA",
+  "verdict": "REAL",
+  "reason": "conversions.yml:79-82 repeats the malformed column names \"dvce_created_tstamp,\" and \"as cv_type\" for the incremental model."
+ },
+ {
+  "repo": "dbt-snowplow-unified",
+  "commit": "800ed47c2c",
+  "finding": "[business_logic] macros/field_extractions/get_app_context_fields.sql:32 Relation switch matches any project name contain",
+  "verdict": "REAL",
+  "reason": "get_app_context_fields.sql:32 replaced the equality check with \"not in\" tests including any root project name containing snowplow, which then reads the integration-test ref; later fix 24a232f \"Fix bigquery target name resolution\" removed it."
+ },
+ {
+  "repo": "dbt-snowplow-unified",
+  "commit": "800ed47c2c",
+  "finding": "[row_count_change] models/optional_modules/conversions/scratch/snowplow_unified_conversions_this_run.sql:18 conversions_",
+  "verdict": "UNCLEAR",
+  "reason": "snowplow_unified_conversions_this_run.sql:18 unions one select per user-defined conversion definition; duplicate event_id only occurs if a user config has overlapping conditions, which depends on user config and data."
+ }
+]

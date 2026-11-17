@@ -1,0 +1,22 @@
+# dbt_servicenow: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_servicenow): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_servicenow
+url: https://github.com/fivetran/dbt_servicenow
+bugs:
+  - commit: 2e39bb1c9b
+    parent: 4bf26d583d
+    title: "more updates"
+    fix: d8e99bbd8a
+    fix_title: "fix join"
+    bug: "each added source_relation condition in servicenow__task_enhanced starts with a second `on` instead of `and`, so every left join has two on clauses and the model does not compile"
+    category: other
+    in_scope: true
+    must_mention: [source_relation, "on", and]
+    expect: [{path: models/servicenow__task_enhanced.sql, line: 260, end_line: 314}]

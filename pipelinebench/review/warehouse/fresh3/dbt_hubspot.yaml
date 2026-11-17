@@ -1,0 +1,22 @@
+# dbt_hubspot: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_hubspot): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_hubspot
+url: https://github.com/fivetran/dbt_hubspot
+bugs:
+  - commit: a994c3ef4f
+    parent: b01e2d24d5
+    title: "deal company"
+    fix: ef9795712d
+    fix_title: "fix deal company join"
+    bug: "hubspot__deals left joins the deal_company bridge table using (company_id), but deals has no company_id, so the bridge is not joined on deal_id and company_id cannot be resolved per deal"
+    category: other
+    in_scope: true
+    must_mention: [deal_company, company_id, deal_id]
+    expect: [{path: models/sales/hubspot__deals.sql, line: 51, end_line: 54}]

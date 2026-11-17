@@ -1,0 +1,2130 @@
+{
+ "agent": "wa-3",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "232cdc0aff",
+   "title": "Add agency information to fct_payments_rides_v2 (#3008)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/payments/fct_payments_rides_v2.sql:147 dim_agency join in participants_to_routes_and_agency fans out rides (r.feed_key = r.feed_key)"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/payments/fct_payments_rides_v2.sql:147 dim_agency join in participants_to_routes_and_agency fans out rides (r.feed_key = r.feed_key)"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same file and line and names the same defect. The dim_agency join uses r.feed_key = r.feed_key, which is always true, so each ride matches agency rows from every feed version and fans out. It also gives the fix of joining on a.feed_key = r.feed_key."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "c8bf4a71c4",
+   "title": "remove prefix from fct_annual_service_modes",
+   "category": "other",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/ntd/fct_annual_service_modes.sql:50 fct_annual_service_modes: dangling AS on sum_scheduled_vehicles_passenger_car_revenue_miles"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/ntd/fct_annual_service_modes.sql:50 fct_annual_service_modes: dangling AS on sum_scheduled_vehicles_passenger_car_revenue_miles",
+    "[bug] warehouse/models/mart/ntd/_mart_ntd.yml:974 fct_annual_service_modes: YAML documents max_time_period but the model now outputs time_period"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location: the dangling `AS,` on sum_scheduled_vehicles_passenger_car_revenue_miles with no alias, which is invalid SQL and leaves scheduled_vehicles_passenger_car_revenue_miles unproduced. Finding 1 is about a different defect, the YAML still documenting max_time_period."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6aca9aefe8",
+   "title": "add more keying to underlying rt messages models (#2725)",
+   "category": "documented_column_not_selected",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml:175 fct_*_messages: yml documents/tests schedule_dataset_key but SQL outputs schedule_gtfs_dataset_key"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs/_mart_gtfs_fcts.yml:175 fct_*_messages: yml documents/tests schedule_dataset_key but SQL outputs schedule_gtfs_dataset_key"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: the shared YAML anchor documents and tests schedule_dataset_key on the three RT messages models (fct_trip_updates_messages, fct_vehicle_positions_messages, fct_service_alerts_messages), while the SQL outputs schedule_gtfs_dataset_key, so the documented column and its relationships test point at a nonexistent column. It cites the same file and line as the label."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4a46a99373",
+   "title": "Add CTEs and optimize fct_daily_rt_feed_validation_notices",
+   "category": "documented_column_not_selected",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:57 fct_daily_rt_feed_validation_notices.key surrogate key no longer selected",
+    "warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:29 parsed_files, validated_extracts and counts inflated by per-feed_type fan-out in daily_feeds_codes"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:57 fct_daily_rt_feed_validation_notices.key surrogate key no longer selected",
+    "[bug] warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:63 gtfs_validator_versions: scalar subquery over UNNEST fails with multiple versions",
+    "[risk] warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:65 validated_extracts/validation_successes/validation_exceptions now NULL instead of 0 for unvalidated feed-days",
+    "[bug] warehouse/models/mart/gtfs_quality/fct_daily_rt_feed_validation_notices.sql:29 parsed_files, validated_extracts and counts inflated by per-feed_type fan-out in daily_feeds_codes"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The final SELECT in fct_daily_rt_feed_validation_notices.sql no longer outputs the `key` surrogate key, while the YAML still documents `key` as the primary key with unique and not_null tests."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "32c1f7677f",
+   "title": "Initial authorisations modeling (#2954)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[bug] warehouse/models/staging/payments/littlepay/stg_littlepay__authorisations.sql:60 same_timestamp_simple_dupes drops every copy of a duplicated _payments_key, not just the extras",
+    "[risk] warehouse/models/staging/payments/littlepay/stg_littlepay__authorisations.sql:43 stg_littlepay__authorisations: header-row filter drops rows with NULL aggregation_id"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding identifies the labelled bug, which is that the latest-file dedup (DENSE_RANK = 1) drops rows that appear only in an earlier file for the same export date. Finding 0 is about same_timestamp_simple_dupes dropping every copy of a duplicated _payments_key. Finding 1 is about the header-row filter dropping rows with a NULL aggregation_id. Both are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "04a3a21f0e",
+   "title": "Add fct_create_expiring_gtfs_issues model and Airtable source (#5011)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] warehouse/models/mart/transit_database/fct_create_expiring_gtfs_issues.sql:112 Airtable name joins can duplicate or drop expiring datasets (name, gtfs_dataset_record_id)"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a fan-out from joining expiring datasets to dim_provider_gtfs_data on the schedule dataset key alone, which has a row per service and organization. Finding 0 is about a different defect: Airtable joins on name alone producing duplicates or dropped rows. It doesn't mention dim_provider_gtfs_data or the per-service/organization grain, so it doesn't identify the labelled bug."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "9c3ac72c52",
+   "title": "Modify `mart_ad_hoc.fct_scheduled_service_by_daypart` -> `mart_gtfs.fct_monthly_route_service_by_timeofday` (#3298)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs/fct_monthly_route_service_by_timeofday.sql:97 fct_monthly_route_service_by_timeofday.key omits day_type, so the primary key is not unique"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs/fct_monthly_route_service_by_timeofday.sql:97 fct_monthly_route_service_by_timeofday.key omits day_type, so the primary key is not unique"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the surrogate key at line 97 omits day_type, which the model groups by at line 92. As a result the key is not unique and the unique primary key tests fail. It also notes that the route names add to the grouping."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8a26f18e3b",
+   "title": "feat(mart_gtfs_quality): Adds a query that produces gtfs rt and vp completeness for use in reports (#3424)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs_quality/fct_daily_trip_updates_vehicle_positions_completeness.sql:26 fct_daily_trip_updates_vehicle_positions_completeness: map join omits date and dataset, fans out trips"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs_quality/fct_daily_trip_updates_vehicle_positions_completeness.sql:26 fct_daily_trip_updates_vehicle_positions_completeness: map join omits date and dataset, fans out trips",
+    "[bug] warehouse/models/mart/gtfs_quality/_mart_gtfs_quality.yml:4 YAML documents fct_dailytrip_updates_vehicle_positions_completeness but the model is fct_daily_trip_updates_vehicle_positions_completeness"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line. It describes the same defect: the map join uses only schedule_feed_key with no date condition, so each trip matches a map row for every day the feed was active and fans out. Finding 1 is a different defect, a YAML model name typo."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "62fee45e9f",
+   "title": "Updates to scrape_ntd.py to also handle the ridership excel notebook and load it to a bucket",
+   "category": "other",
+   "in_scope": true,
+   "source": "dev.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/intermediate/ntd/int_ntd__monthly_ridership_with_adjustments_upt.sql:3 int_ntd__monthly_ridership_with_adjustments_upt reads a hardcoded staging-project table instead of ref()"
+   ],
+   "findings": [
+    "[risk] warehouse/models/mart/ntd/dim_monthly_ntd_ridership_with_adjustments_upt.sql:1 dim_monthly_ntd_ridership_with_adjustments_upt repeats each period across every extract",
+    "[bug] warehouse/models/intermediate/ntd/int_ntd__monthly_ridership_with_adjustments_upt.sql:3 int_ntd__monthly_ridership_with_adjustments_upt reads a hardcoded staging-project table instead of ref()",
+    "[bug] warehouse/models/staging/ntd/_stg_ntd.yml:1 YAML schema files bumped to version: 3 (and int_ntd.yml uses version: 1)",
+    "[bug] script/scrape_ntd.py:32 scrape_ntd writes to the test bucket while the external table reads the prod bucket"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags the same file and line: the intermediate model reads a hardcoded personal staging table (cal-itp-data-infra-staging.vb_staging...) instead of using ref(), so it sits outside the dbt graph. This is the labelled defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "11ec0ee750",
+   "title": "Payments: Summarized authorisations model  (#3001)",
+   "category": "business_logic",
+   "in_scope": false,
+   "source": "dev.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] warehouse/models/intermediate/payments/int_payments__authorisations_summarized.sql:43 authorisations_summarized: join on _payments_key can fan out when deduped keeps both duplicate rows"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is that the latest authorisation per aggregation is chosen by timestamp alone, so a newest row with a null status wins. Finding 0 describes a different defect: a join on _payments_key fanning out when duplicate rows both survive dedup. That is a different mechanism, so it does not match."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "34716dcc27",
+   "title": "Fix daily schedule+RT route-direction summary trip counting (#5767)",
+   "category": "other",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql:5 dim_provider_gtfs_data replaces ref() with hardcoded prod table names (dim_gtfs_datasets, int_gtfs_quality__daily_assessment_candidate_entities)"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs/fct_daily_schedule_rt_route_direction_summary.sql:212 schedule_with_quartet_deduped partitions by route_name instead of route_id and drops distinct routes",
+    "[bug] warehouse/models/mart/transit_database/dim_provider_gtfs_data.sql:5 dim_provider_gtfs_data replaces ref() with hardcoded prod table names (dim_gtfs_datasets, int_gtfs_quality__daily_assessment_candidate_entities)"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 is at dim_provider_gtfs_data.sql:5 and describes the same defect: the ref() calls were replaced with hardcoded prod table names, which is a debugging leftover. Finding 0 is about a different defect, the dedup partitioning by route_name."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b111f6f570",
+   "title": "payments: warehouse staging and source tables for enghouse data (#4122)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] warehouse/models/staging/payments/enghouse/_enghouse.yml:103 stg_enghouse__transactions YAML documents OperatorId but the model outputs operator_id"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about a YAML column name mismatch (OperatorId vs operator_id) in stg_enghouse__transactions. The labelled bug is SAFE_CAST on non-ISO timestamp strings silently yielding NULL in the taps, ticket_results and transactions models. That is a different defect, so nothing matches."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f26b2970ab",
+   "title": "Dedupe payments settlements (#4755)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "39cdaa1dd",
+   "title": "feat: add enghouse org names to fct payments * transactions models (#5212)",
+   "category": "documented_column_not_selected",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/payments/_payments.yml:602 fct_payments_billing_transactions: enghouse_operator_id documented but not selected",
+    "warehouse/models/mart/payments/_payments.yml:630 fct_payments_deposit_transactions: enghouse_operator_id documented but not selected",
+    "warehouse/models/mart/payments/_payments.yml:674 fct_payments_chargeback_transactions: enghouse_operator_id documented but not selected",
+    "warehouse/models/mart/payments/_payments.yml:714 fct_payments_adjustment_transactions: enghouse_operator_id documented but not selected"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/payments/_payments.yml:602 fct_payments_billing_transactions: enghouse_operator_id documented but not selected",
+    "[bug] warehouse/models/mart/payments/_payments.yml:630 fct_payments_deposit_transactions: enghouse_operator_id documented but not selected",
+    "[bug] warehouse/models/mart/payments/_payments.yml:674 fct_payments_chargeback_transactions: enghouse_operator_id documented but not selected",
+    "[bug] warehouse/models/mart/payments/_payments.yml:714 fct_payments_adjustment_transactions: enghouse_operator_id documented but not selected"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "The labelled bug covers four models, and each of findings 0 to 3 covers one of them with the same mechanism: enghouse_operator_id is documented in the YAML but missing from the model's SELECT. Finding 0 is the first full match. It names the billing model at line 602, which is one of the four labelled locations, and it describes the same defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6a9eae65a2",
+   "title": "Refactor stop time update related models (#4627)",
+   "category": "other",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs/fct_stop_time_metrics.sql:16 fct_stop_time_metrics int_tu_trip_stop CTE: incremental_where() emitted without WHERE"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs/fct_stop_time_metrics.sql:16 fct_stop_time_metrics int_tu_trip_stop CTE: incremental_where() emitted without WHERE",
+    "[bug] warehouse/models/mart/gtfs/fct_stop_time_metrics.sql:42 fct_stop_time_metrics unnested: predictions duplicated when a stop-time key spans two dt rows",
+    "[bug] warehouse/models/mart/gtfs/fct_stop_time_metrics.sql:104 fct_stop_time_metrics arrival_time_seconds uses EXTRACT(DAY) on a DATETIME, giving day-of-month"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. incremental_where() is emitted without the WHERE keyword in the int_tu_trip_stop CTE, so the incremental filter is not applied as a filter and the compiled SQL is invalid. Findings 1 and 2 describe different defects (duplicated predictions, EXTRACT(DAY) on a DATETIME)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0dfe3b65e7",
+   "title": "Scrape geoportal for shn, add SHN flag on stops table (#3529)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "history-calitp.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/models/mart/gtfs_schedule_latest/dim_stops_latest.sql:31 dim_stops_latest duplicates stops near multiple SHN segments via stops_on_shn join"
+   ],
+   "findings": [
+    "[bug] warehouse/models/mart/gtfs_schedule_latest/dim_stops_latest.sql:31 dim_stops_latest duplicates stops near multiple SHN segments via stops_on_shn join"
+   ],
+   "repo": "data-infra",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The stops_on_shn spatial cross join emits a stop once per nearby SHN segment, and the LEFT JOIN on _gtfs_key then fans out dim_stops_latest. It points at the same model and nearly the same line."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b0c7722a66",
+   "title": "added filter for encounter fields; removed a redundant ed_classification model",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/ed_classification/ed_classification_models.yml:73 YAML still declares deleted model ed_classification__int_enhance_classification"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about a stale YAML block for a deleted model. The labelled bug is a join fan-out from ccsr__long_condition_category in the summary model. These are different defects, so no finding matches."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ffa41cdba1",
+   "title": "changing npi column to id; adding description/names to code columns",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/core/staging/core__stg_clinical_encounter.sql:21 core__stg_clinical_encounter.facility_name is populated with facility_npi"
+   ],
+   "findings": [
+    "[bug] models/core/staging/core__stg_clinical_encounter.sql:21 core__stg_clinical_encounter.facility_name is populated with facility_npi",
+    "[bug] models/core/core_models.yml:207 YAML still documents facility_npi (and provider names) that the renamed models no longer output"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding identifies the labelled bug, which is the facility CTE joining terminology__provider and fanning out rows when an encounter has facility ids under different organization names. Finding 0 is about facility_name being populated from facility_npi in core__stg_clinical_encounter, which is a wrong-value defect in a different model. Finding 1 is about YAML documentation that no longer matches the renamed columns. Neither mentions the join fan-out."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ffa41cdba1",
+   "title": "changing npi column to id; adding description/names to code columns",
+   "category": "other",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/core/staging/core__stg_clinical_encounter.sql:21 core__stg_clinical_encounter.facility_name is populated with facility_npi",
+    "[bug] models/core/core_models.yml:207 YAML still documents facility_npi (and provider names) that the renamed models no longer output"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding identifies the labelled bug. Finding 0 is about facility_name being populated from facility_npi in core__stg_clinical_encounter. Finding 1 is about stale YAML docs for renamed columns. Neither mentions emergency_department__summary reading ref('eligibility') instead of its own staging model."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "118e818ac8",
+   "title": "Pmpm updates (#284)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/financial_pmpm/final/financial_pmpm__pmpm_prep.sql:67 pmpm_prep joins pivots without data_source, and its unique test omits data_source"
+   ],
+   "findings": [
+    "[bug] models/cms_hcc/intermediate/cms_hcc__int_members.sql:78 cms_hcc__int_members collection-year filter drops members enrolled across the whole year",
+    "[bug] models/cms_hcc/intermediate/cms_hcc__int_members.sql:42 cms_hcc__int_members stg_eligibility filter changed from AND overlap to OR of inverted comparisons",
+    "[risk] models/financial_pmpm/final/financial_pmpm__pmpm_prep.sql:71 pmpm_prep joins pivots on plan and payer with null-unsafe equality, zeroing spend where plan is null",
+    "[bug] models/financial_pmpm/final/financial_pmpm__pmpm_prep.sql:67 pmpm_prep joins pivots without data_source, and its unique test omits data_source",
+    "[bug] models/insights/final/insights__count_claim_by_date_column.sql:77 Member-month count in insights now inflated by the new payer/plan/data_source grain",
+    "[risk] models/financial_pmpm/financial_pmpm_models.yml:38 pmpm_prep unique test key concatenation with NULL plan and no data_source",
+    "[bug] models/core/core_models.yml:692 core__pharmacy_claim documents total_cost_amount that is never selected"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 describes the labelled bug: pmpm_prep joins the pivots without data_source. member_months is distinct on data_source, so a patient with the same payer and plan in two data sources fans out 2x2 and double counts spend. Finding 2 is about null-unsafe plan equality, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7a5660c0a9",
+   "title": "adding fallback steps, fixing bad terminology join",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/tuva_provider_attribution/intermediate/provider_attribution__int_yearly_steps.sql:202 int_yearly_steps step5 never excludes benes already assigned in steps 1-4",
+    "[bug] models/tuva_provider_attribution/final/provider_attribution__assigned_beneficiaries_yearly.sql:50 assigned_beneficiaries_yearly lookback_start_date only handles step 3, not new 24-month steps 4 and 5",
+    "[bug] models/tuva_provider_attribution/intermediate/provider_attribution__int_current_steps.sql:150 int_current_steps step3 does not exclude null provider_id"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings mention the specialty code join in provider_attribution__provider_classification.sql, where numeric casts drop alphanumeric codes. Finding 0 is about step5 exclusions in int_yearly_steps. Finding 1 is about lookback_start_date in the final model. Finding 2 is about null provider_id in int_current_steps step3. These are all different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "85f2183839",
+   "title": "Update safe_cast to try_cast for duckdb (#645)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/claims_preprocessing/service_category/intermediate/service_category__office_based_surgery_professional.sql:11 office_based_surgery_professional: numeric_hcpcs filter casts the string literal 'hcpcs_code', dropping all rows on DuckDB"
+   ],
+   "findings": [
+    "[bug] models/claims_preprocessing/service_category/intermediate/service_category__office_based_surgery_professional.sql:11 office_based_surgery_professional: numeric_hcpcs filter casts the string literal 'hcpcs_code', dropping all rows on DuckDB",
+    "[bug] models/quality_measures/intermediate/cqm236_controlling_blood_pressure/quality_measures__int_cqm236_numerator.sql:63 cqm236 numerator observations CTE: try_cast('result' as numeric) literal drops all observations on DuckDB",
+    "[bug] models/quality_measures/intermediate/cqm236_controlling_blood_pressure/quality_measures__int_cqm236_numerator.sql:85 cqm236 numerator labs CTE: try_cast('result' as numeric) literal drops all lab rows on DuckDB"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same file and line (office_based_surgery_professional.sql:11). It names the same defect: try_cast('hcpcs_code' as integer) casts the quoted literal instead of the column, so the result is always NULL and the model returns no rows on DuckDB. Findings 1 and 2 describe the same kind of mistake in a different model (cqm236 numerator), so they don't match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ccf6a06f80",
+   "title": "Performance improvements for `claims_preprocessing.member_months` (#1088)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/claims_preprocessing/claims_enrollment/claims_enrollment__member_months.sql:46 member_months: SELECT DISTINCT removed, overlapping eligibility spans now duplicate person-month rows"
+   ],
+   "findings": [
+    "[bug] models/claims_preprocessing/claims_enrollment/claims_enrollment__member_months.sql:46 member_months: SELECT DISTINCT removed, overlapping eligibility spans now duplicate person-month rows"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same model (claims_enrollment__member_months), the same mechanism (SELECT DISTINCT removed and dense_rank replaced with row_number, so overlapping eligibility spans yield duplicate member months, each with its own member_month_key). It matches the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ca51597d90",
+   "title": "Dqi mart join fix (#630)",
+   "category": "other",
+   "in_scope": false,
+   "source": "tuva.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[bug] models/data_quality/dqi/mart_review/final/mart_review__pharmacy.sql:52 mart_review__pharmacy fans out pharmacy claims on practitioner_id (repeats per data_source)",
+    "[bug] models/data_quality/dqi/mart_review/final/mart_review__service_categories_long.sql:32 service_categories_long: visits multiplied across payer/plan/data_source rows of the spend model",
+    "[risk] models/data_quality/dqi/mart_review/final/mart_review__pharmacy.sql:24 pharmacy cost_per_day and specialty_tier: unguarded division by days_supply"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 identifies the same defect: an unguarded paid_amount / days_supply division at mart_review__pharmacy.sql:24 that fails or returns NULL when days_supply is 0. Findings 0 and 1 describe join fan-out problems, which are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "19f041823d",
+   "title": "Adding revenue codes to hospice IP",
+   "category": "other",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/claims_preprocessing/service_category/intermediate/service_category__inpatient_hospice_institutional.sql:16 inpatient_hospice_institutional: OR condition references undefined alias `med`"
+   ],
+   "findings": [
+    "[bug] models/claims_preprocessing/service_category/intermediate/service_category__inpatient_hospice_institutional.sql:16 inpatient_hospice_institutional: OR condition references undefined alias `med`"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the new OR predicate references med.revenue_center_code, but the model's FROM clause aliases the medical claim table as s, so `med` is undefined and the column reference does not resolve. This is the same file, line, and mechanism as the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "86d7356107",
+   "title": "Referencing home health directly instead of bill type codes associated.",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/claims_preprocessing/service_category/intermediate/service_category__outpatient_hospice_institutional.sql:20 outpatient_hospice_institutional: NOT EXISTS references nonexistent hhi.claim_id2"
+   ],
+   "findings": [
+    "[bug] models/claims_preprocessing/service_category/intermediate/service_category__outpatient_hospice_institutional.sql:20 outpatient_hospice_institutional: NOT EXISTS references nonexistent hhi.claim_id2"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the NOT EXISTS subquery in outpatient_hospice_institutional.sql:20 references hhi.claim_id2, which does not exist in service_category__home_health_institutional (it only outputs claim_id)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b9e6ef9358",
+   "title": "fixed bug in normalized eligibility (#317)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "tuva.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/claims_preprocessing/normalized_input/staging/normalized_input__stg_eligibility.sql:3 stg_eligibility.patient_id_key is NULL when payer, plan or dates are null, so the date join misses"
+   ],
+   "findings": [
+    "[bug] models/claims_preprocessing/normalized_input/staging/normalized_input__stg_eligibility.sql:3 stg_eligibility.patient_id_key is NULL when payer, plan or dates are null, so the date join misses",
+    "[risk] models/claims_preprocessing/normalized_input/intermediate/normalized_input__int_eligibility_dates_normalize.sql:4 int_eligibility_dates_normalize key built by undelimited concatenation can collide"
+   ],
+   "repo": "tuva",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It points to patient_id_key in stg_eligibility.sql:3, built with || over data_source, payer, plan and the enrollment dates. A null in any part makes the key NULL, so the join to the normalized dates misses and those rows lose their normalized dates. It also notes the same expression in the int model at line 4. Finding 1 is mainly about key collisions from the missing delimiter. It mentions the NULL behaviour only in passing and does not describe the rows losing their normalized dates."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "393673fa08",
+   "title": "Create engagement afact models (#1529)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": true,
+   "matched": [
+    "src/ol_dbt/models/dimensional/dim_course_content.sql:99 dim_course_content.sequential_block_id is filled for chapter blocks with the previous chapter's last sequential"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/dimensional/dim_course_content.sql:99 dim_course_content.sequential_block_id is filled for chapter blocks with the previous chapter's last sequential",
+    "[bug] src/ol_dbt/models/dimensional/afact_problem_engagement.sql:19 afact_problem_engagement.num_of_attempts uses max() on a varchar attempt column",
+    "[risk] src/ol_dbt/models/dimensional/afact_course_page_engagement.sql:22 afact_course_page_engagement includes non-vertical block_fk rows with null chapter and sequential"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings describe the labelled bug, which is a join on block id alone in afact_course_page_engagement and afact_problem_engagement that fans out across course runs. Finding 0 is about sequential assignment in dim_course_content. Finding 1 is about max() on a varchar attempt column. Finding 2 is about non-vertical block rows being kept in the page engagement model. Finding 2 is in the same file, but it describes a different defect (rows with null chapter and sequential), not the fan-out from a missing course-run key."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5cbaf30194",
+   "title": "adds other platforms to afact video table (#1565)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/dimensional/afact_video_engagement.sql:78 afact_video_engagement: start_and_end_times joined and grouped without platform",
+    "src/ol_dbt/models/dimensional/afact_video_engagement.sql:57 afact_video_engagement: inner joins to dim_video and course_content drop events that were previously kept"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/dimensional/afact_video_engagement.sql:78 afact_video_engagement: start_and_end_times joined and grouped without platform",
+    "[bug] src/ol_dbt/models/dimensional/afact_video_engagement.sql:57 afact_video_engagement: inner joins to dim_video and course_content drop events that were previously kept",
+    "[bug] src/ol_dbt/models/dimensional/afact_video_engagement.sql:18 afact_video_engagement: start_time/end_time always '0' or null, so estimated_time_played is wrong"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a fan-out from walking the course_content hierarchy without courserun_readable_id, so parents shared across runs duplicate rows. Finding 0 is about a missing platform in the start_and_end_times join. Finding 1 is about inner joins to dim_video and course_content dropping rows. Finding 2 is about start_time and end_time logic. None of them describes the course_content hierarchy join fanning out across runs."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5be68ca420",
+   "title": "add product readable id's for coupons without orders (#1603)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/marts/mitxpro/marts__mitxpro_all_coupons.sql:245 all_coupons: join to pull_product_nonorders on coupon_id fans out rows and duplicates the compound key"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/marts/mitxpro/marts__mitxpro_all_coupons.sql:245 all_coupons: join to pull_product_nonorders on coupon_id fans out rows and duplicates the compound key"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same join at line 245 (pull_product_nonorders on coupon_id), and says it applies to every coupon, including those that already have an order-based product, so those coupons get duplicate rows. This is the labelled defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fc88ec0f9c",
+   "title": "create mart for MITx Online enrollments and demographics (#878)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e0c3276c84",
+   "title": "Creating dim_video and dim_problem (#1528)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/dimensional/dim_problem.sql:102 dim_problem left join to problem_type_metadata on block id only can fan out problem_block_pk"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/dimensional/dim_problem.sql:102 dim_problem left join to problem_type_metadata on block id only can fan out problem_block_pk",
+    "[bug] src/ol_dbt/models/dimensional/dim_problem.sql:115 dim_problem and dim_video output due_date but YAML documents end_date",
+    "[bug] src/ol_dbt/models/dimensional/dim_video.sql:50 dim_video duration join for edx.org uses video_block_id as video_edx_uuid"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. dim_problem.sql:102 left-joins problem_type_metadata on problem_block_id only. That table holds several rows per block id across course runs, so the join fans out and duplicates problem_block_pk."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5120acad9e",
+   "title": "add course run title to org reporting (#2154)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] src/ol_dbt/models/reporting/organization_administration_report.sql:64 enroll_data grouped by courserun_title can duplicate rows per learner and run"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at the same line and the same mechanism. Adding courserun_title to the enroll_data group by splits a run with several titles into multiple rows per learner. That changes the grain the later joins assume and causes duplication. It hedges on whether titles actually differ, but it still names the labelled defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2a681eaa9e",
+   "title": "add orders report with product name (#2577)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "acb6594ecd",
+   "title": "update enrollment to dim tables (#2292)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/reporting/enrollment_detail_report.sql:225 dim_course_run / dim_course joined without is_current filter (SCD2 history fans out enrollments)"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:225 dim_course_run / dim_course joined without is_current filter (SCD2 history fans out enrollments)",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:245 dim_product (SCD2) joined on courserun_fk OR program_fk without is_current; multiplies enrollment rows",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:239 bridge_organization_courserun joined on courserun_fk only; grain is organization x contract x courserun",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:250 tfact_order joined by user+product+platform without a line or order key (multiple orders fan out and the old line_id match is lost)",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:269 discount_names grouped by discount_code and discount_name may carry several rows per code",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:239 organization_key / organization_name only cover MITx Online B2B contracts and can duplicate rows",
+    "[bug] src/ol_dbt/models/reporting/enrollment_detail_report.sql:1 Program name column and program-course filter changed",
+    "[bug] src/ol_superset/assets/datasets/Trino/enrollment_detail_report_01f179b6-cb75-465f-8ceb-0525c24fa223.yaml:510 enrollment_detail_report: order_type and order_created_on removed while the Superset dataset and chart still read them"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is an inner join to course on course_run.course_fk that drops enrollments with no matching course. Findings 0 to 5 are all about fan-out or duplicate rows from SCD2 history, bridge grain, order joins and discount joins. Finding 0 does mention the dim_course join, but its defect is duplication from a missing is_current filter, not rows dropped by an inner join. Finding 6 is about program name and filters, and finding 7 is about Superset columns. None of them describes the dropped-enrollment mechanism."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e174d87554",
+   "title": "feat(dimensional): add Residential grades to tfact_grade (#3012)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f9cce066d7",
+   "title": "fix duplicated SDS program learners (#926)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a6cf6c7465",
+   "title": "add dim_discount table and related foreign key references for discount management (#2147)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] src/ol_dbt/models/dimensional/dim_discount.sql:58 dim_discount micromasters branch: discount_amount and discount_type not normalized"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is that discount_pk hashes discount_code along with source_discount_id and platform_code. Consumers join without discount_code, so a changed code gives several rows and tfact_order fans out. Finding 0 is about a different defect: the micromasters branch does not normalize discount_amount and discount_type. It says nothing about the discount_pk hash or join fan-out."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0bed7cbde7",
+   "title": "feat(learn): add integrations__learn__program_certificates model (#2591)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2f8e7603ed",
+   "title": "feat: add program certificates to tfact_certificate and improve watermark (#2209)",
+   "category": "dropped_or_renamed_column_with_readers",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/dimensional/tfact_certificate.sql:274 tfact_certificate incremental filter references w.max_created_on, which the watermark CTE no longer exposes"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/dimensional/tfact_certificate.sql:274 tfact_certificate incremental filter references w.max_created_on, which the watermark CTE no longer exposes"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, and the same defect. The incremental filter still reads w.max_created_on, but the watermark CTE now exposes max_activity_on, so the column is missing."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "90b7ae3654",
+   "title": "xPRO order int table (#817)",
+   "category": "documented_column_not_selected",
+   "in_scope": true,
+   "source": "ol-data-platform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/ol_dbt/models/intermediate/mitxpro/_int_mitxpro__models.yml:843 int__mitxpro__ecommerce_product: product_is_visible_in_bulk_form documented with not_null but SQL still selects product_is_private"
+   ],
+   "findings": [
+    "[bug] src/ol_dbt/models/intermediate/mitxpro/int__mitxpro__ecommerce_allorders.sql:85 b2b_order_fields fans out each B2B order across every coupon sharing the couponpayment_name",
+    "[bug] src/ol_dbt/models/intermediate/mitxpro/_int_mitxpro__models.yml:843 int__mitxpro__ecommerce_product: product_is_visible_in_bulk_form documented with not_null but SQL still selects product_is_private",
+    "[bug] src/ol_dbt/models/intermediate/mitxpro/_int_mitxpro__models.yml:1018 int__mitxpro__programs and int__mitxpro__courses: platform_id documented, platform_name removed from yml, but SQL still outputs platform_name"
+   ],
+   "repo": "ol-data-platform",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 is at the same file and line and describes the same defect. The YAML renames the column to product_is_visible_in_bulk_form with a not_null test, while int__mitxpro__ecommerce_product still selects product_is_private."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3fe4c53883",
+   "title": "Update Ethereum `gas.fees` for EIP4844 (#6441)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt_subprojects/daily_spellbook/models/_sector/gas/fees/ethereum/gas_ethereum_fees.sql:58 gas_ethereum_fees: INNER JOIN to blobs_submissions drops all non-blob transactions"
+   ],
+   "findings": [
+    "[bug] dbt_subprojects/daily_spellbook/models/_sector/gas/fees/ethereum/gas_ethereum_fees.sql:58 gas_ethereum_fees: INNER JOIN to blobs_submissions drops all non-blob transactions"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same model (gas_ethereum_fees), the same line, and the same mechanism: the INNER JOIN to blobs_submissions keeps only type-3 blob transactions and drops all other Ethereum transactions."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ae95c0cb6f",
+   "title": "Integrate aggregator markers in x2y2 (#2466)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/x2y2/ethereum/x2y2_ethereum_events.sql:103 x2y2_ethereum_events: SELECT DISTINCT removed while agg_m join can still fan out"
+   ],
+   "findings": [
+    "[bug] models/x2y2/ethereum/x2y2_ethereum_events.sql:103 x2y2_ethereum_events: SELECT DISTINCT removed while agg_m join can still fan out"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same file and line. It says SELECT DISTINCT was removed from the final select of x2y2_ethereum_events while left joins (agg_m markers and the buyer_fix/seller_fix nft_transfers joins) can still fan out. As a result, duplicate trade rows reach the output. That is the same defect and mechanism as the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d11441a776",
+   "title": "Avalanche gas spell (#1751)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": true,
+   "matched": [
+    "models/gas/gas_fees.sql:3 gas_fees post_hook expose_spells still lists only ethereum and bnb"
+   ],
+   "findings": [
+    "[risk] models/gas/avalanche_c/gas_avalanche_c_fees.sql:55 gas_avalanche_c_fees: prices.usd join on symbol 'AVAX' lacks blockchain filter, can duplicate tx_hash",
+    "[risk] models/gas/avalanche_c/gas_avalanche_c_fees.sql:21 tx_fee_native, tx_fee_usd, burned_native and burned_usd are NULL for transaction types other than Legacy and DynamicFee",
+    "[bug] models/gas/gas_fees.sql:3 gas_fees post_hook expose_spells still lists only ethereum and bnb",
+    "[bug] models/gas/avalanche_c/gas_avalanche_c_schema.yml:95 gas_avalanche_c_fees: YAML documents `type` but model outputs `transaction_type`"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The prices.usd join on symbol 'AVAX' has no blockchain filter, so multiple AVAX price rows per minute match and each transaction is duplicated."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "843fbf8c2e",
+   "title": "Eigenlayer: add slashing withdrawal events support (#8543)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt_subprojects/daily_spellbook/models/_projects/eigenlayer/ethereum/eigenlayer_ethereum_slashing_withdrawal_queued_flattened.sql:40 slashing_withdrawal_queued_flattened.shares reads withdrawal.scaledShares, not the event's sharesToWithdraw"
+   ],
+   "findings": [
+    "[bug] dbt_subprojects/daily_spellbook/models/_projects/eigenlayer/ethereum/eigenlayer_ethereum_slashing_withdrawal_queued_flattened.sql:40 slashing_withdrawal_queued_flattened.shares reads withdrawal.scaledShares, not the event's sharesToWithdraw"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a DECIMAL(38,0) cast of uint256 scaledShares that overflows and fails the model. Finding 0 raises a different defect: it says the model reads scaledShares instead of sharesToWithdraw, so outflow is misstated. It never mentions the cast or an overflow, so it does not match."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "af426a2c86",
+   "title": "Proof of reserve labels (#1950)",
+   "category": "dropped_or_renamed_column_with_readers",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/labels/cex/labels_cex_ethereum.sql:50 labels_cex_ethereum: address 0xf977814e... listed twice with different names",
+    "models/labels/cex/labels_cex_bnb.sql:7 labels_cex_bnb and labels_cex_ethereum: lower(address) has no alias, so the documented address column is renamed"
+   ],
+   "findings": [
+    "[bug] models/labels/cex/labels_cex_ethereum.sql:50 labels_cex_ethereum: address 0xf977814e... listed twice with different names",
+    "[bug] models/labels/cex/labels_cex_bnb.sql:19 labels_cex_bnb: invalid timestamp '2022-22-14' for Binance 10",
+    "[bug] models/labels/cex/labels_cex_bnb.sql:7 labels_cex_bnb and labels_cex_ethereum: lower(address) has no alias, so the documented address column is renamed"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 identifies the labelled bug. It reports that lower(address) has no alias in labels_cex_bnb and labels_cex_ethereum at line 7, so the address column is renamed to lower(address). It also notes the downstream union and the effect on anything reading address. Findings 0 and 1 describe different defects (a duplicate address and an invalid timestamp)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "51261dfbec",
+   "title": "Dex trades performance (#1454)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/uniswap/ethereum/uniswap_v2_ethereum_trades.sql:80 uniswap_v2 incremental INNER JOIN to transactions uses equality to a midnight timestamp, dropping nearly all new trades",
+    "models/uniswap/ethereum/uniswap_v1_ethereum_trades.sql:100 uniswap_v1 incremental INNER JOIN to transactions uses equality to a midnight timestamp, dropping nearly all new trades"
+   ],
+   "findings": [
+    "[bug] models/uniswap/ethereum/uniswap_v2_ethereum_trades.sql:80 uniswap_v2 incremental INNER JOIN to transactions uses equality to a midnight timestamp, dropping nearly all new trades",
+    "[bug] models/uniswap/ethereum/uniswap_v1_ethereum_trades.sql:100 uniswap_v1 incremental INNER JOIN to transactions uses equality to a midnight timestamp, dropping nearly all new trades",
+    "[risk] models/uniswap/ethereum/uniswap_v2_ethereum_trades.sql:93 Price joins in v1 and v2 incremental runs use a fixed one-week window"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at v2:80. The incremental INNER JOIN to transactions uses equality to a single midnight timestamp, so almost all new trades are dropped. Finding 1 describes the same defect in v1, which is also a labelled location. Finding 0 is the first match and also covers the main v2 location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f0fb5b6a22",
+   "title": "T-32182 Migrate shibaswap (#4013)",
+   "category": "business_logic",
+   "in_scope": false,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/shibaswap/ethereum/shibaswap_ethereum_trades.sql:26 shibaswap_ethereum_trades: bought/sold direction CASE tests the wrong column (amount1Out instead of amount0Out)"
+   ],
+   "findings": [
+    "[bug] models/shibaswap/ethereum/shibaswap_ethereum_trades.sql:26 shibaswap_ethereum_trades: bought/sold direction CASE tests the wrong column (amount1Out instead of amount0Out)"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and lines. It names the same defect: the bought-side CASE tests amount1Out = 0 in place of amount0Out = 0, which breaks token_bought_amount_raw and token_bought_address."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d8631db9d7",
+   "title": "fix(polymarket): fix duplicate accumulation in market_trades (#9515)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_market_trades.sql:104 market_trades full-refresh branch keeps only last 7 days of trades",
+    "dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_positions.sql:183 polymarket_polygon_positions full-refresh drops all positions older than 7 days"
+   ],
+   "findings": [
+    "[bug] dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_market_trades.sql:104 market_trades full-refresh branch keeps only last 7 days of trades",
+    "[bug] dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/polymarket_polygon_positions.sql:183 polymarket_polygon_positions full-refresh drops all positions older than 7 days"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "The labelled bug covers temporary 7-day filters in both market_trades and the positions full-refresh branch. Finding 0 identifies the market_trades filter (line 104) and Finding 1 identifies the positions filter (line 183). Both describe the same defect and mechanism, and either alone matches part of the labelled bug. Finding 0 matches the first-listed location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a2f3b3ba78",
+   "title": "feat: add Tempo DEXs (#9506)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql:53 tempo_exchange_tempo_base_trades.evt_index collides across swap_exact_in and swap_exact_out branches"
+   ],
+   "findings": [
+    "[bug] dbt_subprojects/dex/models/trades/tempo/platforms/tempo_exchange_tempo_base_trades.sql:53 tempo_exchange_tempo_base_trades.evt_index collides across swap_exact_in and swap_exact_out branches"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: evt_index is a ROW_NUMBER partitioned by tx hash computed separately in the exact-in and exact-out CTEs. After UNION ALL, a transaction with both swap kinds gets duplicate (tx_hash, evt_index) merge keys."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "19b2de5d3d",
+   "title": "Init berachain dex (#7647)",
+   "category": "other",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt_subprojects/dex/models/trades/berachain/dex_berachain_base_trades.sql:44 dex_berachain_base_trades enriches with base chain transactions instead of berachain"
+   ],
+   "findings": [
+    "[bug] dbt_subprojects/dex/models/trades/berachain/dex_berachain_base_trades.sql:44 dex_berachain_base_trades enriches with base chain transactions instead of berachain"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: add_tx_columns is called with blockchain = 'base' in dex_berachain_base_trades, so the inner join to base.transactions drops nearly all berachain trades. It also points to the same file and a line next to the labelled one (44 vs 45)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "92ac3cf0cd",
+   "title": "feat(polymarket): add OHLCV hourly model with forward-fill (#9532)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] dbt_subprojects/daily_spellbook/models/_projects/polymarket/polygon/_schema.yml:486 ohlcv_hourly.market_outcome documented as null when unresolved, but market_details emits 'unresolved'"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Finding 0 is about market_outcome documentation versus the 'unresolved' string from market_details. It does not mention the market_bounds grouping by token_id, which varies by hour and duplicates the hour spine. It is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8d4db5edf8",
+   "title": "Blur & Fantasy trades (#6091)",
+   "category": "other",
+   "in_scope": true,
+   "source": "spellbook.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/_sector/nft/trades/chains/blast/platforms/fantasy_blast_base_trades.sql:94 fantasy_blast_base_trades joins base.transactions instead of blast.transactions"
+   ],
+   "findings": [
+    "[bug] models/_sector/nft/trades/chains/blast/platforms/fantasy_blast_base_trades.sql:94 fantasy_blast_base_trades joins base.transactions instead of blast.transactions"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: fantasy_blast_base_trades passes 'base' to add_nft_tx_data, so it inner joins base.transactions and drops the Blast trades. It points to the same file and line."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8d4db5edf8",
+   "title": "Blur & Fantasy trades (#6091)",
+   "category": "business_logic",
+   "in_scope": false,
+   "source": "spellbook.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/_sector/nft/trades/chains/blast/platforms/fantasy_blast_base_trades.sql:94 fantasy_blast_base_trades joins base.transactions instead of blast.transactions"
+   ],
+   "findings": [
+    "[bug] models/_sector/nft/trades/chains/blast/platforms/fantasy_blast_base_trades.sql:94 fantasy_blast_base_trades joins base.transactions instead of blast.transactions"
+   ],
+   "repo": "spellbook",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about fantasy_blast_base_trades joining base.transactions instead of blast.transactions. The labelled bug is in blur_blast_base_trades, where mainnet WETH and Blur pool addresses are hardcoded as currency_contract. These are different models and different defects. The finding even says the Blur model is correct on the point it raises."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "11559bcd3a",
+   "title": "fix(sqlmesh): resolve min_by commits (#3319)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/staging/github/stg_github__distinct_main_commits.sql:42 distinct_main_commits dedup partitioned by push_id drops all but one commit per push"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/staging/github/stg_github__distinct_main_commits.sql:42 distinct_main_commits dedup partitioned by push_id drops all but one commit per push"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model. The ROW_NUMBER partitioned by (repository_id, push_id) with rn = 1 replaces GROUP BY (repository_id, sha), so only one commit per push survives and the other commits are dropped."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ac09920d33",
+   "title": "fix(sqlmesh): fix project to project mappings (#5079)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/events/venture/coresignal/int_events__coresignal_venture.sql:83 enriched_events: WHERE p2p.is_best_match turns LEFT JOIN into INNER, dropping unmatched-company events"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/venture/coresignal/int_events__coresignal_venture.sql:83 enriched_events: WHERE p2p.is_best_match turns LEFT JOIN into INNER, dropping unmatched-company events"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the WHERE p2p.is_best_match = TRUE filter on the right side of the LEFT JOIN in int_events__coresignal_venture.sql turns it into an inner join and drops events for companies with no project match. The line number differs slightly (83 vs 79), but the model, mechanism and effect are the same."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b3e8522d8d",
+   "title": "simplify directory `int` models (#1380)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/dbt/models/intermediate/metrics/int_repo_metrics_by_project.sql:60 int_repo_metrics_by_project: repo_stats joined on artifact_id only, missing project_id"
+   ],
+   "findings": [
+    "[bug] warehouse/dbt/models/intermediate/metrics/int_repo_metrics_by_project.sql:60 int_repo_metrics_by_project: repo_stats joined on artifact_id only, missing project_id"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, the same join of repo_stats on artifact_id only (missing project_id) when repo_stats is grouped by (project_id, artifact_id), and the same mechanism of a repo owned by several projects fanning out and duplicating rows."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a1c7ea770f",
+   "title": "refactor(sqlmesh): consolidate superchain tx and tr-level events (#4918)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/int_events_daily__l2_transactions.sql:38 int_events_daily__l2_transactions output has multiple rows per declared grain (transaction_type)",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/int_events_daily__l2_internal_transactions.sql:38 int_events_daily__l2_internal_transactions splits grain by is_top_level_transaction",
+    "[risk] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/superchain/int_superchain_traces_txs_joined.sql:38 int_superchain_traces_txs_joined drops failed txs and txs without traces"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings mention share_of_transaction_gas or integer division in int_events__superchain_internal_transactions. They cover grain splits in two daily models and a join change in int_superchain_traces_txs_joined, which are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a1c7ea770f",
+   "title": "refactor(sqlmesh): consolidate superchain tx and tr-level events (#4918)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/int_events_daily__l2_transactions.sql:38 int_events_daily__l2_transactions output has multiple rows per declared grain (transaction_type)",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/int_events_daily__l2_internal_transactions.sql:38 int_events_daily__l2_internal_transactions splits grain by is_top_level_transaction",
+    "[risk] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/superchain/int_superchain_traces_txs_joined.sql:38 int_superchain_traces_txs_joined drops failed txs and txs without traces"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings mention l2_gas_fee or BIGINT overflow in int_events__superchain_internal_transactions. They cover grain splits in two daily models and a join change in int_superchain_traces_txs_joined, which are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "66162843d6",
+   "title": "feat(sqlmesh): add gitcoin funding events (#3976)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql:117 int_events__gitcoin_funding: join to project_groups_summary on group_id alone can fan out events",
+    "warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql:59 int_events__gitcoin_funding matching: INNER JOIN to rounds drops matching rows and can duplicate them"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql:117 int_events__gitcoin_funding: join to project_groups_summary on group_id alone can fan out events",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/events/funding/gitcoin/int_events__gitcoin_funding.sql:59 int_events__gitcoin_funding matching: INNER JOIN to rounds drops matching rows and can duplicate them",
+    "[risk] warehouse/oso_sqlmesh/macros/onchain/chain_id_to_chain_name.py:62 chain_id_to_chain_name: 137 maps to MATIC, so artifact_source for Polygon addresses changes"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 names the same defect at line 59: the INNER JOIN of matching rows to the rounds CTE, which is built only from donations with amount > 0. Matching rows for rounds with no such donations are dropped. It also adds a duplication claim, but the core mechanism matches the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "76605da5d7",
+   "title": "feat(sqlmesh): add initial oracle models (#5282)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/oracles/int_optimism_oracle_events.sql:38 int_optimism_oracle_events.trace_address: CAST of VARCHAR path to DOUBLE"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/oracles/int_optimism_oracle_events.sql:43 oracle_events fans out if an oracle address maps to several projects",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/oracles/int_optimism_oracle_events.sql:38 int_optimism_oracle_events.trace_address: CAST of VARCHAR path to DOUBLE"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 targets the same line (38) and column, trace_address, and the same mechanism: a comma-separated VARCHAR path cast to DOUBLE, which fails or loses the value for nested traces. Finding 0 is about a join fan-out, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e9afbabd33",
+   "title": "data: remaining directory mart models to sqlmesh (#2828)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2666fbec6a",
+   "title": "feat(sqlmesh): chain metrics models (#4623)",
+   "category": "other",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/domain-specific/chain-metrics/int_chain_metrics.sql:52 int_chain_metrics: oso_metrics column order misaligned in positional UNION ALL"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/domain-specific/chain-metrics/int_chain_metrics.sql:52 int_chain_metrics: oso_metrics column order misaligned in positional UNION ALL",
+    "[risk] warehouse/oso_sqlmesh/models/intermediate/events/blockchain/worldchain/int_events__worldchain_userops.sql:39 int_events__worldchain_userops: every Worldchain trace is classed as a userop"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model. oso_metrics has a different column order from the other branches, and the positional UNION ALL with SELECT * shifts the OSO columns. Its detail on which column lands where is slightly off, but the mechanism and location match. Finding 1 is about a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3c5e6981dd",
+   "title": "feat(sqlmesh): expose retro-funding specific metrics in their own mart model (#3631)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_summary_metrics_by_project.sql:6 summary_metrics_by_project declared grain (project_id, sample_date) omits metric_name",
+    "warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_relational_metrics_by_project.sql:6 relational_metrics_by_project declared grain (project_id, sample_date) but 3 rows per project"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_summary_metrics_by_project.sql:6 summary_metrics_by_project declared grain (project_id, sample_date) omits metric_name",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_relational_metrics_by_project.sql:6 relational_metrics_by_project declared grain (project_id, sample_date) but 3 rows per project",
+    "[risk] warehouse/oso_sqlmesh/models/intermediate/superchain/s7/int_superchain_s7_summary_metrics_by_project.sql:66 summary vs relational: devtooling sample_date is a hard-coded 2025-03-01 while the relational model uses current_date()"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "The labelled bug covers both models, but a single finding can match if it identifies the same mechanism. Finding 1 does: relational_metrics_by_project declares grain (project_id, sample_date) but emits 3 rows per project, one per metric_name. That is the labelled mechanism. Finding 0 covers the same defect for the summary model, so it is also valid, but finding 1 is the one returned. Finding 2 is a different defect, a sample_date mismatch."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "81cfdabc56",
+   "title": "feat(sqlmesh): artifacts_by_project for crypto-ecosystems (#4736)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql:62 DISTINCT over display name and artifact_source_id can leave several rows per (project_id, artifact_id)",
+    "warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql:25 parsed_artifacts: branch unnest drops repos with no branch from the 'eco' projects"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql:62 DISTINCT over display name and artifact_source_id can leave several rows per (project_id, artifact_id)",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql:25 parsed_artifacts: branch unnest drops repos with no branch from the 'eco' projects",
+    "[risk] warehouse/oso_sqlmesh/models/intermediate/entities/projects/crypto-ecosystems/int_artifacts_by_project_in_crypto_ecosystems.sql:27 parsed_artifacts: artifact_source_id join uses raw repo_url, not the normalized parsed URL"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 describes the same defect. The branch unnest and the IS NOT NULL filter sit in the shared parsed_artifacts CTE. Repos with no branch are dropped from the eco mappings too, although eco_name does not depend on branch."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "79826412ed",
+   "title": "fix(sqlmesh): a few rounding and distinct by issues (#5417)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "source": "opensource-observer.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_chain.sql:74 ltv_metrics_by_chain: TVL and userops metrics cast to INTEGER"
+   ],
+   "findings": [
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_chain.sql:74 ltv_metrics_by_chain: TVL and userops metrics cast to INTEGER",
+    "[bug] warehouse/oso_sqlmesh/models/intermediate/domain-specific/superchain/grant-measurement/int_optimism_grants_daily_defi_ltv_metrics_by_project.sql:61 ltv_metrics_by_project: tvl_90day, userops_90day, tvl_alltime, userops_alltime cast to INTEGER"
+   ],
+   "repo": "opensource-observer",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 targets the same file (by_chain) and the same defect: tvl, tvs and userops columns cast to 32-bit INTEGER, which overflows above about 2.1e9 and truncates fractions. Finding 1 is the by_project model, a different file."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "data-infra",
+   "commit": "e56de4ff00",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "data-infra",
+   "commit": "21f8b6635f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "051b4398c3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "ff59e7c167",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  },
+  {
+   "repo": "data-infra",
+   "commit": "3877850ed3",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] warehouse/models/staging/gtfs_guidelines/stg_gtfs_guidelines__no_validation_errors_in_last_30_days.sql:33 no_validation_errors status is NULL when the window has no error data :: errors_last_30_days comes from a LEFT JOIN to validation_errors_by_day. Feed/dates with no matching row, such as dates absent from validation_fact_daily_feed_codes (it only has dates present in the notices table), give a NULL validation_errors. SUM over a window of only NULLs is NULL. The CASE has o",
+    "[business_logic] warehouse/models/staging/gtfs_guidelines/stg_gtfs_guidelines__no_validation_errors_in_last_30_days.sql:39 errors_last_30_days window covers 31 rows, not 30 days :: ROWS BETWEEN 30 PRECEDING AND CURRENT ROW spans 31 rows, which is 31 days, so it is off by one against the 'last 30 days' check. It is also row-based, so if dates are missing for a feed the window reaches back further than 30 days. It should be 29 PRECEDING, or a RANGE over dates."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "2f1be6bd48",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "332c6fc3e8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "57ce7ff348",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "4f372d2750",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infra",
+   "commit": "333455b996",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "tuva",
+   "commit": "35469b106c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "0a7a1a9bba",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "575a142650",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "4a68dd741e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "513f06a6a4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "8008b6df28",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "73121e2eca",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/input_layer/input_layer__eligibility.yml:6 input_layer__eligibility uniqueness key omits payer, plan and data_source :: The new unique_combination_of_columns test uses only person_id, enrollment_start_date and enrollment_end_date. Eligibility has payer, plan, member_id and data_source columns. A person with dual or multiple coverage over the same dates, or the same person in two sources, legitimately has more than on",
+    "[schema_contract] models/input_layer/input_layer__provider_attribution.yml:6 input_layer__provider_attribution uniqueness key omits payer and plan :: The new test uses person_id, year_month and data_source. The model also carries payer and plan, so a person with attribution under two payers or plans in the same month is valid data. Those rows would fail the test, which assumes one row per person per month per source.",
+    "[schema_contract] models/input_layer/input_layer__medical_claim.yml:100 bill_type_code / revenue_center_code length-between tests pass args as a YAML list :: expect_column_value_lengths_to_be_between is configured with `- min_value: 3` and `- max_value: 4` as list items. dbt expects a mapping of arguments, so the test config fails to parse or the arguments are not passed. The same malformed form is repeated for revenue_center_code at lines 119-121.",
+    "[business_logic] models/input_layer/input_layer__medical_claim.yml:11 Model-level unique_within_record test compares claim_id with claim_type :: The comment says a claim cannot be both professional and institutional within one claim_id. expect_select_column_values_to_be_unique_within_record checks that the values of the listed columns differ within a single row, so it only asserts claim_id != claim_type. It does not test that a claim_id has "
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    "8008b6df Applying not null logic"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "518a7cec38",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "8063490800",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "tuva",
+   "commit": "b4472257ca",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "e8c77daeb9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "2b987eb80d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "064b1cad39",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "441f4a454c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "3a88660ca5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "3e579239b6",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] src/ol_dbt/models/staging/mitxonline/_stg_mitxonline__models.yml:997 course_to_department YAML renamed to nonexistent models; relationships ref points to nonexistent model :: The commit renamed the YAML entry to stg_mitxonline_app_postgres_courses_course_to_department. The real model, referenced by the intermediate model, is stg__mitxonline__app__postgres__courses_course_to_department. The coursetodepartment_id unique test and the not_null and relationships tests therefo"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "5f3e6651f3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "5547e0fb53",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "4075d48319",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ol-data-platform",
+   "commit": "5f8075561d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "353cd1047a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "089dd063ea",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] models/_sector/nft/trades/chains/old/nft_old_base_trades.sql:10 Solana magiceden/opensea trades removed from nft_old_base_trades but nft_solana_base_trades never added to nft_base_trades :: The commit drops magiceden_solana_events and opensea_solana_events from the old base-trades union and creates nft_solana_base_trades to replace them. But nft_base_trades only unions the listed chain models and does not include nft_solana_base_trades. Every Solana row (old magiceden/opensea and the n"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "spellbook",
+   "commit": "541dc0a1d7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "48b1702fd8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "4d1f555191",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "7c07cb5fcc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "6c80666920",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "4dadd58d42",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "7ca8b9d32b",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/lido/liquidity/ethereum/lido_liquidity_ethereum_maverick_pools.sql:159 maverick pool_liquidity cumulative SUM windows over b.pool/b.time (null on non-event days) :: In pool_liquidity the select aliases c.poolAddress as pool and c.day as time, but the window clauses PARTITION BY pool ORDER BY time resolve to the input columns b.pool and b.time from the LEFT JOINed daily_delta_balance_with_lead, not the aliases. On days with no swap/liquidity event b.pool and b.t",
+    "[nullability_or_cast] models/lido/liquidity/ethereum/lido_liquidity_ethereum_curve_steth_frxeth_pool.sql:239 curve_steth_frxeth_pool: main_token_reserve NULL on days without stETH transfers :: steth_balances is a sparse table with one row per day that has a stETH transfer to or from the pool. Here it is joined with an exact match (d.day = b.time) and has no next_time column. Every calendar day without a transfer therefore gets NULL steth_from_wsteth, so main_token_reserve and main_token_u"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "spellbook",
+   "commit": "a93edd6765",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "33032aed28",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] dbt/models/staging/github/stg_github__schema.yml:147 stg_github__pull_request_merge_events.type reuses github_events accepted_values anchor :: `*type` aliases the github_events `type` column, including its accepted_values test (CommitCommentEvent, PushEvent, etc.). The merge events model hard-codes type to 'PULL_REQUEST_MERGED', which is not in that list, so every row fails the accepted_values test.",
+    "[documented_column_not_selected] dbt/models/staging/github/stg_github__schema.yml:31 repo.id / repo.name / actor.id / actor.login anchors reused on staging models that output repository_id / repository_name / actor_id / actor_login :: The anchors &repository_id, &repository_name, &actor_id and &actor_login are defined on github_events, where the columns are the nested structs repo.id, repo.name, actor.id and actor.login. They are then aliased into eight flattened staging models (push_events, pull_requests, pull_request_merge_even",
+    "[schema_contract] dbt/models/staging/oss-directory/stg_ossd__schema.yml:206 stg_ossd__repositories_by_project._cq_source_name reuses anchor that accepts only 'oss-directory' :: stg_ossd__repositories_by_project selects repos.* from stg_ossd__current_repositories. Its _cq_source_name therefore comes from the github-resolve-repos plugin. The model reuses the &_cq_source_name anchor from the collections block, whose accepted_values is ['oss-directory']. The current_repositori"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "0026ead58a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "56d10c7029",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "4a7dee823d",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt/models/marts/events/github_metrics.sql:29 StarsForksRepos GROUP BY ap.project_id references an alias that does not exist :: The CTE selects FROM stg_ossd__repositories_by_project with no alias, and no `ap` is in scope. BigQuery fails with an unrecognized-name error, so the model does not build. It should be GROUP BY project_id.",
+    "[broken_reference_or_syntax] dbt/models/marts/events/github_metrics.sql:57 Activity CTE reads bucket_day, which int_events_to_project does not have :: int_events_to_project outputs project_id, time, event_type, to_id, from_id and amount. There is no bucket_day column (that column only exists in the events_daily_* marts), so first_commit_date fails to compile at runtime. It should use time.",
+    "[business_logic] dbt/models/marts/events/github_metrics.sql:59 issues_opened and pull_requests_opened filter on event types the warehouse does not emit :: The CTE matches 'ISSUE_OPENED' and 'PULL_REQUEST_OPENED'. The rest of the repo uses 'ISSUE_CREATED' and 'PULL_REQUEST_CREATED', and no other model references the OPENED names. issues_opened and pull_requests_opened will therefore always be NULL.",
+    "[row_count_change] dbt/models/marts/events/github_metrics.sql:86 Inner joins to the three metric CTEs drop projects that lack repos, contributors or recent events :: The model starts from projects and INNER JOINs StarsForksRepos, Contributors and Activity. Activity is limited to the last 180 days, so any project with no events in that window disappears entirely. The same happens to projects with no non-fork repo or no int_devs rows. A project-level summary shoul",
+    "[business_logic] dbt/models/marts/events/github_metrics.sql:44 avg_active_devs_6_months is distinct devs over 6 months divided by 6 :: The column is documented as the average number of active developers per month. COUNT(DISTINCT from_id) across the whole window divided by 6 is not that average. A dev active in all 6 months counts as 1/6, and a project with 6 devs who are each active in one month gets 1. The division is also by 6 on"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "c86f69bc30",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] dbt/models/github_push_events.sql:16 github_push_events lacks a PushEvent type filter :: The model is documented as holding push events, and it parses push-only payload fields (push_id, ref, commits, distinct_size). It selects from github_events with no WHERE on the event type. github_events holds every GitHub Archive event type for the tracked repos, such as watch, fork, issue and PR e"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "842e6e6bbf",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:62 collection_contributors groups by pbc.collection_id, which is out of scope :: The outer query of collection_contributors selects from the subquery aliased `d`. The `pbc` alias exists only inside that subquery. Both `SELECT pbc.collection_id` (line 47) and `GROUP BY pbc.collection_id` (line 62) refer to an unknown alias, so BigQuery fails with an unrecognized name error. The m",
+    "[nullability_or_cast] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:49 collection_contributors: TIMESTAMP bucket_month compared to DATE :: int_devs.bucket_month is TIMESTAMP_TRUNC(...), a TIMESTAMP. Here it is compared directly with DATE_ADD(CURRENT_DATE(), ...), which is a DATE, and MIN(d.bucket_month) is also a TIMESTAMP. BigQuery has no TIMESTAMP >= DATE operator, so the query fails. The project model avoids this by wrapping with DA",
+    "[nullability_or_cast] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:75 collection_activity: e.time (TIMESTAMP) compared to DATE :: int_events_to_project.time comes from the events model as a TIMESTAMP. The filter e.time >= DATE_ADD(CURRENT_DATE(), INTERVAL -6 MONTH) compares TIMESTAMP with DATE, which BigQuery rejects. The project model uses DATE(time) and a 180 DAY window, so the collection version also differs in window defin",
+    "[business_logic] dbt/models/marts/github_metrics/github_metrics_by_collection.sql:36 collection_stars_forks_repos: stars and forks double counted for repos shared across projects :: The CTE joins repos-by-project to projects-by-collection and then SUMs star_count and fork_count. A repo that belongs to several projects in the same collection is counted once per project in the SUM, although repos uses COUNT(DISTINCT r.id). Stars and forks are therefore inflated while repos is not"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "6df3d9f009",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt/models/intermediate/contributors/int_devs.sql:3 int_devs.repository_source selects e.to_namespace, which int_events_to_project does not expose :: int_events_to_project selects only project_id, time, event_type, to_id, from_id, amount. It has no to_namespace column, so int_devs fails to compile in BigQuery. The same applies to int_users (line 3), and to the e.to_namespace reads in repository_metrics_by_collection.sql:125 and repository_metrics",
+    "[row_count_change] dbt/models/marts/repository_metrics/repository_metrics_by_project.sql:148 repository_metrics_by_project drops projects with no non-fork repos :: The driver table changed from projects, with LEFT JOINs, to project_repos_summary. That CTE is built from repositories_by_project with is_fork = false and an INNER JOIN. Projects with no repositories, or only forked repositories, were previously kept with NULL metrics. They now disappear from the ou",
+    "[broken_reference_or_syntax] dbt/models/intermediate/contributors/int_users.sql:3 int_users selects e.to_namespace, which int_events_to_project does not output :: The column e.to_namespace AS onchain_network does not exist in int_events_to_project, so the model fails to compile or run. users_monthly_to_project reads int_users and breaks with it.",
+    "[broken_reference_or_syntax] dbt/models/marts/repository_metrics/repository_metrics_by_collection.sql:125 collection_activity reads nonexistent e.to_namespace from int_events_to_project :: int_events_to_project does not expose to_namespace, so the collection_activity CTE fails. Even if the column existed, the repository_source it would produce is the event namespace, which may not match the repository_source in the repos summary that the joins use.",
+    "[broken_reference_or_syntax] dbt/models/marts/repository_metrics/repository_metrics_by_project.sql:112 activity_cte reads nonexistent to_namespace from int_events_to_project :: The column to_namespace AS repository_source is selected from int_events_to_project, which does not output it. The model fails to build.",
+    "[dropped_or_renamed_column_with_readers] hasura/metadata/databases/cloudsql/tables/github_metrics_by_project.yaml:2 Hasura metadata and docs still point at the renamed github_metrics_* tables :: The models were renamed to repository_metrics_by_project and repository_metrics_by_collection. The Hasura table definitions, the tables.yaml includes, and the docs/data-science.md query still use the old github_metrics_* names. These readers will point at tables that no longer exist. The output colu"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "c85aef7d27",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "912cdf4dc3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "opensource-observer",
+   "commit": "a63508699d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 62,
+  "caught_judge_bug": "38/62 (61%)",
+  "caught_judge_bug_or_risk": "40/62 (65%)",
+  "caught_strict": "41/62 (66%)",
+  "caught_loose": "44/62 (71%)",
+  "risk_note_only": "5/62 (8%)",
+  "by_repo": {
+   "data-infra": "11/15 (73%)",
+   "ol-data-platform": "4/14 (29%)",
+   "opensource-observer": "9/12 (75%)",
+   "spellbook": "8/11 (73%)",
+   "tuva": "6/10 (60%)"
+  },
+  "by_category": {
+   "documented_column_not_selected": "4/4 (100%)",
+   "dropped_or_renamed_column_with_readers": "2/2 (100%)",
+   "nullability_or_cast": "4/10 (40%)",
+   "other": "8/9 (89%)",
+   "row_count_change": "16/32 (50%)",
+   "schema_contract": "4/5 (80%)"
+  },
+  "ordinary_commits": 50,
+  "false_alarm_share": "10/50 (20%)",
+  "false_alarm_share_excluding_later_fixed": "10/50 (20%)",
+  "commits_with_bug_or_risk": "16/50",
+  "false_alarm_by_repo": {
+   "data-infra": "1/10",
+   "ol-data-platform": "1/10",
+   "opensource-observer": "5/10",
+   "spellbook": "2/10",
+   "tuva": "1/10"
+  },
+  "errors": 0
+ }
+}

@@ -1,0 +1,29 @@
+# dbt-snowplow-unified: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/snowplow/dbt-snowplow-unified): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt-snowplow-unified
+url: https://github.com/snowplow/dbt-snowplow-unified
+bugs:
+  - commit: "fd7fee9491"
+    parent: "63d8b16aa2"
+    title: "Add option to use refer in channel classification if mkt is null (#42)"
+    fix: "622535ad93"
+    fix_title: "Fix missing bracket in mkt+refr join"
+    bug: "the new snowplow__use_refr_if_mkt_null branch of the GA4 categories join is `lower(trim(coalesce(ev.mkt_source, ev.refr_source)) = lower(c.source)`, missing a closing parenthesis, so the views model does not parse when the option is on"
+    category: other
+    in_scope: true
+    must_mention: ["paren", "trim"]
+    expect:
+      - {path: "models/views/scratch/snowplow_unified_views_this_run.sql", line: 97}
+  - commit: "fd7fee9491"
+    parent: "63d8b16aa2"
+    title: "Add option to use refer in channel classification if mkt is null (#42)"
+    fix: "5ac800ecd0"
+    fix_title: "Fix syntax when snowplow__use_refr_if_mkt_null enabled"
+    bug: "the same new snowplow__use_refr_if_mkt_null branch in the sessions model is missing a closing parenthesis in `lower(trim(coalesce(ev.mkt_source, ev.refr_source))`, so the sessions model does not parse when the option is on"
+    category: other
+    in_scope: true
+    must_mention: ["paren", "trim"]
+    expect:
+      - {path: "models/sessions/scratch/snowplow_unified_sessions_this_run.sql", line: 91}

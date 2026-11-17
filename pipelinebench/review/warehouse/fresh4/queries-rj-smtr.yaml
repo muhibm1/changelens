@@ -1,0 +1,40 @@
+# queries-rj-smtr: real warehouse bugs located at the commit that introduced them, part of the fresh4 held-out set.
+# Written by hand from the public upstream history (https://github.com/prefeitura-rio/queries-rj-smtr): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: queries-rj-smtr
+url: https://github.com/prefeitura-rio/queries-rj-smtr
+bugs:
+  - commit: "29b775503d"
+    parent: "b2ef760bdd"
+    title: "change dash var to end_date"
+    fix: "c1ebaa8e3e"
+    fix_title: "[dashboard_subsidio_sppo] hotfix: inclusão de parênteses (#50)"
+    bug: "replacing the DATE_SUB bound drops the closing parenthesis of the subsidio_data_versao_efetiva subquery, leaving `... DATE(end_date) AS v`, so sumario_subsidio_dia does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["paren", "subsidio_data_versao_efetiva"]
+    expect:
+      - {path: "models/dashboard_subsidio_sppo/sumario_subsidio_dia.sql", line: 38}
+  - commit: "29b775503d"
+    parent: "b2ef760bdd"
+    title: "change dash var to end_date"
+    fix: "bfc599418a"
+    fix_title: "fix end date"
+    bug: "the change moves completed trips to `data BETWEEN 2022-06-01 AND end_date` but leaves planned trips at DATE_SUB(end_date, INTERVAL 1 DAY), so the period summary drops the last day of planned trips while keeping its completed trips"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["DATE_SUB", "end_date", "viagem_planejada"]
+    expect:
+      - {path: "models/dashboard_subsidio_sppo/sumario_subsidio_dia_periodo.sql", line: 48}
+  - commit: "8c50ecf6cc"
+    parent: "79a265ce0d"
+    title: "hotfix: add dates for 2023"
+    fix: "4fb38ab470"
+    fix_title: "[projeto_subsidio_sppo] hotfix: alteração de nome de atributo (#53)"
+    bug: "the new 2023 branch compares `date <= date(\"2023-01-06\")`, but the generated column is named data, so the CASE references a column that does not exist"
+    category: other
+    in_scope: true
+    must_mention: ["date", "data"]
+    expect:
+      - {path: "models/projeto_subsidio_sppo/subsidio_data_versao_efetiva.sql", line: 58}

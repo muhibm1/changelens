@@ -1,0 +1,34 @@
+# dbt_salesforce: real warehouse bugs located at the commit that introduced them.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_salesforce): each bug was found from a later fix
+# commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+# Fields: commit and parent are the introducing commit and its parent; fix is the later commit that
+# repairs it; expect gives the lines in the introducing commit's version of each file; category is from
+# the closed list in README.md; in_scope is true when lineage, schema or row-count reasoning can see the
+# bug from the change.
+
+repo: dbt_salesforce
+url: https://github.com/fivetran/dbt_salesforce
+bugs:
+  - commit: 1b026344ce
+    parent: a607b27ac9
+    title: "add user role to opp enhanced model"
+    fix: a2bd63a9b7
+    fix_title: "update user role data and join"
+    bug: "user_role is left joined on opportunity_owner.user_id = user_role.user_role_id, comparing a user id with a role id, so the position, developer_name, parent_role_id and rollup_description columns come back null or from the wrong role"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: [user_role_id, user_id, join]
+    expect:
+      - {path: models/salesforce__opportunity_enhanced.sql, line: 84, end_line: 85}
+      - {path: models/salesforce__opportunity_enhanced.sql, line: 49, end_line: 52}
+  - commit: a2bd63a9b7
+    parent: 39d76e97c7
+    title: "update user role data and join"
+    fix: 456557cd00
+    fix_title: "fix opportunity enhanced"
+    bug: "the rename writes `user_role.user_role_name as position as owner_position`, two aliases on one column, so the select does not parse"
+    category: other
+    in_scope: true
+    must_mention: [owner_position, alias]
+    expect: [{path: models/salesforce__opportunity_enhanced.sql, line: 49}]

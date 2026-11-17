@@ -1,0 +1,12 @@
+/home/user/fresh-repos-4/dbt-project-evaluator https://github.com/dbt-labs/dbt-project-evaluator
+/home/user/fresh-repos-4/dbt_artifacts https://github.com/brooklyn-data/dbt_artifacts
+/home/user/fresh-repos-4/dbt-data-reliability https://github.com/elementary-data/dbt-data-reliability
+/home/user/fresh-repos-4/dbt_tiktok_ads https://github.com/fivetran/dbt_tiktok_ads
+/home/user/fresh-repos-4/dbt_iterable_source https://github.com/fivetran/dbt_iterable_source
+/home/user/fresh-repos-4/dbt_shopify_holistic_reporting https://github.com/fivetran/dbt_shopify_holistic_reporting
+/home/user/fresh-repos-4/dbt_mixpanel https://github.com/fivetran/dbt_mixpanel
+/home/user/fresh-repos-4/dbt_fivetran_log https://github.com/fivetran/dbt_fivetran_log
+/home/user/fresh-repos-4/queries-basedosdados https://github.com/basedosdados/queries-basedosdados
+/home/user/fresh-repos-4/queries-rj-smtr https://github.com/prefeitura-rio/queries-rj-smtr
+/home/user/fresh-repos-4/dbt-snowplow-unified https://github.com/snowplow/dbt-snowplow-unified
+/home/user/fresh-repos-4/teamster https://github.com/TEAMSchools/teamster
