@@ -1,0 +1,19 @@
+# eicu-code: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/MIT-LCP/eicu-code): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: eicu-code
+url: https://github.com/MIT-LCP/eicu-code
+bugs:
+  - commit: "7e04cb475d"
+    parent: "a145bdd923"
+    title: "tidying"
+    fix: "e5cf1e124b"
+    fix_title: "fix demographics/icustay detail"
+    bug: "the tidied basic_demographics query drops the opening parenthesis of the gender and hospital mortality CASE expressions but keeps the closing one (END) AS gender, END) AS hosp_mortality), so the query does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["paren", "CASE"]
+    expect:
+      - {path: "concepts/basic_demographics.sql", line: 13}
+      - {path: "concepts/basic_demographics.sql", line: 16}

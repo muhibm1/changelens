@@ -1,0 +1,44 @@
+# dbt-snowflake-monitoring: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/get-select/dbt-snowflake-monitoring): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt-snowflake-monitoring
+url: https://github.com/get-select/dbt-snowflake-monitoring
+bugs:
+  - commit: "5a9a100c26"
+    parent: "ffa7ae4177"
+    title: "Add consumption columns to hourly_spend"
+    fix: "f9592895bb"
+    fix_title: "Wrong column reference."
+    bug: "the new usage column in the hybrid_table_storage_spend_hourly CTE of hourly_spend divides storage_terabytes_daily.storage_terabytes, but that CTE reads only hours, _hybrid_table_terabytes_daily and daily_rates, so it references a relation not in its FROM (copied from the storage CTE above)"
+    category: other
+    in_scope: true
+    must_mention: ["storage_terabytes_daily", "_hybrid_table_terabytes_daily"]
+    expect:
+      - {path: "models/hourly_spend.sql", line: 135}
+  - commit: "576c62605a"
+    parent: "aac5c7a75e"
+    title: "Use date spine"
+    fix: "b8d3a6dc8e"
+    fix_title: "Fix parenthesis"
+    bug: "the new dbt_utils.date_spine call in daily_rates passes start_date='2018-01-01' without inner SQL quotes, so it renders as the arithmetic 2018-01-01, and end_date carries an extra closing parenthesis, so the generated spine SQL is invalid"
+    category: other
+    in_scope: true
+    must_mention: ["date_spine", "paren"]
+    expect:
+      - {path: "models/daily_rates.sql", line: 25}
+      - {path: "models/daily_rates.sql", line: 26}
+  - commit: "f71f206c60"
+    parent: "020a4acbc1"
+    title: "bm/add-qualify-statement-to-ensure-uniquenes"
+    fix: "4fe2392c90"
+    fix_title: "Fixing regression if nested object name casing (closes #174)"
+    bug: "the reformat of query_direct_object_access lowercases the variant paths objectId, objectName, objectDomain and columnName; Snowflake path keys are case sensitive, so table_id, object_name, object_domain and columns_accessed all become null"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["objectId", "case"]
+    expect:
+      - {path: "models/query_direct_object_access.sql", line: 31}
+      - {path: "models/query_direct_object_access.sql", line: 32}
+      - {path: "models/query_direct_object_access.sql", line: 33}
+      - {path: "models/query_direct_object_access.sql", line: 49}

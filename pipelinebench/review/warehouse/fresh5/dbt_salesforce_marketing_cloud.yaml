@@ -1,0 +1,18 @@
+# dbt_salesforce_marketing_cloud: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_salesforce_marketing_cloud): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_salesforce_marketing_cloud
+url: https://github.com/fivetran/dbt_salesforce_marketing_cloud
+bugs:
+  - commit: "a37fef9624"
+    parent: "b817244719"
+    title: "updates"
+    fix: "a04230b5af"
+    fix_title: "Fix source `enabled` attributes and `triggered_send` identifier  (#16)"
+    bug: "the new triggered_send source defaults its identifier to send, the same table as the existing send source, so stg_salesforce_marketing_cloud__triggered_send reads send rows instead of the triggered_send table"
+    category: other
+    in_scope: true
+    must_mention: ["triggered_send", "identifier"]
+    expect:
+      - {path: "models/staging/src_salesforce_marketing_cloud.yml", line: 259}

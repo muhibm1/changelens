@@ -1,0 +1,41 @@
+# ethereum-etl-airflow: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/blockchain-etl/ethereum-etl-airflow): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: ethereum-etl-airflow
+url: https://github.com/blockchain-etl/ethereum-etl-airflow
+bugs:
+  - commit: "429ef62e82"
+    parent: "fad0181315"
+    title: "Fix token_amendments.csv"
+    fix: "6fcb618ab3"
+    fix_title: "Missing alias in token_amendaments"
+    bug: "the amended_tokens select changes address to LOWER(address) without an alias, so the output loses its address column (BigQuery names it f0_) and the table no longer matches the tokens schema keyed on address"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["LOWER(address)", "alias"]
+    expect:
+      - {path: "dags/resources/stages/enrich/sqls/amended_tokens.sql", line: 22}
+  - commit: "052af04e36"
+    parent: "91a8d10220"
+    title: "Add traces.status to enrichment phase"
+    fix: "1b60145973"
+    fix_title: "Fix syntax error in sql"
+    bug: "the new traces_with_status CTE in the traces enrichment query ends with a trailing comma before the final SELECT, so the WITH clause does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "traces_with_status"]
+    expect:
+      - {path: "dags/resources/stages/enrich/sqls/traces.sql", line: 16}
+  - commit: "74a530a2f7"
+    parent: "1c84add543"
+    title: "Add log count verification"
+    fix: "576c809eb1"
+    fix_title: "Fix logs_count.sql"
+    bug: "the logs_count verification compares a scalar subquery to 0, but the subquery groups by block_number, so it returns one row per bad block (or none) instead of a single count; with two or more bad blocks the check errors and with none it yields null rather than 0"
+    category: other
+    in_scope: true
+    must_mention: ["group by", "count"]
+    expect:
+      - {path: "dags/resources/stages/verify/sqls/logs_count.sql", line: 6}
+      - {path: "dags/resources/stages/verify/sqls/logs_count.sql", line: 7}

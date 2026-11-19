@@ -1,0 +1,66 @@
+# snowflake: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/Sage-Bionetworks/snowflake): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: snowflake
+url: https://github.com/Sage-Bionetworks/snowflake
+bugs:
+  - commit: "36e71c942d"
+    parent: "dbdd62b335"
+    title: "Add in new node tasks"
+    fix: "88e51aaead"
+    fix_title: "Remove duplicated cols"
+    bug: "the new NODESNAPSHOT_TASK copy select lists is_public, is_controlled and is_restricted twice (once after name and again after defining_sql), so the copy into nodesnapshots produces more columns than the table and the duplicated names collide"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["is_public", "duplicate"]
+    expect:
+      - {path: "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql", line: 52}
+      - {path: "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql", line: 53}
+      - {path: "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql", line: 54}
+  - commit: "36e71c942d"
+    parent: "dbdd62b335"
+    title: "Add in new node tasks"
+    fix: "c774da95e3"
+    fix_title: "Fix"
+    bug: "the INSERT column list of the merge into node_latest in upsert_to_node_latest_task has an empty entry (DERIVED_ANNOTATIONS, , VERSION_COMMENT), so the task definition does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "DERIVED_ANNOTATIONS"]
+    expect:
+      - {path: "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql", line: 116}
+  - commit: "aed956ebdd"
+    parent: "714dddc81d"
+    title: "updates teammember_latest table comments"
+    fix: "526c2bd2e0"
+    fix_title: "fix table name"
+    bug: "the migration that documents TEAMMEMBER_LATEST sets the table comment on TEAMMEMBER_LATEST but every COMMENT ON COLUMN targets NODE_LATEST, so the team member column comments are written to the wrong table (and fail where NODE_LATEST lacks columns such as member_id and is_admin)"
+    category: other
+    in_scope: true
+    must_mention: ["NODE_LATEST", "TEAMMEMBER_LATEST"]
+    expect:
+      - {path: "synapse_data_warehouse/synapse/tables/V2.19.1__add_descriptions_to_teammember_latest.sql", line: 5}
+  - commit: "5c2670f748"
+    parent: "4daeb0c3d3"
+    title: "Add in new revoke columns for cert"
+    fix: "0137f6ec50"
+    fix_title: "Fix typo"
+    bug: "V2.15.2 runs in the synapse schema but adds the revoked, revoked_on and certified columns to certifiedquizsnapshots, the raw table that V2.15.0 already alters in synapse_raw, instead of to CERTIFIEDQUIZ_LATEST, so the latest table never gets the columns the upsert task writes"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["certifiedquizsnapshots", "CERTIFIEDQUIZ_LATEST"]
+    expect:
+      - {path: "synapse_data_warehouse/synapse/tables/V2.15.2__add_new_cert_columns.sql", line: 2}
+      - {path: "synapse_data_warehouse/synapse/tables/V2.15.2__add_new_cert_columns.sql", line: 3}
+      - {path: "synapse_data_warehouse/synapse/tables/V2.15.2__add_new_cert_columns.sql", line: 4}
+  - commit: "6bfb6ab296"
+    parent: "6613b12340"
+    title: "Add `version_history` column to nodesnapshot table"
+    fix: "788870ef76"
+    fix_title: "fix typo"
+    bug: "the node task update suspends remove_deleted_nodes_task, but the task created in V1.14.0 and used everywhere else is remove_delete_nodes_task, so the migration references a task that does not exist"
+    category: other
+    in_scope: true
+    must_mention: ["remove_delete_nodes_task", "task"]
+    expect:
+      - {path: "synapse_data_warehouse/synapse_raw/tasks/V2.23.1__update_node_tasks.sql", line: 9}
