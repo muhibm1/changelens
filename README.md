@@ -27,7 +27,7 @@ Code-context tools index what the repository says. ChangeLens indexes what produ
 
 ## Quickstart
 
-For warehouse commits there is also a review agent (`changelens warehouse-review`): specialist reviewers read the change and the repository around it, and a skeptical second pass keeps only what holds up. On 29 real bugs from 12 public warehouses it had never seen, scored once, it caught 25 (86%), and 1 of 36 ordinary commits got a warning with nothing real behind it ([results](docs/evidence/2026-11-17-warehouse-agent-real-bugs.md)).
+For warehouse commits there is also a review agent (`changelens warehouse-review`): four specialist reviewers read the change and the repository around it, and a skeptical second pass keeps only what holds up. On 40 real bugs from 15 public warehouses it had never seen, scored once, it caught 39 (98%); 6 of 45 ordinary commits got only warnings with nothing real behind them ([results](docs/evidence/warehouse-agent-real-bugs.md)).
 
 On a dbt project, start with [ChangeLens for dbt teams](docs/data-teams.md): setup, two weeks in shadow mode, and what it measured on a real warehouse's history.
 

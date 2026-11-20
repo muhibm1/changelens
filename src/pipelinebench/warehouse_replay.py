@@ -104,9 +104,11 @@ def model_dirs(repo: Path) -> list[str]:
 
 
 def ordinary_commits(repo: Path, exclude: set[str], n: int, seed: int) -> list[str]:
-    """``n`` commits sampled with ``seed`` from the non-merge commits that touch model SQL or schema files of the repo's own dbt projects."""
+    """``n`` commits sampled with ``seed`` from the non-merge commits that touch model SQL or schema files of the repo's own dbt projects, or any SQL file when it has none."""
     specs = [f"{d}/*{ext}" for d in model_dirs(repo) for ext in (".sql", ".yml")]
     out = git(repo, "log", "--no-merges", "--format=%H", "--", *specs).split()
+    if not out:  # not a dbt project (plain SQL in concepts/, inst/sql/, stages/ ...): any commit touching SQL
+        out = git(repo, "log", "--no-merges", "--format=%H", "--", "*.sql").split()
     pool = sorted(c for c in out if not any(c.startswith(e) for e in exclude))
     return random.Random(seed).sample(pool, min(n, len(pool)))
 

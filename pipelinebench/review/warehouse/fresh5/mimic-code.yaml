@@ -1,0 +1,65 @@
+# mimic-code: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/MIT-LCP/mimic-code): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: mimic-code
+url: https://github.com/MIT-LCP/mimic-code
+bugs:
+  - commit: "1b50aa73ec"
+    parent: "95045882f9"
+    title: "pivot various sources of height into 1 table"
+    fix: "6df86e563d"
+    fix_title: "fix(height): coalesce join keys from h2 in MIMIC-III pivoted height"
+    bug: "pivoted-height full outer joins the cm and inch height CTEs but builds the keys as COALESCE(h1.subject_id, h1.subject_id) and COALESCE(h1.charttime, h1.charttime), so rows that exist only in h2 (inch measurements) get null subject_id and charttime"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["COALESCE", "h2"]
+    expect:
+      - {path: "concepts/pivot/pivoted-height.sql", line: 55}
+      - {path: "concepts/pivot/pivoted-height.sql", line: 56}
+  - commit: "86a3515b76"
+    parent: "b1cdb218e0"
+    title: "moved changes to concepts"
+    fix: "d9890557ba"
+    fix_title: "fix dropped alias"
+    bug: "in kdigo_stages the cr_stg CTE drops the cr alias from FROM kdigo_creatinine while every column in it is still referenced as cr.creat and cr.creat_low_past_*, so the query fails"
+    category: other
+    in_scope: true
+    must_mention: ["cr", "alias"]
+    expect:
+      - {path: "mimic-iv/concepts/organfailure/kdigo_stages.sql", line: 29}
+  - commit: "8c07b5cc3d"
+    parent: "f3881a2854"
+    title: "calculate NED from vasoactive agent table"
+    fix: "8292ad7b1b"
+    fix_title: "round to 4 decimal places, fix null values forcing result to be null"
+    bug: "norepinephrine_equivalent_dose adds norepinephrine, epinephrine, phenylephrine, dopamine and vasopressin directly, while the WHERE keeps rows where any one of them is not null, so any row missing one agent gets a null dose"
+    category: nullability_or_cast
+    in_scope: true
+    must_mention: ["null", "coalesce"]
+    expect:
+      - {path: "mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql", line: 6}
+      - {path: "mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql", line: 11}
+  - commit: "8292ad7b1b"
+    parent: "a2f7c9ea7d"
+    title: "round to 4 decimal places, fix null values forcing result to be null"
+    fix: "f3d003919f"
+    fix_title: "remove duplicate AS statement"
+    bug: "the rewrite of norepinephrine_equivalent_dose adds a new ROUND(...) AS norepinephrine_equivalent_dose but leaves the old trailing AS norepinephrine_equivalent_dose line in place, so the expression has two aliases and the query does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["AS", "norepinephrine_equivalent_dose"]
+    expect:
+      - {path: "mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql", line: 17}
+  - commit: "621fcba8e9"
+    parent: "79799d23e6"
+    title: "validate/harmonize units of measure for vasopressors"
+    fix: "cfa61b067f"
+    fix_title: "remove duplicate vaso_rate col"
+    bug: "norepinephrine.sql gains a unit-harmonised CASE ... AS vaso_rate but keeps the old rate as vaso_rate line, so the model outputs two columns named vaso_rate"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["vaso_rate", "duplicate"]
+    expect:
+      - {path: "mimic-iv/concepts/medication/norepinephrine.sql", line: 9}
+      - {path: "mimic-iv/concepts/medication/norepinephrine.sql", line: 10}

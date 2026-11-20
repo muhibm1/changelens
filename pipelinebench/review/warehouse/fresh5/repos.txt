@@ -1,0 +1,15 @@
+/home/user/fresh-repos-5/dbt-ga4 https://github.com/Velir/dbt-ga4
+/home/user/fresh-repos-5/dbt_facebook_pages_source https://github.com/fivetran/dbt_facebook_pages_source
+/home/user/fresh-repos-5/dbt_ga4_export https://github.com/fivetran/dbt_ga4_export
+/home/user/fresh-repos-5/dbt_salesforce_marketing_cloud https://github.com/fivetran/dbt_salesforce_marketing_cloud
+/home/user/fresh-repos-5/dbt-snowflake-monitoring https://github.com/get-select/dbt-snowflake-monitoring
+/home/user/fresh-repos-5/data-architecture https://github.com/ccao-data/data-architecture
+/home/user/fresh-repos-5/dbt_sap https://github.com/fivetran/dbt_sap
+/home/user/fresh-repos-5/snowflake https://github.com/Sage-Bionetworks/snowflake
+/home/user/fresh-repos-5/data-engineering https://github.com/NYCPlanning/data-engineering
+/home/user/fresh-repos-5/mimic-code https://github.com/MIT-LCP/mimic-code
+/home/user/fresh-repos-5/ethereum-etl-airflow https://github.com/blockchain-etl/ethereum-etl-airflow
+/home/user/fresh-repos-5/polygon-etl https://github.com/blockchain-etl/polygon-etl
+/home/user/fresh-repos-5/Achilles https://github.com/OHDSI/Achilles
+/home/user/fresh-repos-5/ETL-Synthea https://github.com/OHDSI/ETL-Synthea
+/home/user/fresh-repos-5/eicu-code https://github.com/MIT-LCP/eicu-code

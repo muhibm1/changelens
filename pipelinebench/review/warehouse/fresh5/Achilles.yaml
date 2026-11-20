@@ -1,0 +1,52 @@
+# Achilles: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/Achilles): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: Achilles
+url: https://github.com/OHDSI/Achilles
+bugs:
+  - commit: "a1f47674ab"
+    parent: "9329a4d0af"
+    title: "Added analyses 822, 823, 1822, 1823 back. Fixed missing null cast in Heel RD 25. Adjusted analysis_details CSV to match new analyses. Added drop index statements."
+    fix: "eabadd7098"
+    fix_title: "Fixes to analysis_details CSV, analysis 1822 had the wrong field name, added drop if not null statements in dropAllScratchTables"
+    bug: "the restored analysis 1822 names its count column total_count, while 1823, 822, 823 and every other analysis scratch table use count_value, so 1822 does not match the shape the results merge expects"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["count_value", "total_count"]
+    expect:
+      - {path: "inst/sql/sql_server/analyses/1822.sql", line: 12}
+  - commit: "7fd900cc37"
+    parent: "ecb62550e4"
+    title: "Changed use of + for string concat to concat() function in export SQLs"
+    fix: "6bc5d745c9"
+    fix_title: "confirmed fix for issue #373, corrected minor typos in two sql files"
+    bug: "converting sqlProcedureTreemap from + to concat() leaves out the commas after the level3 and level2 isNull(...) arguments, so adjacent arguments run together and the concept_path expression does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["comma", "concat"]
+    expect:
+      - {path: "inst/sql/sql_server/export/procedure/sqlProcedureTreemap.sql", line: 3}
+      - {path: "inst/sql/sql_server/export/procedure/sqlProcedureTreemap.sql", line: 4}
+  - commit: "7fd900cc37"
+    parent: "ecb62550e4"
+    title: "Changed use of + for string concat to concat() function in export SQLs"
+    fix: "6bc5d745c9"
+    fix_title: "confirmed fix for issue #373, corrected minor typos in two sql files"
+    bug: "in the condition sqlPrevalenceByGenderAgeYear export the new concat( closes after AS trellis_name, putting the column alias inside the function call, so the query does not parse"
+    category: other
+    in_scope: true
+    must_mention: ["trellis_name", "paren"]
+    expect:
+      - {path: "inst/sql/sql_server/export/condition/sqlPrevalenceByGenderAgeYear.sql", line: 3}
+  - commit: "ad540fac0d"
+    parent: "79b70b9961"
+    title: "ruleID (VH)"
+    fix: "29998eb09e"
+    fix_title: "Added missing parenthesis"
+    bug: "the rule 23 heel insert selects COUNT_BIG(DISTINCT ar1.stratum_1 as record_count with no closing parenthesis, so the AchillesHeel_v5 script fails at that statement"
+    category: other
+    in_scope: true
+    must_mention: ["COUNT_BIG", "paren"]
+    expect:
+      - {path: "inst/sql/sql_server/AchillesHeel_v5.sql", line: 641}

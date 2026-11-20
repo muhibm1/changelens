@@ -1,0 +1,18 @@
+# polygon-etl: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/blockchain-etl/polygon-etl): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: polygon-etl
+url: https://github.com/blockchain-etl/polygon-etl
+bugs:
+  - commit: "1532f22a58"
+    parent: "f23458323c"
+    title: "Use confirmAddress function call in chailink table definitions so aggregator addresses are automatically picked up in dependant tables"
+    fix: "dcd31e0f2a"
+    fix_title: "Fix parse_logs.sql"
+    bug: "parse_logs.sql gains an if/elif on avoid correlated subquery error placed in front of the existing {% if parser.contract_address_sql %} line, which is left in place, so the WHERE block opens two Jinja if blocks but closes one and the template fails to render"
+    category: other
+    in_scope: true
+    must_mention: ["endif", "if"]
+    expect:
+      - {path: "airflow/dags/resources/stages/parse/sqls/parse_logs.sql", line: 24}

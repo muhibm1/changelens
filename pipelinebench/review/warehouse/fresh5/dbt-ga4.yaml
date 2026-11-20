@@ -1,0 +1,53 @@
+# dbt-ga4: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/Velir/dbt-ga4): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt-ga4
+url: https://github.com/Velir/dbt-ga4
+bugs:
+  - commit: "e21ceec20e"
+    parent: "6c6d756f7e"
+    title: "fix fct_ga4__pages model and add tests to catch similar issues (#295)"
+    fix: "814dba7ae2"
+    fix_title: "Fix uniqueness test for fct_ga4__pages (#305)"
+    bug: "fct_ga4__pages groups by event_date_dt, stream_id, page_location and page_key, but the new model-level unique test is on (page_location || event_date_dt) only, so the same page on the same date in two streams fails the test; the test grain contradicts the model grain"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["stream_id", "unique"]
+    expect:
+      - {path: "models/marts/core/fct_ga4__pages.yml", line: 8}
+  - commit: "033c0ef6f7"
+    parent: "9cf8af8655"
+    title: "add user_id and session_number to session tables"
+    fix: "32ca44bc07"
+    fix_title: "fix col names and build errors"
+    bug: "fct_ga4__sessions_daily and fct_ga4__sessions aggregate min(ga_session_number), but stg_ga4__events exposes that parameter as session_number (base_select renames it), so both models reference a column that does not exist"
+    category: other
+    in_scope: true
+    must_mention: ["ga_session_number", "session_number"]
+    expect:
+      - {path: "models/marts/core/fct_ga4__sessions_daily.sql", line: 48}
+      - {path: "models/marts/core/fct_ga4__sessions.sql", line: 15}
+  - commit: "033c0ef6f7"
+    parent: "9cf8af8655"
+    title: "add user_id and session_number to session tables"
+    fix: "32ca44bc07"
+    fix_title: "fix col names and build errors"
+    bug: "user_id is added to the session_metrics CTE of fct_ga4__sessions_daily but not to the join_metrics_and_conversions select used when conversion_events is set, so fct_ga4__sessions, which now selects user_id from the daily model, references a missing column in that configuration"
+    category: other
+    in_scope: true
+    must_mention: ["user_id", "conversion_events"]
+    expect:
+      - {path: "models/marts/core/fct_ga4__sessions.sql", line: 7}
+      - {path: "models/marts/core/fct_ga4__sessions_daily.sql", line: 40}
+  - commit: "0aa1833a17"
+    parent: "033c0ef6f7"
+    title: "use max(user_id) to avoid duplicate session rows. doc updates"
+    fix: "32ca44bc07"
+    fix_title: "fix col names and build errors"
+    bug: "in fct_ga4__sessions user_id becomes max(user_id) with no alias while the query still ends with group by 1,2,3,4, so the fourth grouping position is now an aggregate (an error) and the documented user_id column has no name"
+    category: other
+    in_scope: true
+    must_mention: ["max(user_id)", "group by"]
+    expect:
+      - {path: "models/marts/core/fct_ga4__sessions.sql", line: 7}

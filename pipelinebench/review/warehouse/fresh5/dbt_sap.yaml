@@ -1,0 +1,18 @@
+# dbt_sap: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_sap): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_sap
+url: https://github.com/fivetran/dbt_sap
+bugs:
+  - commit: "0301c5a590"
+    parent: "0665c4d6b9"
+    title: "Update date string conversion logic"
+    fix: "cd990f43f5"
+    fix_title: "fix casing issue"
+    bug: "in int_sap__0employee_date_changes the <model>_end CTE now returns date_change when endda is 99991231, but it selects straight from the source, which has endda and no date_change column (date_change is only the alias being defined), so the CTE references a column that does not exist"
+    category: other
+    in_scope: true
+    must_mention: ["date_change", "endda"]
+    expect:
+      - {path: "models/intermediate/int_sap__0employee_date_changes.sql", line: 15}

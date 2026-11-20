@@ -1,0 +1,31 @@
+# data-architecture: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/ccao-data/data-architecture): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: data-architecture
+url: https://github.com/ccao-data/data-architecture
+bugs:
+  - commit: "394836a0c7"
+    parent: "4c91fa41df"
+    title: "Add pinval tables (#793)"
+    fix: "37bca4e018"
+    fix_title: "Fix PINVAL table configs (#808)"
+    bug: "the new pinval/schema.yml documents pinval.vw_pinval_comp and pinval.vw_pinval_assessment_card and points them at docs vw_pinval_comp and vw_pinval_assessment_card, but the model files are pinval.vw_comp and pinval.vw_assessment_card and docs.md defines view_vw_comp and view_vw_assessment_card, so the uniqueness tests and descriptions never attach and the doc references do not resolve"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["pinval.vw_comp", "name"]
+    expect:
+      - {path: "dbt/models/pinval/schema.yml", line: 2}
+      - {path: "dbt/models/pinval/schema.yml", line: 13}
+  - commit: "33fc006de8"
+    parent: "58103003dd"
+    title: "Create final model views for assessment and training data (#1098)"
+    fix: "a68185f306"
+    fix_title: "Fix docs and test issues with new final model PIN/card views (#1103)"
+    bug: "schema.yml declares the new views as vw_assessment_card_final and vw_assessment_pin_final, but the models are model.vw_assessment_card_final and model.vw_assessment_pin_final, so their triad and uniqueness tests and descriptions attach to nothing"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["model.vw_assessment_card_final", "name"]
+    expect:
+      - {path: "dbt/models/model/schema.yml", line: 280}
+      - {path: "dbt/models/model/schema.yml", line: 296}

@@ -273,7 +273,7 @@ def main() -> None:
     ap.add_argument("--labels", type=Path, nargs="*", action="append", default=[])
     ap.add_argument("--sample", type=int, default=20)
     ap.add_argument("--seed", type=int, default=20261117)
-    ap.add_argument("--model", default="opus")
+    ap.add_argument("--model", default="sonnet")
     ap.add_argument("--effort")
     ap.add_argument("--no-verify", action="store_true")
     ap.add_argument("--jobs", type=int, default=6)

@@ -1,0 +1,18 @@
+# dbt_facebook_pages_source: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_facebook_pages_source): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_facebook_pages_source
+url: https://github.com/fivetran/dbt_facebook_pages_source
+bugs:
+  - commit: "b8ecc20a75"
+    parent: "e908d6075c"
+    title: "Coalesce sum of various reaction types for total when source is null"
+    fix: "1625b4dd3f"
+    fix_title: "Add missing reaction type in sum"
+    bug: "the fallback for actions_post_reactions_total in stg_facebook_pages__daily_page_metrics_total sums anger, haha, like, love and sorry reactions but leaves out page_actions_post_reactions_wow_total, which the same model selects two lines below, so the total undercounts"
+    category: other
+    in_scope: true
+    must_mention: ["wow", "actions_post_reactions_total"]
+    expect:
+      - {path: "models/stg_facebook_pages__daily_page_metrics_total.sql", line: 38}

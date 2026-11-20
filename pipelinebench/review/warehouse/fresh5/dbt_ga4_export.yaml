@@ -1,0 +1,55 @@
+# dbt_ga4_export: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_ga4_export): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: dbt_ga4_export
+url: https://github.com/fivetran/dbt_ga4_export
+bugs:
+  - commit: "6a11b5ad5d"
+    parent: "b93404a64f"
+    title: "update materializations"
+    fix: "c3e8090e2e"
+    fix_title: "fix where-and errors"
+    bug: "in ga4_export__conversions_report the events_base CTE already has a WHERE on event_name, and the new full-refresh branch appends a second WHERE instead of AND, so the model does not parse on a full refresh"
+    category: other
+    in_scope: true
+    must_mention: ["where", "and"]
+    expect:
+      - {path: "models/ga4_export__conversions_report.sql", line: 35}
+  - commit: "d38f37da5c"
+    parent: "c3e8090e2e"
+    title: "update the logic for generating session id with concat/coalesce, and use concat instead of gen surrogate key"
+    fix: "6d780347da"
+    fix_title: "add some explicit casts and fix the quotations inside jinja"
+    bug: "the session_id expression in int_ga4_export__derived_event_fields builds the coalesce inside Jinja from undefined Jinja names param_ga_session_id and session_number with misplaced quotes, so the rendered SQL concatenates string fragments instead of coalesce(param_ga_session_id, session_number) and session_id is wrong"
+    category: other
+    in_scope: true
+    must_mention: ["session_id", "coalesce"]
+    expect:
+      - {path: "models/intermediary/int_ga4_export__derived_event_fields.sql", line: 86}
+  - commit: "4ff63d9430"
+    parent: "be39c28e26"
+    title: "yml updates"
+    fix: "fb35dab09c"
+    fix_title: "fixes"
+    bug: "models/ga4_export.yml documents user_acquisition_first_user_source_medium_report, traffic_acquisition_session_source_medium_report, events_report and conversions_report, but the model files are all named with the ga4_export__ prefix, so none of the descriptions or tests attach to a real model"
+    category: schema_contract
+    in_scope: true
+    must_mention: ["ga4_export__", "name"]
+    expect:
+      - {path: "models/ga4_export.yml", line: 4}
+      - {path: "models/ga4_export.yml", line: 55}
+      - {path: "models/ga4_export.yml", line: 109}
+      - {path: "models/ga4_export.yml", line: 145}
+  - commit: "796ed73881"
+    parent: "cf6e300697"
+    title: "event_id not being unique"
+    fix: "63638a0dfb"
+    fix_title: "rm temp filters"
+    bug: "stg_ga4_export__event gains two filters marked temp that keep only events whose medium is referral and whose source is linkedin.com, so the staging model and every report built on it drop all other traffic"
+    category: row_count_change
+    in_scope: true
+    must_mention: ["linkedin.com", "referral"]
+    expect:
+      - {path: "models/staging/stg_ga4_export__event.sql", line: 28}
+      - {path: "models/staging/stg_ga4_export__event.sql", line: 29}

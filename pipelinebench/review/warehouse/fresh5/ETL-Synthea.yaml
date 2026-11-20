@@ -1,0 +1,31 @@
+# ETL-Synthea: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/ETL-Synthea): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: ETL-Synthea
+url: https://github.com/OHDSI/ETL-Synthea
+bugs:
+  - commit: "f6d45a3dbe"
+    parent: "72017a32b1"
+    title: "fix(v6): admitting_* to admitted_* attr in visit detail table"
+    fix: "d9a99ea6e4"
+    fix_title: "fix(v6): typos in admitted_* attr"
+    bug: "the v6 insert_visit_detail renames the columns to admitted_source_concept_id and admitted_source_value, but the CDM v6 names (used by the same version's insert_visit_occurrence and the v6 spec) are admitted_from_concept_id and admitted_from_source_value, so the insert targets columns that do not exist"
+    category: other
+    in_scope: true
+    must_mention: ["admitted_from_concept_id", "admitted_source_concept_id"]
+    expect:
+      - {path: "inst/sql/sql_server/cdm_version/v600/insert_visit_detail.sql", line: 16}
+      - {path: "inst/sql/sql_server/cdm_version/v600/insert_visit_detail.sql", line: 21}
+  - commit: "1f7f749e86"
+    parent: "383711aaa0"
+    title: "Applied fix for issue #32"
+    fix: "0fdec31d4a"
+    fix_title: "Corrected fix for issue #32"
+    bug: "insert_visit_occurrence adds two more select values (0 and NULL) without adding columns to the 17-column insert list, so the select returns 19 values for 17 columns and the insert fails"
+    category: other
+    in_scope: true
+    must_mention: ["insert", "column"]
+    expect:
+      - {path: "inst/sql/sql_server/insert_visit_occurrence.sql", line: 47}
+      - {path: "inst/sql/sql_server/insert_visit_occurrence.sql", line: 48}

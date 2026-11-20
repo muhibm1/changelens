@@ -1,0 +1,41 @@
+# data-engineering: real warehouse bugs located at the commit that introduced them, part of the fresh5 held-out set.
+# Written by hand from the public upstream history (https://github.com/NYCPlanning/data-engineering): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output. Fields as in ../dev.yaml.
+repo: data-engineering
+url: https://github.com/NYCPlanning/data-engineering
+bugs:
+  - commit: "1e99fc6987"
+    parent: "06f9a512b0"
+    title: "add GFT source models"
+    fix: "6298ca01da"
+    fix_title: "fix industrial lot buffer export"
+    bug: "the new source__industrial_lots_buffer model unions the buffers of int_spatial__vent_tower instead of int_spatial__industrial_lots (copied from the vent tower model), so the industrial lots buffer export holds vent tower geometry"
+    category: other
+    in_scope: true
+    must_mention: ["int_spatial__industrial_lots", "int_spatial__vent_tower"]
+    expect:
+      - {path: "products/green_fast_track/models/product/source/air_quality/source__industrial_lots_buffer.sql", line: 2}
+  - commit: "1e99fc6987"
+    parent: "06f9a512b0"
+    title: "add GFT source models"
+    fix: "0998f7c928"
+    fix_title: "fix vent tower buffer export"
+    bug: "the new source__vent_tower_buffer model unions the buffers of int_spatial__state_facility instead of int_spatial__vent_tower, so the vent tower buffer export holds state facility geometry"
+    category: other
+    in_scope: true
+    must_mention: ["int_spatial__vent_tower", "int_spatial__state_facility"]
+    expect:
+      - {path: "products/green_fast_track/models/product/source/air_quality/source__vent_tower_buffer.sql", line: 2}
+  - commit: "64103cd353"
+    parent: "078798d8a1"
+    title: "split up zoning flag model"
+    fix: "d12476ddd7"
+    fix_title: "fix typo in `int__zoning_districts`"
+    bug: "int__zoning_districts ends with GROUP BY bbl, zd and ORDER BY bbl, zd over generalized_districts, but that CTE only outputs bbl and zoning_district_type, so zd does not exist there and the model fails"
+    category: other
+    in_scope: true
+    must_mention: ["zd", "zoning_district_type"]
+    expect:
+      - {path: "products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql", line: 36}
+      - {path: "products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql", line: 37}
