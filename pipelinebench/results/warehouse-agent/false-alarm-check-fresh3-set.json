@@ -1,0 +1,254 @@
+[
+  {
+    "repo": "ETL-Synthea",
+    "commit": "f564b7d3cf",
+    "path": "inst/sql/insert.sql",
+    "line": 12,
+    "title": "patients.csv test insert omits id column, so patient row has NULL id",
+    "verdict": "FALSE",
+    "reason": "The missing id comes from add_patients.csv(id = patient$personId) at R/PersonTests.r:5, a line this commit did not change; createPatient (R/SupportFunctions.r:19) returns only $id, so the omission predates the commit and insert.sql merely records it. It was fixed later in c380603 (add_patients(id = patient$id))."
+  },
+  {
+    "repo": "data-engineering",
+    "commit": "27db7f4fd5",
+    "path": "ingest_templates/dcp_projectbbls_cy.yml",
+    "line": 21,
+    "title": "dcp_projectbbls_cy dtype key 'ALL ZAP BBLs' no longer matches the renamed column 'All ZAP BBLs'",
+    "verdict": "REAL",
+    "reason": "The commit renames the source column to All_ZAP_BBLs (_sources.yml:25, stg__zap_projects.sql:3) but leaves the dtype key as 'ALL ZAP BBLs' (ingest_templates/dcp_projectbbls_cy.yml:21), so pd.read_excel (dcpy/utils/data.py:130) no longer forces the BBL column to str while int__zap_lots.sql:15 applies STRING_TO_ARRAY to it. Still unchanged at HEAD."
+  },
+  {
+    "repo": "data-engineering",
+    "commit": "078798d8a1",
+    "path": "products/green_fast_track/models/product/green_fast_track_bbls.sql",
+    "line": 58,
+    "title": "green_fast_track_bbls zoning columns renamed and re-sourced, but the pilot-projects expected seed still has \"Zoning Districts Flag\" and category-style \"Zoning Districts\"",
+    "verdict": "REAL",
+    "reason": "The commit replaces the Zoning Districts Flag column with Zoning Districts Category, but seeds/test_expected__pilot_projects.csv:1 still has Zoning Districts Flag, so the dbt_utils.equality test on test_actual__pilot_projects (gft_bbls.*) fails. The seed was updated the next day in ab8015c0."
+  },
+  {
+    "repo": "dbt-ga4",
+    "commit": "3a7fb3c5b6",
+    "path": "models/staging/recommended_events/stg_ga4__event_purchase_deduplicated.sql",
+    "line": 20,
+    "title": "stg_ga4__event_purchase_deduplicated: NULL transaction_id rows collapse into one row",
+    "verdict": "UNCLEAR",
+    "reason": "The qualify row_number() over (partition by transaction_id) does collapse all NULL transaction_id purchases into one row, but the model ships with enabled = false and the repo documents no rule for NULL ids, so whether keeping one NULL-id purchase is a defect or intended dedup behaviour cannot be settled from the repository; the file is unchanged at HEAD."
+  },
+  {
+    "repo": "dbt_facebook_pages_source",
+    "commit": "01a0cc7046",
+    "path": "dbt_project.yml",
+    "line": 10,
+    "title": "daily_page_metrics_total source is not declared in src_facebook_pages.yml",
+    "verdict": "REAL",
+    "reason": "dbt_project.yml:10 adds source('facebook_pages','daily_page_metrics_total') but models/src_facebook_pages.yml at this commit declares only post_history, page and lifetime_post_metrics_total, so the new tmp model fails to compile. The source was added later the same day in 184a524."
+  },
+  {
+    "repo": "dbt_facebook_pages_source",
+    "commit": "2ae982d142",
+    "path": "models/stg_facebook_pages.yml",
+    "line": 127,
+    "title": "stg_facebook_pages__lifetime_post_metrics_total: activity, engaged_fan, engaged_users documented but never selected",
+    "verdict": "REAL",
+    "reason": "Documentation only: this docs commit lists activity, engaged_fan and engaged_users for the model (stg_facebook_pages.yml:127-133) but stg_facebook_pages__lifetime_post_metrics_total.sql selects none of them; no test is attached, so nothing fails to build. The entries were later removed in 5ca1c38."
+  },
+  {
+    "repo": "dbt_facebook_pages_source",
+    "commit": "2ae982d142",
+    "path": "models/stg_facebook_pages.yml",
+    "line": 433,
+    "title": "stg_facebook_pages__post_history: updated_time documented but SQL outputs updated_timestamp",
+    "verdict": "REAL",
+    "reason": "Documentation only: stg_facebook_pages.yml:433 documents updated_time while stg_facebook_pages__post_history.sql:49 outputs updated_timestamp; no test breaks. Corrected to updated_timestamp in fdd3342."
+  },
+  {
+    "repo": "dbt_facebook_pages_source",
+    "commit": "2ae982d142",
+    "path": "models/stg_facebook_pages.yml",
+    "line": 195,
+    "title": "stg_facebook_pages__lifetime_post_metrics_total: video_views_10s_paid documented but SQL outputs video_views_10_s_paid",
+    "verdict": "REAL",
+    "reason": "Documentation only: stg_facebook_pages.yml:195 documents video_views_10s_paid but the model outputs video_views_10_s_paid (lifetime_post_metrics_total.sql:63); no test breaks. The doc was later changed to video_views_10_s_paid in 5ca1c38."
+  },
+  {
+    "repo": "dbt_ga4_export",
+    "commit": "f4dcb12a19",
+    "path": "models/ga4_export__traffic_acquisition_session_source_medium_report.sql",
+    "line": 44,
+    "title": "traffic_acquisition report user_engagement_duration now in milliseconds, documented as seconds",
+    "verdict": "FALSE",
+    "reason": "The removal of /1000 is the deliberate point of the commit ('switch sec to msec'); the next commit 706242a rewrote the ga4_export.yml descriptions to 'Average engagement time in milliseconds', and HEAD still sums engagement_time_msec. The values are not wrong, only the docs lagged by one commit."
+  },
+  {
+    "repo": "dbt_ga4_export",
+    "commit": "f4dcb12a19",
+    "path": "models/ga4_export__user_acquisition_first_user_source_medium_report.sql",
+    "line": 46,
+    "title": "user_acquisition report user_engagement_duration now in milliseconds, documented as seconds",
+    "verdict": "FALSE",
+    "reason": "Same intentional unit change ('switch sec to msec'); 706242a updated the user_acquisition description to milliseconds and HEAD keeps the msec computation, so the output is not 1000x wrong."
+  },
+  {
+    "repo": "dbt_ga4_export",
+    "commit": "39587699ce",
+    "path": "packages.yml",
+    "line": 3,
+    "title": "fivetran_utils pin <0.5.0 does not provide partition_by_source_relation / apply_source_relation",
+    "verdict": "FALSE",
+    "reason": "Every Fivetran package in the clone set (dbt_pardot, dbt_linkedin_pages, dbt_apple_search_ads and others) calls fivetran_utils.partition_by_source_relation and apply_source_relation at HEAD while pinning fivetran_utils [>=0.4.0, <0.5.0], and dbt_pardot CHANGELOG.md:21 records those macros moving into fivetran_utils under that range. Nothing in the repository supports the claim that they first shipped in 0.5.0, and the pin is unchanged at HEAD."
+  },
+  {
+    "repo": "dbt_ga4_export",
+    "commit": "0e71e63d71",
+    "path": "models/ga4_export.yml",
+    "line": 97,
+    "title": "Duplicated 'description:' key makes YAML invalid for traffic_acquisition user_engagement_duration",
+    "verdict": "REAL",
+    "reason": "models/ga4_export.yml:97 reads 'description: description: Average engagement time ...', which yaml.safe_load rejects with 'mapping values are not allowed here' at line 97, so dbt cannot parse the file. Fixed later the same day in 979d2e2."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "3f0264706e",
+    "path": "packages.yml",
+    "line": 3,
+    "title": "netsuite_source pinned to <0.6.0 but v0.6.2 netsuite2 models need the 0.6.x staging models",
+    "verdict": "FALSE",
+    "reason": "The template's own docs/manifest.json, generated with this pin, contains model.netsuite_source.stg_netsuite2__* nodes, so netsuite_source 0.5.x already provides the netsuite2 staging models. The CHANGELOG versions cited are for dbt_netsuite, not netsuite_source."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "3f0264706e",
+    "path": "models/netsuite2/intermediate/int_netsuite2__tran_lines_w_accounting_period.sql",
+    "line": 26,
+    "title": "int_netsuite2__tran_lines_w_accounting_period filter inverted: keeps only non-posting lines",
+    "verdict": "REAL",
+    "reason": "int_netsuite2__tran_lines_w_accounting_period.sql:26 keeps rows where 'not transaction_lines.is_posting', and is_posting is 'posting = T' from the accounting line (int_netsuite2__transaction_lines.sql, manifest stg_netsuite2__transaction_accounting_lines). It therefore keeps only non-posting lines, the opposite of models/netsuite2.yml:21-26 and of the netsuite1 filter. The template code was deleted in 4dfc502 rather than fixed."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "15ddc6257c",
+    "path": "models/sap.yml",
+    "line": 7,
+    "title": "sap__0comp_code_attr: unique/not_null tests on nonexistent column burks (typo for bukrs)",
+    "verdict": "REAL",
+    "reason": "The commit adds unique and not_null tests on burks (models/sap.yml:7-11), but sap__0comp_code_attr.sql selects bukrs, so the tests fail on a missing column. Renamed to bukrs the same day in 1c2722c."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "536855c4e5",
+    "path": "models/intermediate/int_sap__0fi_gl_10_sums.sql",
+    "line": 1,
+    "title": "int_sap__0fi_gl_10_sums: model does not compile (truncated CTE header, no final SELECT)",
+    "verdict": "REAL",
+    "reason": "The new file int_sap__0fi_gl_10_sums.sql begins 'th faglflext as (' and ends after the final CTE with no select, so it cannot compile. It was reworked in the follow-up commits b0658ba through 479d4fa."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "536855c4e5",
+    "path": "models/intermediate/int_sap__0fi_gl_10_unpivot.sql",
+    "line": 41,
+    "title": "int_sap__0fi_gl_10_unpivot fiscal_period: dbt.concat called with unquoted literals and a raw CASE",
+    "verdict": "REAL",
+    "reason": "int_sap__0fi_gl_10_unpivot.sql:41 passes a bare 'case when ...' expression and an unquoted '.' inside {{ dbt.concat([...]) }}; Jinja cannot parse the case expression and the SQL would be invalid anyway. Fixed in 032c685 ('fix concat')."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "536855c4e5",
+    "path": "models/0fi_gl_10.sql",
+    "line": 11,
+    "title": "0fi_gl_10 has a trailing comma after the t001 CTE and then a raw SELECT",
+    "verdict": "REAL",
+    "reason": "models/0fi_gl_10.sql as rewritten by this commit ends its CTE list with 't001 as (...),' (line 11) and later selects 'from faglflext' with no faglflext CTE or ref in the file, so the model cannot compile. It was restructured in b0658ba and later commits."
+  },
+  {
+    "repo": "dbt_sap",
+    "commit": "536855c4e5",
+    "path": "models/intermediate/int_sap__0fi_gl_10_sums.sql",
+    "line": 60,
+    "title": "int_sap__0fi_gl_10_sums hsmNN/tsmNN/ksmNN/osmNN: dbt_utils.safe_cast called with Jinja column expressions and 4 args",
+    "verdict": "REAL",
+    "reason": "The commit introduces {{ dbt_utils.safe_cast(faglflext.hslvt+faglflext.hsl01, 'numeric', 23,2) }} (sums.sql:60 onward, 0fi_gl_10.sql:327). The column expressions are undefined Jinja names and safe_cast takes two arguments, so rendering fails; the parent commit had no safe_cast. 479d4fa later replaced these calls with plain cast(... as numeric)."
+  },
+  {
+    "repo": "eicu-code",
+    "commit": "0667f4cfee",
+    "path": "build-db/postgres/postgres_create_tables.sql",
+    "line": 28,
+    "title": "admissiondrug DDL missing commas, table cannot be created so the new ADMISSIONDRUG load fails",
+    "verdict": "FALSE",
+    "reason": "This commit only adds \\copy lines to the load scripts; the admissiondrug DDL with missing commas was added by the earlier commit e1e1e93 and was fixed in dac3ba6 ('Adding table column separators'). The defect predates this commit."
+  },
+  {
+    "repo": "eicu-code",
+    "commit": "0667f4cfee",
+    "path": "build-db/postgres/postgres_create_tables.sql",
+    "line": 75,
+    "title": "allergy DDL missing commas and copied drug columns, ALLERGY table fails to build",
+    "verdict": "FALSE",
+    "reason": "The allergy DDL (missing commas, copied drug columns) also comes from e1e1e93, not this commit, which did not touch postgres_create_tables.sql. The defect predates it."
+  },
+  {
+    "repo": "eicu-code",
+    "commit": "4d35e556f6",
+    "path": "concepts/icustay_detail.sql",
+    "line": 18,
+    "title": "icustay_detail selects pt.hospitaladmityear and pt.unitadmityear, which were dropped from patient",
+    "verdict": "REAL",
+    "reason": "The commit drops hospitaladmityear and unitadmityear from the patient DDL, but concepts/icustay_detail.sql:18 still selects pt.hospitaladmityear and pt.unitadmityear, so the materialized view fails. Fixed in e5cf1e1 ('fix demographics/icustay detail')."
+  },
+  {
+    "repo": "eicu-code",
+    "commit": "4d35e556f6",
+    "path": "build-db/postgres/postgres_create_tables.sql",
+    "line": 513,
+    "title": "patient: hospitaladmityear and unitadmityear removed but still indexed",
+    "verdict": "REAL",
+    "reason": "postgres_add_indexes.sql:142-145 still indexes PATIENT(HOSPITALADMITYEAR) and PATIENT(UNITADMITYEAR) after this commit drops those columns, so the index step fails. Fixed in 4e0d710 ('fix index for pt table, ref #38')."
+  },
+  {
+    "repo": "ethereum-etl-airflow",
+    "commit": "09e8382723",
+    "path": "dags/resources/stages/parse/table_definitions/chainlink/view_AccessControlledOffchainAggregator_info.sql",
+    "line": 1,
+    "title": "view_AccessControlledOffchainAggregator_info: every STRUCT but the last closes with an extra ')' so UNNEST([...]) is malformed",
+    "verdict": "REAL",
+    "reason": "Lines 1-43 of the rewritten view end in 'as version)),', so the second ')' closes UNNEST( before the '[' array is closed, which is a BigQuery syntax error. Fixed the same day in bf7c4c20 ('proper sql syntax'), after which the lines end 'as version),'."
+  },
+  {
+    "repo": "ethereum-etl-airflow",
+    "commit": "704bb056de",
+    "path": "dags/resources/stages/parse/table_definitions/chainlink/view_AccessControlledOffchainAggregator_info.sql",
+    "line": 1,
+    "title": "AccessControlledOffchainAggregator_info: WBTC / BTC feed dropped from the lookup",
+    "verdict": "REAL",
+    "reason": "The rewrite drops the 0xd7623f1d24b35c392862fb67c9716564a117c9de 'WBTC / BTC' row without any deprecation note in the commit message, so that aggregator loses its decimals, description and proxy lookup. It was added back in e6337acf ('add gho, rpl, wbtc, usdp')."
+  },
+  {
+    "repo": "polygon-etl",
+    "commit": "68e992d468",
+    "path": "cli/maticetl/jobs/extract_geth_traces_job.py",
+    "line": 60,
+    "title": "extract_geth_traces: status and trace_id computed while transaction_hash is never set",
+    "verdict": "REAL",
+    "reason": "trace_mapper._iterate_transaction_trace never sets transaction_hash, so calculate_trace_ids puts every trace in the block-scoped branch (type_block_index ids, sort on possibly None to_address) and calculate_trace_statuses skips parent-to-child failure propagation. Fixed the same day in a230059 ('Fix trace_id calculation'), which keys ids on block_number and transaction_index."
+  },
+  {
+    "repo": "snowflake",
+    "commit": "06cfc3ba0f",
+    "path": "transform/models/intermediate/synapse/_synapse__models.yml",
+    "line": 147,
+    "title": "int_synapse_data_access_submission: not_null on state / state_modified_on, but status is left-joined",
+    "verdict": "FALSE",
+    "reason": "This is speculation: nothing in the repository shows a submission without a status row. The not_null constraints on state and state_modified_on are still in _synapse__models.yml at HEAD (lines 395-399 and 531-535) after eight months of further changes to this model."
+  },
+  {
+    "repo": "snowflake",
+    "commit": "34078d4395",
+    "path": "transform/dbt_project.yml",
+    "line": 40,
+    "title": "sage marts lose the prod-only `+enabled` gate, so dev/CI builds write into the SAGE database",
+    "verdict": "FALSE",
+    "reason": "The removal is deliberate: the same commit rewrites transform/README.md to drop the 'Sage models deploy only in production' note and tells developers to override +database for sage when deploying to a dev database. AGENTS.md was later brought in line (3054f5b) and the gate was never restored at HEAD."
+  }
+]
