@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-AGENT_VERSION = "wa-6"
+AGENT_VERSION = "wa-7"
 DIFF_CHARS = 90_000
 
 FINDING = {
@@ -163,6 +163,24 @@ adds, edits or removes (return the audit):
   reading a raw or input-layer model where the project has a staging model for it, a typo in a model name.
 - A model's declared grain, contract, unique key or column types broken by the change; a test or YAML block that
   dbt or SQLMesh will reject; a SQL syntax error.""",
+    "edges": """Your area: EDGE CASES, NULL SEMANTICS and CONSISTENCY WITH SIBLINGS. For every model the change adds or edits:
+- NULLs in join keys: an equality join, USING or FULL OUTER JOIN on a column that can be NULL (it comes from a LEFT
+  join, a nullable source column with no not_null test, a CASE without ELSE, a parsed or optional field). NULL never
+  equals NULL, so those rows never match: a FULL OUTER join splits one group into two rows, a LEFT join loses the
+  metrics, an INNER join drops the rows. Say where the NULL comes from.
+- NULLs in filters and arithmetic: a WHERE on a column of the right-hand side of a LEFT join (unmatched rows are
+  dropped), `col <> 'x'` or `col NOT IN (...)` that silently drops NULL rows, `a + b` or a running total in a
+  recursive CTE or window where one term can be NULL (the whole result becomes NULL), a missing COALESCE.
+- Boundaries: `>` vs `>=` and `<` vs `<=` against dates or timestamps (comparing a midnight date to a timestamp
+  drops the first day; an inclusive end double counts), a date spine or calendar that starts or ends one day off,
+  BETWEEN on timestamps, a lookback window or incremental filter that skips or repeats the edge.
+- "Latest", "first", "current" or "most recent" selections (MAX, ORDER BY ... LIMIT 1, ROW_NUMBER = 1) that do not
+  filter to the kind of record the model means (for example the latest invocation of any command when only runs
+  count, the latest row including deleted or test rows), so the result can be empty or wrong.
+- Consistency with siblings: open two or three sibling models (same folder, same naming pattern, same purpose) and
+  check whether every sibling applies something this model omits: a macro (exception filters, enabled flags,
+  deduplication, surrogate keys), a WHERE on deleted or inactive rows, a config, a COALESCE. Report the omission only
+  when the siblings consistently do it and this model's documented purpose is the same.""",
 }
 
 VERIFY_PROMPT = """Reviewers filed the candidate findings below against one commit to a SQL data warehouse. The working
@@ -178,7 +196,10 @@ Verdicts:
   YAML entry names it. For lost rows it is enough that the change adds an INNER join, or a WHERE on the right-hand
   table of a LEFT join, to a side that the repository shows can lack the key (no relationships test, an optional or
   differently sourced table, names matched as text across sources), in a model whose documented purpose covers
-  those rows.
+  those rows. For a NULL join key, NULL filter or NULL arithmetic it is enough that the repository shows the column
+  can be NULL (it comes from the outer side of a join, a CASE without ELSE, a nullable source column, or the YAML
+  says so) and nothing in the model handles it. For a skipped convention it is enough that every sibling model with
+  the same purpose applies it and this one does not.
 - "risk": a real concern you could neither confirm nor rule out from the repository.
 - "reject": the repository shows it does not hold (the joined side is unique on the key, the column is selected
   after all, the reader does not exist, the NULL is handled), it is style or speculation, or it predates the commit.
@@ -450,7 +471,7 @@ def _chunks(numbered: str) -> list[str]:
     return ["\n".join(d for _, d in g) for g in groups]
 
 
-def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract"), deep_sites: bool = False) -> AgentResult:
+def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract", "edges"), deep_sites: bool = False) -> AgentResult:
     """Review ``commit`` against its first parent: specialist passes propose findings, a skeptical pass decides them."""
     from concurrent.futures import ThreadPoolExecutor
 
@@ -495,7 +516,7 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
             return name, out, turns
 
         jobs = [(name, part) for part in chunks for name in passes]
-        with ThreadPoolExecutor(min(len(jobs), 6)) as pool:
+        with ThreadPoolExecutor(min(len(jobs), 8)) as pool:
             outs = list(pool.map(one, jobs))
         audit: list[dict[str, Any]] = []
         for name, out, _ in outs:
