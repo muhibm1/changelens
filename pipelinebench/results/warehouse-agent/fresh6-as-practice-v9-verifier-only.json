@@ -1,0 +1,1760 @@
+{
+ "reviewer": "reverify",
+ "agent": "wa-9",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "c05f15ff53",
+   "title": "Add files via upload",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "is_foreign_key.sql:25 is_foreign_key: NULL cdmFieldName rows counted as FK violations"
+   ],
+   "findings": [
+    "[risk] is_foreign_key.sql:15 is_foreign_key pct_violated_rows divides by denominator.num_rows with no zero guard",
+    "[bug] is_foreign_key.sql:25 is_foreign_key: NULL cdmFieldName rows counted as FK violations"
+   ],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at the same location. The LEFT JOIN with WHERE fkFieldName IS NULL counts rows whose own FK field is NULL as violations, which inflates counts for optional foreign keys. Finding 0 is about a divide-by-zero, a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7b9d05f675",
+   "title": "field level queries 2,3,4,6, & 7",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "field_cdm_datatype.sql:23 ISNUMERIC check flags NULLs and accepts non-integers"
+   ],
+   "findings": [
+    "[bug] field_fk_domain.sql:26 field_fk_domain: filter references non-existent @cdmTableName.DOMAIN_ID instead of CONCEPT.DOMAIN_ID",
+    "[bug] field_is_standard_valid_concept.sql:28 STANDARD_CONCEPT != 'S' skips non-standard concepts, whose STANDARD_CONCEPT is NULL",
+    "[bug] field_cdm_datatype.sql:23 ISNUMERIC check flags NULLs and accepts non-integers"
+   ],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 targets field_cdm_datatype.sql:23 and states that ISNUMERIC(NULL) returns 0, so every NULL in the field is counted as a datatype violation. That is the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1dc95349cd",
+   "title": "Create insert_into_results_table.sql",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/insert_into_results_table.sql:47 failed flag compares fraction pct_violated_rows to a percent threshold",
+    "inst/sql/sql_server/insert_into_results_table.sql:47 NULL threshold_value is not handled; failed flag and column break"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/insert_into_results_table.sql:47 failed flag compares fraction pct_violated_rows to a percent threshold",
+    "[bug] inst/sql/sql_server/insert_into_results_table.sql:47 NULL threshold_value is not handled; failed flag and column break",
+    "[risk] inst/sql/sql_server/insert_into_results_table.sql:26 Positional INSERT (no column list) matches only result_dataframe_ddl, not the field/table/concept DDLs"
+   ],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same location and describes the same defect: the failed flag compares the 0-1 fraction pct_violated_rows to a percent threshold without multiplying by 100, so almost no check fails."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a8272ffd95",
+   "title": "fix numerator",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "069425bc39",
+   "title": "Drug grouping now also contains verbatim concepts (for consistency with condition grouping).",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/DomainConceptGroup.sql:11 #groups: OR without outer parentheses lets ATC branch bypass include/exclude filters"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/DomainConceptGroup.sql:11 #groups: OR without outer parentheses lets ATC branch bypass include/exclude filters"
+   ],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same file and query (#groups in DomainConceptGroup.sql). It names the missing parentheses around the OR and the AND-over-OR precedence. It says the concept_id != 0 test and the excluded/included filters bind only to the standard branch, so ATC groups bypass them and excluded concepts come back."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0e8075ff20",
+   "title": "Added measurement groups (below/within/above normal range)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/MeasurementRangeGroup.sql:8 Aggregated sum_value/average_value count measurement records, not persons"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/MeasurementRangeGroup.sql:8 Aggregated sum_value/average_value count measurement records, not persons",
+    "[bug] inst/sql/sql_server/MeasurementRangeGroup.sql:17 MeasurementRangeGroup range_group: NULL value_as_number classified as 'within normal range'",
+    "[bug] inst/csv/PrespecAnalyses.csv:66 Analyses 708/709 (MeasurementRangeGroup medium/short term) use longTermStartDays"
+   ],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in MeasurementRangeGroup.sql line 8, the aggregated COUNT(*) counts measurement records rather than persons. A person with several measurements is counted multiple times, so sum_value is inflated and average_value can exceed 1."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3ce13a860f",
+   "title": "Added features based on all time prior. Added features for time after index.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] inst/sql/sql_server/DomainConceptGroup.sql:54 DomainConceptGroup #groups: removed ancestor != descendant filter adds self-mapped rows"
+   ],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a template syntax error. The rendered SQL reads ANDancestor_concept_id and fails to parse when both the included and excluded concept tables are given. Finding 0 is about a different defect. It says the ancestor != descendant filter was removed, which adds self-mapped rows. It doesn't mention the missing space after AND or a parse failure. It sits in the same WHERE clause, but the mechanism is different, so it doesn't match."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "198ad23082",
+   "title": "added more qualifiers to table names in GetCovariates.sql",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/GetCovariates.sql:733 Missing dot in '@cdm_database_schema drug_exposure de1' breaks drug covariate queries"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/GetCovariates.sql:733 Missing dot in '@cdm_database_schema drug_exposure de1' breaks drug covariate queries"
+   ],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It points to the missing dot in '@cdm_database_schema drug_exposure de1' at GetCovariates.sql:733 and explains the mechanism: the schema is parsed as the table, drug_exposure becomes an alias, and de1 is stray. It also notes the same typo in the drug_era joins, so the drug covariate queries fail to parse."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ec8cd5ffca",
+   "title": "Implement aggressive optimization for Step 10 (Subsumes relationships)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Vocabulary-v5.0.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[bug] ICD10PCS/load_stage.sql:332 Subsumes edges to hierarchy children (3-6 char codes) dropped by c2.concept_class_id = 'ICD10PCS'",
+    "[risk] ICD10PCS/load_stage.sql:290 Recursive parent generation stops at the first missing prefix"
+   ],
+   "repo": "Vocabulary-v5.0",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding identifies the labelled bug, which is a type mismatch (varchar(50) vs text) between the two terms of the recursive UNION ALL in code_parents that makes building temp_parent_codes fail. Finding 0 is about Subsumes edges being dropped by a concept_class_id filter. Finding 1 is about the recursion stopping at a missing prefix. Finding 1 does point at line 290, but it describes a different defect with a different mechanism and never mentions a type mismatch or a query failure."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8fac4c085d",
+   "title": "join url_performance & criteria_performance_report to pull necessary fields for ad_performance_adapter_model",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "adwords.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stitch/adapters/adwords_ad_performance_adapter.sql:36 adwords_ad_performance_adapter fans out: criteria_performance joined to url_performance on campaign_id only"
+   ],
+   "findings": [
+    "[bug] models/stitch/adapters/adwords_ad_performance_adapter.sql:36 adwords_ad_performance_adapter fans out: criteria_performance joined to url_performance on campaign_id only",
+    "[risk] models/stitch/adapters/adwords_ad_performance_adapter.sql:17 adwords_ad_performance_adapter: LEFT JOIN leaves url_host/url_path/utm_* NULL for unmatched campaigns"
+   ],
+   "repo": "adwords",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: criteria_performance joined to url_performance on campaign_id only in adwords_ad_performance_adapter, fanning out rows and inflating clicks, spend and impressions. It also says the join needs date_day and ad_group_id. Finding 1 is about NULLs from the left join, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1bc92086e8",
+   "title": "Daily last_access uniques oozie job",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "oozie/last_access_uniques/daily/last_access_uniques_daily.hql:102 INNER JOIN to fresh_sessions_aggregated drops hosts/countries with no fresh sessions"
+   ],
+   "findings": [
+    "[bug] oozie/last_access_uniques/daily/last_access_uniques_daily.hql:102 INNER JOIN to fresh_sessions_aggregated drops hosts/countries with no fresh sessions"
+   ],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line. It describes the same defect: the INNER JOIN to fresh_sessions_aggregated on uri_host and country_code drops hosts and countries that have no fresh sessions. It also suggests a LEFT JOIN, which matches the labelled fix of an outer join."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "679aeeaa50",
+   "title": "Correct last uniques oozie jobs (wrong join)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:116 Monthly last_access_uniques: trailing comma in GROUP BY breaks the query",
+    "oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:106 Monthly uniques_estimate becomes NULL when there is no fresh-session match",
+    "oozie/last_access_uniques/daily/last_access_uniques_daily.hql:107 Daily uniques_estimate becomes NULL when there is no fresh-session match"
+   ],
+   "findings": [
+    "[bug] oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:116 Monthly last_access_uniques: trailing comma in GROUP BY breaks the query",
+    "[bug] oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:106 Monthly uniques_estimate becomes NULL when there is no fresh-session match",
+    "[bug] oozie/last_access_uniques/daily/last_access_uniques_daily.hql:107 Daily uniques_estimate becomes NULL when there is no fresh-session match",
+    "[risk] oozie/last_access_uniques/daily/last_access_uniques_daily.hql:111 FULL OUTER JOIN on nullable country_code / uri_host"
+   ],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Findings 1 and 2 both identify the labelled bug: uniques_estimate is SUM(...) + fresh.uniques_offset, which is NULL when the FULL OUTER JOIN finds no fresh match, while uniques_offset is COALESCEd to 0. Finding 1 covers the monthly file (line 106) and finding 2 covers the daily file (line 107). The labelled bug spans both jobs, and either finding matches the same defect, so I'm returning the first, index 1."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "679aeeaa50",
+   "title": "Correct last uniques oozie jobs (wrong join)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:116 Monthly last_access_uniques: trailing comma in GROUP BY breaks the query"
+   ],
+   "findings": [
+    "[bug] oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:116 Monthly last_access_uniques: trailing comma in GROUP BY breaks the query",
+    "[bug] oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql:106 Monthly uniques_estimate becomes NULL when there is no fresh-session match",
+    "[bug] oozie/last_access_uniques/daily/last_access_uniques_daily.hql:107 Daily uniques_estimate becomes NULL when there is no fresh-session match",
+    "[risk] oozie/last_access_uniques/daily/last_access_uniques_daily.hql:111 FULL OUTER JOIN on nullable country_code / uri_host"
+   ],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 reports the same defect at the same location: the trailing comma after COALESCE(fresh.uniques_offset, 0) in the monthly GROUP BY, with only comments before LIMIT, which causes a parse error."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "be73c758a9",
+   "title": "Add requestctl sub-field to turnilo webrequest",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "oozie/webrequest/druid/hourly/generate_hourly_druid_webrequests.hql:125 GROUP BY uses the alias `requestctl` where every sibling repeats the full expression"
+   ],
+   "findings": [
+    "[bug] oozie/webrequest/druid/hourly/generate_hourly_druid_webrequests.hql:125 GROUP BY uses the alias `requestctl` where every sibling repeats the full expression"
+   ],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The SELECT aliases x_analytics_map['requestctl'] as requestctl, and GROUP BY uses the bare alias, which is not a source column. It names both the hourly (line 125) and daily (line 123) files and says the query can fail with an invalid column reference. It hedges on the Hive version, but the mechanism and location match the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fb2033bba6",
+   "title": "Update geoeditor HQL scripts for spark3",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "hql/geoeditors/editors_daily_monthly.hql:36 editors_daily namespace_zero_edit_count: sum() over boolean page_is_namespace_zero"
+   ],
+   "findings": [
+    "[bug] hql/geoeditors/editors_daily_monthly.hql:36 editors_daily namespace_zero_edit_count: sum() over boolean page_is_namespace_zero"
+   ],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. page_is_namespace_zero became a boolean, and sum(page_is_namespace_zero) as namespace_zero_edit_count in editors_daily_monthly.hql:36 is a type error. It names the same column, the same aggregate and the same mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2ecb37c6eb",
+   "title": "update readme",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-audit-helper.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/compare_column_values_verbose.sql:23 perfect_match true for rows missing from one side when compared column is null"
+   ],
+   "findings": [
+    "[bug] macros/compare_column_values_verbose.sql:23 perfect_match true for rows missing from one side when compared column is null"
+   ],
+   "repo": "dbt-audit-helper",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the coalesce(a=b, both null, false) after the full outer join makes a NULL value in the present row match the NULL columns of the missing side, so perfect_match is true for rows missing from one side. The line is 23 rather than 24, but the model, column and mechanism are the same."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "49d34793a8",
+   "title": "fix logical error in conflicting_values",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-audit-helper.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/compare_column_values_verbose.sql:33 conflicting_values now true for rows missing from one side"
+   ],
+   "findings": [
+    "[bug] macros/compare_column_values_verbose.sql:33 conflicting_values now true for rows missing from one side"
+   ],
+   "repo": "dbt-audit-helper",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: the new conflicting_values branches (a not null and b null, and the reverse) fire for rows missing from one side after the full outer join, because the absent side's columns are all NULL. That double counts missing_from_a/b rows as conflicts, and the primary key not-null guard is missing. This matches the labelled bug in the same macro and lines (it cites line 33 rather than 35-36, but the mechanism is identical)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "c3acee304b",
+   "title": "Add a bunch of new date macros! :fire:",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-date.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/calendar_date/next_month_name.sql:2 next_month_name passes extra arg to next_month(tz)",
+    "macros/calendar_date/last_month_number.sql:2 last_month_number and last_month_start_date pass an extra literal 1 to last_month(tz)",
+    "macros/calendar_date/next_month_number.sql:2 next_month_number passes (1, tz) to next_month(tz)"
+   ],
+   "findings": [
+    "[bug] macros/calendar_date/day_of_week.sql:6 default__day_of_week ignores its `date` argument and uses the literal 'd.date_day'",
+    "[bug] macros/calendar_date/from_unixtimestamp.sql:13 snowflake__from_unixtimestamp emits no SQL for valid formats",
+    "[bug] macros/calendar_date/iso_week_end.sql:8 iso_week_end returns next week's Monday (start + 7) instead of Sunday",
+    "[risk] macros/calendar_date/iso_week_end.sql:6 _iso_week_end ignores week_type and iso_week_start is called without a tz",
+    "[bug] macros/calendar_date/last_month_name.sql:2 last_month_name calls nonexistent dbt_date.lastnext_month",
+    "[bug] macros/calendar_date/this_week.sql:2 this_week calls nonexistent dbt_utils.this_week_start",
+    "[bug] macros/calendar_date/next_month_name.sql:2 next_month_name passes extra arg to next_month(tz)",
+    "[bug] macros/calendar_date/last_month_number.sql:2 last_month_number and last_month_start_date pass an extra literal 1 to last_month(tz)",
+    "[bug] macros/calendar_date/next_week_start_date.sql:2 next_week_start_date calls next_week(1, tz) but next_week takes only tz",
+    "[bug] macros/calendar_date/last_month_start_date.sql:2 last_month_start_date passes extra arg 1 to last_month",
+    "[bug] macros/calendar_date/next_month_number.sql:2 next_month_number passes (1, tz) to next_month(tz)",
+    "[bug] macros/calendar_date/next_month_start_date.sql:2 next_month_start_date passes extra arg 1 to next_month"
+   ],
+   "repo": "dbt-date",
+   "error": null,
+   "judge": {
+    "index": 7,
+    "reason": "Finding 7 is located at last_month_number.sql:2 and describes the labelled defect. last_month takes only tz, and the call last_month(1, tz) passes too many arguments, which is a compile error. Finding 6 also describes this mechanism, but it is filed at next_month_name.sql and also covers next_month_number and last_month_number. Finding 7 is the cleanest match for the last_month_number location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e5b9411ef3",
+   "title": "Updates day of week and iso week logic",
+   "category": "nullability_or_cast",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "dbt-date.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/calendar_date/week_start.sql:10 snowflake__week_start returns NULL for most dates (CASE has no ELSE, wrong condition)"
+   ],
+   "findings": [
+    "[bug] macros/calendar_date/week_start.sql:10 snowflake__week_start returns NULL for most dates (CASE has no ELSE, wrong condition)",
+    "[risk] macros/calendar_date/iso_week_start.sql:15 snowflake__iso_week_start now truncates with 'week' instead of 'weekiso'"
+   ],
+   "repo": "dbt-date",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: snowflake__week_start's CASE has no ELSE and only matches when day_of_week of date_trunc('week') equals 1 (Sunday). Snowflake's default WEEK_START truncates to Monday, so the condition is false and the result is NULL for nearly every date. Same macro, same mechanism, and it also notes the week_end consequence."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "392dda97c8",
+   "title": "Refactor simple expression tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/schema_tests/column_values_basic/expect_column_values_to_be_between.sql:10 expect_column_values_to_be_between uses OR, so no row can ever fail"
+   ],
+   "findings": [
+    "[bug] macros/schema_tests/column_values_basic/expect_column_values_to_be_between.sql:10 expect_column_values_to_be_between uses OR, so no row can ever fail",
+    "[bug] macros/schema_tests/string_matching/expect_column_value_lengths_to_be_between.sql:10 expect_column_value_lengths_to_be_between uses OR instead of AND"
+   ],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 targets expect_column_values_to_be_between.sql:10 and describes the same defect: the expression uses OR (col >= min or col <= max), so any non-null value passes and the test can never fail. Finding 1 is a different macro (value lengths)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b500ce97a4",
+   "title": "Add new tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/schema_tests/aggregate_functions/expect_column_distinct_values_to_be_in_set.sql:40 in_set test filters wrong side of left join (v.value_field is null instead of s.value_field is null)"
+   ],
+   "findings": [
+    "[bug] macros/schema_tests/aggregate_functions/expect_column_distinct_values_to_be_in_set.sql:40 in_set test filters wrong side of left join (v.value_field is null instead of s.value_field is null)"
+   ],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, the same defect (the where clause checks v.value_field is null instead of s.value_field is null after the left join), and the same effect (values outside the allowed set are never reported, so the test passes)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f9c75a38b5",
+   "title": "Add partition filters",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/schema_tests/column_values_basic/expect_column_values_to_be_in_set.sql:40 expect_column_values_to_be_in_set anti-join tests the wrong side for NULL"
+   ],
+   "findings": [
+    "[bug] macros/schema_tests/column_values_basic/expect_column_values_to_be_in_set.sql:40 expect_column_values_to_be_in_set anti-join tests the wrong side for NULL",
+    "[risk] macros/schema_tests/table_shape/expect_table_row_count_to_be_between.sql:4 expect_table_row_count_to_be_between: partition_column and partition_filter both default to kwargs 'arg'"
+   ],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same file and line and describes the same defect: the left join filters on v.value_field is null instead of s.value_field is null, so values outside the allowed set are never counted as errors. Finding 1 is about a different defect, the partition defaults."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "cbf76d3462",
+   "title": "Add support for group_by to expression tests (#71)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/schema_tests/_generalized/expression_between.sql:28 expression_between ignores a bound of 0 (min_value/max_value truthiness check)"
+   ],
+   "findings": [
+    "[bug] macros/schema_tests/_generalized/expression_between.sql:28 expression_between ignores a bound of 0 (min_value/max_value truthiness check)",
+    "[bug] macros/schema_tests/table_shape/expect_table_column_count_to_be_between.sql:15 column_count bounds use truthiness instead of 'is not none'",
+    "[risk] macros/schema_tests/string_matching/expect_column_value_lengths_to_equal.sql:10 string-matching tests reference undeclared `group_by` variable"
+   ],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at expression_between.sql:28 and describes the same defect. The `is not none` bound checks became plain truthiness, so a bound of 0 is treated as absent and min_value=0 no longer rejects negative values. It also notes the effect on every *_between test. Finding 1 is about a different macro, and finding 2 is about group_by."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "78afeddc6b",
+   "title": "Reinstitute Emily's group_by_columns work",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/generic_tests/equal_rowcount.sql:66 equal_rowcount grouped full join on nullable group columns can silently pass",
+    "macros/generic_tests/equal_rowcount.sql:31 equal_rowcount: empty model no longer yields a count row, so mismatch passes silently"
+   ],
+   "findings": [
+    "[bug] macros/generic_tests/equal_rowcount.sql:66 equal_rowcount grouped full join on nullable group columns can silently pass",
+    "[bug] macros/generic_tests/fewer_rows_than.sql:57 fewer_rows_than grouped join: NULL or one-sided groups yield delta 0 and pass",
+    "[bug] macros/generic_tests/equal_rowcount.sql:31 equal_rowcount: empty model no longer yields a count row, so mismatch passes silently",
+    "[bug] macros/generic_tests/fewer_rows_than.sql:28 fewer_rows_than: empty side makes the comparison NULL and falls through to pass"
+   ],
+   "repo": "dbt-utils",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is about the grouped FULL JOIN in equal_rowcount (group_by_columns). It says an unmatched group gives a NULL count_a or count_b, so diff_count is NULL, and sum(coalesce(diff_count,0)) turns that into 0 and the test passes. Its last sentence says groups present in only one model are also treated as passing, which is the labelled bug. It is filed at line 66, next to the labelled lines. Finding 2 is mainly about the empty-model case in the ungrouped path and only mentions one-sided groups in passing. Findings 1 and 3 are about fewer_rows_than, a different macro."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "80839ed56b",
+   "title": "add unpivot macro",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/sql/unpivot.sql:38 unpivot: trailing `union all` when the last column is excluded"
+   ],
+   "findings": [
+    "[bug] macros/sql/unpivot.sql:38 unpivot: trailing `union all` when the last column is excluded"
+   ],
+   "repo": "dbt-utils",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. It says `loop.last` is evaluated over all columns, including excluded ones. When the table's last column is excluded, the preceding unpivoted column still emits `union all`, which leaves a dangling `union all` and SQL that does not parse."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a07caf2dc5",
+   "title": "cross db compatibility",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_github.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/pull_request_times.sql:46 pull_request_times groups by the reviewer-review case expression, giving several rows per issue_id"
+   ],
+   "findings": [
+    "[bug] models/intermediate/pull_request_times.sql:46 pull_request_times groups by the reviewer-review case expression, giving several rows per issue_id",
+    "[bug] models/intermediate/pull_request_times.sql:55 current_timestamp() with parentheses breaks the cross-db goal",
+    "[risk] models/intermediate/issue_open_length.sql:37 issue_open_length.days_issue_open: division moved outside the sum, so integer division is possible",
+    "[risk] models/intermediate/pull_request_times.sql:53 pull_request_times hours_* columns: integer division by 3600 and non-portable current_timestamp()",
+    "[bug] models/intermediate/issue_joined.sql:55 issue_joined.url_link: cast to string dropped from issue_number in concat"
+   ],
+   "repo": "dbt_github",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the first_request_time CTE in pull_request_times groups by the per-review case expression (group by 1, 2, 3) instead of aggregating it. That yields multiple rows per issue_id plus a null row. The join to issue fans out, and hours_request_review_to_first_action is computed per split row. It also names the fix, min(case ...) with the group on issue_id and pull_request_id only."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2c7d82e939",
+   "title": "yml and polish",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_google_play.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/int_google_play__earnings.sql:29 int_google_play__earnings.net_amount sums a per-order total once per line row, overcounting"
+   ],
+   "findings": [
+    "[bug] models/intermediate/int_google_play__earnings.sql:29 int_google_play__earnings.net_amount sums a per-order total once per line row, overcounting",
+    "[risk] models/google_play.yml:286 google_play__overview_report documents android_os_version, which the model does not select"
+   ],
+   "repo": "dbt_google_play",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: net_order_amount is a per-order window sum repeated on every row, then summed again with sum(net_order_amount) in the daily group, so net_amount is multiplied by the number of rows per order. It points to the same file and line as the labelled bug. Finding 1 is about stale YAML documentation, which is unrelated."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ff512762c8",
+   "title": "feature/close-at-updates",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_intercom.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/int_intercom__conversation_part_events.sql:20 conversation_all_events missing part_type = 'close' filter, so first_close_at/last_close_at are wrong",
+    "models/intermediate/int_intercom__conversation_part_events.sql:62 last_close_by_author_id built from first_close_by_author_id"
+   ],
+   "findings": [
+    "[bug] models/intermediate/int_intercom__conversation_part_events.sql:20 conversation_all_events missing part_type = 'close' filter, so first_close_at/last_close_at are wrong",
+    "[bug] models/intermediate/int_intercom__conversation_part_events.sql:62 last_close_by_author_id built from first_close_by_author_id"
+   ],
+   "repo": "dbt_intercom",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: at line 62, last_close_by_author_id is selected from first_close_by_author_id (copy/paste slip), so it always equals the first closer. Finding 0 is a different defect (missing part_type = 'close' filter)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "492e2ad6c5",
+   "title": "update models with source relation",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/xero__balance_sheet_report.sql:56 balance_sheet_report net_amount doubled when year_end cross join is not tied to source_relation"
+   ],
+   "findings": [
+    "[bug] models/xero__balance_sheet_report.sql:56 balance_sheet_report net_amount doubled when year_end cross join is not tied to source_relation",
+    "[bug] models/xero__profit_and_loss_report.sql:14 profit_and_loss_id surrogate key omits source_relation, so it is no longer unique",
+    "[risk] models/xero__general_ledger.sql:48 source_relation referenced, but the pinned xero_source version does not output it"
+   ],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: in xero__balance_sheet_report the year_end CTE is joined with a bare cross join that is not tied to source_relation. Each ledger row is therefore repeated once per source, and net_amount is multiplied by the number of sources. The other findings cover different defects: the profit_and_loss surrogate key, and the package version pin."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5ae72b0568",
+   "title": "split current year and retained earnings",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/xero__balance_sheet_report.sql:20 year_end CTE builds a date by concatenating INT and STRING, and uses non-portable date_add"
+   ],
+   "findings": [
+    "[risk] models/xero__balance_sheet_report.sql:47 balance_sheet_report: cross join to year_end multiplies net_amount per organisation row",
+    "[bug] models/xero__balance_sheet_report.sql:20 year_end CTE builds a date by concatenating INT and STRING, and uses non-portable date_add",
+    "[risk] integration_tests/dbt_project.yml:14 New dependency on stg_xero__organization from an unpinned xero_source package",
+    "[bug] models/xero__balance_sheet_report.sql:32 Retained vs Current Year Earnings split is anchored to today's year end, not each report month"
+   ],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 is the closest match, but it describes a different mechanism, so it is only a partial fit. It says the Retained vs Current Year Earnings split is anchored to today's year end and that journals dated after the current year end fall into Current Year Earnings. That points to the same column, the cutoff date. It does not identify the labelled defect, which is that the year-end date falls back to the previous year's year end once this year's has passed, leaving it two years behind. Finding 0 is about a cross join, finding 1 is about concatenation and date_add portability, and finding 2 is about a package dependency. None of those match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5ae72b0568",
+   "title": "split current year and retained earnings",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/xero__balance_sheet_report.sql:20 year_end CTE builds a date by concatenating INT and STRING, and uses non-portable date_add"
+   ],
+   "findings": [
+    "[risk] models/xero__balance_sheet_report.sql:47 balance_sheet_report: cross join to year_end multiplies net_amount per organisation row",
+    "[bug] models/xero__balance_sheet_report.sql:20 year_end CTE builds a date by concatenating INT and STRING, and uses non-portable date_add",
+    "[risk] integration_tests/dbt_project.yml:14 New dependency on stg_xero__organization from an unpinned xero_source package",
+    "[bug] models/xero__balance_sheet_report.sql:32 Retained vs Current Year Earnings split is anchored to today's year end, not each report month"
+   ],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding identifies the Feb 29 invalid-date failure. Finding 1 covers the same year_end date construction but names different mechanisms (INT/STRING concatenation, non-portable date_add, unpadded single-digit months and days). It does not mention a day that doesn't exist in the target year, such as Feb 29 in a non-leap year. Findings 0, 2 and 3 cover other defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "60ee7c501e",
+   "title": "updated creatives table",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "facebook-ads.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stitch/base/fb_ad_creatives.sql:20 fb_ad_creatives.url_tags / utm_* now derived from the link's query string instead of the creative's url_tags field"
+   ],
+   "findings": [
+    "[bug] models/stitch/base/fb_ad_creatives.sql:20 fb_ad_creatives.url_tags / utm_* now derived from the link's query string instead of the creative's url_tags field"
+   ],
+   "repo": "facebook-ads",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model and file. fb_ad_creatives no longer selects the creative's own url_tags column and rebuilds url_tags from the link's query string with split_part(url,'?',2). Creatives that keep their UTM tags in url_tags therefore get empty utm_source, utm_medium, utm_campaign, utm_content and utm_term. The mechanism and the affected columns match the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "570bbb6431",
+   "title": "Make drug be standard concepts",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql:19 drug_exposure (prescriptions): inner joins after LEFT JOIN concept drop unmapped prescriptions"
+   ],
+   "findings": [
+    "[bug] etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql:19 drug_exposure (prescriptions): inner joins after LEFT JOIN concept drop unmapped prescriptions"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. In the DRUG_EXPOSURE prescriptions CTE, the new inner joins to concept_relationship and the standard concept c2 follow the LEFT JOIN on concept. That drops prescriptions with no standard RxNorm mapping (about 29%). It gives the same mechanism, the same model and the same joins, and it suggests changing them to LEFT JOINs."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e9385bb44c",
+   "title": "Link labs to specific type from chart data",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql:95 measurement.measurement_type_concept_id is NULL for 'Labs' chartevents items missing from the mapping CSV"
+   ],
+   "findings": [
+    "[bug] etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql:95 measurement.measurement_type_concept_id is NULL for 'Labs' chartevents items missing from the mapping CSV"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the 'labs' branch takes measurement_type_concept_id from the LEFT JOINed gcpt_labs_from_chartevents_to_concept on (category, label). Unmapped labels (it names 'Fibrin D-dimer FEU' and 'INR') get NULL instead of the 44818702 fallback. It points at the same file and line (etl.sql:95) and proposes coalesce(..., 44818702)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7121b95c5f",
+   "title": "Improve prescriptions local concepts",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql:20 etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql no longer parses as postgres after rendering"
+   ],
+   "findings": [
+    "[bug] etl/StandardizedVocabularies/CONCEPT/etl.sql:95 concept drug insert: DISTINCT ON (drug, prod_strength) selects from tmp that lacks those columns",
+    "[bug] etl/StandardizedClinicalDataTables/PROCEDURE_OCCURRENCE/etl.sql:3 procedure_occurrence local_proc_icd matches no concepts after vocabulary/domain rename",
+    "[bug] etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql:20 etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql no longer parses as postgres after rendering"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 points at DRUG_EXPOSURE/etl.sql:20 and says the file no longer parses. It quotes the `concept_cod,e = 'MIMIC Generated'` fragment, which is the labelled typo. It describes the same defect by the same mechanism, a comma in the WHERE clause that breaks parsing."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f569590602",
+   "title": "Fix person race",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "etl/StandardizedClinicalDataTables/PERSON/etl.sql:4 admissions.race_source_value: DISTINCT ON without ORDER BY picks an arbitrary row, so race is not the first admission's"
+   ],
+   "findings": [
+    "[bug] etl/StandardizedClinicalDataTables/PERSON/etl.sql:4 admissions.race_source_value: DISTINCT ON without ORDER BY picks an arbitrary row, so race is not the first admission's"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same location and the same mechanism. The admissions CTE uses min(ethnicity) OVER (PARTITION BY subject_id ORDER BY admittime), which is a running minimum rather than the first value. DISTINCT ON (subject_id) also lost its ORDER BY, so an arbitrary row is kept. The result is that race_source_value is not the first admission's ethnicity."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "bb1d2386a6",
+   "title": "Remove cancelled/error rows",
+   "category": "row_count_change",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "mimic-omop.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql:76 MEASUREMENT chartevents_lab: WHERE error = 0 drops rows where chartevents.error is NULL",
+    "etl/StandardizedClinicalDataTables/OBSERVATION/etl.sql:340 OBSERVATION chartevents text: `error = 0` drops rows where chartevents.error is NULL"
+   ],
+   "findings": [
+    "[bug] etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql:76 MEASUREMENT chartevents_lab: WHERE error = 0 drops rows where chartevents.error is NULL",
+    "[bug] etl/StandardizedClinicalDataTables/OBSERVATION/etl.sql:340 OBSERVATION chartevents text: `error = 0` drops rows where chartevents.error is NULL"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: WHERE error = 0 in MEASUREMENT chartevents drops rows where error is NULL, at etl.sql:76, and it also notes the same pattern at line 374. Finding 1 covers only the OBSERVATION location, so finding 0 is the better match since it covers both MEASUREMENT locations."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e5649b9b0a",
+   "title": "add views",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "redshift.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/views/table_stats.sql:111 table_stats inner join to table_distribution_ratio drops tables",
+    "models/views/table_stats.sql:52 capacity CTE reads raw stv_partitions with no base model or ref"
+   ],
+   "findings": [
+    "[bug] models/views/queries.sql:49 queries fans out on stl_wlm_query by query_id",
+    "[bug] models/views/table_stats.sql:111 table_stats inner join to table_distribution_ratio drops tables",
+    "[bug] models/views/table_stats.sql:75 table_stats calls undefined macros percentage and decode_reldiststyle",
+    "[bug] models/views/table_stats.sql:52 capacity CTE reads raw stv_partitions with no base model or ref"
+   ],
+   "repo": "redshift",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at table_stats.sql:111. The inner join to table_distribution_ratio drops empty or new tables that have no rows in that source, so they vanish from table_stats. The labelled bug covers several inner joins, including this one, and the mechanism matches."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7a5c803e13",
+   "title": "Fix mistakes in use of is_incremental macro",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "segment.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql:67 segment_web_sessions.session_number is NULL for new users on incremental runs",
+    "macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql:30 session_number offset double counts reprocessed trailing-window sessions"
+   ],
+   "findings": [
+    "[bug] macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql:67 segment_web_sessions.session_number is NULL for new users on incremental runs",
+    "[bug] macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql:30 session_number offset double counts reprocessed trailing-window sessions"
+   ],
+   "repo": "segment",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the labelled defect: session_number is NULL for new users on incremental runs. The left join to agg gives no row for a first-time user, so starting_session_number is NULL and the addition yields NULL. It proposes coalesce(agg.starting_session_number, 0), the same fix as the label. Finding 1 is about a different defect, double counting of reprocessed trailing-window sessions."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4bf117503e",
+   "title": "pull utm params from parent session if orphaned",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/url_query.sql:4 get_utm_parameter returns '' not NULL when the param is absent, so the coalesce for marketing_* never falls back and yields empty strings"
+   ],
+   "findings": [
+    "[bug] macros/url_query.sql:4 get_utm_parameter returns '' not NULL when the param is absent, so the coalesce for marketing_* never falls back and yields empty strings",
+    "[bug] models/page_views/snowplow_web_events_internal_fixed.sql:21 parent_urlquery takes the last non-null refr_urlquery for the user, not the parent session's query"
+   ],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. get_utm_parameter in macros/url_query.sql returns '' rather than NULL when the parameter is absent. As a result the utm_* columns in snowplow_web_events_internal_fixed are '', and the coalesce for the marketing_* columns in snowplow_page_views yields empty strings instead of NULL. Finding 1 is about a different defect, the parent_urlquery derivation."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "84ce2dc92c",
+   "title": "update BR Type filter",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/adapters/default/page_views/snowplow_page_views.sql:331 snowplow_page_views prep: br_type NOT IN drops rows with NULL br_type"
+   ],
+   "findings": [
+    "[bug] macros/adapters/default/page_views/snowplow_page_views.sql:331 snowplow_page_views prep: br_type NOT IN drops rows with NULL br_type"
+   ],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same line and the same defect. The `br_type not in (...)` predicate has no NULL guard, so page views with a NULL br_type are dropped. It also contrasts this with the neighbouring br_family condition, which keeps NULLs explicitly."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "668dfed5fb",
+   "title": "Merge changes. Add last_column",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/adapters/default/sessions/snowplow_sessions_tmp.sql:68 snowplow_sessions_tmp prep CTE: trailing comma with empty pass_through_columns, missing commas with several"
+   ],
+   "findings": [
+    "[bug] macros/adapters/default/sessions/snowplow_sessions_tmp.sql:68 snowplow_sessions_tmp prep CTE: trailing comma with empty pass_through_columns, missing commas with several"
+   ],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model (snowplow_sessions_tmp prep CTE). The exit_page_url line ends with a trailing comma, and the pass-through loop emits max(...) with no leading comma. This breaks with the default empty list (trailing comma before from) and with two or more columns (no separator), and only one column compiles. That is the labelled mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "4f74567d7e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "0ccedc01e6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "847011f201",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "ee5d169229",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "227dd5c04f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "05db39fdbd",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "ef688ffa7a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "27669ca56d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "05ab1e3cb9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "adwords",
+   "commit": "43c14efc1f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adwords",
+   "commit": "0985c485af",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/stitch/stitch_adwords_url_performance.sql:8 default__stitch_adwords_url_performance renamed to default__stitch_fb_ad_creatives :: The adapter_macro dispatcher at line 3 looks for adwords.<adapter>__stitch_adwords_url_performance and falls back to default__stitch_adwords_url_performance. That default was renamed to default__stitch_fb_ad_creatives, a name copied from another package. On non-Snowflake adapters the dispatch now fi"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "adwords",
+   "commit": "51f8d6c81c",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/stitch/transform/schema.yml:1 adwords_ad_performance_prep tests unique/not_null on gclid, a column the model does not output :: The model selects from adwords_criteria_performance and has no gclid column (it carries date_day, utm_*, criteria_id, ad_group_id, clicks, spend, impressions, ad_data_source). The new unique and not_null constraints on gclid reference a nonexistent column and will fail. Its grain is criteria/ad grou",
+    "[row_count_change] models/stitch/base/adwords_criteria_performance.sql:14 adwords_criteria_performance id = md5(keywordid, date_day) omits ad group/campaign grain :: The new surrogate id, which is declared unique, is built only from keywordid and date. The model also exposes ad_group_id and campaign_id, so a keyword/criterion id that appears in more than one ad group on the same day yields duplicate ids and fails the unique constraint. The output is also not gua"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "80e3cd2e5c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "1ff753945e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "9386254720",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "422f48b1c8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "1337c95c25",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "6ea4a3cd93",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] integration_tests/models/schema.yml:19 schema.yml still declares deleted model compare_all_columns :: The commit deletes integration_tests/models/compare_all_columns.sql, but schema.yml still has a `- name: compare_all_columns` entry with no body. dbt will find no matching node for this patch. By default that is only a warning, but it fails the build when warnings are treated as errors. The entry is"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "19dc9e857a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "0e9ca7932a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "d85b0a3941",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "3aea9f9603",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] integration_tests/models/schema_tests/schema.yml:37 data_test.date_col recent-data test can never pass on fixed 2020 seed dates :: The new expect_row_values_to_have_recent_data test on date_col requires at least one row with date_col within the last 1 day of now. The seed's date_col values are fixed 2020 dates, so the filter matches no rows, the macro returns error_result = 1, and the test fails on every run."
+   ],
+   "later_fixed": [
+    "fc96471 Fix postgres__regexp_instr not validating regex #249 (#250)"
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "0bef398f48",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "6ef4808817",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "336837a3ab",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "0e8e703868",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/sql/get_tables_by_pattern_sql.sql:23 bigquery__get_tables_by_pattern_sql references undefined `schema` :: The macro's parameter is schema_pattern, but the FROM clause uses {{schema}}, which is undefined in this macro, producing an invalid INFORMATION_SCHEMA reference on BigQuery, so the relation lookup fails or returns nothing.",
+    "[business_logic] macros/sql/get_tables_by_pattern_sql.sql:3 get_tables_by_pattern_sql dispatch drops caller's exclude and database :: The dispatcher calls the adapter implementation with literals exclude='' and database=target.database instead of passing the arguments it received. Any caller-supplied exclude pattern is ignored, so excluded tables come back in the relation list. A caller-supplied database is ignored too, so the que",
+    "[business_logic] macros/sql/get_relations_by_pattern.sql:33 deprecated get_tables_by_pattern wrapper discards exclude and database :: The wrapper accepts exclude and database but forwards exclude='' and database=target.database. The caller's exclusion filter and database are silently ignored, so unwanted relations are returned or the wrong database is queried."
+   ],
+   "later_fixed": [
+    null,
+    "b3428bc datatype bug fix to all macros",
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "50d4147f16",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/sql/pivot.sql:12 Macro signature does not match the README usage (table= vs source_ref) :: The macro takes `source_ref`, but the README example passes `table=`. Copying the documented call raises an unexpected-keyword-argument compile error. The example also has a misplaced parenthesis: `ref('users', column=...)`."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "23aab3d1b0",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/github_pull_requests.sql:62 github_pull_requests filters out pull requests (copied `not issue.pull_request`) :: The model is meant to list pull requests but keeps the filter from github_issues, `where not issue.pull_request`. It returns only plain issues and drops every real pull request, so the table has the wrong rows and duplicates github_issues content.",
+    "[broken_reference_or_syntax] models/transform/intermediate/pull_request_times.sql:37 pull_request_times references nonexistent pull_request.id :: stg_github_pull_request renames id to pull_request_id and has no id column. The select, group by and both join conditions on pull_request.id fail to compile. Joining on pull_request_id would be the correct key.",
+    "[broken_reference_or_syntax] models/transform/intermediate/pull_request_times.sql:68 pull_request_times joins issue on nonexistent issue.id :: stg_github_issue exposes issue_id, not id, so `issue.id` fails to resolve. The same applies to github_pull_requests lines 34 and 53-59, which reference issue.id on the same staging model. The build breaks.",
+    "[broken_reference_or_syntax] models/github_pull_requests.sql:34 github_pull_requests references issue.id, but stg_github_issue exposes issue_id :: stg_github_issue renames id to issue_id and has no `id` column. The select list (line 34) and the joins (lines 53, 57, 59) fail to compile or run.",
+    "[broken_reference_or_syntax] models/transform/intermediate/pull_request_times.sql:11 pull_request_review CTE defined twice :: The CTE name pull_request_review is declared at line 1 and again at line 11. Duplicate CTE names are a compile error in BigQuery, so the model does not build."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "04fc5d139d",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] models/intermediate/int_github__pull_request_reviewers.sql:37 int_github__pull_request_reviewers: full outer join leaves pull_request_id NULL for requested-only PRs :: The final select takes pull_request_id and number_of_reviews only from actual_reviewers. With the new full outer join, PRs that have requested reviewers but no reviews come out with pull_request_id NULL. The downstream left join in int_github__issue_joined is on pull_request_id, so those rows never ",
+    "[documented_column_not_selected] models/github.yml:174 github__pull_requests documents column 'reviewers' that is now renamed to actual_reviewers :: int_github__issue_joined now outputs actual_reviewers and requested_reviewers instead of reviewers. The YAML still documents 'reviewers', and the new columns are undocumented. Any downstream model or user that reads 'reviewers' will fail."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "3979ff052b",
+   "error": null,
+   "bug_findings": [
+    "[documented_column_not_selected] models/github.yml:14 github_issues documents placeholder column `x` twice, and the model has no such column :: The YAML lists two columns both named `x` (description 'x') for github_issues. github_issues.sql selects no `x`, so the documented schema doesn't match the model. The same name appears twice in one model's column list, which is a duplicate entry. Placeholder docs ship as contract.",
+    "[documented_column_not_selected] models/github.yml:46 issues_and_prs_per_month documents duplicate placeholder column `x` that the model does not select :: Two `x` columns are documented for issues_and_prs_per_month but the final select returns only month and the number_*/average_*/longest_* columns. The documented contract does not match the model's output.",
+    "[schema_contract] models/github.yml:20 YAML documents model `pull_request` but the model file is github_pull_requests :: models/github.yml declares a model named `pull_request` with unique/not_null tests on issue_id. No model with that name exists. The SQL is models/github_pull_requests.sql, and issues_and_prs_per_month refs `github_pull_requests`. dbt will not attach the description or tests to the real model, so the",
+    "[business_logic] models/issues_and_prs_per_month.sql:40 issues_and_prs_per_month.month: NULL month rows break the new not_null/unique tests :: prs_merged_per_month has no `where merged_at is not null` filter, unlike issues_closed_per_month. Every unmerged PR falls into a NULL month group, and the count is reported as number_prs_merged. The NULL-keyed full outer joins never match, so rows with month NULL come out of prs_per_month and the fi"
+   ],
+   "later_fixed": [
+    "0e6066c fixed formatting error",
+    "0e6066c fixed formatting error",
+    "0e6066c fixed formatting error",
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "c791cc1195",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "1deb845a7c",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/google_play__app_version_report.sql:65 Typo `app_version_codem 'null_app_version'` in crashes join breaks the build :: The crashes join condition has `install_metrics.app_version_codem 'null_app_version'`. It uses a misspelled column and a missing comma inside coalesce(), so the SQL does not parse and the model cannot build.",
+    "[row_count_change] models/google_play__app_version_report.sql:62 Crashes full outer join keyed only to install_metrics duplicates grain rows :: The second full outer join compares crashes only with install_metrics columns, not with the coalesced keys of the first join. A row that came only from ratings has NULL install_metrics keys, so a crashes row for the same date, version and package cannot match it. The crashes row is then emitted as a",
+    "[business_logic] models/google_play__app_version_report.sql:23 Running totals total_device_installs/uninstalls have no ORDER BY :: The sums use `rows between unbounded preceding and current row` with no `order by date_day`. The frame follows arbitrary physical row order, so the cumulative totals are wrong and nondeterministic. They are not chronological running totals."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "06611dada9",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] models/intermediate/int_google_play__earnings.sql:21 int_google_play__earnings: transaction_type pivot no longer coalesces NULL to 'other' :: get_column_values now reads raw transaction_type, so NULL rows yield a None value that renders as 'none'. The model then generates none_amount and none_transactions, and the case test lower(transaction_type) = 'none' never matches a NULL row, so those columns are always 0. If no source row has the l"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "267f6c89df",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "074c27da0e",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] models/intercom__article_enhanced.sql:118 article_enhanced: help center and parent collection joins depend on nullable collection columns, and section_id is ignored :: Articles join to collections only on articles.collection_id. The model never uses articles.section_id or parent_type, which the staging model carries. Intercom articles can sit in a nested section, so collection_id can be NULL or point at the top-level collection. Where collection_id is NULL, the eq"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "4510a99706",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "34f91cf9cd",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/intermediate/int_xero__journal_line_tracking_categories.sql:6 journal line tracking: null option coalesced to '' takes a rank slot and can displace real options :: option is coalesced to '' before ranking, so a null option becomes a distinct value that takes option_rank 1 or 2. A journal line with a null option row and one or two real options can lose a real option when the rank is capped at 2. It can also surface tracking_category_1 as '' (non-null) in xero__",
+    "[nullability_or_cast] models/intermediate/int_xero__invoice_line_item_tracking_categories.sql:6 int_xero__invoice_line_item_tracking_categories: coalesce(option,'') turns NULL options into empty-string tracking categories :: A NULL option is converted to '' before it is deduplicated and ranked. The '' row takes an option_rank slot, and it can push a real option out of the two kept slots (rank <= 2) or become tracking_category_1/2 itself. Downstream xero__invoice_line_items then carries '' instead of NULL. The new vertic"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "01741c725a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "4c16ec112b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "6683151348",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "0fd73ca314",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] models/stitch/segmented/fb_insights_age_actions.sql:18 Age, gender, placement and device models group by the row id so the segment sum never collapses rows :: These models are meant to roll the age\u00d7gender and placement\u00d7device cross-tab up to one segment. They group by the per-row id (_sdc_level_0_id) as well. Every source row has a distinct id, so sum(num_actions) aggregates nothing. The age model still returns one row per age\u00d7gender, and placement and de",
+    "[business_logic] models/stitch/segmented/fb_insights_country_actions.sql:14 fb_insights_country_actions.segment hardcoded NULL; country never selected :: The country action models set segment to null::varchar because the base model fb_ads_insights_c_actions never selects the country key (_sdc_source_key_country). Every country row therefore has a NULL segment, so per-country actions cannot be told apart. In the unioned transform, md5(... || segment) ",
+    "[business_logic] models/stitch/transform/fb_ads_insights_actions_segmented.sql:17 segmented_insight_id omits action_type/action_destination, so it is not unique :: Each segmented model has one row per ad, day, segment, action_type and action_destination. The hash covers only date_day, ad_id, segment_type and segment, so every action type for the same ad, day and segment gets the same id. Any uniqueness test or join on it will fail or fan out. The key is also N"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "86e81a5d46",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "3ea956f3b6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "0a442ffdc9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "69fcbbfdc8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "44c5b04961",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] macros/compressed_table.sql:59 compressed_table non-full-refresh path truncates target before the model SQL is built :: When the table already exists and --full-refresh is not set, the materialization truncates the live table at line 61. Only afterwards does it create the temp table from the model SQL (line 82) and insert. Redshift TRUNCATE commits implicitly. If the SQL or the insert fails, the target is left empty,"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "01326ff410",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/views/table_stats.sql:36 table_stats.num_columns uses max(attnum), which is not a column count :: max(attnum) is the highest attribute number, not the number of columns. Dropped columns keep their attnum, so a table that has had columns dropped reports a num_columns that is too high. If the pg_attribute base model includes system columns, the value could also be skewed. A count of attnum > 0 wou"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "39b6f11498",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  },
+  {
+   "repo": "segment",
+   "commit": "551863c87f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "segment",
+   "commit": "11f55d73e7",
+   "error": null,
+   "bug_findings": [
+    "[dropped_or_renamed_column_with_readers] macros/cross-adapter-modeling/base/segment_web_page_views.sql:49 segment_web_page_views drops mkw_id but sessions__initial still reads it :: The commit removes the mkw_id column from the base page views macro. The sessions__initial macro still lists 'mkw_id' in first_values and runs first_value(mkw_id). The column no longer exists upstream, so that model fails to compile or run, and segment_web_sessions__stitched and segment_web_sessions"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "segment",
+   "commit": "3fc26ff6be",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "2f53fa3913",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "1559255e5b",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/identification/schema.yml:14 snowplow_id_map schema.yml column name 'max_tstamp:' has stray colon :: The column entry is named `max_tstamp:` (trailing colon), so it does not match the model's real `max_tstamp` column. The description is attached to a nonexistent column, and any column-level tests or docs for `max_tstamp` are missed. Column-name validation against the model's actual columns would al"
+   ],
+   "later_fixed": [
+    "2285d82 minor fix to formatting"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "4a7b4e604b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 40,
+  "caught_judge_bug": "36/40 (90%)",
+  "caught_judge_bug_or_risk": "36/40 (90%)",
+  "caught_strict": "37/40 (92%)",
+  "caught_loose": "37/40 (92%)",
+  "risk_note_only": "2/40 (5%)",
+  "by_repo": {
+   "DataQualityDashboard": "3/4 (75%)",
+   "FeatureExtraction": "3/4 (75%)",
+   "Vocabulary-v5.0": "0/1 (0%)",
+   "adwords": "1/1 (100%)",
+   "analytics-refinery": "5/5 (100%)",
+   "dbt-audit-helper": "2/2 (100%)",
+   "dbt-date": "1/1 (100%)",
+   "dbt-expectations": "4/4 (100%)",
+   "dbt-utils": "2/2 (100%)",
+   "dbt_github": "1/1 (100%)",
+   "dbt_google_play": "1/1 (100%)",
+   "dbt_intercom": "1/1 (100%)",
+   "dbt_xero": "2/3 (67%)",
+   "facebook-ads": "1/1 (100%)",
+   "mimic-omop": "4/4 (100%)",
+   "redshift": "1/1 (100%)",
+   "segment": "1/1 (100%)",
+   "snowplow": "3/3 (100%)"
+  },
+  "by_category": {
+   "business_logic": "11/11 (100%)",
+   "nullability_or_cast": "9/11 (82%)",
+   "other": "7/9 (78%)",
+   "row_count_change": "9/9 (100%)"
+  },
+  "compiles_true": "28/29 (97%)",
+  "compiles_false": "8/11 (73%)",
+  "needs_data_bucket": "2/2 (100%)",
+  "false_alarm_maintainer_rule": "14/54 (26%)",
+  "ordinary_commits": 54,
+  "false_alarm_share": "18/54 (33%)",
+  "false_alarm_share_excluding_later_fixed": "16/54 (30%)",
+  "commits_with_bug_or_risk": "23/54",
+  "false_alarm_by_repo": {
+   "DataQualityDashboard": "0/3",
+   "FeatureExtraction": "0/3",
+   "Vocabulary-v5.0": "0/3",
+   "adwords": "2/3",
+   "analytics-refinery": "0/3",
+   "dbt-audit-helper": "1/3",
+   "dbt-date": "0/3",
+   "dbt-expectations": "1/3",
+   "dbt-utils": "2/3",
+   "dbt_github": "3/3",
+   "dbt_google_play": "2/3",
+   "dbt_intercom": "1/3",
+   "dbt_xero": "1/3",
+   "facebook-ads": "1/3",
+   "mimic-omop": "0/3",
+   "redshift": "2/3",
+   "segment": "1/3",
+   "snowplow": "1/3"
+  },
+  "errors": 0
+ }
+}
