@@ -1,0 +1,76 @@
+# mimic-omop: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/MIT-LCP/mimic-omop): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: mimic-omop
+url: https://github.com/MIT-LCP/mimic-omop
+bugs:
+  - commit: "570bbb6431"
+    parent: "c153891251"
+    title: "Make drug be standard concepts"
+    fix: "0aa60f1137"
+    fix_title: "Update drug_exposure left join"
+    bug: "the DRUG_EXPOSURE prescriptions CTE keeps its LEFT JOIN to omop.concept on the NDC code but then adds plain inner joins to omop.concept_relationship ('Maps to') and to the standard concept c2, so every prescription whose NDC has no standard RxNorm mapping (about 29 percent, by the commit's own comment) is silently dropped from drug_exposure instead of being kept with no drug_concept_id"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["concept_relationship", "inner join"]
+    expect:
+      - {path: "etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql", line: 20}
+      - {path: "etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql", line: 21}
+  - commit: "e9385bb44c"
+    parent: "499f5d1f59"
+    title: "Link labs to specific type from chart data"
+    fix: "78c22ff1ba"
+    fix_title: "Fix measurement labs type when null"
+    bug: "for category 'labs' measurement_type_concept_id now comes straight from gcpt_labs_from_chartevents_to_concept, which is LEFT JOINed on (category, label); labels missing from that mapping (the commit message itself names unmapped ones) give a NULL measurement_type_concept_id, a required column in OMOP measurement, instead of the 44818702 fallback the other branches use"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["measurement_type_concept_id", "null"]
+    expect:
+      - {path: "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql", line: 95}
+      - {path: "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql", line: 118}
+  - commit: "7121b95c5f"
+    parent: "6e3eae2521"
+    title: "Improve prescriptions local concepts"
+    fix: "de37ed9740"
+    fix_title: "fix join"
+    bug: "the omop_local_drug CTE in the DRUG_EXPOSURE ETL filters on concept_cod,e = 'MIMIC Generated', a typo that puts a comma inside the WHERE clause, so the statement does not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["omop_local_drug", "comma"]
+    expect:
+      - {path: "etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql", line: 20}
+  - commit: "f569590602"
+    parent: "28fcf234a6"
+    title: "Fix person race"
+    fix: "e041ec4ea7"
+    fix_title: "Fix window functions"
+    bug: "race_source_value is meant to be the ethnicity of the first admission, but the admissions CTE computes min(ethnicity) OVER (PARTITION BY subject_id ORDER BY admittime), a running alphabetical minimum, and the DISTINCT ON (subject_id) has lost its ORDER BY, so each person gets the smallest ethnicity string up to an arbitrary admission rather than the first one"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["min(ethnicity)", "first_value"]
+    expect:
+      - {path: "etl/StandardizedClinicalDataTables/PERSON/etl.sql", line: 4}
+  - commit: "bb1d2386a6"
+    parent: "cc63382399"
+    title: "Remove cancelled/error rows"
+    fix: "f569b0246b"
+    fix_title: "Fix missing rows based on error from chartevents"
+    bug: "chartevents rows in error are removed with WHERE error = 0 in the MEASUREMENT and OBSERVATION ETLs, which also removes every row whose error flag is NULL; seeing that error is NULL for a large share of chartevents needs knowledge of the MIMIC source data"
+    category: row_count_change
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["error", "null"]
+    expect:
+      - {path: "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql", line: 76}
+      - {path: "etl/StandardizedClinicalDataTables/MEASUREMENT/etl.sql", line: 374}
+      - {path: "etl/StandardizedClinicalDataTables/OBSERVATION/etl.sql", line: 340}

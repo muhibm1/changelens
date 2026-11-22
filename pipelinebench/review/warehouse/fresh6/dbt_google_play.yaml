@@ -1,0 +1,21 @@
+# dbt_google_play: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_google_play): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt_google_play
+url: https://github.com/fivetran/dbt_google_play
+bugs:
+  - commit: "2c7d82e939"
+    parent: "948259762a"
+    title: "yml and polish"
+    fix: "c03eb59a5d"
+    fix_title: "v1.1.1 release  (#30)"
+    bug: "int_google_play__earnings adds calc_net_amounts, a window sum of amount_merchant_currency over each order_id that is repeated on every earnings row of the order, and then sums that per-row order total again in daily_country_metrics (sum(net_order_amount)), so net_amount is multiplied by the number of transaction rows in each order"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["net_order_amount", "double"]
+    expect:
+      - {path: "models/intermediate/int_google_play__earnings.sql", line: 14}
+      - {path: "models/intermediate/int_google_play__earnings.sql", line: 29}

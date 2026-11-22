@@ -1,0 +1,48 @@
+# snowplow: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/snowplow): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: snowplow
+url: https://github.com/dbt-labs/snowplow
+bugs:
+  - commit: "4bf117503e"
+    parent: "8b06b60c0d"
+    title: "pull utm params from parent session if orphaned"
+    fix: "d94636556d"
+    fix_title: "fix empty string utm parameters when resessionizing from internal referrers"
+    bug: "the new get_utm_parameter macro returns split_part(split_part(query, 'utm_x=', 2), '&', 1), which is an empty string rather than NULL when the parent query has no such parameter, so the utm_* columns of snowplow_web_events_internal_fixed are '' and coalesce(w.mkt_medium, i.utm_medium) in snowplow_page_views fills marketing_medium and the other marketing columns with empty strings instead of NULL for orphaned page views"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["split_part", "empty"]
+    expect:
+      - {path: "macros/url_query.sql", line: 4}
+      - {path: "models/page_views/snowplow_page_views.sql", line: 52}
+  - commit: "84ce2dc92c"
+    parent: "fab51b2b9a"
+    title: "update BR Type filter"
+    fix: "0b32f327ef"
+    fix_title: "don't filter out nulls!"
+    bug: "the bot filter in the prep CTE of snowplow_page_views adds a.br_type not in ('Bot/Crawler', 'Robot') with no NULL guard, so every page view whose browser type is NULL (an unparsed user agent) is dropped from page views, even though the neighbouring br_family and useragent conditions keep NULLs explicitly"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["br_type", "null"]
+    expect:
+      - {path: "macros/adapters/default/page_views/snowplow_page_views.sql", line: 331}
+  - commit: "668dfed5fb"
+    parent: "c19abcc692"
+    title: "Merge changes. Add last_column"
+    fix: "b9d5fa759c"
+    fix_title: "Fix pass through cols"
+    bug: "the prep CTE of snowplow_sessions_tmp now ends the fixed columns with 'as exit_page_url,' and emits each pass through column as max(...) as col with no leading comma, so with the default empty snowplow:pass_through_columns list the select ends in a trailing comma before from, and with two or more pass through columns the max(...) expressions run together with no comma; only exactly one column (the integration test setting) compiles"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["exit_page_url", "comma"]
+    expect:
+      - {path: "macros/adapters/default/sessions/snowplow_sessions_tmp.sql", line: 69}
+      - {path: "macros/adapters/default/sessions/snowplow_sessions_tmp.sql", line: 72}

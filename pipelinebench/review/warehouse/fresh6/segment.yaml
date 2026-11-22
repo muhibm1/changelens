@@ -1,0 +1,21 @@
+# segment: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/segment): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: segment
+url: https://github.com/dbt-labs/segment
+bugs:
+  - commit: "7a5c803e13"
+    parent: "28cc150077"
+    title: "Fix mistakes in use of is_incremental macro"
+    fix: "5090c6183c"
+    fix_title: "Fix null session numbers"
+    bug: "the windowed CTE of segment_web_sessions now adds agg.starting_session_number on incremental runs, but agg is joined with a left join and has no row for a user seen for the first time, so session_number becomes NULL for every new user's sessions on incremental runs; the offset needs a coalesce to 0"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["starting_session_number", "coalesce"]
+    expect:
+      - {path: "macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql", line: 67}
+      - {path: "macros/cross-adapter-modeling/sessionization/segment_web_sessions.sql", line: 73}

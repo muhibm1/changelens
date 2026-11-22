@@ -1,0 +1,35 @@
+# dbt-utils: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt-utils): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent (and git log -S where blame landed on
+# a later edit), and the introducing commit was read to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt-utils
+url: https://github.com/dbt-labs/dbt-utils
+bugs:
+  - commit: "78afeddc6b"
+    parent: "17896767a5"
+    title: "Reinstitute Emily's group_by_columns work"
+    fix: "a1081ea392"
+    fix_title: "fix equal_rowcount between 2 different tables (#987)"
+    bug: "equal_rowcount with group_by_columns now full joins the per-group counts of the two models; a group present in only one model has a NULL count_a or count_b, so abs(count_a - count_b) is NULL and fail_calc sum(coalesce(diff_count, 0)) counts it as 0, and the test passes even though one model has rows the other lacks"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["diff_count", "full join"]
+    expect:
+      - {path: "macros/generic_tests/equal_rowcount.sql", line: 63}
+      - {path: "macros/generic_tests/equal_rowcount.sql", line: 8}
+  - commit: "80839ed56b"
+    parent: "c51d19a092"
+    title: "add unpivot macro"
+    fix: "d32ce76299"
+    fix_title: "fix for excluding last column in unpivot"
+    bug: "unpivot emits union all after every included column unless loop.last, but loop.last refers to the full column list including excluded columns; when the table's last column is in exclude, the generated SQL ends with a dangling union all and does not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["union all", "exclude"]
+    expect:
+      - {path: "macros/sql/unpivot.sql", line: 38}
+      - {path: "macros/sql/unpivot.sql", line: 30}

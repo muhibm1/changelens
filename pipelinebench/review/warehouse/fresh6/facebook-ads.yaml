@@ -1,0 +1,21 @@
+# facebook-ads: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/facebook-ads): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: facebook-ads
+url: https://github.com/dbt-labs/facebook-ads
+bugs:
+  - commit: "60ee7c501e"
+    parent: "663efba34d"
+    title: "updated creatives table"
+    fix: "e96bff2cd2"
+    fix_title: "fixed issue with creatives utm parameters"
+    bug: "fb_ad_creatives stops selecting the creative's own url_tags column and instead rebuilds url_tags from the query string of the link url, so a creative whose UTM tags are stored in url_tags rather than in the link (the usual Facebook setup) now gets empty utm_source, utm_medium, utm_campaign, utm_content and utm_term"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["url_tags", "split_part"]
+    expect:
+      - {path: "models/stitch/base/fb_ad_creatives.sql", line: 20}
+      - {path: "models/stitch/base/fb_ad_creatives.sql", line: 4}

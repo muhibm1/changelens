@@ -1,0 +1,62 @@
+# dbt-expectations: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/calogica/dbt-expectations): each bug was found from
+# a later fix commit, the fixed lines were traced with git blame on the fix's parent (and git log -S where blame landed
+# on a later rename), and the introducing commit was read to confirm it added the faulty lines. The package's macros are
+# dbt data tests that run as SQL against the warehouse; a defect makes the test pass or fail on the wrong rows.
+# Never derived from ChangeLens.
+repo: dbt-expectations
+url: https://github.com/calogica/dbt-expectations
+bugs:
+  - commit: "392dda97c8"
+    parent: "b00b180994"
+    title: "Refactor simple expression tests"
+    fix: "f045ee6d70"
+    fix_title: "Fix between logic and switch to expression_between macro"
+    bug: "expect_column_values_to_be_between is rewritten on top of expression_is_true, which reports rows where the expression is false, but the expression is column >= minimum or column <= maximum; any non-null value satisfies one side of the OR, so the test can never find an out-of-range value (it needs AND)"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["or", "expect_column_values_to_be_between"]
+    expect:
+      - {path: "macros/schema_tests/column_values_basic/expect_column_values_to_be_between.sql", line: 10}
+  - commit: "b500ce97a4"
+    parent: "e8168d7ddc"
+    title: "Add new tests"
+    fix: "6b0d84ee22"
+    fix_title: "Fixes set logic, closes #33"
+    bug: "expect_column_distinct_values_to_be_in_set left joins the model's distinct values to the allowed set and keeps rows where v.value_field is null; the unmatched rows are the ones where the set side s.value_field is null, so values outside the set are never reported and the test always passes"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["value_field", "left join"]
+    expect:
+      - {path: "macros/schema_tests/aggregate_functions/expect_column_distinct_values_to_be_in_set.sql", line: 40}
+  - commit: "f9c75a38b5"
+    parent: "b500ce97a4"
+    title: "Add partition filters"
+    fix: "7e82e7aafd"
+    fix_title: "Fix value in set validation (#91)"
+    bug: "the new expect_column_values_to_be_in_set left joins column values to set_values and filters on v.value_field is null instead of s.value_field is null, so a value missing from the allowed set is never counted as a validation error"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["value_field", "set_values"]
+    expect:
+      - {path: "macros/schema_tests/column_values_basic/expect_column_values_to_be_in_set.sql", line: 40}
+  - commit: "cbf76d3462"
+    parent: "26346916a1"
+    title: "Add support for group_by to expression tests (#71)"
+    fix: "51e36d3c41"
+    fix_title: "Fix expression_between to correctly evaluate 0s (#73)"
+    bug: "expression_between changes the bound checks from min_value is not none to plain Jinja truthiness ({% if min_value %}), so a bound of 0 is treated as absent and, for example, min_value=0 no longer rejects negative values in every *_to_be_between test"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["min_value", "0"]
+    expect:
+      - {path: "macros/schema_tests/_generalized/expression_between.sql", line: 28}
+      - {path: "macros/schema_tests/_generalized/expression_between.sql", line: 29}

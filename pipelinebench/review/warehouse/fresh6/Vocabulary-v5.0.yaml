@@ -1,0 +1,21 @@
+# Vocabulary-v5.0: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/Vocabulary-v5.0): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: Vocabulary-v5.0
+url: https://github.com/OHDSI/Vocabulary-v5.0
+bugs:
+  - commit: "ec8cd5ffca"
+    parent: "9920f199da"
+    title: "Implement aggressive optimization for Step 10 (Subsumes relationships)"
+    fix: "d93782f10d"
+    fix_title: "Fix type casting error in Step 10 recursive CTE"
+    bug: "the new recursive CTE code_parents in ICD10PCS load_stage.sql selects concept_code (varchar(50)) as parent_code in the non-recursive term and LEFT(parent_code, ...) (text) in the recursive term; PostgreSQL requires the column types of a recursive UNION ALL to match, so building temp_parent_codes fails"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["parent_code", "recursive"]
+    expect:
+      - {path: "ICD10PCS/load_stage.sql", line: 282}
+      - {path: "ICD10PCS/load_stage.sql", line: 290}
