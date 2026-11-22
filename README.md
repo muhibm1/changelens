@@ -4,6 +4,8 @@
 
 Code-context tools index what the repository says. ChangeLens indexes what production says: which tables feed which dashboards, which DAG missed its SLA, which schema change caused the last outage, which column a finance job filters on. Every claim in a verdict carries an evidence id, the checks run in code that a model cannot override, and anything ChangeLens does not know is reported as "not recorded" rather than guessed.
 
+**Headline result.** ChangeLens's warehouse review agent was tested on 40 real bugs from 15 public data warehouses it had never seen, with the code frozen first and the test scored once (2026-11-20). It caught **39 of 40 (98%)**. Each bug is a real defect that a later commit fixed; the agent saw only the commit that introduced it. On 45 ordinary commits with no known bug, 6 (13%) got warnings with nothing real behind them, checked by an independent reviewer. The earlier fixed pattern rules caught about 1 in 10 of the same kind of bug. Full method and every set: [docs/evidence/warehouse-agent-real-bugs.md](docs/evidence/warehouse-agent-real-bugs.md).
+
 > Status: 0.2.0, the first release of ChangeLens as its own project. Tested on the bundled fixture platform and on [cal-itp/data-infra](https://github.com/cal-itp/data-infra), a public warehouse with 625 dbt models and 21 Airflow DAGs, and on [ClearLedger, a finance data platform](https://github.com/muhibm1/clearledger), a finance warehouse on Postgres it was not built around (`pipelinebench/results/partner-clearledger.md`). On PipelineBench, ChangeLens's own benchmark, language-model agents given ChangeLens's verdict made no forbidden call and got every escalation right (`pipelinebench/results/llm-agents.md`).
 >
 > ChangeLens was originally part of Orion, a personal context layer, and was split out on 2026-10-25; the history before that date is Orion's.
@@ -44,7 +46,7 @@ The Anthropic provider spends API credit, so it refuses to start without `CHANGE
 
 With no `changelens.yaml`, this is a general code review. The credential scan, symbol references and the model's findings are all included, each with evidence, but there is no system context. Add an `changelens.yaml` that points at your dbt project, DAGs and constraints to get blast radius, constraints and incident history in the same review.
 
-The full tour, on the bundled fixture platform:
+The full tour, on the bundled fixture platform, needs no API key:
 
 ```bash
 uv venv .venv && uv pip install -e ".[fixture,dev,syntax]"
