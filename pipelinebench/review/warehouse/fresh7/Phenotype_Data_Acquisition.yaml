@@ -1,0 +1,62 @@
+# Phenotype_Data_Acquisition: real warehouse bugs located at the commit that introduced them, part of the fresh7
+# held-out set. Written by hand from the public upstream history
+# (https://github.com/National-COVID-Cohort-Collaborative/Phenotype_Data_Acquisition): each bug was found from a later
+# fix commit, the fixed lines were traced with git blame on the fix's parent (and git log -S where blame landed on a
+# later edit), and the introducing commit was read to confirm it added the faulty lines. Never derived from
+# ChangeLens's output.
+repo: Phenotype_Data_Acquisition
+url: https://github.com/National-COVID-Cohort-Collaborative/Phenotype_Data_Acquisition
+bugs:
+  - commit: "a6d56fee84"
+    parent: "c501443a8c"
+    title: "add date constraints, comments, link to n3c_cohort"
+    fix: "117a3e644d"
+    fix_title: "Correct the date range on visit dimension"
+    bug: "the ACT Oracle extract replaces the visit_dimension filter start_date >= '01-JAN-18' with start_date < '01-JAN-18', in both the VISIT_DIMENSION export and its DATA_COUNTS row count, so the extract ships only visits before 2018 while every other table in the same commit keeps start_date >= '01-JAN-18'"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["start_date", "visit_dimension"]
+    expect:
+      - {path: "ExtractScripts/N3C_extract_V1_0_act_oracle.sql", line: 111}
+      - {path: "ExtractScripts/N3C_extract_V1_0_act_oracle.sql", line: 129}
+  - commit: "a6d56fee84"
+    parent: "c501443a8c"
+    title: "add date constraints, comments, link to n3c_cohort"
+    fix: "d62d6f871f"
+    fix_title: "typo"
+    bug: "the rewritten VISIT_DIMENSION export selects FROM visit_dimiension (misspelt) while its join condition and every other query use visit_dimension, so the statement names a table that does not exist"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["visit_dimiension", "typo"]
+    expect:
+      - {path: "ExtractScripts/N3C_extract_V1_0_act_oracle.sql", line: 109}
+  - commit: "676c7fb891"
+    parent: "663ef3e1d2"
+    title: "sync omop obs_period date filters"
+    fix: "1fedecb88e"
+    fix_title: "fix for #234"
+    bug: "in the Redshift OMOP extract the observation period date filter is pasted onto the PERSON export instead of OBSERVATION_PERIOD: it filters p.OBSERVATION_PERIOD_START_DATE on the PERSON table, which has no such column, and carries a stray ') as ROW_COUNT' copied from the counts section, so the PERSON query does not parse and the OBSERVATION_PERIOD export stays unfiltered"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["PERSON", "OBSERVATION_PERIOD_START_DATE"]
+    expect:
+      - {path: "ExtractScripts/N3C_extract_omop_redshift.sql", line: 207}
+  - commit: "b937dca9da"
+    parent: "00da489785"
+    title: "Update N3C_phenotype_omop_bigquery.sql"
+    fix: "d246ddeec2"
+    fix_title: "missing abs( in 25-29 age category"
+    bug: "the commit wraps each age bucket's date_diff in abs(...), but on the 25-29 branch it adds only the closing paren, leaving date_diff(...)) unbalanced, so the BigQuery phenotype script does not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["abs", "paren"]
+    expect:
+      - {path: "PhenotypeScripts/N3C_phenotype_omop_bigquery.sql", line: 821}

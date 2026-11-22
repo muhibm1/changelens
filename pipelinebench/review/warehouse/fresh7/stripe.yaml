@@ -1,0 +1,47 @@
+# stripe: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/stripe): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was
+# read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+repo: stripe
+url: https://github.com/dbt-labs/stripe
+bugs:
+  - commit: "79bf7cffc0"
+    parent: "91cef11975"
+    title: "restructured files and added tests"
+    fix: "62bf643bd0"
+    fix_title: "fix 'funded'"
+    bug: "the new stripe_charges model derives result with trim('charge.' from \"type\"), but trim removes any of the characters c, h, a, r, g, e and . from both ends rather than the 'charge.' prefix, so 'charge.refunded' becomes 'funded' (and other event types are clipped too); replace was needed"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["trim", "result"]
+    expect:
+      - {path: "models/event_filters/stripe_charges.sql", line: 11}
+  - commit: "79bf7cffc0"
+    parent: "91cef11975"
+    title: "restructured files and added tests"
+    fix: "63b73e3e72"
+    fix_title: "updated the charges model to pull the correct id"
+    bug: "stripe_charges selects id from stripe_events, which is the event id, not the charge id; every sibling entity model in the same folder takes data__object__id as id, so charges are keyed by event and one charge appears under several ids"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["data__object__id", "event"]
+    expect:
+      - {path: "models/event_filters/stripe_charges.sql", line: 8}
+  - commit: "62830e207e"
+    parent: "351f5b7017"
+    title: "added tests"
+    fix: "41c638a747"
+    fix_title: "fixed small invoice items bug"
+    bug: "the commit renames invoice_item_id to id in stripe_invoice_item_events and in the select of stripe_invoice_items, but leaves the partition_clause variable at the top of stripe_invoice_items as partition by invoice_item_id, so every window function references a column that no longer exists"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["invoice_item_id", "partition"]
+    expect:
+      - {path: "models/core_entities/stripe_invoice_items.sql", line: 1}
+      - {path: "models/core_entities/stripe_invoice_items.sql", line: 10}

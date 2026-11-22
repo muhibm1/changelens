@@ -1,0 +1,61 @@
+# CohortDiagnostics: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/CohortDiagnostics): each bug was found
+# from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit
+# was read to confirm it added the faulty lines. The SQL is OHDSI SqlRender (SQL Server dialect) over the OMOP common
+# data model. Never derived from ChangeLens's output.
+repo: CohortDiagnostics
+url: https://github.com/OHDSI/CohortDiagnostics
+bugs:
+  - commit: "d259381307"
+    parent: "0afc0db8e4"
+    title: "New diagnostics - Cohort as feature"
+    fix: "e6b3f42684"
+    fix_title: "Bug fix to Cohort as features sql"
+    bug: "in the new CohortAsFeature.sql, fs_before_max takes DATEDIFF from the feature cohort start to the target cohort end date (a.cohort_end_date), while fs_before_min and fs_before_avg in the same group measure to the target start date; fe_before_max has the same slip, so both maxima overstate the days before the target cohort"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["fs_before_max", "cohort_end_date"]
+    expect:
+      - {path: "inst/sql/sql_server/CohortAsFeature.sql", line: 16}
+      - {path: "inst/sql/sql_server/CohortAsFeature.sql", line: 111}
+  - commit: "a2f0ef58c8"
+    parent: "1f38d7b6fa"
+    title: "Add subject_count to index event breakdown"
+    fix: "512f4d8770"
+    fix_title: "Fixed a bug in sql for subject_count in index event breakdown"
+    bug: "the new subject_count column in CohortEntryBreakdown.sql is computed as COUNT(distinct subject_count), but neither the cohort table nor the domain table has a subject_count column (it is the alias being defined); subject_id was meant, so the query fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["subject_count", "subject_id"]
+    expect:
+      - {path: "inst/sql/sql_server/CohortEntryBreakdown.sql", line: 20}
+  - commit: "f2f6961df1"
+    parent: "27e6777578"
+    title: "Casting incidence rates as float"
+    fix: "e038e93658"
+    fix_title: "fix column alias"
+    bug: "ComputeIncidenceRates.sql wraps person_years in CAST(person_years as FLOAT) without an alias in a SELECT ... INTO #rates_summary, so the new temp table has an unnamed column (an error on SQL Server) and the later reads of person_years fail"
+    category: schema_contract
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["person_years", "alias"]
+    expect:
+      - {path: "inst/sql/sql_server/ComputeIncidenceRates.sql", line: 116}
+  - commit: "8e5d65676a"
+    parent: "fb5181c25b"
+    title: "updated documentation"
+    fix: "b3d450d38c"
+    fix_title: "fixed a bug in sql for compute time series"
+    bug: "the new ComputeTimeSeries.sql filters WHERE cohort_definition_id IN c(@cohort_ids), an R vector constructor that is not SQL, so the query does not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["cohort_ids", "c("]
+    expect:
+      - {path: "inst/sql/sql_server/ComputeTimeSeries.sql", line: 39}

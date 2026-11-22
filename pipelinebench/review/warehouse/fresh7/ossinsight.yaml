@@ -1,0 +1,61 @@
+# ossinsight: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/pingcap/ossinsight): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. The SQL is TiDB (MySQL dialect) analytics over the GH Archive event table and
+# its pre-aggregated mv_* tables. Never derived from ChangeLens's output.
+repo: ossinsight
+url: https://github.com/pingcap/ossinsight
+bugs:
+  - commit: "ddf569888c"
+    parent: "d35df29734"
+    title: "feat: add query contribution rank (#51)"
+    fix: "64c43bc540"
+    fix_title: "fix: former_contributors in issue contribution rank"
+    bug: "in analyze-people-issue-contribution-rank the former_contributors CTE is copied from the code contribution query and selects opened pull requests and pushes, while the ranked CTEs count opened IssuesEvent; is_new_contributor therefore marks someone who opened issues before as new unless they also pushed code, and someone who only pushed as a former issue contributor"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["former_contributors", "IssuesEvent"]
+    expect:
+      - {path: "queries/analyze-people-issue-contribution-rank/template.sql", line: 7}
+  - commit: "d254432760"
+    parent: "d6d561509b"
+    title: "public-api: add trending repos API"
+    fix: "1447049288"
+    fix_title: "public-api: fix the trending repos API only return repos has collection problem"
+    bug: "the trending repos endpoint ends with an inner JOIN to repo_with_collections, a CTE that only holds repos belonging to a public collection, so every trending repo that is in no collection is dropped from the result; it needed a LEFT JOIN"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["repo_with_collections", "left join"]
+    expect:
+      - {path: "configs/public_api/http_endpoints/sql/GET-trending_repos.sql", line: 39}
+  - commit: "7906e691b4"
+    parent: "0fd6799c1a"
+    title: "queries: refine org trends queries (#1651)"
+    fix: "43e024b085"
+    fix_title: "queries: fix push and commits trends"
+    bug: "the org commits trends query widens the past_12_months window to 24 months, but idx is still TIMESTAMPDIFF(MONTH, day, CURRENT_DATE()) % 12 + 1 and there is no period column or filter, so months 13 to 24 map onto the same idx values and the LEFT JOIN from seq on idx returns two rows per month, mixing last year's pushes and commits into this year's trend"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["idx", "24 MONTH"]
+    expect:
+      - {path: "configs/queries/orgs/commits/trends/template.sql", line: 65}
+      - {path: "configs/queries/orgs/commits/trends/template.sql", line: 38}
+  - commit: "3880a16359"
+    parent: "e0ed247436"
+    title: "pipeline: add sync org pre-agg pipeline (#1633)"
+    fix: "db5b28f248"
+    fix_title: "queries: fix new participants query (#1637)"
+    bug: "the org overview now counts participants with COUNT(*) over mv_repo_participants, which the same commit fills with one row per (repo_id, user_id); the old query used COUNT(DISTINCT actor_login), so a person who took part in several of the org's repos is now counted once per repo"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["participants", "distinct"]
+    expect:
+      - {path: "configs/queries/orgs/overview/template.sql", line: 14}

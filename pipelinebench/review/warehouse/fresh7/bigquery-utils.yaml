@@ -1,0 +1,48 @@
+# bigquery-utils: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/GoogleCloudPlatform/bigquery-utils): each bug
+# was found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the
+# introducing commit was read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+repo: bigquery-utils
+url: https://github.com/GoogleCloudPlatform/bigquery-utils
+bugs:
+  - commit: "44c7864cf2"
+    parent: "c915821e72"
+    title: "Add billing related queries and documentation (#6)"
+    fix: "3be39f0f49"
+    fix_title: "fix: billing analytics script - monthly invoice costs (#291)"
+    bug: "monthly_invoice_costs_credits does LEFT JOIN UNNEST(credits) and then SUM(cost), so every billing row with more than one credit is repeated once per credit and its cost is summed several times; the invoice total is inflated by the fan-out (the credits should be summed in a correlated subquery over UNNEST(credits))"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["credits", "fan-out"]
+    expect:
+      - {path: "scripts/billing/sql/monthly_invoice_costs_credits.sql", line: 13}
+      - {path: "scripts/billing/sql/monthly_invoice_costs_credits.sql", line: 8}
+  - commit: "8361c16717"
+    parent: "170bad6ca5"
+    title: "Add Jacard Distance UDF (#264)"
+    fix: "e5bacd9180"
+    fix_title: "fixes jaccard bug (#417)"
+    bug: "the jaccard UDF sets the outer loop bound la to the longer set's length and the inner bound lb to the shorter one, but always indexes sa[i] and sb[j]; when a has fewer distinct characters than b, sa is read past its end and sb is only scanned up to sa's length, so matches are missed and the returned similarity is wrong"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["jaccard", "length"]
+    expect:
+      - {path: "udfs/community/jaccard.sqlx", line: 28}
+      - {path: "udfs/community/jaccard.sqlx", line: 29}
+  - commit: "4bdddd7710"
+    parent: "3b4089e72e"
+    title: "Add the Reservation Analysis script (#392)"
+    fix: "0ea628cfa1"
+    fix_title: "update to correct variable (#407)"
+    bug: "daily_reservation_analysis declares num_days_to_scan but filters jobs with CURRENT_DATE - var_n_days, a variable that is never declared, so the script fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["var_n_days", "num_days_to_scan"]
+    expect:
+      - {path: "scripts/optimization/daily_reservation_analysis.sql", line: 119}

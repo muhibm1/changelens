@@ -1,0 +1,35 @@
+# bigquery (HTTP Archive): real warehouse bugs located at the commit that introduced them, part of the fresh7
+# held-out set. Written by hand from the public upstream history (https://github.com/HTTPArchive/bigquery): each bug
+# was found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the
+# introducing commit was read to confirm it added the faulty lines. The SQL is BigQuery, run by generate_reports.sh to
+# build the HTTP Archive report timeseries and histograms. Never derived from ChangeLens's output.
+repo: bigquery
+url: https://github.com/HTTPArchive/bigquery
+bugs:
+  - commit: "89fe7a60f6"
+    parent: "51f981bd58"
+    title: "Rethink lenses for timeseries"
+    fix: "5a86818fe5"
+    fix_title: "Fix request queries"
+    bug: "the h2 and h3 timeseries now inner join httparchive.crawl.requests to httparchive.crawl.pages USING (date, client, is_root_page, rank) without page, so every request is matched to every root page that shares its rank on that date and client; the join fans out and the HTTP/2 and HTTP/3 percentages are computed over the duplicated rows"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["page", "USING"]
+    expect:
+      - {path: "sql/timeseries/h2.sql", line: 11}
+      - {path: "sql/timeseries/h3.sql", line: 33}
+  - commit: "bac243579f"
+    parent: "6ed5b9122f"
+    title: "Forgot to add the actual new queries!"
+    fix: "9f0bbd719d"
+    fix_title: "Fix CLS typo"
+    bug: "the new cruxLargeCls timeseries sums larg_cls, a column that does not exist in chrome-ux-report.materialized.device_summary (the same line's denominator uses large_cls), so the query fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["larg_cls", "large_cls"]
+    expect:
+      - {path: "sql/timeseries/cruxLargeCls.sql", line: 6}

@@ -110,7 +110,7 @@ def _review(repo: Path, commit: str, model: str, verify: bool, effort: str | Non
     if REVIEWER.startswith("plain-"):
         return review_plain(repo, commit, model=REVIEWER.removeprefix("plain-"), effort=effort).to_json()
     if REVIEWER.startswith("reverify"):
-        prev = REVERIFY.get(f"{repo.name}:{commit[:10]}:{AGENT_VERSION}:{model}:v")
+        prev = next((v for k, v in REVERIFY.items() if k.startswith(f"{repo.name}:{commit[:10]}:wa-") and k.endswith(f":{model}:v")), None)
         if prev is None or prev.get("error"):
             raise RuntimeError("no cached reviewer output to verify again")
         return reverify(repo, commit, prev.get("proposed", []), effort=effort).to_json()

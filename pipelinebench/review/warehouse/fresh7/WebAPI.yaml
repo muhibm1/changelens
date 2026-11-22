@@ -1,0 +1,21 @@
+# WebAPI: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/WebAPI): each bug was found from a later
+# fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to
+# confirm it added the faulty lines. The SQL is OHDSI SqlRender over the cohort characterization results tables.
+# Never derived from ChangeLens's output.
+repo: WebAPI
+url: https://github.com/OHDSI/WebAPI
+bugs:
+  - commit: "3711e8d4cb"
+    parent: "5428621fb5"
+    title: "Ignore threshold for PRESET PREVALENCE stats."
+    fix: "50a1946b32"
+    fix_title: "Fix typo in preset check."
+    bug: "the HAVING clause of threshold_passed_ids in cohortcharacterizations queryResults.sql now tests fa.type, but the CTE reads only cc_results aliased r and there is no fa alias; the feature analysis type is the r.fa_type column, so the query fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["fa.type", "fa_type"]
+    expect:
+      - {path: "src/main/resources/resources/cohortcharacterizations/sql/queryResults.sql", line: 8}

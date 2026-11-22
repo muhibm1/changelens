@@ -1,0 +1,21 @@
+# dbt_twilio: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_twilio): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens's output.
+repo: dbt_twilio
+url: https://github.com/fivetran/dbt_twilio
+bugs:
+  - commit: "5271240051"
+    parent: "4978d6a70f"
+    title: "updates"
+    fix: "10fa63e13e"
+    fix_title: "fix number overview model"
+    bug: "twilio_number_overview is meant to be one row per phone number, but the rewrite computes each metric as CASE WHEN direction/status ... THEN count(message_id) END and groups by phone_number, direction, status, so it returns one row per number, direction and status with the counts scattered across rows and mostly NULL; status like '%delivered%' also matches undelivered"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["group by", "phone_number"]
+    expect:
+      - {path: "models/twilio_number_overview.sql", line: 69}
+      - {path: "models/twilio_number_overview.sql", line: 46}

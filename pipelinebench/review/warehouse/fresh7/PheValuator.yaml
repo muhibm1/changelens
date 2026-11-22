@@ -1,0 +1,47 @@
+# PheValuator: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/PheValuator): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. The SQL is OHDSI SqlRender (SQL Server dialect) over the OMOP common data
+# model. Never derived from ChangeLens's output.
+repo: PheValuator
+url: https://github.com/OHDSI/PheValuator
+bugs:
+  - commit: "f21d9cf471"
+    parent: "7da4975eb2"
+    title: " - correct prevalence calculation for mid-year"
+    fix: "97977c73be"
+    fix_title: " - allow external models to be used; bug fix in getPopnPrev.sql"
+    bug: "the new midYear CTE in getPopnPrev.sql selects from a derived table (the min and max cohort years) that has no alias, ending in DATE))), so the query fails on SQL Server and the other platforms that require a derived-table alias"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["midYear", "alias"]
+    expect:
+      - {path: "inst/sql/sql_server/getPopnPrev.sql", line: 39}
+  - commit: "07e04e4833"
+    parent: "f7a8518b74"
+    title: "- select only the first observation period for both the model and evaluation cohorts"
+    fix: "090dd78d39"
+    fix_title: "- fix errors in matching xSpec and evaluation cohort"
+    bug: "the rewritten insert into the test cohort in CreateCohortsV6.sql selects p.person_id in the outer query, but p is only an alias inside the derived table, whose output column is plain person_id; the outer reference does not resolve and the query fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["p.person_id", "derived table"]
+    expect:
+      - {path: "inst/sql/sql_server/CreateCohortsV6.sql", line: 82}
+  - commit: "d8af662f32"
+    parent: "366829e8f6"
+    title: " - correct evaluation cohort creation selection  with only one entry per person if evalaution population used"
+    fix: "4187aaa9b2"
+    fix_title: " - fix bug in eval cohort creation sql"
+    bug: "the main-population branch of CreateCohortsAcuteEvaluation.sql now writes co.subject_id as v.person_id, a qualified name used as a column alias, which is a syntax error, so every evaluation run with a main population cohort fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["v.person_id", "alias"]
+    expect:
+      - {path: "inst/sql/sql_server/CreateCohortsAcuteEvaluation.sql", line: 106}
