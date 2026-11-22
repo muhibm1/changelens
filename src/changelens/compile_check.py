@@ -24,7 +24,7 @@ from sqlglot.errors import ParseError, TokenError
 
 SQL_EXT = (".sql", ".hql", ".q", ".sqlx", ".ddl", ".psql", ".pgsql")
 DIALECTS = ("postgres", "tsql", "hive", "spark", "bigquery", "snowflake", "duckdb", "mysql", "redshift", "oracle")
-MAX_CONDITIONS = 5
+MAX_CONDITIONS = 6
 
 
 @dataclass
@@ -48,6 +48,53 @@ def _sqlrender_conditions(text: str) -> list[str]:
         if c not in seen:
             seen.append(c)
     return seen
+
+
+def _eval_condition(cond: str, values: dict[str, object]) -> bool:
+    """A SqlRender condition evaluated with parameter values (``==``, ``!=``, ``|``, ``&``, ``!``, ``IN``)."""
+    expr = re.sub(r"@(\w+)", lambda m: repr(values.get(m.group(1), "")), cond)
+    expr = expr.replace("!=", " NE ").replace("==", " EQ ").replace("!", " not ")
+    expr = expr.replace(" NE ", " != ").replace(" EQ ", " == ").replace("|", " or ").replace("&", " and ")
+    expr = re.sub(r"(?i)\bIN\s*\(", " in (", expr)
+    try:
+        return bool(eval(expr, {"__builtins__": {}}, {}))  # noqa: S307 - built only from the template's own condition text and literals
+    except Exception:  # noqa: BLE001 - an expression this reader cannot evaluate is treated as false
+        return False
+
+
+def _truth_tables(conds: list[str]) -> list[dict[str, bool]]:
+    """Condition truth values for every consistent setting of the parameters the conditions read.
+
+    Each parameter takes the empty value, each literal it is compared with, or (when it is used bare) true and false,
+    so ``@x == 'a'`` and ``@x == 'b'`` are never both true and a compound condition agrees with its parts. At most
+    MAX_CONDITIONS parameters vary; the rest stay empty."""
+    params: list[str] = []
+    options: dict[str, list[object]] = {}
+    for c in conds:
+        for name in re.findall(r"@(\w+)", c):
+            if name not in options:
+                params.append(name)
+                options[name] = [""]
+            for lit in re.findall(rf"@{name}\s*[!=]=\s*('([^']*)'|-?\d+)", c):
+                v: object = lit[1] if lit[0].startswith("'") else int(lit[0])
+                if v not in options[name]:
+                    options[name].append(v)
+            if re.search(rf"(?<![=!]\s)@{name}\b(?!\s*[!=]=)", c) and True not in options[name]:
+                options[name] += [True, False]
+    for name in params:
+        if "" in options[name] and len(options[name]) == 1:
+            options[name].append("x")
+    varying = params[:MAX_CONDITIONS]
+    out: list[dict[str, bool]] = []
+    seen: set[tuple[bool, ...]] = set()
+    for combo in itertools.product(*(options[n] for n in varying)):
+        values = dict(zip(varying, combo, strict=True))
+        truth = {c: _eval_condition(c, values) for c in conds}
+        key = tuple(truth.values())
+        if key not in seen:
+            seen.add(key)
+            out.append(truth)
+    return out
 
 
 def _match_brace(text: str, i: int) -> int:
@@ -96,16 +143,14 @@ def render_variants(path: str, raw: str) -> list[tuple[str, str]]:
 
     text = re.sub(r"\$\{(?:hiveconf:|hivevar:|env:)?(\w+)\}", r"v_\1", raw)
     variants: list[tuple[str, str]] = []
-    if "{%" in text or "{{" in text:
+    conds = _sqlrender_conditions(text)
+    if ("{%" in text or "{{" in text) and not conds:
         variants.append(("jinja", dejinja(text, None, unknown="NULL")))
         if "{%" in text:
             variants += [("jinja-first-arm", dejinja(text, None, unknown="NULL", branch=0)), ("jinja-else-arm", dejinja(text, None, unknown="NULL", branch=1))]
         return variants
-    conds = _sqlrender_conditions(text)
     if conds:
-        conds = conds[:MAX_CONDITIONS]
-        for combo in itertools.product([False, True], repeat=len(conds)):
-            truth = dict(zip(conds, combo, strict=True))
+        for truth in _truth_tables(conds):
             name = ",".join(f"{c}={'T' if v else 'F'}" for c, v in truth.items())
             variants.append((name, render_sqlrender(text, truth)))
         return variants
