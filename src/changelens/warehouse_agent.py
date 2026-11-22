@@ -286,8 +286,13 @@ def snapshot(repo: Path, commit: str, dest: Path) -> None:
         tf.extractall(dest, members=members, filter="data")
 
 
+# Warehouse code is not only .sql: Hive and Spark keep queries in .hql, Dataform in .sqlx, OHDSI and other R
+# packages render .sql templates from R, and some projects keep Jinja templates or DDL under other names.
+CODE_GLOBS = ("*.sql", "*.hql", "*.q", "*.sqlx", "*.ddl", "*.psql", "*.pgsql", "*.jinja", "*.j2", "*.yml", "*.yaml", "*.py", "*.R", "*.r")
+
+
 def change_diff(repo: Path, parent: str, commit: str) -> str:
-    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", "*.sql", "*.yml", "*.yaml", "*.py")
+    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *CODE_GLOBS)
 
 
 def doc_diff(repo: Path, parent: str, commit: str) -> str:
