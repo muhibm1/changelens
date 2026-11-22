@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-AGENT_VERSION = "wa-8"
+AGENT_VERSION = "wa-9"
 DOC_DIFF_CHARS = 15_000
 DIFF_CHARS = 90_000
 
@@ -87,13 +87,14 @@ VERIFY_SCHEMA = {
                     "index": {"type": "integer"},
                     "verdict": {"type": "string", "enum": ["bug", "risk", "reject"]},
                     "reason": {"type": "string"},
+                    "witness": {"type": "string"},
                     "cause": {
                         "type": "object",
                         "properties": {"path": {"type": "string"}, "line": {"type": "integer"}, "removed": {"type": "boolean"}},
                         "required": ["path", "line", "removed"],
                     },
                 },
-                "required": ["index", "verdict", "reason", "cause"],
+                "required": ["index", "verdict", "reason", "witness", "cause"],
             },
         }
     },
@@ -211,19 +212,27 @@ Verdicts:
   after all, the reader does not exist, the NULL is handled), it is style or speculation, or it predates the commit.
 When two candidates describe the same defect, give the better one its verdict and reject the other as a duplicate.
 
-Three more rules, each a reason to reject:
-- Predates the commit. Name the line this commit changed that causes the defect, as `cause`: the path and the
-  numbered line of an added line in the diff, or for a defect caused by a line the commit removed, the path and 0
-  with removed true. If no line this commit adds or removes causes it (the faulty line was already there, or sits in
-  a file the commit did not change and nothing the commit changed made it wrong), reject it as predating.
+For every candidate also give a `witness`: one concrete input (a row, a second source or connection, a NULL, an
+edge date, a build setting or template flag) and what goes wrong with it (the wrong output row or value, or the
+error). A candidate whose witness needs only inputs the repository's own sources, tests or documentation allow is a
+"bug" when everything else above holds; one whose witness needs an input the repository suggests never occurs is a
+"risk"; if you cannot write a witness at all, it is not a bug.
+
+Three more rules:
+- Introduced or exposed by this commit. Name the line this commit changed that causes the defect, as `cause`: the
+  path and the numbered line of an added line in the diff, or for a defect caused by a line the commit removed, the
+  path and 0 with removed true. A changed line that makes an older, untouched line wrong counts (a new grain or key
+  column, a new union branch, a changed type, a changed default): name the changed line. If nothing this commit adds
+  or removes causes it or exposes it, reject it as predating.
 - Deliberate. If the commit message, or documentation the same commit changes (shown below), says the behaviour
   change is intended (a switch of units, a removed switch, a changed default, a new filter), reject a finding that
   only says the behaviour changed. Keep it only when the change also breaks the build, a test, or a reader that the
   commit left behind.
-- Outside the repository. A claim that rests on what an external package version, a vendor API or the source data
-  contains, and that no file in the repository shows, is at most "risk". Files in the repository count as evidence
-  even when the target itself is defined elsewhere: when a sibling script, another version of the same model, or the
-  repository's own DDL or spec names a column or table differently from the change, that settles it.
+- Evidence. Files in the repository count as evidence even when a target is defined elsewhere: a sibling script,
+  another version of the same model, the repository's own DDL, spec or seeds. A claim that rests only on what an
+  external package version contains, which no file shows, is at most "risk". Candidates marked [compile] come from
+  rendering the changed file under each template branch and parsing it in the dialect the file parsed in before this
+  commit; the parser's error is real, but check it is not an artefact of the rendering before you confirm it.
 
 Commit message: {message}
 {docs}
@@ -250,6 +259,7 @@ class AgentFinding:
     verify_reason: str = ""
     source: str = ""
     cause: str = ""
+    witness: str = ""
 
     @property
     def body(self) -> str:
@@ -293,6 +303,29 @@ CODE_GLOBS = ("*.sql", "*.hql", "*.q", "*.sqlx", "*.ddl", "*.psql", "*.pgsql", "
 
 def change_diff(repo: Path, parent: str, commit: str) -> str:
     return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *CODE_GLOBS)
+
+
+def touched_files(repo: Path, parent: str, commit: str) -> set[str]:
+    """Every path the commit adds, changes, renames or deletes, of any type."""
+    return {ln.split("\t")[-1] for ln in _git(repo, "diff", "--name-status", "-M", parent, commit).splitlines() if ln.strip()}
+
+
+def compile_findings(repo: Path, parent: str, commit: str) -> list[AgentFinding]:
+    """The render-and-parse step's failures as candidates for the verifier (no model; see ``compile_check``)."""
+    from .compile_check import check_commit
+
+    try:
+        fails = check_commit(repo, parent, commit)
+    except Exception:  # noqa: BLE001 - the step only adds candidates; a crash in it must not stop the review
+        return []
+    return [
+        AgentFinding(
+            f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} no longer parses as {f.dialect} after rendering",
+            f"Rendered with template branch '{f.variant}', the file fails to parse as {f.dialect}, while the parent commit's version of it, rendered the same way, parsed. Parser error: {f.error}",
+            evidence=f"compile step: {f.path} at the parent parses as {f.dialect}; at this commit it does not", source="compile",
+        )
+        for f in fails
+    ]
 
 
 def doc_diff(repo: Path, parent: str, commit: str) -> str:
@@ -548,12 +581,34 @@ def _chunks(numbered: str) -> list[str]:
     return ["\n".join(d for _, d in g) for g in groups]
 
 
-def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str, changed: dict[str, tuple[set[int], bool]], model: str, effort: str | None, timeout: int) -> None:
+def _is_doc(path: str) -> bool:
+    """Whether a finding sits in prose documentation (a README, a docs folder), where it cannot break data or a build."""
+    p = path.lower()
+    return p.endswith((".md", ".rst", ".txt", ".adoc")) or p.startswith("docs/") or "/docs/" in p
+
+
+def _cause_checkable(cause: dict[str, Any] | None, changed: dict[str, tuple[set[int], bool]], touched: set[str]) -> bool:
+    """Whether code can hold the verifier to its named cause: the file is in the diff it read, or the commit did not touch it at all.
+
+    A file the commit changed but the verifier never saw as a diff (a type the diff leaves out, or past a cut) cannot
+    be checked, so the verdict stands rather than being lowered on a technicality."""
+    if not isinstance(cause, dict):
+        return True
+    path = str(cause.get("path", "")).removeprefix("./").lstrip("/")
+    def match(k: str) -> bool:
+        return k == path or k.endswith("/" + path) or path.endswith("/" + k)
+    if any(match(k) for k in changed):
+        return True
+    return not any(match(k) for k in touched)
+
+
+def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str, changed: dict[str, tuple[set[int], bool]], model: str, effort: str | None, timeout: int, touched: set[str] | None = None) -> None:
     """The skeptical pass over ``res.findings``: each is kept as bug or risk, or rejected.
 
     A bug verdict also has to name the line of this commit that causes the defect, and code checks that line is one
     the commit added or removed; a bug whose named cause is not in the change is lowered to risk."""
-    listing = "\n".join(f"{i}: [{f.category}] {f.path}:{f.line} {f.title}\n   {f.explanation}\n   evidence: {f.evidence}" for i, f in enumerate(res.findings))
+    touched = touched or set()
+    listing = "\n".join(f"{i}: [{f.category}]{' [compile]' if f.source == 'compile' else ''} {f.path}:{f.line} {f.title}\n   {f.explanation}\n   evidence: {f.evidence}" for i, f in enumerate(res.findings))
     doc_block = f"\nDocumentation this commit changes:\n```diff\n{docs}\n```\n" if docs.strip() else ""
     vout, vturns = _claude(VERIFY_PROMPT.format(message=message, docs=doc_block, diff=numbered, findings=listing), cwd, VERIFY_SCHEMA, model, effort, timeout)
     res.turns += vturns
@@ -565,9 +620,13 @@ def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str,
         cause = v.get("cause")
         f.cause = f"{cause.get('path')}:{'removed' if cause.get('removed') else cause.get('line')}" if isinstance(cause, dict) else ""
         f.verify_reason = v.get("reason", "")
-        if verdict == "bug" and not cause_in_change(cause, changed):
+        f.witness = str(v.get("witness", ""))[:600]
+        if verdict == "bug" and not cause_in_change(cause, changed) and _cause_checkable(cause, changed, touched):
             verdict = "risk"
             f.verify_reason = f"{f.verify_reason} [lowered: the named cause {f.cause or 'none'} is not a line this commit changed]"
+        if verdict == "bug" and _is_doc(f.path):
+            verdict = "risk"
+            f.verify_reason = f"{f.verify_reason} [lowered: documentation only]"
         f.verified = verdict == "bug"
         if verdict == "reject":
             res.rejected.append(f)
@@ -580,7 +639,7 @@ def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str,
 def reverify(repo: Path, commit: str, proposed: list[dict[str, Any]], *, model: str = "opus", effort: str | None = None, timeout: int = 1200) -> AgentResult:
     """Run only the skeptical pass again over findings an earlier review proposed (for changing the verifier without re-running the reviewers)."""
     t0 = time.monotonic()
-    res = AgentResult(findings=[AgentFinding(**{**f, "severity": "bug", "verified": None, "verify_reason": "", "cause": ""}) for f in proposed])
+    res = AgentResult(findings=[AgentFinding(**{**f, "severity": "bug", "verified": None, "verify_reason": "", "cause": "", "witness": ""}) for f in proposed if f.get("source") != "compile"])
     res.proposed = proposed
     full = _git(repo, "rev-parse", commit).strip()
     try:
@@ -595,8 +654,10 @@ def reverify(repo: Path, commit: str, proposed: list[dict[str, Any]], *, model: 
     tmp = Path(tempfile.mkdtemp(prefix="wa-"))
     try:
         snapshot(repo, full, tmp)
+        res.findings += compile_findings(repo, parent, full)
+        res.proposed = [asdict(f) for f in res.findings]
         if res.findings:
-            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), model, effort, timeout)
+            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), model, effort, timeout, touched_files(repo, parent, full))
     except Exception as e:  # noqa: BLE001 - recorded, never mistaken for a clean result
         res.error = str(e)[:500]
     finally:
@@ -766,11 +827,12 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
                 res.site_checks.append({**s, "verdict": out.get("verdict"), "grain": out.get("grain", ""), "evidence": out.get("evidence", "")})
                 if out.get("verdict") in ("fans_out", "drops_rows", "keeps_duplicates") and out.get("finding"):
                     found += [("site", f) for f in _parse({"findings": [out["finding"]]}, "site")]
-        res.candidates = len(found)
-        res.findings = _merge(found)[:24]
+        compiled = compile_findings(repo, parent, full)
+        res.candidates = len(found) + len(compiled)
+        res.findings = (compiled + _merge(found))[:24]
         res.proposed = [asdict(f) for f in res.findings]
         if verify and res.findings:
-            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), verify_model or model, effort, timeout)
+            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), verify_model or model, effort, timeout, touched_files(repo, parent, full))
     except Exception as e:  # noqa: BLE001 - a failed review is recorded, never mistaken for a clean one
         res.error = str(e)[:500]
     finally:
