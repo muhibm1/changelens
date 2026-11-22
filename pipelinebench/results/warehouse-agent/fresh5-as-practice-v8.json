@@ -1,0 +1,1624 @@
+{
+ "reviewer": "reverify",
+ "agent": "wa-8",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "e21ceec20e",
+   "title": "fix fct_ga4__pages model and add tests to catch similar issues (#295)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-ga4.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/fct_ga4__pages.sql:49 fct_ga4__pages grain includes stream_id, which breaks the new unique test on page_location + event_date_dt"
+   ],
+   "findings": [
+    "[bug] models/marts/core/fct_ga4__pages.sql:42 distinct_client_keys now sums per-session distinct counts",
+    "[bug] models/marts/core/fct_ga4__pages.sql:49 fct_ga4__pages grain includes stream_id, which breaks the new unique test on page_location + event_date_dt"
+   ],
+   "repo": "dbt-ga4",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: fct_ga4__pages grain includes stream_id, while the new unique test is on (page_location + event_date_dt) only, so a page with multiple streams on the same day gets one row per stream and fails the test. This matches the labelled grain mismatch between the test and the model."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "033c0ef6f7",
+   "title": "add user_id and session_number to session tables",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-ga4.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/fct_ga4__sessions_daily.sql:48 fct_ga4__sessions_daily selects nonexistent column ga_session_number from stg_ga4__events",
+    "models/marts/core/fct_ga4__sessions_daily.sql:76 user_id and ga_session_number lost in conversion_events path of fct_ga4__sessions_daily"
+   ],
+   "findings": [
+    "[bug] models/marts/core/fct_ga4__sessions.sql:22 fct_ga4__sessions: grouping by user_id splits one session into several rows",
+    "[bug] models/marts/core/fct_ga4__sessions_daily.sql:48 fct_ga4__sessions_daily selects nonexistent column ga_session_number from stg_ga4__events",
+    "[bug] models/marts/core/fct_ga4__sessions_daily.sql:76 user_id and ga_session_number lost in conversion_events path of fct_ga4__sessions_daily"
+   ],
+   "repo": "dbt-ga4",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags the same defect: fct_ga4__sessions_daily.sql:48 uses min(ga_session_number), but stg_ga4__events exposes the column as session_number because base_select renames it. The column does not exist, so the model fails to compile. It also notes the breakage carries through to fct_ga4__sessions. The other findings cover different defects: a user_id grouping fan-out and columns dropped in the conversion_events path."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "033c0ef6f7",
+   "title": "add user_id and session_number to session tables",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-ga4.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/fct_ga4__sessions.sql:22 fct_ga4__sessions: grouping by user_id splits one session into several rows",
+    "models/marts/core/fct_ga4__sessions_daily.sql:76 user_id and ga_session_number lost in conversion_events path of fct_ga4__sessions_daily"
+   ],
+   "findings": [
+    "[bug] models/marts/core/fct_ga4__sessions.sql:22 fct_ga4__sessions: grouping by user_id splits one session into several rows",
+    "[bug] models/marts/core/fct_ga4__sessions_daily.sql:48 fct_ga4__sessions_daily selects nonexistent column ga_session_number from stg_ga4__events",
+    "[bug] models/marts/core/fct_ga4__sessions_daily.sql:76 user_id and ga_session_number lost in conversion_events path of fct_ga4__sessions_daily"
+   ],
+   "repo": "dbt-ga4",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 identifies the same defect. When conversion_events is set, fct_ga4__sessions_daily returns join_metrics_and_conversions, whose explicit column list omits the new user_id. fct_ga4__sessions then reads user_id from that model and fails on the missing column. Finding 0 is about GROUP BY grain, and finding 1 is about a different column name error."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0aa1833a17",
+   "title": "use max(user_id) to avoid duplicate session rows. doc updates",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-ga4.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/core/fct_ga4__sessions.sql:22 fct_ga4__sessions: group by 4 now points at max(user_id) aggregate",
+    "models/marts/core/fct_ga4__sessions.sql:7 fct_ga4__sessions: max(user_id) has no alias, so the user_id column is lost"
+   ],
+   "findings": [
+    "[bug] models/marts/core/fct_ga4__sessions.sql:22 fct_ga4__sessions: group by 4 now points at max(user_id) aggregate",
+    "[bug] models/marts/core/fct_ga4__sessions.sql:7 fct_ga4__sessions: max(user_id) has no alias, so the user_id column is lost",
+    "[bug] models/marts/core/fct_ga4__sessions.yml:4 fct_ga4__sessions defined in both new fct_ga4__sessions.yml and core.yml"
+   ],
+   "repo": "dbt-ga4",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies both parts of the labelled bug: group by 1,2,3,4 now points at the max(user_id) aggregate, and the unaliased max(user_id) leaves the documented user_id column unnamed. Finding 1 covers only the missing alias and not the group by error. Finding 2 is a different defect (duplicate YAML declaration)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b8ecc20a75",
+   "title": "Coalesce sum of various reaction types for total when source is null",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_facebook_pages_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_facebook_pages__daily_page_metrics_total.sql:38 actions_post_reactions_total fallback omits the wow reaction",
+    "models/stg_facebook_pages__daily_page_metrics_total.sql:38 Fallback sum in actions_post_reactions_total is still NULL if any one reaction column is NULL"
+   ],
+   "findings": [
+    "[bug] models/stg_facebook_pages__daily_page_metrics_total.sql:38 actions_post_reactions_total fallback omits the wow reaction",
+    "[bug] models/stg_facebook_pages__daily_page_metrics_total.sql:38 Fallback sum in actions_post_reactions_total is still NULL if any one reaction column is NULL"
+   ],
+   "repo": "dbt_facebook_pages_source",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: the actions_post_reactions_total fallback at line 38 leaves out page_actions_post_reactions_wow_total, so the total undercounts. Finding 1 is about NULL handling, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6a11b5ad5d",
+   "title": "update materializations",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_ga4_export.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/ga4_export__conversions_report.sql:28 conversions_report: second WHERE in the non-incremental branch breaks the build"
+   ],
+   "findings": [
+    "[bug] models/ga4_export__conversions_report.sql:28 conversions_report: second WHERE in the non-incremental branch breaks the build"
+   ],
+   "repo": "dbt_ga4_export",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in conversions_report, the non-incremental branch adds a second WHERE instead of AND after the existing WHERE on event_name in events_base, so the SQL fails to parse on a full refresh."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d38f37da5c",
+   "title": "update the logic for generating session id with concat/coalesce, and use concat instead of gen surrogate key",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_ga4_export.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediary/int_ga4_export__derived_event_fields.sql:86 session_id built with Jinja ~ on SQL column names; coalesce never reaches the SQL"
+   ],
+   "findings": [
+    "[bug] models/intermediary/int_ga4_export__derived_event_fields.sql:86 session_id built with Jinja ~ on SQL column names; coalesce never reaches the SQL",
+    "[bug] models/staging/stg_ga4_export__event.sql:32 event_id via concat propagates NULL and may need casts (replaces generate_surrogate_key)",
+    "[risk] models/intermediary/int_ga4_export__derived_event_fields.sql:77 session_id fallback now uses session_number (float) without a type cast and drops the platform prefix"
+   ],
+   "repo": "dbt_ga4_export",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 targets the same line and the same defect: the session_id coalesce is built with Jinja `~` on undefined names (param_ga_session_id, session_number) with misplaced quotes. The coalesce therefore never reaches the rendered SQL, which is the labelled mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4ff63d9430",
+   "title": "yml updates",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_ga4_export.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/ga4_export.yml:179 Stray non-YAML text appended to ga4_export.yml breaks parsing",
+    "models/ga4_export.yml:4 ga4_export.yml: model names do not match any actual model",
+    "models/ga4_export.yml:10 _fivetran_id and _fivetran_synced documented and tested but not selected by the report models"
+   ],
+   "findings": [
+    "[bug] models/ga4_export.yml:179 Stray non-YAML text appended to ga4_export.yml breaks parsing",
+    "[bug] models/ga4_export.yml:4 ga4_export.yml: model names do not match any actual model",
+    "[bug] models/staging/src_ga4_export.yml:6 source ga4_export schema default changed to google_analytics_4_export",
+    "[bug] models/ga4_export.yml:10 _fivetran_id and _fivetran_synced documented and tested but not selected by the report models"
+   ],
+   "repo": "dbt_ga4_export",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 reports the same defect: the YAML documents models named without the ga4_export__ prefix, so the descriptions and tests attach to nonexistent models. It cites models/ga4_export.yml:4 and names the same four report models."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "796ed73881",
+   "title": "event_id not being unique",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_ga4_export.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/staging/stg_ga4_export__event.sql:98 stg_ga4_export__event: nth_event_record dedup removed, duplicate event rows now kept",
+    "[bug] integration_tests/tests/integrity/integrity_events.sql:9 integrity_events test references removed unique_event_id",
+    "[bug] models/staging/stg_ga4_export.yml:8 stg_ga4_export__event YAML documents and tests unique_event_id, which no longer exists",
+    "[bug] models/ga4_export__traffic_acquisition_session_source_medium_report.sql:39 traffic_acquisition report still reads renamed unique_event_id"
+   ],
+   "repo": "dbt_ga4_export",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is the two temp filters (medium = referral, source = linkedin.com) in stg_ga4_export__event that drop all other traffic. None of the findings mention those filters. Finding 0 is about the removed dedup, and findings 1-3 are about the unique_event_id rename. These are different defects in the same commit."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a37fef9624",
+   "title": "updates",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_salesforce_marketing_cloud.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/staging/src_salesforce_marketing_cloud.yml:259 triggered_send source identifier defaults to the `send` table"
+   ],
+   "findings": [
+    "[bug] models/staging/src_salesforce_marketing_cloud.yml:259 triggered_send source identifier defaults to the `send` table"
+   ],
+   "repo": "dbt_salesforce_marketing_cloud",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same location and the same mechanism. The triggered_send source's identifier defaults to `send`, so the triggered_send staging model reads send rows instead of the triggered_send table."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5a9a100c26",
+   "title": "Add consumption columns to hourly_spend",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-snowflake-monitoring.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/hourly_spend.sql:132 hybrid_table_storage_spend_hourly.usage reads storage_terabytes_daily, which is not in that CTE's FROM"
+   ],
+   "findings": [
+    "[bug] models/hourly_spend.sql:132 hybrid_table_storage_spend_hourly.usage reads storage_terabytes_daily, which is not in that CTE's FROM",
+    "[bug] models/hourly_spend.sql:428 cloud_services_spend_hourly missing comma after usage_net_cloud_services"
+   ],
+   "repo": "dbt-snowflake-monitoring",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in hybrid_table_storage_spend_hourly, the new usage column references storage_terabytes_daily, which is not in that CTE's FROM (it should use _hybrid_table_terabytes_daily). Finding 1 is a different defect (missing comma in cloud_services_spend_hourly)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "576c62605a",
+   "title": "Use date spine",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-snowflake-monitoring.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/daily_rates.sql:26 daily_rates dates_base: date_spine end_date string has an unbalanced closing parenthesis"
+   ],
+   "findings": [
+    "[bug] models/daily_rates.sql:26 daily_rates dates_base: date_spine end_date string has an unbalanced closing parenthesis"
+   ],
+   "repo": "dbt-snowflake-monitoring",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the extra closing parenthesis in the date_spine end_date at models/daily_rates.sql:26. That produces invalid spine SQL, which is one of the two defects in the labelled bug. It does not mention the unquoted start_date. The extra-parenthesis half is the same model, argument and mechanism, so I count it as a match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f71f206c60",
+   "title": "bm/add-qualify-statement-to-ensure-uniquenes",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt-snowflake-monitoring.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/query_direct_object_access.sql:31 query_direct_object_access: lowercased Snowflake VARIANT keys return NULL and the object_name filter drops every row",
+    "models/query_direct_object_access.sql:49 query_direct_object_access: columns.value:columnname is NULL, so columns_accessed holds only NULLs"
+   ],
+   "findings": [
+    "[bug] models/query_direct_object_access.sql:31 query_direct_object_access: lowercased Snowflake VARIANT keys return NULL and the object_name filter drops every row",
+    "[risk] models/query_direct_object_access.sql:59 query_direct_object_access: qualify dedup has a non-deterministic tiebreaker",
+    "[bug] models/query_direct_object_access.sql:49 query_direct_object_access: columns.value:columnname is NULL, so columns_accessed holds only NULLs"
+   ],
+   "repo": "dbt-snowflake-monitoring",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the labelled bug. The lowercased VARIANT keys (objectid, objectname, objectdomain, columnname) return NULL because Snowflake path lookups are case sensitive. That nulls table_id, object_name, object_domain and columns_accessed, which matches the label's full scope and the line 31 location. Finding 2 covers only the columnName/columns_accessed part, so it is a partial match. Finding 1 is about a different defect, the dedup tiebreaker."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "394836a0c7",
+   "title": "Add pinval tables (#793)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "data-architecture.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/models/pinval/schema.yml:2 pinval schema.yml tests/docs target non-existent models vw_pinval_comp and vw_pinval_assessment_card"
+   ],
+   "findings": [
+    "[bug] dbt/models/pinval/schema.yml:2 pinval schema.yml tests/docs target non-existent models vw_pinval_comp and vw_pinval_assessment_card",
+    "[bug] dbt/models/pinval/pinval.vw_assessment_card.sql:50 vw_assessment_card: join to final_model_run on year only, WHERE turns LEFT joins into inner",
+    "[bug] dbt/models/pinval/pinval.vw_comp.sql:64 vw_comp: join to training data on (comp_pin, document_num) may fan out per card or year",
+    "[risk] dbt/models/pinval/pinval.vw_comp.sql:45 vw_comp selects pc.* and train.* with overlapping columns and duplicate output names",
+    "[bug] dbt/models/pinval/pinval.vw_comp.sql:41 Hardcoded location.school instead of ref() in vw_comp",
+    "[bug] dbt/models/pinval/pinval.vw_assessment_card.sql:42 Hardcoded model.assessment_card / model.assessment_pin instead of source()",
+    "[risk] dbt/models/pinval/pinval.vw_comp.sql:64 vw_comp: join to training data on NULL comp_pin / comp_document_num, and school join on train.meta_year"
+   ],
+   "repo": "data-architecture",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the labelled bug. It says schema.yml declares pinval.vw_pinval_comp and pinval.vw_pinval_assessment_card while the SQL models are vw_comp and vw_assessment_card. It says the uniqueness tests attach to nothing and the doc() references do not resolve. That is the same mismatch and the same mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "33fc006de8",
+   "title": "Create final model views for assessment and training data (#1098)",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "data-architecture.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/models/model/schema.yml:280 YAML model names omit the 'model.' prefix used by the SQL files"
+   ],
+   "findings": [
+    "[risk] dbt/models/model/docs.md:233 Docs block name for vw_assessment_pin_final does not match the doc() call in YAML",
+    "[bug] dbt/models/model/schema.yml:280 YAML model names omit the 'model.' prefix used by the SQL files"
+   ],
+   "repo": "data-architecture",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at schema.yml:280. The YAML names omit the `model.` prefix, so the descriptions and the unique and triad tests attach to no model. Finding 0 is about a docs block name mismatch, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0301c5a590",
+   "title": "Update date string conversion logic",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "dbt_sap.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/int_sap__0employee_date_changes.sql:15 pa*_end CTE references nonexistent column date_change in the 99991231 branch"
+   ],
+   "findings": [
+    "[bug] models/intermediate/int_sap__0employee_date_changes.sql:15 pa*_end CTE references nonexistent column date_change in the 99991231 branch"
+   ],
+   "repo": "dbt_sap",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the _end CTE in int_sap__0employee_date_changes.sql line 15 returns date_change in the 99991231 branch, but that column doesn't exist in the source (it's only the alias being defined). Same model, same mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "36e71c942d",
+   "title": "Add in new node tasks",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "snowflake.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:50 NODESNAPSHOT_TASK COPY select repeats is_public, is_controlled and is_restricted"
+   ],
+   "findings": [
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:116 UPSERT_TO_NODE_LATEST_TASK INSERT column list has an empty entry (', ,')",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:50 NODESNAPSHOT_TASK COPY select repeats is_public, is_controlled and is_restricted",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:60 MERGE writes new columns to NODE_LATEST, but no migration adds them"
+   ],
+   "repo": "snowflake",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: the NODESNAPSHOT_TASK COPY select repeats is_public, is_controlled and is_restricted at lines 52-54, producing duplicate column names."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "36e71c942d",
+   "title": "Add in new node tasks",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "snowflake.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:116 UPSERT_TO_NODE_LATEST_TASK INSERT column list has an empty entry (', ,')",
+    "synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:60 MERGE writes new columns to NODE_LATEST, but no migration adds them"
+   ],
+   "findings": [
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:116 UPSERT_TO_NODE_LATEST_TASK INSERT column list has an empty entry (', ,')",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:50 NODESNAPSHOT_TASK COPY select repeats is_public, is_controlled and is_restricted",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.17.1__add_new_table_node_columns.sql:60 MERGE writes new columns to NODE_LATEST, but no migration adds them"
+   ],
+   "repo": "snowflake",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same line and names the same defect. The INSERT column list in the UPSERT_TO_NODE_LATEST_TASK merge has an empty entry between DERIVED_ANNOTATIONS and VERSION_COMMENT, so the task definition does not parse. Findings 1 and 2 describe different defects."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "aed956ebdd",
+   "title": "updates teammember_latest table comments",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "snowflake.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "synapse_data_warehouse/synapse/tables/V2.19.1__add_descriptions_to_teammember_latest.sql:5 COMMENT ON COLUMN targets NODE_LATEST instead of TEAMMEMBER_LATEST"
+   ],
+   "findings": [
+    "[bug] synapse_data_warehouse/synapse/tables/V2.19.1__add_descriptions_to_teammember_latest.sql:5 COMMENT ON COLUMN targets NODE_LATEST instead of TEAMMEMBER_LATEST"
+   ],
+   "repo": "snowflake",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The migration's COMMENT ON COLUMN statements target NODE_LATEST instead of TEAMMEMBER_LATEST, while the table comment targets TEAMMEMBER_LATEST. It also notes the failure on columns such as member_id and is_admin."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5c2670f748",
+   "title": "Add in new revoke columns for cert",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "snowflake.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "synapse_data_warehouse/synapse/tables/V2.15.2__add_new_cert_columns.sql:2 certifiedquizsnapshots columns added to the synapse schema, but the merge target is CERTIFIEDQUIZ_LATEST"
+   ],
+   "findings": [
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.15.1__add_new_cert_columns.sql:63 MERGE UPDATE SET missing comma after SNAPSHOT_DATE",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.15.1__add_new_cert_columns.sql:75 INSERT column list has ASSED_ON typo (should be PASSED_ON)",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.15.1__add_new_cert_columns.sql:37 MERGE target hardcodes SYNAPSE_DATA_WAREHOUSE instead of {{database_name}}",
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.15.1__add_new_cert_columns.sql:32 APPEND_TO_CERTIFIEDQUIZSNAPSHOT_TASK copy source hardcodes prod stage",
+    "[bug] synapse_data_warehouse/synapse/tables/V2.15.2__add_new_cert_columns.sql:2 certifiedquizsnapshots columns added to the synapse schema, but the merge target is CERTIFIEDQUIZ_LATEST"
+   ],
+   "repo": "snowflake",
+   "error": null,
+   "judge": {
+    "index": 4,
+    "reason": "Finding 4 points at V2.15.2 line 2 and describes the same defect. The columns are added to synapse.certifiedquizsnapshots, but the MERGE writes them to CERTIFIEDQUIZ_LATEST, and no migration adds them to that table. The other findings are about different defects in V2.15.1, such as a missing comma, a column typo and hardcoded names."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6bfb6ab296",
+   "title": "Add `version_history` column to nodesnapshot table",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "snowflake.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "synapse_data_warehouse/synapse_raw/tasks/V2.23.1__update_node_tasks.sql:9 Suspends non-existent task remove_deleted_nodes_task (real name is remove_delete_nodes_task)"
+   ],
+   "findings": [
+    "[bug] synapse_data_warehouse/synapse_raw/tasks/V2.23.1__update_node_tasks.sql:9 Suspends non-existent task remove_deleted_nodes_task (real name is remove_delete_nodes_task)",
+    "[risk] synapse_data_warehouse/synapse_raw/tasks/V2.23.1__update_node_tasks.sql:12 version_history not propagated to NODE_LATEST / upsert_to_node_latest_task"
+   ],
+   "repo": "snowflake",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the migration suspends remove_deleted_nodes_task, which doesn't exist because the real task is remove_delete_nodes_task. Finding 1 is about a different issue (version_history not propagated to NODE_LATEST)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1e99fc6987",
+   "title": "add GFT source models",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "data-engineering.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "products/green_fast_track/models/product/source/air_quality/source__industrial_lots_buffer.sql:2 source__industrial_lots_buffer unions buffers from int_spatial__vent_tower instead of int_spatial__industrial_lots"
+   ],
+   "findings": [
+    "[bug] products/green_fast_track/models/product/source/air_quality/source__industrial_lots_buffer.sql:2 source__industrial_lots_buffer unions buffers from int_spatial__vent_tower instead of int_spatial__industrial_lots",
+    "[bug] products/green_fast_track/models/product/source/air_quality/source__vent_tower_buffer.sql:2 source__vent_tower_buffer unions buffers from int_spatial__state_facility instead of int_spatial__vent_tower",
+    "[risk] products/green_fast_track/models/intermediate/spatial/shadows/int_spatial__shadow_open_spaces.sql:25 shadow_open_spaces raw_geom replaced by COALESCE(lot_geom, raw_geom)",
+    "[bug] products/green_fast_track/models/product/source/shadow/source__shadow_nat_resources_lines.sql:4 source__shadow_nat_resources_lines reads int_spatial__natural_resources instead of int_spatial__shadow_nat_resources"
+   ],
+   "repo": "data-engineering",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, and describes the same defect: source__industrial_lots_buffer unions buffers from int_spatial__vent_tower instead of int_spatial__industrial_lots, so the export holds vent tower buffers."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1e99fc6987",
+   "title": "add GFT source models",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "data-engineering.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "products/green_fast_track/models/product/source/air_quality/source__vent_tower_buffer.sql:2 source__vent_tower_buffer unions buffers from int_spatial__state_facility instead of int_spatial__vent_tower"
+   ],
+   "findings": [
+    "[bug] products/green_fast_track/models/product/source/air_quality/source__industrial_lots_buffer.sql:2 source__industrial_lots_buffer unions buffers from int_spatial__vent_tower instead of int_spatial__industrial_lots",
+    "[bug] products/green_fast_track/models/product/source/air_quality/source__vent_tower_buffer.sql:2 source__vent_tower_buffer unions buffers from int_spatial__state_facility instead of int_spatial__vent_tower",
+    "[bug] products/green_fast_track/models/product/source/shadow/source__shadow_nat_resources_lines.sql:4 source__shadow_nat_resources_lines reads int_spatial__natural_resources instead of int_spatial__shadow_nat_resources"
+   ],
+   "repo": "data-engineering",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 names the same file and line, and says source__vent_tower_buffer unions buffers from int_spatial__state_facility instead of int_spatial__vent_tower. That is the labelled defect. Findings 0 and 2 describe other models."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "64103cd353",
+   "title": "split up zoning flag model",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "data-engineering.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql:35 int__zoning_districts final GROUP BY references zd, which is not in the select",
+    "products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql:9 zd_all_null now tests only zonedist1, so lots with a null zonedist1 get extra NONE rows"
+   ],
+   "findings": [
+    "[bug] products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql:35 int__zoning_districts final GROUP BY references zd, which is not in the select",
+    "[bug] products/green_fast_track/models/intermediate/flags/int__zoning_districts.sql:9 zd_all_null now tests only zonedist1, so lots with a null zonedist1 get extra NONE rows"
+   ],
+   "repo": "data-engineering",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the final GROUP BY references zd, which does not exist in generalized_districts (only bbl and zoning_district_type), so the model fails. It names the same model and mechanism. Finding 1 is about a different defect (zd_all_null logic)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1b50aa73ec",
+   "title": "pivot various sources of height into 1 table",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "mimic-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "concepts/pivot/pivoted-height.sql:55 ht_stg0 subject_id/charttime coalesce h1 with itself, so inch-only heights are dropped"
+   ],
+   "findings": [
+    "[bug] concepts/pivot/pivoted-height.sql:55 ht_stg0 subject_id/charttime coalesce h1 with itself, so inch-only heights are dropped",
+    "[risk] concepts/pivot/pivoted-height.sql:86 echo_note charttime is NULL when the note has no 'Date/Time' match, and the height cast can fail"
+   ],
+   "repo": "mimic-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at lines 55 and 56 of pivoted-height.sql, where subject_id and charttime are built as COALESCE(h1.x, h1.x). It says the self-coalesce leaves h2-only (inch) rows with NULL keys, which is the labelled defect. Finding 1 is about a different problem, the echo_note charttime and the cast."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "86a3515b76",
+   "title": "moved changes to concepts",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "mimic-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "mimic-iv/concepts/organfailure/kdigo_stages.sql:29 cr_stg: alias `cr` removed from kdigo_creatinine but still referenced",
+    "mimic-iv/concepts/organfailure/kdigo_stages.sql:76 crrt_stg reads wrong dataset `mimic_derived.crrt`",
+    "mimic-iv/concepts/organfailure/kdigo_stages.sql:61 CRRT charttimes not added to tm_stg so many CRRT stage-3 rows are dropped"
+   ],
+   "findings": [
+    "[bug] mimic-iv/concepts/organfailure/kdigo_stages.sql:29 cr_stg: alias `cr` removed from kdigo_creatinine but still referenced",
+    "[bug] mimic-iv/concepts/organfailure/kdigo_stages.sql:76 crrt_stg reads wrong dataset `mimic_derived.crrt`",
+    "[bug] mimic-iv/concepts/organfailure/kdigo_stages.sql:61 CRRT charttimes not added to tm_stg so many CRRT stage-3 rows are dropped"
+   ],
+   "repo": "mimic-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 reports the same defect: in the cr_stg CTE, the alias `cr` was removed from kdigo_creatinine but is still referenced (cr.creat etc.), so the query fails. Findings 1 and 2 describe different defects."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8c07b5cc3d",
+   "title": "calculate NED from vasoactive agent table",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "mimic-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql:6 norepinephrine_equivalent_dose is NULL whenever any one agent is NULL"
+   ],
+   "findings": [
+    "[bug] mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql:6 norepinephrine_equivalent_dose is NULL whenever any one agent is NULL"
+   ],
+   "repo": "mimic-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model and mechanism. norepinephrine_equivalent_dose adds the five agent columns with plain +, and the WHERE keeps rows where any one agent is non-null. A row missing any one agent therefore gets a NULL dose. It also points to line 6, the same location as the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8292ad7b1b",
+   "title": "round to 4 decimal places, fix null values forcing result to be null",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "mimic-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql:14 norepinephrine_equivalent_dose aliased twice, query fails to parse"
+   ],
+   "findings": [
+    "[bug] mimic-iv/concepts/medication/norepinephrine_equivalent_dose.sql:14 norepinephrine_equivalent_dose aliased twice, query fails to parse"
+   ],
+   "repo": "mimic-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. In norepinephrine_equivalent_dose.sql, the new ROUND(...) AS norepinephrine_equivalent_dose was added and the old trailing AS norepinephrine_equivalent_dose was left on line 17. That gives a duplicate alias, so the query fails to parse."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "621fcba8e9",
+   "title": "validate/harmonize units of measure for vasopressors",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "mimic-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "mimic-iv/concepts/medication/norepinephrine.sql:10 norepinephrine.vaso_rate selected twice; harmonized CASE is shadowed by raw rate"
+   ],
+   "findings": [
+    "[bug] mimic-iv/concepts/medication/norepinephrine.sql:10 norepinephrine.vaso_rate selected twice; harmonized CASE is shadowed by raw rate",
+    "[risk] mimic-iv/concepts/medication/phenylephrine.sql:5 phenylephrine.vaso_rate divides mcg/min rate by patientweight with no guard"
+   ],
+   "repo": "mimic-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same file and lines. norepinephrine.sql selects vaso_rate twice, once as the new harmonised CASE and once as the old raw rate, so the model outputs two columns with the same name. Finding 1 is about a different model (phenylephrine) and a different defect (division by zero)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "429ef62e82",
+   "title": "Fix token_amendments.csv",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "ethereum-etl-airflow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dags/resources/stages/enrich/sqls/amended_tokens.sql:22 amended_tokens: address replaced by unaliased LOWER(address)",
+    "dags/resources/stages/enrich/sqls/amended_tokens.sql:22 amended_tokens: address is lowercased after the join, not before, so mixed-case amendments don't match tokens"
+   ],
+   "findings": [
+    "[bug] dags/resources/stages/enrich/sqls/amended_tokens.sql:22 amended_tokens: address replaced by unaliased LOWER(address)",
+    "[bug] dags/resources/stages/enrich/sqls/amended_tokens.sql:22 amended_tokens: address is lowercased after the join, not before, so mixed-case amendments don't match tokens"
+   ],
+   "repo": "ethereum-etl-airflow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: unaliased LOWER(address) at line 22 of amended_tokens.sql, so the output loses its address column (auto-named f0_) and breaks readers keyed on address. Finding 1 is a different defect: the case-mismatch join and duplicate rows."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "052af04e36",
+   "title": "Add traces.status to enrichment phase",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "ethereum-etl-airflow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dags/resources/stages/enrich/sqls/traces.sql:16 traces.sql: trailing comma after traces_with_status CTE breaks the query"
+   ],
+   "findings": [
+    "[bug] dags/resources/stages/enrich/sqls/traces.sql:16 traces.sql: trailing comma after traces_with_status CTE breaks the query"
+   ],
+   "repo": "ethereum-etl-airflow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location: the trailing comma after the traces_with_status CTE before the final SELECT in traces.sql, which makes the WITH clause invalid SQL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "74a530a2f7",
+   "title": "Add log count verification",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "ethereum-etl-airflow.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dags/resources/stages/verify/sqls/logs_count.sql:2 logs_count check: grouped scalar subquery never yields 0, so verification always errors or fails"
+   ],
+   "findings": [
+    "[bug] dags/resources/stages/verify/sqls/logs_count.sql:2 logs_count check: grouped scalar subquery never yields 0, so verification always errors or fails"
+   ],
+   "repo": "ethereum-etl-airflow",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in logs_count.sql. The scalar subquery groups by block_number, so it returns one row per violating block. That makes it NULL when no block violates and an error when two or more do, instead of a single count compared to 0. The finding's line number (2) differs slightly from the labelled lines (6-7), but the file, mechanism and consequences match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1532f22a58",
+   "title": "Use confirmAddress function call in chailink table definitions so aggregator addresses are automatically picked up in dependant tables",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "polygon-etl.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "airflow/dags/resources/stages/parse/sqls/parse_logs.sql:22 parse_logs.sql: new if/elif leaves selector and date filters out of the JOIN branch and is never closed"
+   ],
+   "findings": [
+    "[bug] airflow/dags/resources/stages/parse/sqls/parse_logs.sql:22 parse_logs.sql: new if/elif leaves selector and date filters out of the JOIN branch and is never closed"
+   ],
+   "repo": "polygon-etl",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It says the new outer if at line 22 has no matching endif because the old inner `{% if parser.contract_address_sql %}` is left in place, so the template will not compile. That is the labelled bug: two Jinja if blocks opened, one closed, template fails to render."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a1f47674ab",
+   "title": "Added analyses 822, 823, 1822, 1823 back. Fixed missing null cast in Heel RD 25. Adjusted analysis_details CSV to match new analyses. Added drop index statements.",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "Achilles.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/analyses/1822.sql:12 Analysis 1822 outputs total_count instead of count_value"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/analyses/1822.sql:12 Analysis 1822 outputs total_count instead of count_value",
+    "[risk] inst/sql/sql_server/analyses/1823.sql:15 1823 group by statement has no terminating semicolon",
+    "[bug] inst/sql/sql_server/post_processing/achilles_indices.sql:43 DROP INDEX IF EXISTS statements include a column list and are not valid SQL"
+   ],
+   "repo": "Achilles",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same defect: analysis 1822.sql names its output column total_count instead of count_value, which every other analysis scratch table uses, so the results merge fails."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7fd900cc37",
+   "title": "Changed use of + for string concat to concat() function in export SQLs",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "Achilles.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/export/procedure/sqlProcedureTreemap.sql:3 sqlProcedureTreemap concept_path: missing commas in concat() arguments"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/export/condition/sqlPrevalenceByGenderAgeYear.sql:3 trellis_name alias placed inside concat() in condition prevalence query",
+    "[bug] inst/sql/sql_server/export/procedure/sqlProcedureTreemap.sql:3 sqlProcedureTreemap concept_path: missing commas in concat() arguments"
+   ],
+   "repo": "Achilles",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies sqlProcedureTreemap.sql concat() conversion missing commas after the level3 and level2 arguments, causing a parse failure in concept_path. This is the same defect as the label. Finding 0 concerns a different file."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7fd900cc37",
+   "title": "Changed use of + for string concat to concat() function in export SQLs",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "Achilles.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/export/condition/sqlPrevalenceByGenderAgeYear.sql:3 trellis_name alias placed inside concat() in condition prevalence query"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/export/condition/sqlPrevalenceByGenderAgeYear.sql:3 trellis_name alias placed inside concat() in condition prevalence query",
+    "[bug] inst/sql/sql_server/export/procedure/sqlProcedureTreemap.sql:3 sqlProcedureTreemap concept_path: missing commas in concat() arguments"
+   ],
+   "repo": "Achilles",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same file and line and the same defect. `AS trellis_name` sits inside the concat() call, so the query does not parse, and the alias belongs after the closing parenthesis. Finding 1 is about a different file, sqlProcedureTreemap."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ad540fac0d",
+   "title": "ruleID (VH)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "Achilles.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/AchillesHeel_v5.sql:641 Rule 23 insert: unclosed COUNT_BIG( paren on record_count"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/AchillesHeel_v5.sql:641 Rule 23 insert: unclosed COUNT_BIG( paren on record_count"
+   ],
+   "repo": "Achilles",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same location (AchillesHeel_v5.sql:641, rule 23 insert) and the same defect: the COUNT_BIG(DISTINCT ar1.stratum_1 as record_count expression is missing its closing parenthesis, so the script fails to parse."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f6d45a3dbe",
+   "title": "fix(v6): admitting_* to admitted_* attr in visit detail table",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "ETL-Synthea.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/cdm_version/v600/insert_visit_detail.sql:16 v600 visit_detail insert uses admitted_source_* while v600 visit_occurrence uses admitted_from_*"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/cdm_version/v600/insert_visit_detail.sql:16 v600 visit_detail insert uses admitted_source_* while v600 visit_occurrence uses admitted_from_*"
+   ],
+   "repo": "ETL-Synthea",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line, and names the same defect. The v600 visit_detail insert uses admitted_source_concept_id and admitted_source_value, while the v6 names (as in visit_occurrence) are admitted_from_*, so the insert fails with an unknown-column error. The finding hedges that it could not confirm the target table's names, but it identifies the same mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "1f7f749e86",
+   "title": "Applied fix for issue #32",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "ETL-Synthea.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/insert_visit_occurrence.sql:47 visit_occurrence INSERT has 17 target columns but SELECT now returns 19"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/insert_visit_occurrence.sql:47 visit_occurrence INSERT has 17 target columns but SELECT now returns 19"
+   ],
+   "repo": "ETL-Synthea",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: in insert_visit_occurrence.sql the SELECT now returns 19 values against a 17-column INSERT list, because the commit added two items (0, NULL). That causes a column-count mismatch and the insert fails, which is the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7e04cb475d",
+   "title": "tidying",
+   "category": "other",
+   "in_scope": true,
+   "compiles": null,
+   "needs_data": false,
+   "source": "eicu-code.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "concepts/basic_demographics.sql:10 basic_demographics: unbalanced parentheses after CASE ... END break the query"
+   ],
+   "findings": [
+    "[bug] concepts/basic_demographics.sql:10 basic_demographics: unbalanced parentheses after CASE ... END break the query"
+   ],
+   "repo": "eicu-code",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in basic_demographics.sql the gender CASE (line 13) and mortality CASE (line 16) end with `END)` but have no opening parenthesis, so the query does not parse."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "dbt-ga4",
+   "commit": "3a7fb3c5b6",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/staging/recommended_events/stg_ga4__event_purchase_deduplicated.sql:20 stg_ga4__event_purchase_deduplicated: NULL transaction_id purchases collapse into a single row :: The dedup partitions by transaction_id, which is unnested from event_params and is NULL when the param is missing, which is common for GA4 purchases. Window functions group all NULL partition keys together, so every purchase without a transaction_id is ranked in one partition and only the earliest s"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-ga4",
+   "commit": "07f79e9aab",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-ga4",
+   "commit": "598821ef64",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_facebook_pages_source",
+   "commit": "42d5fbd5e3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_facebook_pages_source",
+   "commit": "01a0cc7046",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt_project.yml:10 source facebook_pages.daily_page_metrics_total is not declared :: The var daily_page_metrics_total calls source('facebook_pages','daily_page_metrics_total'), but the source YAML lists only post_history, page and lifetime_post_metrics_total. The tmp model resolves this var, so dbt compilation fails with an undefined-source error and the new staging model cannot bui"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_facebook_pages_source",
+   "commit": "2ae982d142",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/stg_facebook_pages.yml:86 daily_page_metrics_total.video_view_time documented as milliseconds but SQL divides by 1000 :: The model converts page_video_view_time to seconds with / 1000.0, but the yml documents the column as 'total time, in milliseconds'. Consumers reading the doc will be off by 1000x.",
+    "[documented_column_not_selected] models/stg_facebook_pages.yml:127 lifetime_post_metrics_total activity, engaged_fan, engaged_users documented but not selected :: The yml documents activity, engaged_fan and engaged_users, but the final select never outputs them (post_activity, post_engaged_fan, post_engaged_users are dropped), so the documented columns are absent.",
+    "[documented_column_not_selected] models/stg_facebook_pages.yml:433 post_history.updated_time documented but model outputs updated_timestamp :: The SQL renames updated_time to updated_timestamp, while the yml documents updated_time, so the documented column does not exist in the model.",
+    "[schema_contract] models/stg_facebook_pages.yml:195 stg_facebook_pages__lifetime_post_metrics_total: column named video_views_10_s_paid but documented as video_views_10s_paid :: The SQL aliases the column as video_views_10_s_paid, with an extra underscore. Every sibling column uses the 10s form, and the YAML documents video_views_10s_paid. The documented column does not exist in the model output, and the actual column is undocumented and inconsistently named."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_ga4_export",
+   "commit": "f4bd9828bf",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/staging/stg_ga4_export__event.sql:14 stg_ga4_export__event calls undefined macro get_core_company_columns() :: The commit adds the macro get_event_columns(), but the staging model calls get_core_company_columns(), which is defined nowhere in the repo. dbt compilation fails, so the model and everything downstream of it cannot build.",
+    "[broken_reference_or_syntax] models/staging/stg_ga4_export__event.sql:27 event_bundle_sequence_id selected twice in final CTE :: The final select lists event_bundle_sequence_id at line 27 and again at line 32. The output then has two columns with the same name, which fails on most warehouses (duplicate column or ambiguous name) and breaks any downstream reference to it.",
+    "[business_logic] models/staging/src_ga4_export..yml:23 Source columns documented under different names than the staging macro expects :: The source documents timestamp, name, value_in_usd, user_pseudo_id and param_engagement_time_msec. get_event_columns reads event_timestamp, event_name, event_value_in_usd, user_id and user_engagement. fill_staging_columns fills any column missing from the source with NULL. If the source really uses ",
+    "[broken_reference_or_syntax] models/staging/stg_ga4_export__event.sql:18 source_relation uses ga4_union_* vars while the base model uses ga4_export_union_* vars :: The base model unions with ga4_export_union_schemas and ga4_export_union_databases. The staging model reads ga4_union_schemas and ga4_union_databases. When unioning is configured, source_relation will come back empty or wrong, and multi-source rows lose their origin."
+   ],
+   "later_fixed": [
+    null,
+    "8a0cc54 fix fivetran_id format",
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_ga4_export",
+   "commit": "39587699ce",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_ga4_export",
+   "commit": "0e71e63d71",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/ga4_export.yml:97 Duplicated 'description:' key makes YAML invalid for traffic_acquisition user_engagement_duration :: The edited line reads `description: description: Average engagement time ...`. An unquoted plain scalar containing ': ' is a YAML parse error (mapping values not allowed here), so dbt cannot parse the project's schema file and the build fails. The commit fixed the same typo on the events_report uniq"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_marketing_cloud",
+   "commit": "d26374c7bd",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_marketing_cloud",
+   "commit": "4fa9b93666",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_marketing_cloud",
+   "commit": "1d41b05b80",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-snowflake-monitoring",
+   "commit": "338470002d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-snowflake-monitoring",
+   "commit": "0cfc363467",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-snowflake-monitoring",
+   "commit": "59522e1ac0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-architecture",
+   "commit": "2b80ea9f41",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-architecture",
+   "commit": "052c8b2d51",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-architecture",
+   "commit": "433eae0f88",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_sap",
+   "commit": "3f0264706e",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/netsuite2/intermediate/int_netsuite2__tran_lines_w_accounting_period.sql:26 int_netsuite2__tran_lines_w_accounting_period keeps only non-posting lines (inverted is_posting filter) :: The model is meant to drop non-posting lines (the YAML says non-posting transactions are filtered out, and the netsuite model uses `lower(non_posting_line) != 'yes'`). `is_posting` is true for posting lines, and netsuite2__transaction_details defines is_transaction_non_posting as `not is_posting`. S"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_sap",
+   "commit": "15ddc6257c",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/sap.yml:7 sap__0comp_code_attr: unique/not_null tests on non-existent column burks (typo for bukrs) :: The commit replaces the grain test on (mandt, bukrs) with unique and not_null tests on `burks`. The model selects `bukrs`, not `burks`, so these tests reference a column that does not exist and will error when run. The company-code grain is now effectively untested: `bukrs` has no unique test, and t"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_sap",
+   "commit": "536855c4e5",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/0fi_gl_14.sql:94 0fi_gl_14 filters use undefined vars bkpf_mandt_var and faglflexa_rldnr_var :: The hardcoded mandt = '800' and rldnr = '0l' filters were replaced by var('bkpf_mandt_var') and var('faglflexa_rldnr_var'). Neither var is defined in dbt_project.yml or integration_tests, and var() has no default. dbt will fail at compile with a missing-var error, so the model does not build. If the",
+    "[broken_reference_or_syntax] models/intermediate/int_sap__0fi_gl_10_sums.sql:1 int_sap__0fi_gl_10_sums is syntactically broken and returns no select :: The file starts with 'th faglflext as (' (the 'wi' of 'with' is missing), and it ends after the final CTE with ')' and no trailing 'select * from final'. The model fails to compile or run. The downstream int_sap__0fi_gl_10_unpivot refs it, so that model cannot build either. The filters on rclnt, rye",
+    "[broken_reference_or_syntax] models/0fi_gl_10.sql:1 0fi_gl_10 has a dangling CTE list and reads from an undefined faglflext relation :: The model defines the CTEs unpivot and t001 and ends t001 with a comma. It is followed by a commented-out block, and the next statement is a bare SELECT, so the CTE list is invalid SQL. The SELECT also uses a raw Snowflake-style PIVOT over a subquery that selects 'from faglflext inner join t001'. No",
+    "[nullability_or_cast] models/intermediate/int_sap__0fi_gl_10_sums.sql:60 safe_cast called with column expressions and 4 arguments in the sums model :: The hsm/tsm/ksm/osm columns call {{ dbt_utils.safe_cast(faglflext.hslvt+faglflext.hsl01, 'numeric', 23,2) }}. The macro takes (field, type) and expects a string field. Here the first argument is a Jinja expression on an undefined name 'faglflext', and the call passes 4 arguments. Jinja rendering fai",
+    "[business_logic] models/0fi_gl_10.sql:273 0fi_gl_10 fiscal_period compares fieldtype to lowercase 'vt' :: The comparison was changed from 'VT' to 'vt', but the rest of the model still matches uppercase fieldtype values ('T','H','K','O','L','M'). The UNPIVOT list names are unquoted, so the fieldtype values are the column names. The other comparisons in the same expression require uppercase to match, so t"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowflake",
+   "commit": "426e1d2030",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowflake",
+   "commit": "06cfc3ba0f",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] transform/models/intermediate/synapse/_synapse__models.yml:147 not_null contract on state/state_modified_on of int_synapse_data_access_submission, populated via LEFT JOIN :: state_modified_on and state in int_synapse_data_access_submission come from the right side of a LEFT JOIN to the submission status staging model, so a submission with no status row gets NULL in both columns. The change adds enforced not_null constraints on them. If any submission lacks a status row,"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowflake",
+   "commit": "34078d4395",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-engineering",
+   "commit": "f1309c25cf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 4
+  },
+  {
+   "repo": "data-engineering",
+   "commit": "27db7f4fd5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "data-engineering",
+   "commit": "078798d8a1",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] products/green_fast_track/models/product/green_fast_track_bbls.sql:58 green_fast_track_bbls: Zoning Districts columns changed but pilot-projects expected seed still has the old Flag layout :: The change drops \"Zoning Districts Flag\" (Yes/No). It also reassigns \"Zoning Districts\" from the category label to the concatenated raw zonedist1-4 values. The category label moves to a new \"Zoning Districts Category\" column. test_actual__pilot_projects selects gft_bbls.* and is compared to test_exp"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "mimic-code",
+   "commit": "4752e2e93c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-code",
+   "commit": "0c77c5802b",
+   "error": null,
+   "bug_findings": [
+    "[other] mimic-iv/concepts/postgres/measurement/oxygen_delivery.sql:11 postgres oxygen_delivery still merges itemid 224691 into o2_flow :: The commit removes 224691 (Flow Rate (L), not O2) from the main oxygen_delivery.sql. The translated postgres copy still selects 224691 and remaps it to 223834. On postgres, non-O2 flow values are therefore still folded into o2_flow. Because rows are deduplicated by ROW_NUMBER with ORDER BY storetime"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-code",
+   "commit": "7787389b1f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ethereum-etl-airflow",
+   "commit": "4a3de6f060",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ethereum-etl-airflow",
+   "commit": "09e8382723",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dags/resources/stages/parse/table_definitions/chainlink/view_AccessControlledOffchainAggregator_info.sql:1 view_AccessControlledOffchainAggregator_info: unbalanced parentheses in UNNEST array literal :: The rewritten view has every STRUCT(...) line ending in `version))` or `version)),` with a double closing paren. Only the last line opens `UNNEST([` and closes with `)])`. Each STRUCT has a single opening paren, so each extra `)` closes the `UNNEST(` early. The statement then continues with `,` and "
+   ],
+   "later_fixed": [
+    "046d2fd0 Revert \"Deprecate inj usd chainlink feed (#613)\" (#614)"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ethereum-etl-airflow",
+   "commit": "704bb056de",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] dags/resources/stages/parse/table_definitions/chainlink/view_AccessControlledOffchainAggregator_info.sql:56 WBTC / BTC feed dropped from AccessControlledOffchainAggregator_info :: The commit is described as adding feeds, but the rewritten STRUCT list no longer contains contract 0xd7623f1d24b35c392862fb67c9716564a117c9de (proxy 0xfdfd9c85..., 'WBTC / BTC'). It was in the old list and is missing from the new one. The parse tables for this aggregator contract still exist. Answer"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "polygon-etl",
+   "commit": "68e992d468",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] cli/maticetl/jobs/extract_geth_traces_job.py:60 Geth traces: status and trace_id computed before transaction_hash exists :: The geth mapper never sets transaction_hash on traces, so it is None when calculate_trace_statuses and calculate_trace_ids run. Statuses then come only from each trace's own error, because grouping by transaction is skipped and a failed parent never marks its children failed. Every trace is treated "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "polygon-etl",
+   "commit": "1b3f02bda8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "polygon-etl",
+   "commit": "7a4bf11c41",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Achilles",
+   "commit": "4252623b02",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Achilles",
+   "commit": "0975ae31d1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "Achilles",
+   "commit": "67cee4028f",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] inst/sql/sql_server/AchillesHeel_v5.sql:158 AgeAtFirstObsByDecile:DecileCnt counts out-of-range negative decile rows, which can mask rule 33 :: Analysis 101 computes stratum_1 as year(index_date) - year_of_birth. That value can be negative for bad data (birth year after observation start). Negative ages produce decile rows with stratum_1 of -1 or lower, for example -15/10 = -1. The DecileCnt query only filters `<= 8` with no lower bound, so"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ETL-Synthea",
+   "commit": "f564b7d3cf",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] inst/sql/insert.sql:12 patients.csv test insert omits id column, so the patient row has a NULL id :: The INSERT column list has no `id`, so the test patient is stored with id NULL. The test is meant to fix the test id issue and is documented as 'Drop patients with no gender'. The framework call is `add_patients.csv(id = patient$personId, gender = NULL)`. A NULL id means the row cannot be tied to th"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ETL-Synthea",
+   "commit": "2596867412",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ETL-Synthea",
+   "commit": "0cca6956fa",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "eicu-code",
+   "commit": "3e7ef35c37",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "eicu-code",
+   "commit": "0667f4cfee",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] build-db/postgres/postgres_create_tables.sql:28 admissiondrug DDL missing commas between column definitions :: The new CREATE TABLE admissiondrug has several column lines with no trailing comma (drugenteredtime, specialtytype, writtenineicu, drugunit). Postgres rejects it with a syntax error, so the table is never created. The new \\copy ADMISSIONDRUG in the load scripts then fails, and ON_ERROR_STOP aborts t",
+    "[broken_reference_or_syntax] build-db/postgres/postgres_create_tables.sql:75 allergy DDL has missing commas and copy-pasted drug columns :: CREATE TABLE allergy lacks commas after allergyenteredtime, specialtytype, writtenineicu and allergyname, which is a syntax error, so the table is not created and the \\copy ALLERGY load fails. The column list was also copied from admissiondrug (specialtytype, usertype, rxincluded, writtenineicu, dru"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "eicu-code",
+   "commit": "4d35e556f6",
+   "error": null,
+   "bug_findings": [
+    "[dropped_or_renamed_column_with_readers] build-db/postgres/postgres_create_tables.sql:512 patient: hospitaladmityear and unitadmityear dropped but icustay_detail still selects them :: The patient DDL no longer has hospitaladmityear or unitadmityear. The icustay_detail materialized view still selects pt.hospitaladmityear and pt.unitadmityear, so creating it fails with 'column does not exist'. The concepts build breaks.",
+    "[dropped_or_renamed_column_with_readers] build-db/postgres/postgres_add_indexes.sql:142 PATIENT_idx03/idx04 index columns removed from patient table :: The commit removes hospitaladmityear and unitadmityear from CREATE TABLE patient, but the index script still creates indexes on them. CREATE INDEX fails with 'column does not exist', so the index build step breaks."
+   ],
+   "later_fixed": [
+    null,
+    "4e0d710 fix index for pt table, ref #38"
+   ],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 40,
+  "caught_judge_bug": "39/40 (98%)",
+  "caught_judge_bug_or_risk": "39/40 (98%)",
+  "caught_strict": "38/40 (95%)",
+  "caught_loose": "39/40 (98%)",
+  "risk_note_only": "0/40 (0%)",
+  "by_repo": {
+   "Achilles": "4/4 (100%)",
+   "ETL-Synthea": "2/2 (100%)",
+   "data-architecture": "2/2 (100%)",
+   "data-engineering": "3/3 (100%)",
+   "dbt-ga4": "4/4 (100%)",
+   "dbt-snowflake-monitoring": "3/3 (100%)",
+   "dbt_facebook_pages_source": "1/1 (100%)",
+   "dbt_ga4_export": "3/4 (75%)",
+   "dbt_salesforce_marketing_cloud": "1/1 (100%)",
+   "dbt_sap": "1/1 (100%)",
+   "eicu-code": "1/1 (100%)",
+   "ethereum-etl-airflow": "3/3 (100%)",
+   "mimic-code": "5/5 (100%)",
+   "polygon-etl": "1/1 (100%)",
+   "snowflake": "5/5 (100%)"
+  },
+  "by_category": {
+   "nullability_or_cast": "3/3 (100%)",
+   "other": "27/27 (100%)",
+   "row_count_change": "0/1 (0%)",
+   "schema_contract": "9/9 (100%)"
+  },
+  "compiles_true": "0/0",
+  "compiles_false": "0/0",
+  "needs_data_bucket": "0/0",
+  "false_alarm_maintainer_rule": "15/45 (33%)",
+  "ordinary_commits": 45,
+  "false_alarm_share": "18/45 (40%)",
+  "false_alarm_share_excluding_later_fixed": "17/45 (38%)",
+  "commits_with_bug_or_risk": "22/45",
+  "false_alarm_by_repo": {
+   "Achilles": "1/3",
+   "ETL-Synthea": "1/3",
+   "data-architecture": "0/3",
+   "data-engineering": "1/3",
+   "dbt-ga4": "1/3",
+   "dbt-snowflake-monitoring": "0/3",
+   "dbt_facebook_pages_source": "2/3",
+   "dbt_ga4_export": "2/3",
+   "dbt_salesforce_marketing_cloud": "0/3",
+   "dbt_sap": "3/3",
+   "eicu-code": "2/3",
+   "ethereum-etl-airflow": "2/3",
+   "mimic-code": "1/3",
+   "polygon-etl": "1/3",
+   "snowflake": "1/3"
+  },
+  "errors": 0
+ }
+}

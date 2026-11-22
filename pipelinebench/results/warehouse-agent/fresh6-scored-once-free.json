@@ -1,0 +1,1486 @@
+{
+ "reviewer": "free",
+ "agent": "wa-8",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "c05f15ff53",
+   "title": "Add files via upload",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "7b9d05f675",
+   "title": "field level queries 2,3,4,6, & 7",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "1dc95349cd",
+   "title": "Create insert_into_results_table.sql",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a8272ffd95",
+   "title": "fix numerator",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "DataQualityDashboard.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "DataQualityDashboard",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "069425bc39",
+   "title": "Drug grouping now also contains verbatim concepts (for consistency with condition grouping).",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0e8075ff20",
+   "title": "Added measurement groups (below/within/above normal range)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] inst/sql/sql_server/MeasurementRangeGroup.sql:1 inst/sql/sql_server/MeasurementRangeGroup.sql does not parse"
+   ],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding says the file fails to parse in every dialect. The labelled bug is a logic defect: COUNT(*) over measurement rows counts measurements instead of persons, so sum_value is inflated and average_value can exceed 1. The finding doesn't mention counting, sum_value, or the aggregation mechanism, so it doesn't identify this defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3ce13a860f",
+   "title": "Added features based on all time prior. Added features for time after index.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "198ad23082",
+   "title": "added more qualifiers to table names in GetCovariates.sql",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "FeatureExtraction.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "FeatureExtraction",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ec8cd5ffca",
+   "title": "Implement aggressive optimization for Step 10 (Subsumes relationships)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Vocabulary-v5.0.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "Vocabulary-v5.0",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8fac4c085d",
+   "title": "join url_performance & criteria_performance_report to pull necessary fields for ad_performance_adapter_model",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "adwords.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "adwords",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "1bc92086e8",
+   "title": "Daily last_access uniques oozie job",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "679aeeaa50",
+   "title": "Correct last uniques oozie jobs (wrong join)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "679aeeaa50",
+   "title": "Correct last uniques oozie jobs (wrong join)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "be73c758a9",
+   "title": "Add requestctl sub-field to turnilo webrequest",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "fb2033bba6",
+   "title": "Update geoeditor HQL scripts for spark3",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "analytics-refinery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "analytics-refinery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2ecb37c6eb",
+   "title": "update readme",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-audit-helper.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-audit-helper",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "49d34793a8",
+   "title": "fix logical error in conflicting_values",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-audit-helper.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-audit-helper",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "c3acee304b",
+   "title": "Add a bunch of new date macros! :fire:",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-date.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-date",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e5b9411ef3",
+   "title": "Updates day of week and iso week logic",
+   "category": "nullability_or_cast",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "dbt-date.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-date",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "392dda97c8",
+   "title": "Refactor simple expression tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "b500ce97a4",
+   "title": "Add new tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f9c75a38b5",
+   "title": "Add partition filters",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cbf76d3462",
+   "title": "Add support for group_by to expression tests (#71)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-expectations.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-expectations",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "78afeddc6b",
+   "title": "Reinstitute Emily's group_by_columns work",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "80839ed56b",
+   "title": "add unpivot macro",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a07caf2dc5",
+   "title": "cross db compatibility",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_github.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/intermediate/pull_request_times.sql:53 COALESCE removed from hours_request_review_to_first_review",
+    "[bug] models/intermediate/pull_request_times.sql:56 COALESCE removed from hours_request_review_to_first_action"
+   ],
+   "repo": "dbt_github",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding describes the labelled bug. The labelled bug is a group by change (group by 1, 2, 3) that adds a bare case expression for time_of_first_requested_reviewer_review. That change makes the CTE return more than one row per pull request, and the join to issue then fans out the per pull request time columns. Findings 0 and 1 are both about COALESCE being removed from hours_request_review_to_first_review and hours_request_review_to_first_action. That is a NULL handling defect on different lines (53 and 56), with a different mechanism, and neither mentions the group by or the fan-out."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2c7d82e939",
+   "title": "yml and polish",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_google_play.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/google_play.yml:286 android_os_version is documented on google_play__overview_report but its SQL does not select it"
+   ],
+   "repo": "dbt_google_play",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about android_os_version being documented on google_play__overview_report without being selected in its SQL. The labelled bug is a different defect: a window sum in int_google_play__earnings that is summed again in daily_country_metrics, which inflates net_amount. The finding does not mention that model, column or mechanism."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ff512762c8",
+   "title": "feature/close-at-updates",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_intercom.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_intercom",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "492e2ad6c5",
+   "title": "update models with source relation",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5ae72b0568",
+   "title": "split current year and retained earnings",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5ae72b0568",
+   "title": "split current year and retained earnings",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_xero.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_xero",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "60ee7c501e",
+   "title": "updated creatives table",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "facebook-ads.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "facebook-ads",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "570bbb6431",
+   "title": "Make drug be standard concepts",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e9385bb44c",
+   "title": "Link labs to specific type from chart data",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "7121b95c5f",
+   "title": "Improve prescriptions local concepts",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql:5 etl/StandardizedClinicalDataTables/DRUG_EXPOSURE/etl.sql does not parse"
+   ],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 reports that the DRUG_EXPOSURE etl.sql file no longer parses after the change. The labelled bug is a typo (concept_cod,e) in that file that makes the statement unparseable. The finding gives line 5 rather than line 20 and doesn't name the omop_local_drug CTE or the comma. It does identify the same defect, a parse failure in the same file, so it matches."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f569590602",
+   "title": "Fix person race",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "mimic-omop.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "bb1d2386a6",
+   "title": "Remove cancelled/error rows",
+   "category": "row_count_change",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "mimic-omop.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "mimic-omop",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e5649b9b0a",
+   "title": "add views",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "redshift.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "redshift",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "7a5c803e13",
+   "title": "Fix mistakes in use of is_incremental macro",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "segment.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "segment",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "4bf117503e",
+   "title": "pull utm params from parent session if orphaned",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "84ce2dc92c",
+   "title": "update BR Type filter",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "668dfed5fb",
+   "title": "Merge changes. Add last_column",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "snowplow.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] integration_tests/tests/test_page_views.sql:5 integration_tests/tests/test_page_views.sql does not parse",
+    "[bug] integration_tests/tests/test_sessions.sql:5 integration_tests/tests/test_sessions.sql does not parse"
+   ],
+   "repo": "snowplow",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Both findings cite integration test files with a generic \"does not parse\" claim. Neither names snowplow_sessions_tmp, the trailing comma before from, or the missing commas between max(...) pass-through columns, so neither identifies the labelled defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "4f74567d7e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "0ccedc01e6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "DataQualityDashboard",
+   "commit": "847011f201",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "ee5d169229",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "227dd5c04f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "FeatureExtraction",
+   "commit": "05db39fdbd",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "ef688ffa7a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "27669ca56d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Vocabulary-v5.0",
+   "commit": "05ab1e3cb9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adwords",
+   "commit": "43c14efc1f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adwords",
+   "commit": "0985c485af",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adwords",
+   "commit": "51f8d6c81c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "80e3cd2e5c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "1ff753945e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "analytics-refinery",
+   "commit": "9386254720",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] oozie/util/hive/partition/add/add_partition.sql:1 oozie/util/hive/partition/add/add_partition.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] oozie/util/hive/partition/drop/drop_partition.sql:1 oozie/util/hive/partition/drop/drop_partition.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "422f48b1c8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "1337c95c25",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-audit-helper",
+   "commit": "6ea4a3cd93",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "19dc9e857a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "0e9ca7932a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-date",
+   "commit": "d85b0a3941",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "3aea9f9603",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "0bef398f48",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-expectations",
+   "commit": "6ef4808817",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "336837a3ab",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "0e8e703868",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-utils",
+   "commit": "50d4147f16",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "23aab3d1b0",
+   "error": null,
+   "bug_findings": [
+    "[other] models/github_pull_requests.sql:34 `issue.id`: `issue` has no column id :: models/github_pull_requests.sql:34 reads `issue.id`, but `issue` produces ['body', 'closed_at', 'created_at', 'issue_id', 'locked', 'milestone_id', 'number', 'pull_request', 'repository_id', 'state', 'title', 'updated_at'] ... and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/github_pull_requests.sql:53 `issue.id`: `issue` has no column id :: models/github_pull_requests.sql:53 reads `issue.id`, but `issue` produces ['body', 'closed_at', 'created_at', 'issue_id', 'locked', 'milestone_id', 'number', 'pull_request', 'repository_id', 'state', 'title', 'updated_at'] ... and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/github_pull_requests.sql:57 `issue.id`: `issue` has no column id :: models/github_pull_requests.sql:57 reads `issue.id`, but `issue` produces ['body', 'closed_at', 'created_at', 'issue_id', 'locked', 'milestone_id', 'number', 'pull_request', 'repository_id', 'state', 'title', 'updated_at'] ... and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/github_pull_requests.sql:59 `issue.id`: `issue` has no column id :: models/github_pull_requests.sql:59 reads `issue.id`, but `issue` produces ['body', 'closed_at', 'created_at', 'issue_id', 'locked', 'milestone_id', 'number', 'pull_request', 'repository_id', 'state', 'title', 'updated_at'] ... and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/transform/intermediate/pull_request_times.sql:68 `issue.id`: `issue` has no column id :: models/transform/intermediate/pull_request_times.sql:68 reads `issue.id`, but `issue` produces ['body', 'closed_at', 'created_at', 'issue_id', 'locked', 'milestone_id', 'number', 'pull_request', 'repository_id', 'state', 'title', 'updated_at'] ... and no column called `id`. The query fails or reads ",
+    "[other] models/transform/intermediate/pull_request_times.sql:38 `pull_request.id`: `pull_request` has no column id :: models/transform/intermediate/pull_request_times.sql:38 reads `pull_request.id`, but `pull_request` produces ['base_repo_id', 'head_repo_id', 'head_user_id', 'issue_id', 'pull_request_id'] and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/transform/intermediate/pull_request_times.sql:48 `pull_request.id`: `pull_request` has no column id :: models/transform/intermediate/pull_request_times.sql:48 reads `pull_request.id`, but `pull_request` produces ['base_repo_id', 'head_repo_id', 'head_user_id', 'issue_id', 'pull_request_id'] and no column called `id`. The query fails or reads the wrong column.",
+    "[other] models/transform/intermediate/pull_request_times.sql:49 `pull_request.id`: `pull_request` has no column id :: models/transform/intermediate/pull_request_times.sql:49 reads `pull_request.id`, but `pull_request` produces ['base_repo_id', 'head_repo_id', 'head_user_id', 'issue_id', 'pull_request_id'] and no column called `id`. The query fails or reads the wrong column."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "04fc5d139d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_github",
+   "commit": "3979ff052b",
+   "error": null,
+   "bug_findings": [
+    "[other] models/github.yml:17 x is documented on github_issues but its SQL does not select it :: `models/github.yml` documents `x` on `github_issues`, but `models/github_issues.sql` as of this change produces no such column, so the documentation describes columns the table does not have. Select the column in the model, or document it where it exists.",
+    "[other] models/github.yml:49 x is documented on issues_and_prs_per_month but its SQL does not select it :: `models/github.yml` documents `x` on `issues_and_prs_per_month`, but `models/issues_and_prs_per_month.sql` as of this change produces no such column, so the documentation describes columns the table does not have. Select the column in the model, or document it where it exists."
+   ],
+   "later_fixed": [
+    "0e6066c fixed formatting error",
+    "0e6066c fixed formatting error"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "c791cc1195",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "1deb845a7c",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/google_play__app_version_report.sql:1 models/google_play__app_version_report.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_google_play",
+   "commit": "06611dada9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "267f6c89df",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "074c27da0e",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/staging/stg_intercom__article_history.sql:1 models/staging/stg_intercom__article_history.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_intercom",
+   "commit": "4510a99706",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "34f91cf9cd",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "01741c725a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_xero",
+   "commit": "4c16ec112b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "6683151348",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "0fd73ca314",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "facebook-ads",
+   "commit": "86e81a5d46",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "3ea956f3b6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "0a442ffdc9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "mimic-omop",
+   "commit": "69fcbbfdc8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "44c5b04961",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "01326ff410",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "redshift",
+   "commit": "39b6f11498",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "segment",
+   "commit": "551863c87f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "segment",
+   "commit": "11f55d73e7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "segment",
+   "commit": "3fc26ff6be",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "2f53fa3913",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "1559255e5b",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/base/schema.yml:47 models/base/schema.yml is not valid YAML :: while scanning for the next token\nfound character '\\t' that cannot start any token\n  in \"<unicode string>\", line 47, column 24:\n              description: \tETL version\n                           ^",
+    "[schema_contract] models/identification/schema.yml:14 models/identification/schema.yml is not valid YAML :: mapping values are not allowed here\n  in \"<unicode string>\", line 14, column 27:\n            - name: max_tstamp:\n                              ^"
+   ],
+   "later_fixed": [
+    null,
+    "2285d82 minor fix to formatting"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "snowplow",
+   "commit": "4a7b4e604b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 40,
+  "caught_judge_bug": "1/40 (2%)",
+  "caught_judge_bug_or_risk": "1/40 (2%)",
+  "caught_strict": "0/40 (0%)",
+  "caught_loose": "0/40 (0%)",
+  "risk_note_only": "0/40 (0%)",
+  "by_repo": {
+   "DataQualityDashboard": "0/4 (0%)",
+   "FeatureExtraction": "0/4 (0%)",
+   "Vocabulary-v5.0": "0/1 (0%)",
+   "adwords": "0/1 (0%)",
+   "analytics-refinery": "0/5 (0%)",
+   "dbt-audit-helper": "0/2 (0%)",
+   "dbt-date": "0/1 (0%)",
+   "dbt-expectations": "0/4 (0%)",
+   "dbt-utils": "0/2 (0%)",
+   "dbt_github": "0/1 (0%)",
+   "dbt_google_play": "0/1 (0%)",
+   "dbt_intercom": "0/1 (0%)",
+   "dbt_xero": "0/3 (0%)",
+   "facebook-ads": "0/1 (0%)",
+   "mimic-omop": "1/4 (25%)",
+   "redshift": "0/1 (0%)",
+   "segment": "0/1 (0%)",
+   "snowplow": "0/3 (0%)"
+  },
+  "by_category": {
+   "business_logic": "0/11 (0%)",
+   "nullability_or_cast": "0/11 (0%)",
+   "other": "1/9 (11%)",
+   "row_count_change": "0/9 (0%)"
+  },
+  "compiles_true": "0/29 (0%)",
+  "compiles_false": "1/11 (9%)",
+  "needs_data_bucket": "0/2 (0%)",
+  "false_alarm_maintainer_rule": "4/54 (7%)",
+  "ordinary_commits": 54,
+  "false_alarm_share": "6/54 (11%)",
+  "false_alarm_share_excluding_later_fixed": "5/54 (9%)",
+  "commits_with_bug_or_risk": "6/54",
+  "false_alarm_by_repo": {
+   "DataQualityDashboard": "0/3",
+   "FeatureExtraction": "0/3",
+   "Vocabulary-v5.0": "0/3",
+   "adwords": "0/3",
+   "analytics-refinery": "1/3",
+   "dbt-audit-helper": "0/3",
+   "dbt-date": "0/3",
+   "dbt-expectations": "0/3",
+   "dbt-utils": "0/3",
+   "dbt_github": "2/3",
+   "dbt_google_play": "1/3",
+   "dbt_intercom": "1/3",
+   "dbt_xero": "0/3",
+   "facebook-ads": "0/3",
+   "mimic-omop": "0/3",
+   "redshift": "0/3",
+   "segment": "0/3",
+   "snowplow": "1/3"
+  },
+  "errors": 0
+ }
+}
