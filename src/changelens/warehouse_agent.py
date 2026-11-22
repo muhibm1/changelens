@@ -221,7 +221,9 @@ Three more rules, each a reason to reject:
   only says the behaviour changed. Keep it only when the change also breaks the build, a test, or a reader that the
   commit left behind.
 - Outside the repository. A claim that rests on what an external package version, a vendor API or the source data
-  contains, and that no file in the repository shows, is at most "risk".
+  contains, and that no file in the repository shows, is at most "risk". Files in the repository count as evidence
+  even when the target itself is defined elsewhere: when a sibling script, another version of the same model, or the
+  repository's own DDL or spec names a column or table differently from the change, that settles it.
 
 Commit message: {message}
 {docs}
