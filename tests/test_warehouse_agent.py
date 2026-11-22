@@ -19,8 +19,9 @@ prompt = sys.stdin.read()
 assert not os.path.exists(".git"), "the snapshot must carry no git history"
 assert os.path.exists("models/orders.sql")
 if "Reviewers filed the candidate findings" in prompt:
-    out = {"verdicts": [{"index": 0, "verdict": "bug", "reason": "customers is one row per customer per region"},
-                        {"index": 1, "verdict": "reject", "reason": "speculation"}]}
+    cause = {"path": "models/orders.sql", "line": int(os.environ.get("STUB_CAUSE_LINE", "3")), "removed": False}
+    out = {"verdicts": [{"index": 0, "verdict": "bug", "reason": "customers is one row per customer per region", "cause": cause},
+                        {"index": 1, "verdict": "reject", "reason": "speculation", "cause": cause}]}
 elif "Your area: ROW COUNT" in prompt:
     out = {"audit": [], "findings": [
         {"path": "models/orders.sql", "line": 3, "severity": "bug", "category": "row_count_change",
@@ -148,3 +149,42 @@ def test_replay_summary_counts_false_alarms() -> None:
     assert s["false_alarm_share"].startswith("1/2")
     assert s["commits_with_bug_or_risk"] == "2/2"
     assert json.dumps(s)
+
+
+def test_a_bug_whose_named_cause_is_not_a_changed_line_is_lowered_to_risk(repo: Path, stub: None, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("STUB_CAUSE_LINE", "40")
+    res = wa.review(repo, "HEAD", use_rules=False)
+    assert res.error is None, res.error
+    assert [f.severity for f in res.findings] == ["risk"]
+    assert "not a line this commit changed" in res.findings[0].verify_reason
+    assert [f["title"] for f in res.proposed][0] == "orders joined to customers on customer_id fans out"
+
+
+def test_cause_in_change_checks_added_and_removed_lines() -> None:
+    diff = "diff --git a/m.sql b/m.sql\n--- a/m.sql\n+++ b/m.sql\n@@ -1,3 +1,3 @@\n select 1\n-from a\n+from b\n where x\n"
+    ch = wa.changed_lines(diff)
+    assert ch == {"m.sql": ({2}, True)}
+    assert wa.cause_in_change({"path": "m.sql", "line": 2, "removed": False}, ch)
+    assert wa.cause_in_change({"path": "./m.sql", "line": 4, "removed": False}, ch)
+    assert not wa.cause_in_change({"path": "m.sql", "line": 9, "removed": False}, ch)
+    assert wa.cause_in_change({"path": "m.sql", "line": 0, "removed": True}, ch)
+    assert not wa.cause_in_change({"path": "other.sql", "line": 2, "removed": False}, ch)
+    assert not wa.cause_in_change(None, ch)
+    only_added = wa.changed_lines("diff --git a/n.sql b/n.sql\n--- a/n.sql\n+++ b/n.sql\n@@ -1 +1,2 @@\n x\n+y\n")
+    assert not wa.cause_in_change({"path": "n.sql", "line": 0, "removed": True}, only_added)
+
+
+def test_free_checks_flag_sql_that_stops_parsing_and_bad_yaml(repo: Path) -> None:
+    (repo / "models" / "orders.sql").write_text("select o.id,, from\n")
+    (repo / "models" / "schema.yml").write_text("models:\n  - name: orders\n    description: a: b\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-qm", "break")
+    res = wa.free_checks(repo, "HEAD")
+    kinds = {f.source.split(":")[0] for f in res.findings}
+    assert "yaml" in kinds
+    assert any(f.path == "models/orders.sql" for f in res.findings)
+
+
+def test_plain_review_is_one_call_with_no_verifier(repo: Path, stub: None) -> None:
+    res = wa.review_plain(repo, "HEAD")
+    assert res.error is None and res.findings == [] and res.turns == 2

@@ -30,7 +30,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from changelens.warehouse_agent import AGENT_VERSION, AgentFinding, review
+from changelens.warehouse_agent import AGENT_VERSION, AgentFinding, free_checks, reverify, review, review_plain
 from pipelinebench.warehouse_replay import load_bugs, ordinary_commits
 
 SLACK = 3
@@ -93,8 +93,28 @@ def later_fixed(repo: Path, commit: str, f: AgentFinding, look: int = 8) -> str 
     return None
 
 
+REVIEWER = "agent"
+REVERIFY: dict[str, Any] = {}
+
+
 def _key(repo: Path, commit: str, model: str, verify: bool) -> str:
-    return f"{repo.name}:{commit[:10]}:{AGENT_VERSION}:{model}:{'v' if verify else 'nv'}"
+    if REVIEWER == "agent":
+        return f"{repo.name}:{commit[:10]}:{AGENT_VERSION}:{model}:{'v' if verify else 'nv'}"
+    return f"{repo.name}:{commit[:10]}:{REVIEWER}:{AGENT_VERSION}"
+
+
+def _review(repo: Path, commit: str, model: str, verify: bool, effort: str | None) -> dict[str, Any]:
+    """One review by the reviewer chosen with --reviewer."""
+    if REVIEWER == "free":
+        return free_checks(repo, commit).to_json()
+    if REVIEWER.startswith("plain-"):
+        return review_plain(repo, commit, model=REVIEWER.removeprefix("plain-"), effort=effort).to_json()
+    if REVIEWER.startswith("reverify"):
+        prev = REVERIFY.get(f"{repo.name}:{commit[:10]}:{AGENT_VERSION}:{model}:v")
+        if prev is None or prev.get("error"):
+            raise RuntimeError("no cached reviewer output to verify again")
+        return reverify(repo, commit, prev.get("proposed", []), effort=effort).to_json()
+    return review(repo, commit, model=model, verify=verify, effort=effort).to_json()
 
 
 def load_cache(path: Path | None) -> dict[str, Any]:
@@ -141,6 +161,8 @@ def score_bug(bug: dict[str, Any], findings: list[AgentFinding]) -> dict[str, An
         "title": bug["title"],
         "category": bug["category"],
         "in_scope": bug["in_scope"],
+        "compiles": bug.get("compiles"),
+        "needs_data": bool(bug.get("needs_data")),
         "source": bug.get("source"),
         "hit_strict": bool(strict),
         "hit_loose": bool(loose),
@@ -168,7 +190,7 @@ def run(repos: list[tuple[Path, list[Path]]], sample: int, seed: int, model: str
         if k in cache and not cache[k].get("error"):
             return item, cache[k]
         try:
-            r = review(repo, commit, model=model, verify=verify, effort=effort).to_json()
+            r = _review(repo, commit, model, verify, effort)
         except Exception as e:  # noqa: BLE001 - one broken commit is recorded as an error, never stops the replay
             r = {"findings": [], "seconds": 0.0, "error": f"{type(e).__name__}: {e}"[:500]}
         with _lock:
@@ -183,7 +205,7 @@ def run(repos: list[tuple[Path, list[Path]]], sample: int, seed: int, model: str
     with ThreadPoolExecutor(jobs) as pool:
         results = list(pool.map(one, work))
 
-    res: dict[str, Any] = {"agent": AGENT_VERSION, "model": model, "verify": verify, "bugs": [], "ordinary": [], "errors": []}
+    res: dict[str, Any] = {"reviewer": REVIEWER, "agent": AGENT_VERSION, "model": model, "verify": verify, "bugs": [], "ordinary": [], "errors": []}
     for (kind, repo, commit, bug), r in results:
         if r.get("error"):
             res["errors"].append({"repo": repo.name, "commit": commit[:10], "error": r["error"]})
@@ -258,6 +280,10 @@ def summarise(res: dict[str, Any]) -> dict[str, Any]:
         "risk_note_only": rate(scope, "hit_risk_only"),
         "by_repo": {k: rate(v, "hit_judge") for k, v in sorted(by_repo.items())},
         "by_category": {k: rate(v, "hit_judge") for k, v in sorted(by_cat.items())},
+        "compiles_true": rate([b for b in scope if b.get("compiles") is True], "hit_judge"),
+        "compiles_false": rate([b for b in scope if b.get("compiles") is False], "hit_judge"),
+        "needs_data_bucket": rate([b for b in res["bugs"] if b.get("needs_data")], "hit_judge"),
+        "false_alarm_maintainer_rule": (lambda fl: f"{len(fl)}/{len(ordn)} ({100 * len(fl) / len(ordn):.0f}%)" if ordn else "0/0")([o for o in flagged if not any(o["later_fixed"])]),
         "ordinary_commits": len(ordn),
         "false_alarm_share": f"{len(flagged)}/{len(ordn)} ({100 * len(flagged) / len(ordn):.0f}%)" if ordn else "0/0",
         "false_alarm_share_excluding_later_fixed": (lambda fl: f"{len(fl)}/{len(ordn)} ({100 * len(fl) / len(ordn):.0f}%)" if ordn else "0/0")([o for o in flagged if not all(o["later_fixed"])]),
@@ -281,7 +307,13 @@ def main() -> None:
     ap.add_argument("--out", type=Path)
     ap.add_argument("--only-bugs", action="store_true")
     ap.add_argument("--no-judge", action="store_true")
+    ap.add_argument("--reviewer", default="agent", help="agent, plain-sonnet, plain-opus, free, or reverify (the skeptical pass again over --reverify-cache)")
+    ap.add_argument("--reverify-cache", type=Path, help="an agent run's cache whose proposed findings --reviewer reverify reads")
     a = ap.parse_args()
+    global REVIEWER
+    REVIEWER = a.reviewer
+    if a.reverify_cache:
+        REVERIFY.update(load_cache(a.reverify_cache))
     labels = a.labels + [[]] * (len(a.repo) - len(a.labels))
     res = run(list(zip(a.repo, labels, strict=True)), a.sample, a.seed, a.model, not a.no_verify, a.jobs, a.cache, a.out, a.effort, a.only_bugs, not a.no_judge)
     print(json.dumps(res["summary"], indent=1))
