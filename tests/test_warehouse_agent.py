@@ -188,3 +188,39 @@ def test_free_checks_flag_sql_that_stops_parsing_and_bad_yaml(repo: Path) -> Non
 def test_plain_review_is_one_call_with_no_verifier(repo: Path, stub: None) -> None:
     res = wa.review_plain(repo, "HEAD")
     assert res.error is None and res.findings == [] and res.turns == 2
+
+
+def _held(**kw: object) -> wa.AgentFinding:
+    base = dict(path="models/a.sql", line=3, end_line=None, severity="risk", category="business_logic", title="t", explanation="e",
+                witness="a row with x", doubt="intent", cause_ok=True)
+    base.update(kw)
+    return wa.AgentFinding(**base)  # type: ignore[arg-type]
+
+
+def test_second_look_promotes_only_a_cited_contradiction_and_at_most_one(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / "models").mkdir()
+    (tmp_path / "models/a.sql").write_text("with former as (select 1)\n, ranked as (select 2)\nselect 3\n")
+    changed = {"models/a.sql": ({3}, False)}
+    looks = [
+        {"index": 0, "contradiction": True, "stated_intent": False, "defines": {"path": "models/a.sql", "line": 2}, "contradicts": {"path": "models/a.sql", "line": 3}, "reason": "r"},
+        {"index": 1, "contradiction": True, "stated_intent": False, "defines": {"path": "models/a.sql", "line": 1}, "contradicts": {"path": "models/a.sql", "line": 3}, "reason": "r"},
+        {"index": 2, "contradiction": True, "stated_intent": False, "defines": {"path": "models/a.sql", "line": 1}, "contradicts": {"path": "models/a.sql", "line": 1}, "reason": "unchanged line"},
+    ]
+    monkeypatch.setattr(wa, "_claude", lambda *a, **k: ({"looks": looks}, 1))
+    res = wa.AgentResult(findings=[_held(title="a"), _held(title="b"), _held(title="c"), _held(title="d", doubt="fact"), _held(title="e", cause_ok=False)])
+    wa._second_look(res, tmp_path, "msg", "", "", changed, "opus", None, 60)
+    assert [f.severity for f in res.findings] == ["bug", "risk", "risk", "risk", "risk"]
+    assert len(res.second_looks) == 3 and [x["promoted"] for x in res.second_looks] == [True, False, False]
+
+
+def test_second_look_respects_stated_intent_and_missing_lines(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / "a.sql").write_text("x\ny\n")
+    changed = {"a.sql": ({2}, False)}
+    looks = [
+        {"index": 0, "contradiction": True, "stated_intent": True, "defines": {"path": "a.sql", "line": 1}, "contradicts": {"path": "a.sql", "line": 2}, "reason": "r"},
+        {"index": 1, "contradiction": True, "stated_intent": False, "defines": {"path": "a.sql", "line": 9}, "contradicts": {"path": "a.sql", "line": 2}, "reason": "r"},
+    ]
+    monkeypatch.setattr(wa, "_claude", lambda *a, **k: ({"looks": looks}, 1))
+    res = wa.AgentResult(findings=[_held(path="a.sql"), _held(path="a.sql")])
+    wa._second_look(res, tmp_path, "msg", "", "", changed, "opus", None, 60)
+    assert all(f.severity == "risk" for f in res.findings)

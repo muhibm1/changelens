@@ -42,3 +42,23 @@ def test_cause_is_only_held_to_files_the_verifier_saw_or_the_commit_left_alone()
 
 def test_documentation_findings_are_capped() -> None:
     assert wa._is_doc("README.md") and wa._is_doc("docs/x.yml") and not wa._is_doc("models/x.yml")
+
+
+def test_sqlrender_default_headers_no_longer_hide_a_file_from_the_check() -> None:
+    head = "{DEFAULT @cdm = 'cdm'}\n{DEFAULT @use_x = TRUE}\n"
+    old = head + "SELECT CASE WHEN a = 1 THEN 'x' ELSE 'y' END AS k FROM @cdm.t"
+    new = head + "SELECT CASE WHEN a = 1 THEN 'x' ELSE 'y' AS k FROM @cdm.t"
+    assert cc.checkable("inst/sql/sql_server/q.sql", old)
+    fail = cc.check_file("inst/sql/sql_server/q.sql", new, old)
+    assert fail is not None and fail.kind == "parse"
+    assert cc.strip_sqlrender_defaults(head + "SELECT 1").count("\n") == 2
+
+
+def test_a_new_filter_on_a_window_alias_is_found_and_an_old_one_is_not() -> None:
+    old = "SELECT id, ROW_NUMBER() OVER (PARTITION BY p ORDER BY d) AS rn FROM t"
+    new = "SELECT id, ROW_NUMBER() OVER (PARTITION BY p ORDER BY d) AS rn FROM t\nWHERE rn = 1"
+    fail = cc.check_file("q.sql", new, old)
+    assert fail is not None and fail.kind == "scope" and "rn" in fail.error and fail.line == 2
+    assert cc.check_file("q.sql", new, new) is None
+    ok = "SELECT * FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY d) AS rn FROM t) s WHERE rn = 1"
+    assert cc.check_file("q.sql", ok, old) is None
