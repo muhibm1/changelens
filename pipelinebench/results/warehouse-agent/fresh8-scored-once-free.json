@@ -1,0 +1,1453 @@
+{
+ "reviewer": "free",
+ "agent": "wa-10",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "9c61cf77a4",
+   "title": "added tbl_ddl view",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "d2d47b76ac",
+   "title": "Added Running queues.",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "30f29e8a0d",
+   "title": "2 new scripts",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "30f29e8a0d",
+   "title": "2 new scripts",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "df5d36bc42",
+   "title": "WIP",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "67b39ef75d",
+   "title": "Refactor of types in the harness",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "b85b406d0b",
+   "title": "Fix single item hashdiff",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "d4dc2faa64",
+   "title": "Add error message and disable tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "719ae0e91b",
+   "title": "WIP moving join-with-deduplication into a macro.",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "data-infrastructure.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "data-infrastructure",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "64e04d3fa3",
+   "title": "Created version 1 sat for ma sats",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "24ee6baf5b",
+   "title": "First version of macro, and Control_snap_v0 adjusted to use it.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2dae769187",
+   "title": "Snowflake flavour of control snapshot v0",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ddae5fc42a",
+   "title": "Update hash_standardization.sql",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "782f2d1f23",
+   "title": "Update ghost_record_per_datatype.sql, fix postgres ghost record data types, change redshift unknown bool to False",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "46e4882fd9",
+   "title": "Minor typo for 'true' instead of true",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_constraints.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_constraints",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "439f17dfc3",
+   "title": "first value macro addition",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_fivetran_utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_fivetran_utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "286b173afa",
+   "title": "max_bool macro add",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_fivetran_utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_fivetran_utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "604176d6cb",
+   "title": "add start_date and end_date to metric() and don't pull through spined\u2026 (#10)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cabdef7a6a",
+   "title": "removing cartesian join",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2e469805e7",
+   "title": "adding filters and tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "604176d6cb",
+   "title": "add start_date and end_date to metric() and don't pull through spined\u2026 (#10)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "33d296b015",
+   "title": "refactor update",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_salesforce_formula_utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_salesforce_formula_utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "92c03dd0b9",
+   "title": "Initial version of pipeline_snapshot operation to enable cross-divisional monitoring",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "012b12dd4c",
+   "title": "Add entity-level data freshness assertions and check that data freshness parameters are positive integers",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "114f7bb170",
+   "title": "Remove an unnecessary layer of subquery",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8c770654eb",
+   "title": "Add entity_ids_do_not_match assertion",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "14a4bdb754",
+   "title": "Update reconciliation flow",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "84ce85c48e",
+   "title": "feat: :sparkles: integrate oso Filecoin collection events into metrics and update BigQuery resource [skip ci]",
+   "category": "other",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "filecoin-data-portal.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "filecoin-data-portal",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "4dbec3edb1",
+   "title": "create table for communes",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "make-open-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "make-open-data",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "bc9050b801",
+   "title": "functional model for z region, to optimise",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "make-open-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "make-open-data",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "df9785f04e",
+   "title": "update to neutral site",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/models/nfl/simulator/nfl_reg_season_simulator.sql:8 model SQL no longer parses"
+   ],
+   "findings": [
+    "[bug] transform/models/nfl/simulator/nfl_reg_season_simulator.sql:8 model SQL no longer parses"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Finding 0 reports a generic SQL parse failure on line 8. The labelled bug is a Jinja logic error: a quoted string literal compared to 1 is always false, so the home field offset also applies to neutral site games. That expression is valid and parses, and finding 0 doesn't mention the always-false comparison or neutral-site handling. It is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "befb24d4d9",
+   "title": "updaing models to handle parquet",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "005a751e65",
+   "title": "skew home team + 70 elo",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "40898f38a2",
+   "title": "update tiebreakers",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a56abdef17",
+   "title": "adding capability for including actuals",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] transform/models/conformed/reg_season/reg_season_simulator.sql:22 `LR.game_id`: `latest_results` has no column game_id",
+    "[bug] transform/models/conformed/reg_season/reg_season_simulator.sql:14 `LR.winning_team`: `latest_results` has no column winning_team"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding matches. Both are about reg_season_simulator.sql and say `latest_results` lacks the columns game_id and winning_team. The labelled bug is in reg_season_actuals.sql, where left joins on the wins and losses aggregates give NULL instead of 0 for teams with no wins or no losses. That is a different model and a different mechanism."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "daf42fd667",
+   "title": "Candidate Detail still behaving oddly",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "699ac8f990",
+   "title": "Added join to enable reference of committee_name",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3cb1ebf5f1",
+   "title": "Add /committee endpoint",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5996693cf6",
+   "title": "Update candidate_inactive and test subset.",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "09038d3c79",
+   "title": "Checking for earmarks that are coded or have earmark in their name.",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cd330c3a47",
+   "title": "more jira",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "ra_data_warehouse.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:29 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.created`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:34 `fields` is not a table alias in scope for `fields.created`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:28 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:28 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:33 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:30 `fields` is not a table alias in scope for `fields.resolutiondate`"
+   ],
+   "findings": [
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:23 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:29 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.created`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:34 `fields` is not a table alias in scope for `fields.created`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:28 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:28 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 `fields` is not a table alias in scope for `fields.statuscategorychangedate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:33 `fields` is not a table alias in scope for `fields.resolutiondate`",
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:30 `fields` is not a table alias in scope for `fields.resolutiondate`"
+   ],
+   "repo": "ra_data_warehouse",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a doubled comma in the timestamp_diff calls, which is a syntax error. Every finding reports a different defect: `fields` is not a table alias in scope. Findings 2 and 3 point at the same lines (31 and 34), but they describe an unresolved alias and never mention the doubled comma."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5e69b7458a",
+   "title": "made transactions incremental load",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "ra_data_warehouse.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ra_data_warehouse",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "739db32e7f",
+   "title": "Add assist player (#217)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "transfermarkt-datasets.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "transfermarkt-datasets",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0f247e4b13",
+   "title": "Prepare to enable automatic updates (#329)",
+   "category": "nullability_or_cast",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "transfermarkt-datasets.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "transfermarkt-datasets",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "3399cc27eb",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "0b64c28ca2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "537a8332c5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "eb3b0535d4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "25b7ca5b01",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "064641c323",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "246cc7ea7d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "0674e4f0f2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "6a8c538850",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "15d52aa659",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/auto_test.sql:1 models/auto_test.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "cd4556a09d",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/example/stage/stage_opportunity.sql:1 models/example/stage/stage_opportunity.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "ca1451d1b1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "3e76976923",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "188762ddd5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "57957d1b46",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_fk_parent2.sql:1 integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_fk_parent2.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_uk_nnd.sql:1 integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_uk_nnd.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_uk_nullable.sql:1 integration_tests/dbt-current-syntax/models/issue_114/dim_issue_114_uk_nullable.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-current-syntax/models/issue_114/fact_issue_114_fk_crossed.sql:1 integration_tests/dbt-current-syntax/models/issue_114/fact_issue_114_fk_crossed.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-current-syntax/models/issue_114/fact_issue_114_fk_not_validated.sql:1 integration_tests/dbt-current-syntax/models/issue_114/fact_issue_114_fk_not_validated.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_fk_parent2.sql:1 integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_fk_parent2.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_uk_nnd.sql:1 integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_uk_nnd.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_uk_nullable.sql:1 integration_tests/dbt-legacy-syntax/models/issue_114/dim_issue_114_uk_nullable.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-legacy-syntax/models/issue_114/fact_issue_114_fk_crossed.sql:1 integration_tests/dbt-legacy-syntax/models/issue_114/fact_issue_114_fk_crossed.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] integration_tests/dbt-legacy-syntax/models/issue_114/fact_issue_114_fk_not_validated.sql:1 integration_tests/dbt-legacy-syntax/models/issue_114/fact_issue_114_fk_not_validated.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "3a285b5cdc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "0978ba2321",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "6086030561",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "f70b2a94e0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "39ebdaebc7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "17f59af0d4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "3df48c5ef6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "0f89e51afc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "6c67b70da0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "3fbd8e6b03",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "0e18932c4f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "7bc01fa5c4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "f61b1c213d",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/prep/immo/schema.yml:9 models/prep/immo/schema.yml is not valid YAML :: while scanning for the next token\nfound character '\\t' that cannot start any token\n  in \"<unicode string>\", line 9, column 22:\n      - name: id_mutation\t\n                         ^"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "46b7ba3d5f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "0908bca527",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "46bc6fb932",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "0db47dcc7d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "6312d65e2e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "openFEC",
+   "commit": "3088632b4b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "openFEC",
+   "commit": "0811740a45",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "openFEC",
+   "commit": "4dc5d9de79",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "e2fdd8b95e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "228993dbc7",
+   "error": null,
+   "bug_findings": [
+    "[other] models/integration/int_web_events_sessionized.sql:116 COALESCE removed from session_id :: models/integration/int_web_events_sessionized.sql:116 computes `session_id` without the COALESCE/IFNULL the old file had around it, so rows whose input is NULL now produce NULL (and a sum, comparison or join downstream drops or mis-handles them)."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "05e777e5bf",
+   "error": null,
+   "bug_findings": [
+    "[other] ra_biapps/models/sde_adapters/sde_hubspot_crm/sde_hubspot_crm_deals.sql:91 filter removed: not hubspot_company_id is null :: The change removes the condition `not hubspot_company_id is null` (it was at line 96 of the old file) and nothing in the new file filters on ['hubspot_company_id']. Rows it used to exclude now pass through, so the row count rises.",
+    "[other] ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:25 `fields` is not a table alias in scope for `fields.summary` :: ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:25 reads `fields.summary`, but the query's sources are ['renamed', 'source'] and none is called `fields`, so the reference does not resolve.",
+    "[other] ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:32 `fields` is not a table alias in scope for `fields.created` :: ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:32 reads `fields.created`, but the query's sources are ['renamed', 'source'] and none is called `fields`, so the reference does not resolve.",
+    "[other] ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:33 `fields` is not a table alias in scope for `fields.updated` :: ra_biapps/models/sde_adapters/sde_jira_projects/sde_jira_projects_tasks.sql:33 reads `fields.updated`, but the query's sources are ['renamed', 'source'] and none is called `fields`, so the reference does not resolve.",
+    "[other] ra_biapps/models/sde_adapters/sde_xero_accounting/sde_xero_accounting_invoices.sql:26 `contact` is not a table alias in scope for `contact.contactid` :: ra_biapps/models/sde_adapters/sde_xero_accounting/sde_xero_accounting_invoices.sql:26 reads `contact.contactid`, but the query's sources are ['renamed', 'source'] and none is called `contact`, so the reference does not resolve."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "ddfe1ecc7e",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "3452a20d54",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "0804a91d2b",
+   "error": null,
+   "bug_findings": [
+    "[other] dbt/models/curated/games.sql:46 join to event_club_names uses part of its key :: dbt/models/curated/games.sql:46 joins `event_club_names` (left join event_club_names away_event_names) on ['club_id']. `event_club_names`'s definition declares rows unique on ['club_id', 'club_name']; the join leaves out ['club_name'], and the left side has ['club_name'] too, so it looks left out by"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 40,
+  "caught_judge_bug": "0/40 (0%)",
+  "caught_judge_bug_or_risk": "0/40 (0%)",
+  "caught_strict": "2/40 (5%)",
+  "caught_loose": "2/40 (5%)",
+  "risk_note_only": "0/40 (0%)",
+  "by_repo": {
+   "amazon-redshift-utils": "0/3 (0%)",
+   "automate-dv": "0/4 (0%)",
+   "data-infrastructure": "0/1 (0%)",
+   "datavault4dbt": "0/5 (0%)",
+   "dbt_constraints": "0/1 (0%)",
+   "dbt_fivetran_utils": "0/2 (0%)",
+   "dbt_metrics": "0/4 (0%)",
+   "dbt_salesforce_formula_utils": "0/1 (0%)",
+   "dfe-analytics-dataform": "0/5 (0%)",
+   "filecoin-data-portal": "0/1 (0%)",
+   "make-open-data": "0/1 (0%)",
+   "nba-monte-carlo": "0/5 (0%)",
+   "openFEC": "0/4 (0%)",
+   "ra_data_warehouse": "0/2 (0%)",
+   "transfermarkt-datasets": "0/1 (0%)"
+  },
+  "by_category": {
+   "business_logic": "0/12 (0%)",
+   "nullability_or_cast": "0/7 (0%)",
+   "other": "0/13 (0%)",
+   "row_count_change": "0/8 (0%)"
+  },
+  "compiles_true": "0/27 (0%)",
+  "compiles_false": "0/13 (0%)",
+  "needs_data_bucket": "0/4 (0%)",
+  "false_alarm_maintainer_rule": "7/42 (17%)",
+  "ordinary_commits": 42,
+  "false_alarm_share": "7/42 (17%)",
+  "false_alarm_share_excluding_later_fixed": "7/42 (17%)",
+  "commits_with_bug_or_risk": "7/42",
+  "false_alarm_by_repo": {
+   "amazon-redshift-utils": "0/3",
+   "automate-dv": "0/3",
+   "data-infrastructure": "0/3",
+   "datavault4dbt": "2/3",
+   "dbt_constraints": "1/3",
+   "dbt_fivetran_utils": "0/3",
+   "dbt_metrics": "0/3",
+   "dbt_salesforce_formula_utils": "0/3",
+   "filecoin-data-portal": "0/3",
+   "make-open-data": "1/3",
+   "nba-monte-carlo": "0/3",
+   "openFEC": "0/3",
+   "ra_data_warehouse": "2/3",
+   "transfermarkt-datasets": "1/3"
+  },
+  "errors": 0
+ }
+}
