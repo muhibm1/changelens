@@ -1,0 +1,20 @@
+# dbt_intercom: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_intercom): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt_intercom
+url: https://github.com/fivetran/dbt_intercom
+bugs:
+  - commit: "ff512762c8"
+    parent: "b31ee32fd9"
+    title: "feature/close-at-updates"
+    fix: "c316dee424"
+    fix_title: "[Bug Fix] Simplify Intermediate conversation model logic (#69)"
+    bug: "in the final CTE of int_intercom__conversation_part_events the new last_close_by_author_id column is selected from conversation_all_events.first_close_by_author_id, a copy and paste slip, so last_close_by_author_id always equals first_close_by_author_id in the conversation models"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["last_close_by_author_id", "first_close_by_author_id"]
+    expect:
+      - {path: "models/intermediate/int_intercom__conversation_part_events.sql", line: 62}

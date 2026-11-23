@@ -1,0 +1,36 @@
+# CohortMethod: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/CohortMethod): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. The SQL is OHDSI SqlRender (SQL Server dialect) over the OMOP common data model.
+# Never derived from ChangeLens's output.
+repo: CohortMethod
+url: https://github.com/OHDSI/CohortMethod
+bugs:
+  - commit: "78186d6a74"
+    parent: "35f335b890"
+    title: "Added argument restrictToCommonPeriod to getDbCohortMethodData and createStudyPopulation  functions."
+    fix: "779b86c6a5"
+    fix_title: "Added unit test for restricting to common period. Fixed bug in SQL code."
+    bug: "the new restrict_to_common_period block in CreateCohorts.sql selects MAX(start_date) and MIN(end_date) FROM ( ... ) where the derived tables have no alias, which SQL Server and PostgreSQL reject, so the cohort query fails whenever restrictToCommonPeriod is set"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["alias", "restrict_to_common_period"]
+    expect:
+      - {path: "inst/sql/sql_server/CreateCohorts.sql", line: 174}
+      - {path: "inst/sql/sql_server/CreateCohorts.sql", line: 195}
+  - commit: "df8ac40b66"
+    parent: "94fe2c23e1"
+    title: "Added option to keep first cohort for duplicate subjects in getDbCohortMethodData and createStudyPopulation. Also added option to censor time at risk window at start of new time at risk window."
+    fix: "d8d655350d"
+    fix_title: "Trying to fix #72: extra query nesting when specifying 'keep first' to prevent SQL error."
+    bug: "for remove_duplicate_subjects = 'keep first', CreateCohorts.sql computes ROW_NUMBER() ... AS cohort_number and filters WHERE cohort_number = 1 on the same query level, so the WHERE refers to a select-list window alias that is not yet defined and the query fails; it needs another level of nesting"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["cohort_number", "ROW_NUMBER"]
+    expect:
+      - {path: "inst/sql/sql_server/CreateCohorts.sql", line: 88}
+      - {path: "inst/sql/sql_server/CreateCohorts.sql", line: 160}

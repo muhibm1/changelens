@@ -1,0 +1,21 @@
+# adwords: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/adwords): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: adwords
+url: https://github.com/dbt-labs/adwords
+bugs:
+  - commit: "8fac4c085d"
+    parent: "94f4153412"
+    title: "join url_performance & criteria_performance_report to pull necessary fields for ad_performance_adapter_model"
+    fix: "800acc1ff9"
+    fix_title: "update join to avoid fan out and remove disabled"
+    bug: "adwords_ad_performance_adapter now starts from criteria_performance and left joins url_performance using (campaign_id) only, so every criteria row for a day is repeated once for every url row anywhere in the same campaign on any day, and clicks, spend and impressions are multiplied; the join needs campaign_id, ad_group_id and date_day"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["url_performance", "campaign_id"]
+    expect:
+      - {path: "models/stitch/adapters/adwords_ad_performance_adapter.sql", line: 36}
+      - {path: "models/stitch/adapters/adwords_ad_performance_adapter.sql", line: 30}

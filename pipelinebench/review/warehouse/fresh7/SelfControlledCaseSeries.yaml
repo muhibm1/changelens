@@ -1,0 +1,21 @@
+# SelfControlledCaseSeries: real warehouse bugs located at the commit that introduced them, part of the fresh7
+# held-out set. Written by hand from the public upstream history (https://github.com/OHDSI/SelfControlledCaseSeries):
+# each bug was found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the
+# introducing commit was read to confirm it added the faulty lines. The SQL is OHDSI SqlRender (SQL Server dialect).
+# Never derived from ChangeLens's output.
+repo: SelfControlledCaseSeries
+url: https://github.com/OHDSI/SelfControlledCaseSeries
+bugs:
+  - commit: "f9fc48cf06"
+    parent: "ab19d70998"
+    title: "Plotting functions now use studyPopulation object"
+    fix: "1ffe72aa91"
+    fix_title: "Fixed syntax error in SQL when using a nesting cohort."
+    bug: "in CreateCases.sql the nesting-cohort branch adds CASE WHEN nesting.cohort_end_date < end_date THEN CAST(1 AS INT) ELSE noninformative_end_censor AS noninformative_end_censor with no END, while the same commit closes the matching CASE elsewhere, so any run with a nesting cohort fails to parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["noninformative_end_censor", "END"]
+    expect:
+      - {path: "inst/sql/sql_server/CreateCases.sql", line: 48}

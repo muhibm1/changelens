@@ -1,0 +1,75 @@
+# analytics-refinery: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/wikimedia/analytics-refinery): each bug was found
+# from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit
+# was read to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: analytics-refinery
+url: https://github.com/wikimedia/analytics-refinery
+bugs:
+  - commit: "1bc92086e8"
+    parent: "edb27edcc4"
+    title: "Daily last_access uniques oozie job"
+    fix: "679aeeaa50"
+    fix_title: "Correct last uniques oozie jobs (wrong join)"
+    bug: "last_access_uniques_daily joins the last-access rows to fresh_sessions_aggregated with an INNER JOIN on uri_host and country_code, so every host and country with no fresh (cookieless single hit) sessions is dropped from the output and the uniques estimate for those domains is lost; the offset should be outer joined"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["inner join", "fresh_sessions_aggregated"]
+    expect:
+      - {path: "oozie/last_access_uniques/daily/last_access_uniques_daily.hql", line: 102}
+  - commit: "679aeeaa50"
+    parent: "222d0c0403"
+    title: "Correct last uniques oozie jobs (wrong join)"
+    fix: "9377d9c25d"
+    fix_title: "Correct last_access_uniques daily/monthly bug"
+    bug: "the join to fresh_sessions_aggregated becomes a FULL OUTER JOIN and uniques_offset is wrapped in COALESCE(fresh.uniques_offset, 0), but uniques_estimate is still SUM(...) + fresh.uniques_offset, so for every host and country with no fresh sessions the estimate is NULL instead of the underestimate, in both the daily and the monthly job"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["uniques_offset", "null"]
+    expect:
+      - {path: "oozie/last_access_uniques/daily/last_access_uniques_daily.hql", line: 107}
+      - {path: "oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql", line: 106}
+  - commit: "679aeeaa50"
+    parent: "222d0c0403"
+    title: "Correct last uniques oozie jobs (wrong join)"
+    fix: "2daeaa5b1c"
+    fix_title: "Correct bug in last-access uniques monthly"
+    bug: "the rewritten GROUP BY of last_access_uniques_monthly ends with COALESCE(fresh.uniques_offset, 0), with a trailing comma and only comments before LIMIT, so the monthly query does not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["comma", "group by"]
+    expect:
+      - {path: "oozie/last_access_uniques/monthly/last_access_uniques_monthly.hql", line: 116}
+  - commit: "be73c758a9"
+    parent: "aa8f88fb18"
+    title: "Add requestctl sub-field to turnilo webrequest"
+    fix: "b14c9f4883"
+    fix_title: "Fix groupby (hive is unfortunately like mysql here)"
+    bug: "the daily and hourly druid webrequest queries select x_analytics_map['requestctl'] AS requestctl but add the bare alias requestctl to GROUP BY; Hive cannot group by a select alias that is not a source column, so both queries fail"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["requestctl", "group by"]
+    expect:
+      - {path: "oozie/webrequest/druid/daily/generate_daily_druid_webrequests.hql", line: 123}
+      - {path: "oozie/webrequest/druid/hourly/generate_hourly_druid_webrequests.hql", line: 125}
+  - commit: "fb2033bba6"
+    parent: "6eb5077b16"
+    title: "Update geoeditor HQL scripts for spark3"
+    fix: "e891ba2777"
+    fix_title: "Fix geoeditors HQL bug"
+    bug: "page_is_namespace_zero is changed from if(cuc_namespace = 0, 1, 0) to a boolean if(..., TRUE, FALSE), but the outer query of editors_daily_monthly still computes sum(page_is_namespace_zero) as namespace_zero_edit_count, and summing a boolean is a type error"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["page_is_namespace_zero", "sum"]
+    expect:
+      - {path: "hql/geoeditors/editors_daily_monthly.hql", line: 48}
+      - {path: "hql/geoeditors/editors_daily_monthly.hql", line: 36}

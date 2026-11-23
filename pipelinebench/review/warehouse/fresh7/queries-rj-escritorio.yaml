@@ -1,0 +1,36 @@
+# queries-rj-escritorio: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/prefeitura-rio/queries-rj-escritorio): each
+# bug was found from a later fix commit, the fixed lines were traced with git blame on the fix's parent (and git log
+# on the file), and the introducing commit was read to confirm it added the faulty lines. Never derived from
+# ChangeLens's output.
+repo: queries-rj-escritorio
+url: https://github.com/prefeitura-rio/queries-rj-escritorio
+bugs:
+  - commit: "0ab93b3f4c"
+    parent: "53be1ca1b1"
+    title: "Updating queries to interact with new tables"
+    fix: "a5c1bd1393"
+    fix_title: "Fixing join bug"
+    bug: "in chamados_estruturados the join_1746 CTE now left joins the whole logradouros CTE and filters l.ordem_nome = 1 and l.ordem_trecho = 1 in the WHERE clause (the original query applied them inside the joined subquery), so every 1746 call with no matching logradouro has NULL ordem columns and is dropped; the left join silently becomes an inner join"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["ordem_trecho", "left join"]
+    expect:
+      - {path: "models/seconserva_buracos/chamados_estruturados.sql", line: 84}
+      - {path: "models/seconserva_buracos/chamados_estruturados.sql", line: 87}
+      - {path: "models/seconserva_buracos/chamados_estruturados.sql", line: 88}
+  - commit: "66d1759f8c"
+    parent: "10677df301"
+    title: "adição de query para subprefeitura"
+    fix: "b62441b8a5"
+    fix_title: "bugfix: subprefeitura"
+    bug: "the new subprefeitura model builds geometry_wkt from SAFE_CAST(c AS STRING), a column c that the staging table does not have (the next line reads the geometry column), so the model references a column that does not exist"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["geometry_wkt", "geometry"]
+    expect:
+      - {path: "models/dados_mestres/subprefeitura.sql", line: 6}

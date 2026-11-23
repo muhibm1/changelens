@@ -1,0 +1,1430 @@
+{
+ "reviewer": "free",
+ "agent": "wa-9",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "d259381307",
+   "title": "New diagnostics - Cohort as feature",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:1 inst/sql/sql_server/CohortAsFeature.sql does not parse"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Finding 0 claims the file does not parse, which is a different defect from the labelled bug. The labelled bug is a DATEDIFF mismatch: fs_before_max and fe_before_max measure to the target cohort end date, while the min and avg measure to the start date. The finding names neither the column nor the mechanism."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a2f0ef58c8",
+   "title": "Add subject_count to index event breakdown",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f2f6961df1",
+   "title": "Casting incidence rates as float",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8e5d65676a",
+   "title": "updated documentation",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] inst/sql/sql_server/ComputeTimeSeries.sql:1 inst/sql/sql_server/ComputeTimeSeries.sql does not parse"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 says ComputeTimeSeries.sql does not parse in any dialect after the change. That is the labelled defect: the c(@cohort_ids) R vector syntax makes the query unparseable. It doesn't name the c() construct or line 39, but it reports the same file and the same failure (a parse error), so it is not just a vague mention of the file."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a6d56fee84",
+   "title": "add date constraints, comments, link to n3c_cohort",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:12 ExtractScripts/N3C_extract_V1_0_act_oracle.sql does not parse"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding says the file does not parse, at line 12. It does not mention the visit_dimension start_date filter flipping from >= to <, so it is not the labelled bug."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a6d56fee84",
+   "title": "add date constraints, comments, link to n3c_cohort",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:12 ExtractScripts/N3C_extract_V1_0_act_oracle.sql does not parse"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The finding claims a parse failure at line 12 and does not mention the misspelt table visit_dimiension in the VISIT_DIMENSION export at line 109. A misspelt table name is valid syntax and fails only at execution, so the finding is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "676c7fb891",
+   "title": "sync omop obs_period date filters",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "ExtractScripts/N3C_extract_omop_redshift.sql:206 ExtractScripts/N3C_extract_omop_redshift.sql does not parse"
+   ],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_omop_redshift.sql:206 ExtractScripts/N3C_extract_omop_redshift.sql does not parse"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Finding 0 only says the file does not parse at line 206. It names no mechanism: not the observation period filter on PERSON, the missing column, the stray ') as ROW_COUNT', or the unfiltered OBSERVATION_PERIOD export. That is too vague to count as the labelled defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "b937dca9da",
+   "title": "Update N3C_phenotype_omop_bigquery.sql",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] PhenotypeScripts/N3C_phenotype_omop_bigquery.sql:806 PhenotypeScripts/N3C_phenotype_omop_bigquery.sql does not parse"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 reports that the BigQuery phenotype file no longer parses after this change. That is the labelled defect's observable effect, which comes from the unbalanced parenthesis on the 25-29 branch. It doesn't name the paren or the 25-29 branch, and it cites line 806 rather than 821. It is still a specific claim about the same file and the same failure, not a vague mention."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ddf569888c",
+   "title": "feat: add query contribution rank (#51)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "d254432760",
+   "title": "public-api: add trending repos API",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "7906e691b4",
+   "title": "queries: refine org trends queries (#1651)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3880a16359",
+   "title": "pipeline: add sync org pre-agg pipeline (#1633)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "configs/pipelines/sync_org_repo_participants/process.sql:1 configs/pipelines/sync_org_repo_participants/process.sql does not parse"
+   ],
+   "findings": [
+    "[bug] configs/pipelines/sync_org_repo_participants/process.sql:1 configs/pipelines/sync_org_repo_participants/process.sql does not parse",
+    "[bug] configs/pipelines/sync_org_repos/process.sql:1 configs/pipelines/sync_org_repos/process.sql does not parse"
+   ],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding matches the labelled bug. Both report parse failures in pipeline process.sql files (sync_org_repo_participants and sync_org_repos). The labelled bug is in configs/queries/orgs/overview/template.sql:14, where COUNT(*) over mv_repo_participants counts a person once per repo instead of once overall. Neither finding mentions that query, the COUNT(*) vs COUNT(DISTINCT) change, or the per-repo overcounting."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f21d9cf471",
+   "title": " - correct prevalence calculation for mid-year",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "07e04e4833",
+   "title": "- select only the first observation period for both the model and evaluation cohorts",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "d8af662f32",
+   "title": " - correct evaluation cohort creation selection  with only one entry per person if evalaution population used",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "44c7864cf2",
+   "title": "Add billing related queries and documentation (#6)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8361c16717",
+   "title": "Add Jacard Distance UDF (#264)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "4bdddd7710",
+   "title": "Add the Reservation Analysis script (#392)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "79bf7cffc0",
+   "title": "restructured files and added tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/event_filters/stripe_subscriptions.sql:3 filter removed: 'type' like 'customer.subscription.%'"
+   ],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about stripe_subscriptions.sql, where a 'customer.subscription.%' filter was removed. The labelled bug is in stripe_charges.sql, where trim('charge.' from \"type\") strips characters instead of removing a prefix. These are different models and different defects, so no finding matches."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "79bf7cffc0",
+   "title": "restructured files and added tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/event_filters/stripe_subscriptions.sql:3 filter removed: 'type' like 'customer.subscription.%'"
+   ],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about stripe_subscriptions.sql, where a type filter was removed. The labelled bug is in stripe_charges.sql: it uses the event id instead of data__object__id as the charge id. These are different models and different defects, so the finding does not match."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "62830e207e",
+   "title": "added tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "9d974216c2",
+   "title": "issue 22 fix",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Characterization.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "Characterization",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e2d04cd5d8",
+   "title": "test + vignette updates",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Characterization.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "Characterization",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0a135687ed",
+   "title": "Implementation of negative control outcomes (#55)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortGenerator.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] inst/sql/sql_server/NegativeControlOutcomes.sql:1 inst/sql/sql_server/NegativeControlOutcomes.sql does not parse"
+   ],
+   "repo": "CohortGenerator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding says the file fails to parse, at line 1. The labelled bug is a logic error: the DELETE compares cohort_definition_id against ancestor_concept_id, so the negative control cohort ids are never deleted and unrelated cohorts can be wiped. The finding names neither that mechanism nor that column mismatch, so it is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5437d9877d",
+   "title": "Subset sql query builders and modifications to generate cohorts (#73)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortGenerator.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] inst/sql/sql_server/subsets/CohortSubsetOperator.sql:1 inst/sql/sql_server/subsets/CohortSubsetOperator.sql does not parse",
+    "[bug] inst/sql/sql_server/subsets/DemographicSubsetOperator.sql:1 inst/sql/sql_server/subsets/DemographicSubsetOperator.sql does not parse",
+    "[bug] inst/sql/sql_server/subsets/LimitSubsetOperator.sql:1 inst/sql/sql_server/subsets/LimitSubsetOperator.sql does not parse"
+   ],
+   "repo": "CohortGenerator",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Finding 0 is on the right file (CohortSubsetOperator.sql) but only claims the SQL does not parse. It says nothing about the negated subset's RIGHT JOIN, the A.subject_id IS NULL filter dropping all of a person's entries, or the missing cohort start date in the join. That is a different defect, so it does not match. Findings 1 and 2 are about other files."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "78186d6a74",
+   "title": "Added argument restrictToCommonPeriod to getDbCohortMethodData and createStudyPopulation  functions.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortMethod.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "CohortMethod",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "df8ac40b66",
+   "title": "Added option to keep first cohort for duplicate subjects in getDbCohortMethodData and createStudyPopulation. Also added option to censor time at risk window at start of new time at risk window.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortMethod.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "CohortMethod",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "547f47cb32",
+   "title": "WebAssembly SQL updates (#2504)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "almanac.httparchive.org.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "almanac.httparchive.org",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "fbd36f1f18",
+   "title": "Add maximum-scale to query",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "almanac.httparchive.org.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "almanac.httparchive.org",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "89fe7a60f6",
+   "title": "Rethink lenses for timeseries",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "bac243579f",
+   "title": "Forgot to add the actual new queries!",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "bigquery.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "bigquery",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "a0e159c3be",
+   "title": "Let Revshare take in all Inbound Transfers (#1678)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "op-analytics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "op-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "566683c385",
+   "title": "Migrate teleportr to Clickhouse transforms (#1380)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "op-analytics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] src/op_analytics/transforms/teleportr/create/fact_teleportr_events_v1.sql:1 src/op_analytics/transforms/teleportr/create/fact_teleportr_events_v1.sql does not parse",
+    "[bug] src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql:1 src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql does not parse"
+   ],
+   "repo": "op-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The labelled bug is a missing join_use_nulls setting. An unmatched LEFT JOIN on token metadata gives decimals 0 and an empty symbol instead of NULL, so the amounts come out raw. Both findings only say the SQL files fail to parse. Neither names the join or the NULL behaviour, so neither identifies this defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "0ab93b3f4c",
+   "title": "Updating queries to interact with new tables",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "queries-rj-escritorio.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/seconserva_buracos/chamados_estruturados.sql:81 `l.completo`: `logradouros` has no column completo",
+    "models/seconserva_buracos/chamados_estruturados.sql:86 `l.cl`: `logradouros` has no column cl"
+   ],
+   "findings": [
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:43 reads rj-escritorio-dev.dados_mestres_staging.logradouro by its warehouse name instead of ref() or source()",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:51 reads rj-segovi.administracao_servicos_publicos_1746.chamado by its warehouse name instead of ref() or source()",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:52 reads rj-escritorio-dev.seconserva_buracos.limites_gerencias by its warehouse name instead of ref() or source()",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:66 reads rj-escritorio-dev.seconserva_buracos.limites_gerencias by its warehouse name instead of ref() or source()",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:67 `l.cod_bairro`: `logradouros` has no column cod_bairro",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:81 `l.completo`: `logradouros` has no column completo",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:86 `l.cl`: `logradouros` has no column cl",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:33 filter removed: ordem_nome = 1",
+    "[bug] models/seconserva_buracos/chamados_priorizados.sql:8 reads rj-escritorio-dev.seconserva_buracos.retorno_chamados_fechados by its warehouse name instead of ref() or source()"
+   ],
+   "repo": "queries-rj-escritorio",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding identifies the labelled bug, where the ordem_nome/ordem_trecho filters moved into the WHERE clause (lines 84-88) and the left join became an inner join that drops unmatched 1746 calls. Finding 7 is about a removed ordem_nome filter at line 33 that makes the row count rise, which is a different mechanism and the opposite effect. The other findings are about hardcoded table names and missing columns."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "66d1759f8c",
+   "title": "adi\u00e7\u00e3o de query para subprefeitura",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "queries-rj-escritorio.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dados_mestres/subprefeitura.sql:8 reads rj-escritorio-dev.dados_mestres_staging.subprefeitura by its warehouse name instead of ref() or source()"
+   ],
+   "findings": [
+    "[bug] models/dados_mestres/bairro.sql:37 reads rj-escritorio-dev.dados_mestres_staging.subprefeitura by its warehouse name instead of ref() or source()",
+    "[bug] models/dados_mestres/bairro.sql:38 `sub.geometry`: `subprefeitura` has no column geometry",
+    "[bug] models/dados_mestres/subprefeitura.sql:8 reads rj-escritorio-dev.dados_mestres_staging.subprefeitura by its warehouse name instead of ref() or source()"
+   ],
+   "repo": "queries-rj-escritorio",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding identifies the labelled bug, which is that subprefeitura.sql:6 builds geometry_wkt from SAFE_CAST(c AS STRING) and the staging table has no column c. Finding 0 is about bairro.sql hardcoding a table name instead of ref(). Finding 1 is about bairro.sql reading sub.geometry. Finding 2 is about the hardcoded table name at subprefeitura.sql:8, which is a different line and a different defect. None mention the nonexistent column c in geometry_wkt."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f9fc48cf06",
+   "title": "Plotting functions now use studyPopulation object",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "SelfControlledCaseSeries.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "SelfControlledCaseSeries",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3711e8d4cb",
+   "title": "Ignore threshold for PRESET PREVALENCE stats.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "WebAPI.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "WebAPI",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5271240051",
+   "title": "updates",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_twilio.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_twilio",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cf2a2071a1",
+   "title": "initial commit",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "queries-datario.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "queries-datario",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "38a5c80957",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "074e2a294b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "6528b7f6b3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "e8f09690be",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "29eeb57d88",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] PhenotypeScripts/N3C_phenotype_act_oracle.sql:3 PhenotypeScripts/N3C_phenotype_act_oracle.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "078ed18671",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "31751775f7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "0871d4b5ab",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "4bef5ed399",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] queries/pull-request-merged-creators-total/template.sql:1 queries/pull-request-merged-creators-total/template.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] unique-company-names.sql:1 unique-company-names.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "e0a94602e4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "467e4ec18c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "09b48e5ba5",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] tests/testthat/cohorts/1001.sql:1 tests/testthat/cohorts/1001.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] tests/testthat/cohorts/5.sql:1 tests/testthat/cohorts/5.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "45000841bf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "08c084ec0f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "6c00d753f2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "4417130a83",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "0e2ad03be9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "6bce22bef3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Characterization",
+   "commit": "5c30f7404b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Characterization",
+   "commit": "135f83a45d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Characterization",
+   "commit": "78d11cbf85",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "cad2c9d6cd",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] inst/testdata/id/sql/sql_server/4.sql:1 inst/testdata/id/sql/sql_server/4.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] inst/testdata/name/sql/sql_server/celecoxibCensored.sql:1 inst/testdata/name/sql/sql_server/celecoxibCensored.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "1f0fda0fe3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "166d81522f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "fbad7176fe",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "2c834b8b30",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "0c638a55a8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "f903add956",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "2eed79eaf1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "08fb7f73ac",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery",
+   "commit": "38c3a39099",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery",
+   "commit": "0b160ddd84",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery",
+   "commit": "61c03e182a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "2309b0b162",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "00bbe6fe89",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "a110ad88bb",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "2db509f4f6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "0bf050f6f4",
+   "error": null,
+   "bug_findings": [
+    "[other] models/dados_mestres/numero_porta.sql:23 reads rj-escritorio-dev.dados_mestres_staging.numero_porta by its warehouse name instead of ref() or source() :: models/dados_mestres/numero_porta.sql:23 reads `rj-escritorio-dev.dados_mestres_staging.numero_porta` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +numero_porta` and the run order ignore it, and every environment reads that one hardcoded table. If it is a"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "570ebef2af",
+   "error": null,
+   "bug_findings": [
+    "[other] models/dados_mestres/bairro.sql:12 reads rj-escritorio-dev.dados_mestres_staging.bairro by its warehouse name instead of ref() or source() :: models/dados_mestres/bairro.sql:12 reads `rj-escritorio-dev.dados_mestres_staging.bairro` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +bairro` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debugging leftove",
+    "[other] models/dados_mestres/logradouro.sql:19 reads rj-escritorio-dev.dados_mestres_staging.logradouro by its warehouse name instead of ref() or source() :: models/dados_mestres/logradouro.sql:19 reads `rj-escritorio-dev.dados_mestres_staging.logradouro` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +logradouro` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debug"
+   ],
+   "later_fixed": [
+    "da48da2 fix: remove leading 0",
+    "da48da2 fix: remove leading 0"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "383ed4a672",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "0a2b29c3c2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "5d6516c26f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "372199445a",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] src/main/resources/db/migration/oracle/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql:1 src/main/resources/db/migration/oracle/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] src/main/resources/db/migration/postgresql/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql:1 src/main/resources/db/migration/postgresql/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] src/main/resources/db/migration/sqlserver/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql:1 src/main/resources/db/migration/sqlserver/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "0b0cb5ffa7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "5ab4bfca17",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "db7d6c7cee",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "298eb98ddf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "14a30cc995",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "2c949a7e6f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "0a1188a698",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "4d1fea1b55",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 39,
+  "caught_judge_bug": "2/39 (5%)",
+  "caught_judge_bug_or_risk": "2/39 (5%)",
+  "caught_strict": "3/39 (8%)",
+  "caught_loose": "4/39 (10%)",
+  "risk_note_only": "0/39 (0%)",
+  "by_repo": {
+   "Characterization": "0/2 (0%)",
+   "CohortDiagnostics": "1/4 (25%)",
+   "CohortGenerator": "0/2 (0%)",
+   "CohortMethod": "0/2 (0%)",
+   "PheValuator": "0/3 (0%)",
+   "Phenotype_Data_Acquisition": "1/4 (25%)",
+   "SelfControlledCaseSeries": "0/1 (0%)",
+   "WebAPI": "0/1 (0%)",
+   "almanac.httparchive.org": "0/2 (0%)",
+   "bigquery": "0/2 (0%)",
+   "bigquery-utils": "0/3 (0%)",
+   "dbt_twilio": "0/1 (0%)",
+   "op-analytics": "0/2 (0%)",
+   "ossinsight": "0/4 (0%)",
+   "queries-datario": "0/1 (0%)",
+   "queries-rj-escritorio": "0/2 (0%)",
+   "stripe": "0/3 (0%)"
+  },
+  "by_category": {
+   "business_logic": "0/9 (0%)",
+   "nullability_or_cast": "0/3 (0%)",
+   "other": "2/16 (12%)",
+   "row_count_change": "0/10 (0%)",
+   "schema_contract": "0/1 (0%)"
+  },
+  "compiles_true": "0/22 (0%)",
+  "compiles_false": "2/17 (12%)",
+  "needs_data_bucket": "0/0",
+  "false_alarm_maintainer_rule": "6/51 (12%)",
+  "ordinary_commits": 51,
+  "false_alarm_share": "7/51 (14%)",
+  "false_alarm_share_excluding_later_fixed": "6/51 (12%)",
+  "commits_with_bug_or_risk": "7/51",
+  "false_alarm_by_repo": {
+   "Characterization": "0/3",
+   "CohortDiagnostics": "0/3",
+   "CohortGenerator": "1/3",
+   "CohortMethod": "0/3",
+   "PheValuator": "1/3",
+   "Phenotype_Data_Acquisition": "1/3",
+   "SelfControlledCaseSeries": "0/3",
+   "WebAPI": "1/3",
+   "almanac.httparchive.org": "0/3",
+   "bigquery": "0/3",
+   "bigquery-utils": "0/3",
+   "dbt_twilio": "0/3",
+   "op-analytics": "0/3",
+   "ossinsight": "1/3",
+   "queries-datario": "0/3",
+   "queries-rj-escritorio": "2/3",
+   "stripe": "0/3"
+  },
+  "errors": 0
+ }
+}

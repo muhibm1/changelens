@@ -1,0 +1,21 @@
+# redshift: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/redshift): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: redshift
+url: https://github.com/dbt-labs/redshift
+bugs:
+  - commit: "e5649b9b0a"
+    parent: "829738179b"
+    title: "add views"
+    fix: "988ddf505a"
+    fix_title: "fix: change to left joins Not all tables are present in the attribute sources, specifically when the table is empty"
+    bug: "the new table_stats view starts from unsorted_by_table and inner joins pg_class, pg_namespace, capacity, table_attributes and table_distribution_ratio, so any table missing from one of those system sources (an empty table has no rows in the attribute and distribution sources) silently disappears from the table stats view"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["table_attributes", "inner"]
+    expect:
+      - {path: "models/views/table_stats.sql", line: 108}
+      - {path: "models/views/table_stats.sql", line: 111}

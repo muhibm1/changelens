@@ -1,0 +1,34 @@
+# CohortGenerator: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/CohortGenerator): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. The SQL is OHDSI SqlRender (SQL Server dialect) over the OMOP common data
+# model. Never derived from ChangeLens's output.
+repo: CohortGenerator
+url: https://github.com/OHDSI/CohortGenerator
+bugs:
+  - commit: "0a135687ed"
+    parent: "aac97783a9"
+    title: "Implementation of negative control outcomes (#55)"
+    fix: "ae64ca3145"
+    fix_title: "Properly remove ncos for each generation - fixes #177 (#178)"
+    bug: "NegativeControlOutcomes.sql clears old rows with DELETE ... WHERE cohort_definition_id IN (SELECT DISTINCT ancestor_concept_id FROM #Codesets), comparing cohort ids with outcome concept ids; the negative control cohort ids (cohortId, separate from outcomeConceptId in the same commit's spec) are never deleted, so regenerating appends duplicate rows, and any unrelated cohort whose id equals a concept id is wiped"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["ancestor_concept_id", "cohort_definition_id"]
+    expect:
+      - {path: "inst/sql/sql_server/NegativeControlOutcomes.sql", line: 31}
+  - commit: "5437d9877d"
+    parent: "2611e73528"
+    title: "Subset sql query builders and modifications to generate cohorts (#73)"
+    fix: "2f30ef8617"
+    fix_title: "Fix bug in right join for negate subset operator (#168)"
+    bug: "in CohortSubsetOperator.sql the negated subset keeps target rows via RIGHT JOIN @target_table B ON B.subject_id = A.subject_id WHERE A.subject_id IS NULL, but A holds qualifying cohort entries (grouped by subject and dates), so a person with one qualifying entry loses every entry instead of only the matching one; the join also needs the cohort start date"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["RIGHT JOIN", "cohort_start_date"]
+    expect:
+      - {path: "inst/sql/sql_server/subsets/CohortSubsetOperator.sql", line: 23}

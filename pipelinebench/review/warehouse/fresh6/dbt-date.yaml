@@ -1,0 +1,36 @@
+# dbt-date: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/calogica/dbt-date): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt-date
+url: https://github.com/calogica/dbt-date
+bugs:
+  - commit: "c3acee304b"
+    parent: "c11b4254f4"
+    title: "Add a bunch of new date macros! :fire:"
+    fix: "8474083965"
+    fix_title: "Fix calls to last_month and next_month (#95)"
+    bug: "the new last_month and next_month macros take only tz, but last_month_number, next_month_name and next_month_number added in the same commit call them as last_month(1, tz) and next_month(1, tz), passing too many arguments, so any model using these macros fails to compile"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["last_month", "arguments"]
+    expect:
+      - {path: "macros/calendar_date/last_month_number.sql", line: 2}
+      - {path: "macros/calendar_date/next_month_name.sql", line: 2}
+      - {path: "macros/calendar_date/next_month_number.sql", line: 2}
+  - commit: "e5b9411ef3"
+    parent: "c3acee304b"
+    title: "Updates day of week and iso week logic"
+    fix: "38d4ee746c"
+    fix_title: "Fix week_start on Snowflake"
+    bug: "snowflake__week_start is a CASE with a single WHEN (date_trunc('week') falls on day_of_week 1, a Sunday) and no ELSE, so it returns NULL for every date whenever Snowflake's week truncation starts on Monday; seeing that this is the default needs knowledge of Snowflake's WEEK_START session setting"
+    category: nullability_or_cast
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["week_start", "else"]
+    expect:
+      - {path: "macros/calendar_date/week_start.sql", line: 11}
+      - {path: "macros/calendar_date/week_start.sql", line: 17}

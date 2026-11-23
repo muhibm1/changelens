@@ -1,0 +1,20 @@
+# queries-datario: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/prefeitura-rio/queries-datario): each bug was
+# found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing
+# commit was read to confirm it added the faulty lines. Never derived from ChangeLens's output.
+repo: queries-datario
+url: https://github.com/prefeitura-rio/queries-datario
+bugs:
+  - commit: "cf2a2071a1"
+    parent: "e3782d3417"
+    title: "initial commit"
+    fix: "16ce7665af"
+    fix_title: "hotfix: viagem_onibus.sql update date param"
+    bug: "viagem_onibus now takes an explicit date_range_start var for incremental runs but keeps the old exclusive filter data > DATE(date_range_start), so the start day itself is never selected; with insert_overwrite that partition is not rebuilt and a backfill from a given start date silently skips its first day"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["date_range_start", ">="]
+    expect:
+      - {path: "models/transporte_rodoviario_municipal/viagem_onibus.sql", line: 47}

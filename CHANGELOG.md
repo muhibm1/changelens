@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Warehouse review agent v9, scored against Claude Opus alone on a held-out set (2026-11-23)
+
+- A render-and-parse step (`compile_check.py`, no model): each changed SQL file is rendered under every template branch (dbt Jinja, SqlRender conditions evaluated from parameter values, Hive variables) and parsed in the dialect it parsed in before the commit; new failures go to the checker as candidates.
+- The checker names the changed line that causes each confirmed bug, which code checks against the commit, and writes one concrete failing input; documentation findings are capped at risk.
+- Hive `.hql`, Dataform `.sqlx`, R and other warehouse code files now reach the reviewers; before, only `.sql`, YAML and Python changes were shown.
+- Baselines in the same harness: `--reviewer plain-opus`, `plain-sonnet` (one review call with the same files) and `free` (parser and rules, no model).
+- Fresh set 5, 39 real bugs from 17 new warehouses, scored once: 34 caught (87%) against 31 for Opus alone, 29 for Sonnet alone and 2 for the free checks (`docs/evidence/warehouse-agent-real-bugs.md`).
+
 ### Every verdict states the action an agent should take (2026-11-09)
 
 - A pre-flight verdict now carries `action`, a decision (`proceed`, `proceed_with_checks` or `escalate`, one to one with `inform`, `warn`, `block`) and one sentence on what it means, shown under the summary as "Recommended action". Agents given a correct verdict had still answered `proceed_with_checks` on safe changes.

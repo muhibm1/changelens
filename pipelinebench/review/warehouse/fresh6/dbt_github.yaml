@@ -1,0 +1,21 @@
+# dbt_github: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_github): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt_github
+url: https://github.com/fivetran/dbt_github
+bugs:
+  - commit: "a07caf2dc5"
+    parent: "8478e6c9eb"
+    title: "cross db compatibility"
+    fix: "fcd16fdf5a"
+    fix_title: "fix time_of_first_requested_reviewer_review"
+    bug: "the cross database rewrite of first_request_time in pull_request_times replaced min(if(...)) with a bare case expression for time_of_first_requested_reviewer_review and added it to the group by (group by 1, 2, 3), so the CTE no longer has one row per pull request: it returns one row per distinct review time plus a NULL row, and the join to issue fans out hours_request_review_to_first_action and the other per pull request times"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["time_of_first_requested_reviewer_review", "group"]
+    expect:
+      - {path: "models/intermediate/pull_request_times.sql", line: 36}
+      - {path: "models/intermediate/pull_request_times.sql", line: 46}

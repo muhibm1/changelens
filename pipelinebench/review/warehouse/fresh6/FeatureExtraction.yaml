@@ -1,0 +1,63 @@
+# FeatureExtraction: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/FeatureExtraction): each bug was found from a
+# later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. The SQL files are OHDSI SqlRender templates that build covariate tables from an
+# OMOP CDM warehouse. Never derived from ChangeLens.
+repo: FeatureExtraction
+url: https://github.com/OHDSI/FeatureExtraction
+bugs:
+  - commit: "069425bc39"
+    parent: "da11da8789"
+    title: "Drug grouping now also contains verbatim concepts (for consistency with condition grouping)."
+    fix: "05fe4388c7"
+    fix_title: "Fixed problem with grouping combined with excluding concepts"
+    bug: "the #groups query in DomainConceptGroup.sql becomes WHERE (ATC condition) OR (standard drug condition) AND concept_id != 0 AND excluded/included filters, with no parentheses around the OR; AND binds tighter, so for ATC ancestors the concept_id != 0 test and the excluded and included concept filters no longer apply and excluded drugs come back into the groups"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["OR", "excluded_concept_table"]
+    expect:
+      - {path: "inst/sql/sql_server/DomainConceptGroup.sql", line: 13}
+      - {path: "inst/sql/sql_server/DomainConceptGroup.sql", line: 11}
+  - commit: "0e8075ff20"
+    parent: "2ea802b9b2"
+    title: "Added measurement groups (below/within/above normal range)"
+    fix: "33b4e9c1d0"
+    fix_title: "Fixing duplicates in counts when generating server-side aggregated  measurement-range-group covariates. Fixes #121 (#122)"
+    bug: "in aggregated mode MeasurementRangeGroup.sql computes sum_value as COUNT(*) over measurement rows grouped by concept and range group, so a person with several measurements in the window is counted several times; sum_value is the number of measurements, not persons, and average_value (divided by the cohort size) can exceed 1"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["COUNT(*)", "duplicate"]
+    expect:
+      - {path: "inst/sql/sql_server/MeasurementRangeGroup.sql", line: 8}
+      - {path: "inst/sql/sql_server/MeasurementRangeGroup.sql", line: 9}
+  - commit: "3ce13a860f"
+    parent: "64b93e5a9b"
+    title: "Added features based on all time prior. Added features for time after index."
+    fix: "012cb63443"
+    fix_title: "Adding missing space causing SQL error when specifying both included and excluded concepts. Thanks to Jamie Weaver for finding and solving this one."
+    bug: "the rewritten WHERE of DomainConceptGroup.sql emits {@excluded_concept_table != ''} ? {AND} directly before ancestor_concept_id, so when both included and excluded concept tables are given the rendered SQL reads ANDancestor_concept_id and fails to parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["AND", "space"]
+    expect:
+      - {path: "inst/sql/sql_server/DomainConceptGroup.sql", line: 57}
+  - commit: "198ad23082"
+    parent: "155bd20b40"
+    title: "added more qualifiers to table names in GetCovariates.sql"
+    fix: "dbc30f8a39"
+    fix_title: "bugfix in qualifiers to table names in GetCovariates.sql"
+    bug: "the schema qualifiers added to the drug_exposure and drug_era joins in GetCovariates.sql are written @cdm_database_schema drug_exposure de1 with a space instead of a dot, so the table name is the schema and drug_exposure becomes an alias followed by a stray de1, and the drug covariate queries do not parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["cdm_database_schema", "dot"]
+    expect:
+      - {path: "inst/sql/sql_server/GetCovariates.sql", line: 733}
+      - {path: "inst/sql/sql_server/GetCovariates.sql", line: 819}

@@ -1,0 +1,48 @@
+# dbt_xero: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_xero): each bug was found from a later
+# fix commit, the fixed lines were traced with git blame on the fix's parent (and git log -S where blame landed on a
+# later edit), and the introducing commit was read to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt_xero
+url: https://github.com/fivetran/dbt_xero
+bugs:
+  - commit: "492e2ad6c5"
+    parent: "402316047c"
+    title: "update models with source relation"
+    fix: "c3b3de5b57"
+    fix_title: "Fix net_amount duplication in balance sheet report by including source_relation in cross join."
+    bug: "xero__balance_sheet_report now groups the ledger by source_relation so several unioned Xero connections can be loaded, but the year_end CTE (one row per organization, so one row per source) is still attached with a bare cross join and no source_relation match, so every ledger row is repeated once per connection and net_amount is multiplied by the number of sources"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["source_relation", "cross join"]
+    expect:
+      - {path: "models/xero__balance_sheet_report.sql", line: 56}
+      - {path: "models/xero__balance_sheet_report.sql", line: 51}
+  - commit: "5ae72b0568"
+    parent: "f84d7a257a"
+    title: "split current year and retained earnings"
+    fix: "36ab6496ce"
+    fix_title: "Bug/date not recognized (#54)"
+    bug: "current_year_end_date takes this year's financial year end if it is still ahead, otherwise the year end of the PREVIOUS year; once this year's year end has passed the current financial year ends next year, so the date is two years behind and the Retained Earnings versus Current Year Earnings split in xero__balance_sheet_report is wrong"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["current_year_end_date", "previous year"]
+    expect:
+      - {path: "models/xero__balance_sheet_report.sql", line: 22}
+  - commit: "5ae72b0568"
+    parent: "f84d7a257a"
+    title: "split current year and retained earnings"
+    fix: "b2a7e60858"
+    fix_title: "bugfix/leap-year-lookback (#46)"
+    bug: "current_year_end_date is built by casting year || '-' || financial_year_end_month || '-' || financial_year_end_day to a date for a different year than the one the day came from; an organization whose financial year ends on 29 February produces an invalid date such as 2023-2-29 in a non-leap year and the model fails at run time"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["leap", "financial_year_end_day"]
+    expect:
+      - {path: "models/xero__balance_sheet_report.sql", line: 22}
+      - {path: "models/xero__balance_sheet_report.sql", line: 20}

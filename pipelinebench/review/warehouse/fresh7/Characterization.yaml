@@ -1,0 +1,37 @@
+# Characterization: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/Characterization): each bug was found
+# from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit
+# was read to confirm it added the faulty lines. The SQL is OHDSI SqlRender over OMOP cohort tables. Never derived from
+# ChangeLens's output.
+repo: Characterization
+url: https://github.com/OHDSI/Characterization
+bugs:
+  - commit: "9d974216c2"
+    parent: "e848a05a02"
+    title: "issue 22 fix"
+    fix: "739a772cc4"
+    fix_title: "bug fix for first O and shiny update"
+    bug: "#outcomes_agg_first is meant to keep each person's first outcome, but its row_number() is partitioned by subject_id, cohort_definition_id and cohort_start_date, so every outcome on a distinct date gets rn = 1 and survives the rn = 1 filter; the 'first O' cohorts (TnfirstO, firstOnT) contain every outcome, not just the first"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["row_number", "cohort_start_date"]
+    expect:
+      - {path: "inst/sql/sql_server/createTargetOutcomeCombinations.sql", line: 35}
+      - {path: "inst/sql/sql_server/createTargetOutcomeCombinations.sql", line: 38}
+  - commit: "e2d04cd5d8"
+    parent: "84bac73773"
+    title: "test + vignette updates"
+    fix: "6965163d0e"
+    fix_title: "fixing average value to be float"
+    bug: "the new ResultTables.sql declares non_case_average_value in risk_factor_covariates_continuous and during_average_value and after_average_value in case_series_covariates_continuous as bigint, while their sibling average columns are float and the same commit's resultsDataModelSpecification.csv says float, so uploaded averages are truncated to integers"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["average_value", "bigint"]
+    expect:
+      - {path: "inst/sql/sql_server/ResultTables.sql", line: 148}
+      - {path: "inst/sql/sql_server/ResultTables.sql", line: 191}
+      - {path: "inst/sql/sql_server/ResultTables.sql", line: 199}

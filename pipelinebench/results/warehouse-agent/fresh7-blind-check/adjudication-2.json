@@ -1,0 +1,117 @@
+[
+ {
+  "id": 2,
+  "verdict": "REAL",
+  "reason": "global.R:83-88 assigns dataFolder/dataFile only when the setting is NULL (inverted, parent assigned unconditionally); fixed in f7459aff 'Fixed bug in connections'."
+ },
+ {
+  "id": 5,
+  "verdict": "FALSE",
+  "reason": "1001.sql is standard Circe-generated OHDSI SQL (codesets, primary_events, cleanup) that SqlRender parses; nothing in the file is malformed."
+ },
+ {
+  "id": 8,
+  "verdict": "REAL",
+  "reason": "CreateResultsDataModel.sql:60-63 PK is (cohort_definition_id, lost_count) while resultsDataModelSpecification.csv marks database_id as a PK column; the migration adds it as a nullable non-key column and the file is unchanged at HEAD."
+ },
+ {
+  "id": 11,
+  "verdict": "REAL",
+  "reason": "Line 505 comments out the 'not in N3C_CONTROL_MAP' filter and the replacement LEFT JOIN to CM has no 'cm.control_patid is null' predicate, so it is a no-op and already-mapped controls stay in the pool; the same no-op join persists through later versions."
+ },
+ {
+  "id": 14,
+  "verdict": "REAL",
+  "reason": "CohortCount.R:92-93 sets counts$databaseId <- databaseId in R after the SQL no longer adds database_id; assigning a length-1 value to a 0-row data.frame errors, a regression for an empty cohort table with no cohortDefinitionSet."
+ },
+ {
+  "id": 17,
+  "verdict": "REAL",
+  "reason": "Export.R:103 renames inclusionRules columns to snake_case unconditionally, but exportStats (default snakeCaseToCamelCase=TRUE, incremental) reads data$cohortDefinitionId, which is now NULL, so saveIncremental returns early and writes nothing; the header is also inconsistent."
+ },
+ {
+  "id": 20,
+  "verdict": "REAL",
+  "reason": "days.sql:7 min(created)+row_number() starts one day after the first event and the spine length is the event count, so the first day has no row and the end date is arbitrary; low impact in practice, code unchanged until moved to util/."
+ },
+ {
+  "id": 23,
+  "verdict": "FALSE",
+  "reason": "Speculative; the claim itself says it could not confirm NULL device rows in CrUX device_summary (devices are desktop/phone/tablet), and the same pattern is reused in later queries without a fix."
+ },
+ {
+  "id": 26,
+  "verdict": "FALSE",
+  "reason": "NOT LIKE without wildcards is sloppy, but expAge > 0 already excludes no-cache/no-store responses so the filter is redundant; query unchanged since 2022 apart from lint upgrades."
+ },
+ {
+  "id": 29,
+  "verdict": "REAL",
+  "reason": "tvl.py:29 calls write(extracted) but write is defined as 'def write():', so pull_l2beat_tvl raises TypeError; WIP code reworked in ab7c62eaa9 L2Beat API uploads."
+ },
+ {
+  "id": 32,
+  "verdict": "FALSE",
+  "reason": "get_sql(\"op\", \"blocks\") ignores the loop variable but datasets is narrowed to [\"blocks\"], so the output is currently correct; latent only, in a brand new file."
+ },
+ {
+  "id": 35,
+  "verdict": "FALSE",
+  "reason": "The script is a templated Oracle script (@resultsDatabaseSchema) with valid EXECUTE IMMEDIATE blocks and CTAS statements; no parse error is evident and it continued to be edited and used through 4.0."
+ },
+ {
+  "id": 38,
+  "verdict": "REAL",
+  "reason": "Same as item 14: CohortCount.R:93 assigns a scalar to counts$databaseId, which errors when counts has zero rows and no cohortDefinitionSet merge supplies rows; the SQL previously added the column."
+ },
+ {
+  "id": 41,
+  "verdict": "UNCLEAR",
+  "reason": "stripe_subscription_events.sql:19 reads bare stripe_events instead of events; it was changed to 'from events' in 615b2ff the same day, but with view materialization and the ref in the CTE it likely resolved via search_path, so failure is not established."
+ },
+ {
+  "id": 44,
+  "verdict": "REAL",
+  "reason": "test_l2beat.py:15-16 has breakpoint() and 'assert actual == None' while extract returns a DataFrame, so the test hangs or errors and cannot pass."
+ },
+ {
+  "id": 47,
+  "verdict": "REAL",
+  "reason": "execute.py:28 reassigns dataframes inside the dt loop, so on a second date filter_to_date runs on already filtered data (no blocks, min/max None) and later dates break or vanish; the 677c7b83b9 rewrite uses a separate input_dataframes."
+ },
+ {
+  "id": 50,
+  "verdict": "REAL",
+  "reason": "schema_mapping_docs.py:14 EXCLUDED_COLS still lists ingestion_metadata after shared.py:19 renamed the column to _meta in this commit, so _meta now appears in generated docs and the gsheet; still stale in 677c7b83b9."
+ },
+ {
+  "id": 53,
+  "verdict": "REAL",
+  "reason": "global.R:319 runs queryRenderedSqlFromDatabase(connection=connection, vocabularyDatabaseSchema) unconditionally; in local/file mode neither object is defined, so startup errors, and the original code had no such call."
+ },
+ {
+  "id": 56,
+  "verdict": "REAL",
+  "reason": "global.R:114-118 passes username=username in the user-settings branch where credentials were assigned to user, so 'object username not found' occurs; the parent used connectionDetails$user directly."
+ },
+ {
+  "id": 59,
+  "verdict": "REAL",
+  "reason": "pwaScores.sql:22-23 only matches service-worker score 'true'; sibling queries already used IN ('true','1') and 8192a27 later added the '1' branch for the newer Lighthouse format."
+ },
+ {
+  "id": 62,
+  "verdict": "REAL",
+  "reason": "fromlocal.py:4 defines read_core_tables(block_range) but read.py calls it with (chain, block_range), and get_sql/run_queries_concurrently are never imported, so any local source fails with TypeError/NameError."
+ },
+ {
+  "id": 65,
+  "verdict": "FALSE",
+  "reason": "Speculative; cohort.metadata is a required column in the data model and the loop is only entered when the column exists, so the NULL/empty case is not shown to occur."
+ },
+ {
+  "id": 68,
+  "verdict": "REAL",
+  "reason": "stripe_subscription_events.sql:63 selects product from filtered, which has no such column, so the model fails with an unknown column error; 615b2ff removed the line the same day."
+ }
+]

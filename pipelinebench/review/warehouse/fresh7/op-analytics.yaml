@@ -1,0 +1,35 @@
+# op-analytics: real warehouse bugs located at the commit that introduced them, part of the fresh7 held-out set.
+# Written by hand from the public upstream history (https://github.com/ethereum-optimism/op-analytics): each bug was
+# found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing
+# commit was read to confirm it added the faulty lines. The SQL is ClickHouse. Never derived from ChangeLens's output.
+repo: op-analytics
+url: https://github.com/ethereum-optimism/op-analytics
+bugs:
+  - commit: "a0e159c3be"
+    parent: "5ad8b76931"
+    title: "Let Revshare take in all Inbound Transfers (#1678)"
+    fix: "5cd67cca28"
+    fix_title: "Fix RS Insert logic (#1681)"
+    bug: "revshare_transfers_v1__INSERT turns the inner join to revshare_from_addresses into a LEFT JOIN and flags is_revshare_transfer as f.address IS NOT NULL; in ClickHouse, without join_use_nulls (which other transforms in the repository set explicitly), an unmatched left join fills the String column with an empty string, not NULL, so every inbound transfer is flagged as a revshare transfer"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["is_revshare_transfer", "join_use_nulls"]
+    expect:
+      - {path: "src/op_analytics/datapipeline/etl/blockbatchload/ddl/revshare_transfers/revshare_transfers_v1__INSERT.sql", line: 21}
+      - {path: "src/op_analytics/datapipeline/etl/blockbatchload/ddl/revshare_transfers/revshare_transfers_v1__INSERT.sql", line: 57}
+  - commit: "566683c385"
+    parent: "b90f5c78d4"
+    title: "Migrate teleportr to Clickhouse transforms (#1380)"
+    fix: "5ef297f198"
+    fix_title: "Join use nulls (#1400)"
+    bug: "the ClickHouse teleportr fact table LEFT JOINs the token metadata (mi, mo) and chain metadata but runs with SETTINGS use_hive_partitioning = 1 only; without join_use_nulls an unmatched token gets decimals 0 and an empty symbol instead of NULL, so input_amount and output_amount come out as the raw integer amounts rather than NULL"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["join_use_nulls", "decimals"]
+    expect:
+      - {path: "src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql", line: 152}
+      - {path: "src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql", line: 124}

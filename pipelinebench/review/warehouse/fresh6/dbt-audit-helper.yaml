@@ -1,0 +1,34 @@
+# dbt-audit-helper: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt-audit-helper): each bug was found from
+# a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read
+# to confirm it added the faulty lines. Never derived from ChangeLens.
+repo: dbt-audit-helper
+url: https://github.com/dbt-labs/dbt-audit-helper
+bugs:
+  - commit: "2ecb37c6eb"
+    parent: "e3deac32b2"
+    title: "update readme"
+    fix: "464c211391"
+    fix_title: "account for comparison of null value to missing value"
+    bug: "compare_column_values_verbose now sets perfect_match = coalesce(a = b, (a is null and b is null), false) after a full outer join on the primary key; when a row exists in only one relation every column of the missing side is NULL, so a NULL value in the present row is reported as a perfect match against a missing row"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["perfect_match", "missing"]
+    expect:
+      - {path: "macros/compare_column_values_verbose.sql", line: 24}
+  - commit: "49d34793a8"
+    parent: "1e76ed9c47"
+    title: "fix logical error in conflicting_values"
+    fix: "1dbaaf9d43"
+    fix_title: "ensure that values are present (or null) in both tables before counting them as conflicting"
+    bug: "the rewritten conflicting_values is true when a is not null and b is null (or the reverse) without checking that the primary key exists on both sides; after the full outer join a row that is simply missing from one relation has all NULL columns on that side, so every row reported as missing_from_a or missing_from_b is also counted as conflicting"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["conflicting_values", "primary_key"]
+    expect:
+      - {path: "macros/compare_column_values_verbose.sql", line: 35}
+      - {path: "macros/compare_column_values_verbose.sql", line: 36}

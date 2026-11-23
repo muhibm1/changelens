@@ -1,0 +1,35 @@
+# almanac.httparchive.org: real warehouse bugs located at the commit that introduced them, part of the fresh7
+# held-out set. Written by hand from the public upstream history (https://github.com/HTTPArchive/almanac.httparchive.org):
+# each bug was found from a later fix commit, the fixed lines were traced with git blame on the fix's parent, and the
+# introducing commit was read to confirm it added the faulty lines. The SQL is the Web Almanac's BigQuery analysis
+# queries over the HTTP Archive tables. Never derived from ChangeLens's output.
+repo: almanac.httparchive.org
+url: https://github.com/HTTPArchive/almanac.httparchive.org
+bugs:
+  - commit: "547f47cb32"
+    parent: "c6dff48ea7"
+    title: "WebAssembly SQL updates (#2504)"
+    fix: "580f4855e6"
+    fix_title: "Few more fixups to Wasm SQL (#2559)"
+    bug: "compression_methods groups by client and resp_content_encoding but computes pct as count / SUM(count) OVER () with an empty window, so each share is taken over desktop and mobile together and the percentages within a client do not add to 100 (the window needed PARTITION BY client)"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["pct", "PARTITION BY client"]
+    expect:
+      - {path: "sql/2021/webassembly/compression_methods.sql", line: 3}
+  - commit: "fbd36f1f18"
+    parent: "bc23aa50f7"
+    title: "Add maximum-scale to query"
+    fix: "934ffd210b"
+    fix_title: "Small fix to zooming and scaling metric (#244)"
+    bug: "locked_max_scale is REGEXP_EXTRACT(meta_viewport, '(?i)maximum-scale\\\\s*=\\\\s*1') IS NOT NULL, an unanchored match on the leading digit, so maximum-scale=10 or maximum-scale=1.5 (which allow zooming) are counted as sites that lock zoom; both 09_26 and 12_04 overcount"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["maximum-scale", "locked_max_scale"]
+    expect:
+      - {path: "sql/2019/09_Accessibility/09_26.sql", line: 19}
+      - {path: "sql/2019/12_Mobile_Web/12_04.sql", line: 19}

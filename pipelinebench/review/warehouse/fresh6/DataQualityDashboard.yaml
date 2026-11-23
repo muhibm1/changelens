@@ -1,0 +1,60 @@
+# DataQualityDashboard: real warehouse bugs located at the commit that introduced them, part of the fresh6 held-out set.
+# Written by hand from the public upstream history (https://github.com/OHDSI/DataQualityDashboard): each bug was found
+# from a later fix commit, the fixed lines were traced with git blame on the fix's parent (back past alias-only edits to
+# the commit that wrote the logic), and the introducing commit was read to confirm it added the faulty lines. The SQL
+# files are OHDSI SqlRender templates run against an OMOP CDM warehouse. Never derived from ChangeLens.
+repo: DataQualityDashboard
+url: https://github.com/OHDSI/DataQualityDashboard
+bugs:
+  - commit: "c05f15ff53"
+    parent: "6288839352"
+    title: "Add files via upload"
+    fix: "d178ab84a1"
+    fix_title: "updated fk query to exclude NULL children from orphan count"
+    bug: "the is_foreign_key check counts as violations every child row whose LEFT JOIN to the parent table finds no match (WHERE @fkTableName.@fkFieldName IS NULL), which includes every row where the child's own foreign key field is NULL; a NULL foreign key is not an orphan, so optional foreign keys report inflated violation counts"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["foreign key", "null"]
+    expect:
+      - {path: "is_foreign_key.sql", line: 25}
+  - commit: "7b9d05f675"
+    parent: "c05f15ff53"
+    title: "field level queries 2,3,4,6, & 7"
+    fix: "9ced1248f2"
+    fix_title: "Added IS NOT NULL to WHERE clause of the data type sql check"
+    bug: "field_cdm_datatype flags rows WHERE ISNUMERIC(field) = 0; ISNUMERIC returns 0 for NULL, so every NULL in an optional integer field is counted as a datatype violation"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["ISNUMERIC", "null"]
+    expect:
+      - {path: "field_cdm_datatype.sql", line: 23}
+  - commit: "1dc95349cd"
+    parent: "441c9d6436"
+    title: "Create insert_into_results_table.sql"
+    fix: "0ddaf623b2"
+    fix_title: "Fixed threshold violation comparison"
+    bug: "the new insert_into_results_table template marks a check failed when cte.pct_violated_rows > @threshold_value, but every check query returns pct_violated_rows as a fraction (1.0 * num_violated_rows / num_rows) while thresholds are percentages, so almost no check ever fails; the fraction must be multiplied by 100 first"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["pct_violated_rows", "threshold_value"]
+    expect:
+      - {path: "inst/sql/sql_server/insert_into_results_table.sql", line: 47}
+  - commit: "a8272ffd95"
+    parent: "658c90fb2c"
+    title: "fix numerator"
+    fix: "f10acc0ba7"
+    fix_title: "fix concept completeness bug"
+    bug: "the numerator of field_concept_record_completeness now adds OR (field IS NULL AND cdmTable.unit_source_value IS NOT NULL) whenever the field is UNIT_CONCEPT_ID, but DOSE_ERA has a unit_concept_id that is checked and no unit_source_value column, so the check fails with an invalid column for DOSE_ERA"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["unit_source_value", "DOSE_ERA"]
+    expect:
+      - {path: "inst/sql/sql_server/field_concept_record_completeness.sql", line: 39}

@@ -1,0 +1,17 @@
+/home/user/fresh-repos-7/CohortDiagnostics https://github.com/OHDSI/CohortDiagnostics
+/home/user/fresh-repos-7/Phenotype_Data_Acquisition https://github.com/National-COVID-Cohort-Collaborative/Phenotype_Data_Acquisition
+/home/user/fresh-repos-7/ossinsight https://github.com/pingcap/ossinsight
+/home/user/fresh-repos-7/PheValuator https://github.com/OHDSI/PheValuator
+/home/user/fresh-repos-7/bigquery-utils https://github.com/GoogleCloudPlatform/bigquery-utils
+/home/user/fresh-repos-7/stripe https://github.com/dbt-labs/stripe
+/home/user/fresh-repos-7/Characterization https://github.com/OHDSI/Characterization
+/home/user/fresh-repos-7/CohortGenerator https://github.com/OHDSI/CohortGenerator
+/home/user/fresh-repos-7/CohortMethod https://github.com/OHDSI/CohortMethod
+/home/user/fresh-repos-7/almanac.httparchive.org https://github.com/HTTPArchive/almanac.httparchive.org
+/home/user/fresh-repos-7/bigquery https://github.com/HTTPArchive/bigquery
+/home/user/fresh-repos-7/op-analytics https://github.com/ethereum-optimism/op-analytics
+/home/user/fresh-repos-7/queries-rj-escritorio https://github.com/prefeitura-rio/queries-rj-escritorio
+/home/user/fresh-repos-7/SelfControlledCaseSeries https://github.com/OHDSI/SelfControlledCaseSeries
+/home/user/fresh-repos-7/WebAPI https://github.com/OHDSI/WebAPI
+/home/user/fresh-repos-7/dbt_twilio https://github.com/fivetran/dbt_twilio
+/home/user/fresh-repos-7/queries-datario https://github.com/prefeitura-rio/queries-datario
