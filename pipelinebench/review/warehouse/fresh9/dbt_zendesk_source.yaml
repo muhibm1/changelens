@@ -1,0 +1,20 @@
+# dbt_zendesk_source: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_zendesk_source): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt_zendesk_source
+url: https://github.com/fivetran/dbt_zendesk_source
+bugs:
+- commit: "e218803162"
+  parent: "156d2a0a2a"
+  title: seed data
+  fix: "b38c82f869"
+  fix_title: revert to excluding deleted schedules
+  bug: the where not coalesce(_fivetran_deleted, false) filter of stg_zendesk__schedule was commented out, so schedules that were deleted at the source are no longer excluded from the staging model
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [_fivetran_deleted, schedule]
+  expect:
+  - {path: models/stg_zendesk__schedule.sql, line: 41}

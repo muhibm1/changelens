@@ -1,0 +1,33 @@
+# dbt-dataquality: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/Divergent-Insights/dbt-dataquality): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-dataquality
+url: https://github.com/Divergent-Insights/dbt-dataquality
+bugs:
+- commit: "3842f410b6"
+  parent: "bee54783c7"
+  title: Adding dry run option
+  fix: "be3f69949d"
+  fix_title: Correcting minor logic error with new dry_run functionality
+  bug: 'the new dry_run option of create_schema is inverted: run_query(sql) executes only when dry_run is true, so a dry run creates the schema and a normal run never does'
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [dry_run, create_schema]
+  expect:
+  - {path: macros/schema/create_schema.sql, line: 11}
+- commit: "3392e86c83"
+  parent: "1b04def1b7"
+  title: Adjusting logic of variable file in load_internal_stage macro, removing dummy default value
+  fix: "2cc4d80dfe"
+  fix_title: Fixing non-default arguments in load_internal_stage macro
+  bug: load_internal_stage is declared with a defaulted argument before a non-default one (clean_stage=true, file), which is an invalid macro signature
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [clean_stage, file]
+  expect:
+  - {path: macros/stage/load_internal_stage.sql, line: 1}

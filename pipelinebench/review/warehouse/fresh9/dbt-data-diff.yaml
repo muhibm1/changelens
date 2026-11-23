@@ -1,0 +1,72 @@
+# dbt-data-diff: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/infinitelambda/dbt-data-diff): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-data-diff
+url: https://github.com/infinitelambda/dbt-data-diff
+bugs:
+- commit: "2d1e7f6f3c"
+  parent: "df8c06f67f"
+  title: 'feat: correct match %'
+  fix: "cf53d0354a"
+  fix_title: 'fix: match_percentage'
+  bug: in the check_data_diff procedure total_count is computed as count(*) over the whole source table, while diff_count comes from comparisons restricted by where_condition, so match_percentage = 1 - diff_count / total_count uses a denominator that includes the filtered-out rows and overstates the match
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [total_count, where_condition]
+  expect:
+  - {path: macros/resources/stored-procedures/create__check_data_diff.sql, line: 187}
+- commit: "2d1e7f6f3c"
+  parent: "df8c06f67f"
+  title: 'feat: correct match %'
+  fix: "cf53d0354a"
+  fix_title: 'fix: match_percentage'
+  bug: diff_count is a count over compare_content, which unions different_in_source and different_in_target, so each differing row is counted once for each side; match_percentage = 1 - diff_count / total_count therefore double counts differences and understates the match rate
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [diff_count, match_percentage]
+  expect:
+  - {path: macros/resources/stored-procedures/create__check_data_diff.sql, line: 189}
+- commit: "676ded977e"
+  parent: "8f3483658c"
+  title: 'feat: allow configurable target schema name'
+  fix: "8da691c1c6"
+  fix_title: 'fix: missing leading comma'
+  bug: in refresh_configured_tables the trg_db select item of the fixed naming branch has no leading comma, so the generated SQL joins src_table and trg_db into one expression and fails
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [comma, trg_db]
+  expect:
+  - {path: macros/resources/refresh_configured_tables.sql, line: 28}
+- commit: "676ded977e"
+  parent: "8f3483658c"
+  title: 'feat: allow configurable target schema name'
+  fix: "d818f894cc"
+  fix_title: 'fix: missing comma #2'
+  bug: in refresh_configured_tables the trg_db select item of the generate_database_name branch has no leading comma either, so the generated SQL joins src_table and trg_db into one expression and fails
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [comma, trg_db]
+  expect:
+  - {path: macros/resources/refresh_configured_tables.sql, line: 31}
+- commit: "cf53d0354a"
+  parent: "88c3d84c2d"
+  title: 'fix: match_percentage'
+  fix: "36309b92f9"
+  fix_title: 'fix: where in data diff'
+  bug: the total_count subquery added to check_data_diff has an extra closing parenthesis after the where_condition (')) as total_count), leaving the surrounding select unbalanced
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [parenthesis, total_count]
+  expect:
+  - {path: macros/resources/stored-procedures/create__check_data_diff.sql, line: 187}

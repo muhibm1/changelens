@@ -1,0 +1,20 @@
+# dbt-redshift: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt-redshift): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-redshift
+url: https://github.com/dbt-labs/dbt-redshift
+bugs:
+- commit: "493148eb7e"
+  parent: "5958da3c9f"
+  title: add merge as a valid incremental strategy (#490)
+  fix: "8b301035a3"
+  fix_title: Insert values of `merge_exclude_columns` when not matched (#564)
+  bug: the redshift merge incremental strategy builds the when not matched insert column list and its values list from update_columns, so columns excluded from updates are also left out of newly inserted rows and come in as null
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [update_columns, insert]
+  expect:
+  - {path: dbt/include/redshift/macros/materializations/incremental_merge.sql, line: 54}

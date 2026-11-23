@@ -1,0 +1,20 @@
+# providence: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/mrzzy/providence): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: providence
+url: https://github.com/mrzzy/providence
+bugs:
+- commit: "8b80cbf800"
+  parent: "3f6a388f1e"
+  title: 'refactor(pipelines): Explictly create Redshift External Tables in Pipeline DAGs (#78)'
+  fix: "002618db02"
+  fix_title: 'fix(pipelines): typo in location of source_ynab create external table sql'
+  bug: the external table for the YNAB source in source_ynab.sql was copied from the UOB source and its LOCATION still points at providence/grade=raw/source=uob/, so the ynab table reads the UOB files instead of the YNAB files
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [LOCATION, source=uob]
+  expect:
+  - {path: pipelines/sql/source_ynab.sql, line: 30}

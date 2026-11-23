@@ -1,0 +1,20 @@
+# ga4-pipeline-framework: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/Bounteous-Inc/ga4-pipeline-framework): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: ga4-pipeline-framework
+url: https://github.com/Bounteous-Inc/ga4-pipeline-framework
+bugs:
+- commit: "61c8cc9265"
+  parent: "204d375743"
+  title: adding ecommerce and transaction models.  updating logging to more general assertions on all models updating config and helper to enable additional dynamic logic
+  fix: "b03199dd8f"
+  fix_title: 'Fix: transactions table incorrectly compiled when HAS_ECOMMERCE is false'
+  bug: the transactions table sets disabled to !HAS_ECOMMERCE, but Dataform compilation variables are strings, so the string 'false' is truthy, disabled is always false and the ecommerce transactions table is built even when ecommerce is switched off
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [HAS_ECOMMERCE, disabled]
+  expect:
+  - {path: definitions/outputs/transactions.sqlx, line: 3}

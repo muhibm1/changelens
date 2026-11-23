@@ -1,0 +1,60 @@
+# dbt_hubspot_source: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_hubspot_source): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt_hubspot_source
+url: https://github.com/fivetran/dbt_hubspot_source
+bugs:
+- commit: "e58f66ba7b"
+  parent: "36dd84b468"
+  title: PR suggestions
+  fix: "ef33562f2b"
+  fix_title: cast fix
+  bug: stg_hubspot__ticket_pipeline_stage casts pipeline_id and stage_id, which are identifiers, to the timestamp type (dbt.type_timestamp()) instead of string, so ticket_pipeline_id and ticket_pipeline_stage_id come out as timestamps or fail to cast
+  category: nullability_or_cast
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [pipeline_id, type_timestamp]
+  expect:
+  - {path: models/stg_hubspot__ticket_pipeline_stage.sql, line: 32}
+  - {path: models/stg_hubspot__ticket_pipeline_stage.sql, line: 33}
+- commit: "ffcf4760d7"
+  parent: "ac7706b31f"
+  title: try 1
+  fix: "03a850b829"
+  fix_title: found the typo
+  bug: stg_hubspot__merged_deal builds its staging columns from get_deal_columns() instead of get_merged_deal_columns(), so the model is filled with the deal column list rather than the merged deal one
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [get_deal_columns, get_merged_deal_columns]
+  expect:
+  - {path: models/stg_hubspot__merged_deal.sql, line: 14}
+- commit: "46467b0806"
+  parent: "452007ab58"
+  title: conditional to check if no additional fields are available to passthrough
+  fix: "474386ca5a"
+  fix_title: contact macro fix
+  bug: the passthrough column check in stg_hubspot__contact calls all_passthrough_column_check('stg_hubspot__company_tmp', get_company_columns()) so contact passthrough columns are checked against the company tmp model and company columns
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [all_passthrough_column_check, stg_hubspot__company_tmp]
+  expect:
+  - {path: models/stg_hubspot__contact.sql, line: 30}
+- commit: "9549dfead7"
+  parent: "393bd1156d"
+  title: created deal_contact models
+  fix: "6ff512d6c3"
+  fix_title: fixed macro ref in model
+  bug: stg_hubspot__deal_contact builds its staging columns from get_deal_company_columns() instead of get_deal_contact_columns(), so the contact link model is filled with the deal to company column list
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [get_deal_company_columns, get_deal_contact_columns]
+  expect:
+  - {path: models/stg_hubspot__deal_contact.sql, line: 14}

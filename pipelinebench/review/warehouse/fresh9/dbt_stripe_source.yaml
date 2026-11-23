@@ -1,0 +1,34 @@
+# dbt_stripe_source: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_stripe_source): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt_stripe_source
+url: https://github.com/fivetran/dbt_stripe_source
+bugs:
+- commit: "918e684ae1"
+  parent: "63605fcd96"
+  title: documentation and timestamp fixes
+  fix: "7aa6813799"
+  fix_title: timestamp typo
+  bug: in stg_stripe__invoice the casts for the status_transitions timestamps use dbt.type_timestampe(), a misspelled macro name that does not exist, so the model fails to compile
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [type_timestampe, status_transitions]
+  expect:
+  - {path: models/stg_stripe__invoice.sql, line: 59}
+- commit: "5dad11c38e"
+  parent: "188122002b"
+  title: fix surrogate
+  fix: "5cb7571ab9"
+  fix_title: fix field name in surr key
+  bug: stg_stripe__pricing builds its surrogate_key from price_id and plan_id, which are not columns of the fields CTE (the column is id) but aliases defined in the same select list, so the surrogate key references columns that do not exist
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [surrogate_key, price_id]
+  expect:
+  - {path: models/stg_stripe__pricing.sql, line: 32}
+  - {path: models/stg_stripe__pricing.sql, line: 90}

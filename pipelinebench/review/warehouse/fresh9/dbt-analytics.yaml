@@ -1,0 +1,60 @@
+# dbt-analytics: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/wnl-icb-analytics/dbt-analytics): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-analytics
+url: https://github.com/wnl-icb-analytics/dbt-analytics
+bugs:
+- commit: "4e06be4f56"
+  parent: "23e357dd37"
+  title: Feature/partner attribution (#503)
+  fix: "d4e210d4d3"
+  fix_title: 'fix: resident doubled, changed one instance to registered. (#536)'
+  bug: int_person_borough_registered_or_resident is meant to union each person's registered borough with their resident borough, but both halves of the UNION select BOROUGH_RESIDENT (the second copy was never changed to BOROUGH_REGISTERED), so the model contains only resident boroughs and registered boroughs are silently missing
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [BOROUGH_RESIDENT, BOROUGH_REGISTERED]
+  expect:
+  - {path: models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql, line: 9}
+  - {path: models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql, line: 11}
+- commit: "51e54bba5a"
+  parent: "ff914335bf"
+  title: 'fix: refactord csds_deduplication macro'
+  fix: "6e7d40ea2f"
+  fix_title: 'fix: csds deduplication macro'
+  bug: deduplicate_csds partitions ROW_NUMBER() by the quoted string literal 'tbl.unique_service_request_identifier' instead of the column, so the leading partition key is a constant and the sequence = 1 filter keeps only one row per remaining partition column set rather than one per service request
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [PARTITION BY, unique_service_request_identifier]
+  expect:
+  - {path: macros/deduplicate_csds.sql, line: 10}
+- commit: "87f8979172"
+  parent: "98c0c4906d"
+  title: 'feat: add in another cohort for Shingles adult TS (#1269)'
+  fix: "c9a38f144e"
+  fix_title: 'feat: shingles label fix (#1270)'
+  bug: int_adult_imms_ts_historical_shingles_dose_2 labels the immunocompromised cohort rows with 'Shingles Dose 1' in the VACCINE column although the whole model is the dose 2 series, so dose 2 rows for that cohort are reported as dose 1
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [Shingles Dose 1, VACCINE]
+  expect:
+  - {path: models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql, line: 72}
+- commit: "6f02531511"
+  parent: "a56aa503e6"
+  title: 'add: Staging table and yml for the PDS address table'
+  fix: "71ceff982e"
+  fix_title: 'fix: Incorrect source column name replaced with correct one'
+  bug: the new stg_pds_pds_address staging model selects person_business_effective_from_date and person_business_effective_to_date, which are not columns of the raw PDS address table (the address columns carry a usual_address prefix), so the model fails at run time
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [person_business_effective_from_date, event_from_date]
+  expect:
+  - {path: models/staging/shared/stg_pds_pds_address.sql, line: 6}
