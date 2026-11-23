@@ -1,0 +1,86 @@
+# openFEC: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/fecgov/openFEC): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: openFEC
+url: https://github.com/fecgov/openFEC
+bugs:
+  - commit: "daf42fd667"
+    parent: "6d5bf216f5"
+    title: "Candidate Detail still behaving oddly"
+    fix: "ef73540ea0"
+    fix_title: "Fix self-join bug"
+    bug: "the join condition cp_most_recent.cand_sk = cp_most_recent.cand_sk compares the table to itself, so it is always true and the max() aggregates run over every candidate instead of the one being described"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["cand_sk", "join"]
+    expect:
+      - {path: "data/sql_updates/create_candidate_detail_vw.sql", line: 48}
+  - commit: "699ac8f990"
+    parent: "3b0f17aa77"
+    title: "Added join to enable reference of committee_name"
+    fix: "5aadbbfb5e"
+    fix_title: "This is a fix so records do not get duplicated if the committee has multiple entries in the committee history table. I used the most up to date name, that is what we do elsewhere. Removed idx because we were not using it since we have the unique key sub_id."
+    bug: "communication costs left join ofec_committee_history_mv_tmp on committee id only, but that view holds one row per committee per cycle, so each cost row is duplicated once per cycle"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["cycle", "duplicate"]
+    expect:
+      - {path: "data/sql_updates/communication_cost.sql", line: 11}
+      - {path: "data/sql_updates/communication_cost.sql", line: 8}
+  - commit: "3cb1ebf5f1"
+    parent: "2ccce858f7"
+    title: "Add /committee endpoint"
+    fix: "e129ad6bba"
+    fix_title: "Debugged: null values were causing zero full-text scores"
+    bug: "the full text vector concatenates to_tsvector results built from nullable columns, and one NULL makes the whole tsvector NULL, so those rows never match a search"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["tsvector", "null"]
+    expect:
+      - {path: "data/ddl/fulltext.sql", line: 10}
+      - {path: "data/ddl/fulltext.sql", line: 11}
+      - {path: "data/ddl/fulltext.sql", line: 12}
+      - {path: "data/ddl/fulltext.sql", line: 13}
+      - {path: "data/ddl/fulltext.sql", line: 39}
+      - {path: "data/ddl/fulltext.sql", line: 40}
+      - {path: "data/ddl/fulltext.sql", line: 41}
+      - {path: "data/ddl/fulltext.sql", line: 42}
+      - {path: "data/ddl/fulltext.sql", line: 43}
+      - {path: "data/ddl/fulltext.sql", line: 44}
+      - {path: "data/ddl/fulltext.sql", line: 45}
+      - {path: "data/ddl/fulltext.sql", line: 46}
+      - {path: "data/ddl/fulltext.sql", line: 47}
+      - {path: "data/ddl/fulltext.sql", line: 48}
+  - commit: "5996693cf6"
+    parent: "a70b6db84e"
+    title: "Update candidate_inactive and test subset."
+    fix: "70c95e3fed"
+    fix_title: "Fix candidate inactive flag."
+    bug: "candidate_inactive is computed as inactive.cand_id is null, which is true for active candidates, and the inactive join uses only cand_id so a candidate inactive in one election year is flagged in all"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["inactive", "election"]
+    expect:
+      - {path: "data/sql_updates/create_candidate_history_view.sql", line: 41}
+  - commit: "09038d3c79"
+    parent: "1baf034f4f"
+    title: "Checking for earmarks that are coded or have earmark in their name."
+    fix: "7b156bbcce"
+    fix_title: "the check for earmark is for exclusion, with the and, we were filtering out all the small donors."
+    bug: "is_earmark changes and to or, so every memo coded X receipt counts as an earmark and is excluded from small donor totals"
+    category: business_logic
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["memo_code", "earmark"]
+    expect:
+      - {path: "data/functions/individual.sql", line: 32}

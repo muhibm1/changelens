@@ -1,0 +1,62 @@
+# automate-dv: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/Datavault-UK/automate-dv): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: automate-dv
+url: https://github.com/Datavault-UK/automate-dv
+bugs:
+  - commit: "df5d36bc42"
+    parent: "a8bfcec98d"
+    title: "WIP"
+    fix: "d536a9dc0a"
+    fix_title: "Fix for idempotent load issue #207"
+    bug: "valid_stg left joins latest_records and then filters WHERE src load date >= sat load date in the WHERE clause, which drops every new key (sat columns NULL) and reloads records whose load date equals the latest, breaking idempotent loads"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["left join", "ldts"]
+    expect:
+      - {path: "macros/tables/snowflake/sat.sql", line: 74}
+  - commit: "67b39ef75d"
+    parent: "a178d1d227"
+    title: "Refactor of types in the harness"
+    fix: "8a4aac3984"
+    fix_title: "Fixes for native hashing flag"
+    bug: "enable_native_hashes is read as var('enable_native_hashes', false) | lower, which turns False into the non empty string 'false', so not enable_native_hashes is never true and the binary type is always chosen"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["enable_native_hashes", "lower"]
+    expect:
+      - {path: "macros/supporting/data_types/type_binary.sql", line: 26}
+      - {path: "macros/supporting/data_types/type_binary.sql", line: 28}
+      - {path: "macros/supporting/data_types/type_binary.sql", line: 40}
+      - {path: "macros/supporting/data_types/type_binary.sql", line: 42}
+  - commit: "b85b406d0b"
+    parent: "5a71246dc5"
+    title: "Fix single item hashdiff"
+    fix: "775be7ad51"
+    fix_title: "Fix concat_ws"
+    bug: "concat_ws calls string_list.join(', '), but a Jinja list has no join method, so the macro raises at compile time"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["join", "string_list"]
+    expect:
+      - {path: "macros/internal/metadata_processing/concat_ws.sql", line: 9}
+  - commit: "d4dc2faa64"
+    parent: "ff947ec1dc"
+    title: "Add error message and disable tests"
+    fix: "d8cbb128f2"
+    fix_title: "Fix syntax"
+    bug: "the new SQL Server stub for vault_insert_by_rank has a second materialization vault_insert_by_period, adapter='sqlserver' opening tag pasted onto the same line, leaving an unclosed materialization block, so the package fails to parse"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["materialization", "sqlserver"]
+    expect:
+      - {path: "macros/materialisations/vault_insert_by_rank_materialization.sql", line: 171}

@@ -1,0 +1,33 @@
+# make-open-data: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/make-open-data/make-open-data): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: make-open-data
+url: https://github.com/make-open-data/make-open-data
+bugs:
+  - commit: "4dbec3edb1"
+    parent: "f89bb77430"
+    title: "create table for communes"
+    fix: "75a5ef2157"
+    fix_title: "make sure to filter communes"
+    bug: "the TYPECOM = 'COM' condition sits in the ON clause of a LEFT JOIN, so it filters nothing and non commune rows stay in mod_geo_communes"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["typecom", "left join"]
+    expect:
+      - {path: "models/mod/geo/mod_geo_communes.sql", line: 23}
+  - commit: "bc9050b801"
+    parent: "aed7ac804b"
+    title: "functional model for z region, to optimise"
+    fix: "60f2eaf26e"
+    fix_title: "filter with region name not code"
+    bug: "the filter region_residence = '76' compares against a region code, but the column holds region names such as occitanie, so it matches nothing"
+    category: business_logic
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["region_residence", "occitanie"]
+    expect:
+      - {path: "models/traitement/population/libelle_colonnes_logement.sql", line: 18}

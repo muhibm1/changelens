@@ -1,0 +1,21 @@
+# data-infrastructure: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/cagov/data-infrastructure): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: data-infrastructure
+url: https://github.com/cagov/data-infrastructure
+bugs:
+  - commit: "719ae0e91b"
+    parent: "2b4ac50c8f"
+    title: "WIP moving join-with-deduplication into a macro."
+    fix: "fca5d58a1e"
+    fix_title: "Guard against nulls in max_by so that we don't accidentally null out all of our columns in the deduplication step."
+    bug: "with the default left join, unmatched left rows have a NULL intersection area, and max_by(column, _tmp_sjoin_intersection) over only NULL keys returns NULL, so every left column of an unmatched row comes out NULL"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["max_by", "null"]
+    expect:
+      - {path: "transform/macros/spatial_join_with_deduplication.sql", line: 9}
+      - {path: "transform/macros/spatial_join_with_deduplication.sql", line: 29}

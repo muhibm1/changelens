@@ -1,0 +1,72 @@
+# datavault4dbt: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/ScalefreeCOM/datavault4dbt): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: datavault4dbt
+url: https://github.com/ScalefreeCOM/datavault4dbt
+bugs:
+  - commit: "64e04d3fa3"
+    parent: "00c7e908e0"
+    title: "Created version 1 sat for ma sats"
+    fix: "a8f172cb6d"
+    fix_title: "Fixed to get distinct combination of hk&ldts instead of hd&ldts"
+    bug: "the ord_ldts window in the BigQuery multi-active satellite partitions by {{ src_hashdiff }}, a variable the macro never defines (its parameters are src_hk and src_hd), so it renders empty and the generated SQL is invalid; the partition should be on the hashkey"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["src_hashdiff", "src_hk"]
+    expect:
+      - {path: "macros/tables/bigquery/ma_sat_v1.sql", line: 39}
+  - commit: "24ee6baf5b"
+    parent: "d18d28b2e8"
+    title: "First version of macro, and Control_snap_v0 adjusted to use it."
+    fix: "956e71abdb"
+    fix_title: "Update yaml_metadata_parser.sql, fix if-nesting, rename metadata_dict"
+    bug: "yaml_metadata_parser nests an if/else for the required flag and then continues with an elif at the outer level, leaving the Jinja blocks unbalanced, so every macro calling the parser fails to compile"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["elif", "required"]
+    expect:
+      - {path: "macros/internal/metadata_processing/yaml_metadata_parser.sql", line: 10}
+  - commit: "2dae769187"
+    parent: "d6e9969064"
+    title: "Snowflake flavour of control snapshot v0"
+    fix: "8b6559e730"
+    fix_title: "Fixed wrong \"is_weekly\" in snap_v0 for Snowflake"
+    bug: "the Snowflake control_snap_v0 copies the BigQuery test EXTRACT(DAYOFWEEK ...) = 2 for Monday, but Snowflake's DAYOFWEEK numbers Monday as 1, so the is_weekly flag marks Tuesdays"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["dayofweek", "monday"]
+    expect:
+      - {path: "macros/tables/snowflake/control_snap_v0.sql", line: 33}
+  - commit: "ddae5fc42a"
+    parent: "c716fbef6b"
+    title: "Update hash_standardization.sql"
+    fix: "917103f00e"
+    fix_title: "update postgres attribute standardization for null hashkeys to return null to ensure zero keys"
+    bug: "postgres__attribute_standardise joins the key columns with CONCAT, which treats NULL as an empty string, so an all NULL business key hashes to the hash of a constant string instead of NULL and never becomes the zero key; the redshift version uses || which propagates NULL"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["concat", "null"]
+    expect:
+      - {path: "macros/supporting/hash_standardization.sql", line: 29}
+  - commit: "782f2d1f23"
+    parent: "f2aac7a285"
+    title: "Update ghost_record_per_datatype.sql, fix postgres ghost record data types, change redshift unknown bool to False"
+    fix: "3f69144b88"
+    fix_title: "fix redshift/postgres beginning_of_all_times ghost record values"
+    bug: "the Postgres ghost record for the unknown member gives TIMESTAMP columns beginning_of_all_times_date instead of beginning_of_all_times, so timestamp ghost records carry the date format value"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["beginning_of_all_times", "timestamp"]
+    expect:
+      - {path: "macros/supporting/ghost_record_per_datatype.sql", line: 320}

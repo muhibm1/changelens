@@ -1,0 +1,35 @@
+# dbt_fivetran_utils: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_fivetran_utils): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: dbt_fivetran_utils
+url: https://github.com/fivetran/dbt_fivetran_utils
+bugs:
+  - commit: "439f17dfc3"
+    parent: "6086030561"
+    title: "first value macro addition"
+    fix: "068140d240"
+    fix_title: "asc fix"
+    bug: "the first_value dispatcher passes order=\"asc\" literally instead of the caller's order argument, so a descending first_value silently returns the ascending one"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["order", "asc"]
+    expect:
+      - {path: "macros/first_value.sql", line: 3}
+  - commit: "286b173afa"
+    parent: "afe727ae99"
+    title: "max_bool macro add"
+    fix: "d1d781d8f8"
+    fix_title: "bool fix"
+    bug: "the max_bool implementations are named default__first_value, snowflake__first_value and bigquery__first_value, so dispatching max_bool finds no implementation and the first_value macros are overridden"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["max_bool", "first_value"]
+    expect:
+      - {path: "macros/max_bool.sql", line: 8}
+      - {path: "macros/max_bool.sql", line: 15}
+      - {path: "macros/max_bool.sql", line: 22}

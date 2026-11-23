@@ -1,0 +1,33 @@
+# transfermarkt-datasets: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/dcaribou/transfermarkt-datasets): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: transfermarkt-datasets
+url: https://github.com/dcaribou/transfermarkt-datasets
+bugs:
+  - commit: "739db32e7f"
+    parent: "6a8f82895d"
+    title: "Add assist player (#217)"
+    fix: "3f709f28e3"
+    fix_title: "Fixes on the game events (followup to #217) (#218)"
+    bug: "player_assist_id is written unquoted in the generate_surrogate_key column list, so Jinja reads it as an undefined variable instead of a column name and the key is built wrong or fails"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["player_assist_id", "surrogate"]
+    expect:
+      - {path: "dbt/models/curated/game_events.sql", line: 8}
+  - commit: "0f247e4b13"
+    parent: "017b4cfe8d"
+    title: "Prepare to enable automatic updates (#329)"
+    fix: "e8a197647e"
+    fix_title: "fix date parsing for ambiguous DD/MM dates in base_games"
+    bug: "the date parse coalesces '%a, %m/%d/%y' then '%a, %d/%m/%y', so any date whose day is 12 or less is read with day and month swapped"
+    category: nullability_or_cast
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["strptime", "month"]
+    expect:
+      - {path: "dbt/models/base/transfermarkt_scraper/base_games.sql", line: 48}

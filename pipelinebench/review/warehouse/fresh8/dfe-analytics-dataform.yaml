@@ -1,0 +1,74 @@
+# dfe-analytics-dataform: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/DFE-Digital/dfe-analytics-dataform): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: dfe-analytics-dataform
+url: https://github.com/DFE-Digital/dfe-analytics-dataform
+bugs:
+  - commit: "92c03dd0b9"
+    parent: "a8e9c64e0c"
+    title: "Initial version of pipeline_snapshot operation to enable cross-divisional monitoring"
+    fix: "3d676ee6ea"
+    fix_title: "Fix numbers of missing/extra rows logic - wrong way round!"
+    bug: "number_of_missing_rows sums the rows where BigQuery has more rows than the source database and number_of_extra_rows the rows where it has fewer, so the two metrics are swapped"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["missing", "extra"]
+    expect:
+      - {path: "includes/pipeline_snapshot.js", line: 31}
+      - {path: "includes/pipeline_snapshot.js", line: 32}
+  - commit: "012b12dd4c"
+    parent: "4e5d78767f"
+    title: "Add entity-level data freshness assertions and check that data freshness parameters are positive integers"
+    fix: "17b016a437"
+    fix_title: "Fix inequalities being the wrong way round"
+    bug: "the data not fresh assertions keep the row when the last streamed event is newer than now minus the freshness window, so they fail exactly when data is fresh and pass when it is stale"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["having", "fresh"]
+    expect:
+      - {path: "includes/entity_data_not_fresh.js", line: 20}
+      - {path: "includes/events_data_not_fresh.js", line: 13}
+  - commit: "114f7bb170"
+    parent: "f6092dbea9"
+    title: "Remove an unnecessary layer of subquery"
+    fix: "cf38a21415"
+    fix_title: "Fix missing comma"
+    bug: "removing the subquery leaves operating_system_version without a trailing comma before the new instance_versions.data AS new_data column, so the select list is a syntax error"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["comma", "operating_system_version"]
+    expect:
+      - {path: "includes/entity_field_updates.js", line: 77}
+  - commit: "8c770654eb"
+    parent: "9d6635f0f7"
+    title: "Add entity_ids_do_not_match assertion"
+    fix: "c8a613087e"
+    fix_title: "Fix BQ row count calculation logic"
+    bug: "bigquery_row_count is COUNT(DISTINCT entity_version.updated_at), which counts distinct timestamps rather than entities, so rows sharing an updated_at collapse and the row count check reports mismatches"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["updated_at", "entity_id"]
+    expect:
+      - {path: "includes/entity_ids_do_not_match.js", line: 29}
+  - commit: "14a4bdb754"
+    parent: "3fa03d3673"
+    title: "Update reconciliation flow"
+    fix: "30059a3bd5"
+    fix_title: "fix bug: deduped reconciliation list"
+    bug: "the apply step UPDATEs the version table FROM the deletes log, which can hold several rows per primary key from earlier snapshots, so one target row matches several source rows and BigQuery rejects the update"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["deduplicate", "primary"]
+    expect:
+      - {path: "includes/airbyte_reconciliation.js", line: 191}

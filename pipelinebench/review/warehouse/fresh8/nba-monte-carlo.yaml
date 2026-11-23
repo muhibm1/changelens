@@ -1,0 +1,79 @@
+# nba-monte-carlo: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/matsonj/nba-monte-carlo): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: nba-monte-carlo
+url: https://github.com/matsonj/nba-monte-carlo
+bugs:
+  - commit: "df9785f04e"
+    parent: "39b107ac5c"
+    title: "update to neutral site"
+    fix: "38fe69754a"
+    fix_title: "bug fix: neutral site games not adjusted correctly bc of dbt jinja logic"
+    bug: "the Jinja expression 0 if \"s.neutral_site\" == 1 else var('nfl_elo_offset') compares a quoted string literal to 1, so it is always false and the home field offset is applied to neutral site games too"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["neutral_site", "offset"]
+    expect:
+      - {path: "transform/models/nfl/simulator/nfl_reg_season_simulator.sql", line: 8}
+      - {path: "transform/models/nfl/simulator/nfl_reg_season_simulator.sql", line: 20}
+  - commit: "befb24d4d9"
+    parent: "1256a6d9e2"
+    title: "updaing models to handle parquet"
+    fix: "097202827f"
+    fix_title: "playin bug fix"
+    bug: "the play-in simulations pass S.home_team_elo_rating and S.visiting_team_elo_rating to elo_calc, but the schedules model only fills those for regular season games, so the win probability is NULL and the visiting team always wins; the current ratings from EH and EV should be used"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["elo_calc", "null"]
+    expect:
+      - {path: "transform/models/playin/playin_sim_r1.sql", line: 18}
+      - {path: "transform/models/playin/playin_sim_r1.sql", line: 21}
+      - {path: "transform/models/playin/playin_sim_r2.sql", line: 19}
+      - {path: "transform/models/playin/playin_sim_r2.sql", line: 22}
+  - commit: "005a751e65"
+    parent: "fb2ad3e932"
+    title: "skew home team + 70 elo"
+    fix: "2b9aa7b769"
+    fix_title: "fix home game advantage"
+    bug: "elo_calc adds the 70 point home advantage inside -(visiting - home + 70), which lowers the home team's win probability instead of raising it, the opposite of the commit's stated intent"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["70", "home"]
+    expect:
+      - {path: "transform/macros/calcs.sql", line: 2}
+  - commit: "40898f38a2"
+    parent: "502871832e"
+    title: "update tiebreakers"
+    fix: "26418f7783"
+    fix_title: "bug fix for missing away games"
+    bug: "home and visitor point differentials are SUMs over left joins, so a team with no home or no away games gets NULL and home_pt_diff + visitor_pt_diff is NULL for it"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["null", "pt_diff"]
+    expect:
+      - {path: "transform/models/nba/analysis/tournament_end.sql", line: 50}
+      - {path: "transform/models/nba/analysis/tournament_end.sql", line: 59}
+      - {path: "transform/models/nba/analysis/tournament_end.sql", line: 79}
+  - commit: "a56abdef17"
+    parent: "1556d13287"
+    title: "adding capability for including actuals"
+    fix: "516ff4e88c"
+    fix_title: "recording 0s. not NULL"
+    bug: "reg_season_actuals left joins the wins and losses aggregates, so a team with no wins or no losses yet gets NULL instead of 0"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["wins", "null"]
+    expect:
+      - {path: "transform/models/conformed/reg_season/reg_season_actuals.sql", line: 24}
+      - {path: "transform/models/conformed/reg_season/reg_season_actuals.sql", line: 25}

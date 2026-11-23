@@ -1,0 +1,20 @@
+# dbt_constraints: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/Snowflake-Labs/dbt_constraints): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: dbt_constraints
+url: https://github.com/Snowflake-Labs/dbt_constraints
+bugs:
+  - commit: "46e4882fd9"
+    parent: "7bf9091826"
+    title: "Minor typo for 'true' instead of true"
+    fix: "9ef95da7dc"
+    fix_title: "Logic was reversed. We want where null? is 'false'"
+    bug: "the column loop appends a column to not_null_col when row['null?'] == 'true', that is when the column is nullable, so the reversed test reports nullable columns as not null"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["null?", "not_null_col"]
+    expect:
+      - {path: "macros/snowflake__create_constraints.sql", line: 382}

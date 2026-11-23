@@ -1,0 +1,20 @@
+# dbt_salesforce_formula_utils: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/fivetran/dbt_salesforce_formula_utils): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: dbt_salesforce_formula_utils
+url: https://github.com/fivetran/dbt_salesforce_formula_utils
+bugs:
+  - commit: "33d296b015"
+    parent: "b2bb856da1"
+    title: "refactor update"
+    fix: "a34c5fb597"
+    fix_title: "pemdas fix"
+    bug: "a formula field that references another formula field is expanded by replacing the field name with that field's SQL without wrapping it in parentheses, so operator precedence changes the computed value"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["parentheses", "replace"]
+    expect:
+      - {path: "macros/sfdc_formula_refactor.sql", line: 18}
