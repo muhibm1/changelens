@@ -1,0 +1,1532 @@
+{
+ "reviewer": "agent",
+ "agent": "wa-11",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "9d36e08c19",
+   "title": "Add models for Puppini bridge and calendar",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "adventure-works.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dar__calendar.sql:14 dar.calendar reads dar._bridge__as_of, which this commit does not create (model is dar._puppini_bridge__as_of)"
+   ],
+   "findings": [
+    "[bug] models/dar__calendar.sql:14 dar.calendar reads dar._bridge__as_of, which this commit does not create (model is dar._puppini_bridge__as_of)",
+    "[risk] models/dar__puppini_bridge__as_of.py:17 Bridge grain declared as unresolved literal '@{grain}'",
+    "[bug] models/dar__puppini_bridge__as_of.py:8 Import of nonexistent module _blueprint_generators",
+    "[bug] models/dar__puppini_bridge__as_of.py:40 as_of bridge omits _hook__epoch__date (and every _hook__* column) from its column list"
+   ],
+   "repo": "adventure-works",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect: dar.calendar at models/dar__calendar.sql:14 reads dar._bridge__as_of, but the bridge model added in the commit is dar._puppini_bridge__as_of, so the referenced table does not exist."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "69b0551092",
+   "title": "refined model",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "chess_com_bi.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/games_times.sql:30 games_times final SELECT missing comma after EXCEPT(...) before move_number"
+   ],
+   "findings": [
+    "[bug] models/intermediate/games_times.sql:30 games_times final SELECT missing comma after EXCEPT(...) before move_number"
+   ],
+   "repo": "chess_com_bi",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is mainly about a missing comma, but it also says that ordering ROW_NUMBER by time_remaining_seconds ascending numbers moves by clock value only. That is the labelled defect: the same model, the same move_number column and the same mechanism. It calls this a separate semantic concern and spends little space on it, but it still names the bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4e06be4f56",
+   "title": "Feature/partner attribution (#503)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:8 int_person_borough_registered_or_resident: second UNION branch duplicates resident branch, registered borough never used"
+   ],
+   "findings": [
+    "[bug] models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:8 int_person_borough_registered_or_resident: second UNION branch duplicates resident branch, registered borough never used"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same model. Both UNION branches select BOROUGH_RESIDENT, BOROUGH_REGISTERED is never read, and registered boroughs are missing from the output."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "51e54bba5a",
+   "title": "fix: refactord csds_deduplication macro",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/deduplicate_csds.sql:10 deduplicate_csds partitions by a quoted string literal, so stg_csds_cyp101referral keeps only one row"
+   ],
+   "findings": [
+    "[bug] macros/deduplicate_csds.sql:10 deduplicate_csds partitions by a quoted string literal, so stg_csds_cyp101referral keeps only one row"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. deduplicate_csds partitions by the quoted string literal 'tbl.unique_service_request_identifier', which makes the partition key a constant, so the sequence = 1 filter keeps too few rows instead of one per service request."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "87f8979172",
+   "title": "feat: add in another cohort for Shingles adult TS (#1269)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql:72 historical_shingles_dose_2 immunocompromised rows labelled VACCINE 'Shingles Dose 1'"
+   ],
+   "findings": [
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql:72 historical_shingles_dose_2 immunocompromised rows labelled VACCINE 'Shingles Dose 1'",
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_1.sql:75 Immunocompromised shingles cohort has no lower age limit (children included)"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same model, file and line (dose 2, line 72) and the same defect. The immunosuppressed CTE hardcodes 'Shingles Dose 1' AS VACCINE where the dose 2 series should use 'Shingles Dose 2'. Finding 1 is about a missing age filter, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6f02531511",
+   "title": "add: Staging table and yml for the PDS address table",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/staging/shared/stg_pds_pds_address.sql:6 stg_pds_pds_address selects event_from_date/event_to_date from columns that do not exist in raw_pds_pds_address"
+   ],
+   "findings": [
+    "[bug] models/staging/shared/stg_pds_pds_address.sql:6 stg_pds_pds_address selects event_from_date/event_to_date from columns that do not exist in raw_pds_pds_address"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same model and line: stg_pds_pds_address selects person_business_effective_from/to_date, which don't exist in the raw PDS address table (it uses the usual_address_ prefix), so the build fails. This is the same defect and mechanism as the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "35aa33125d",
+   "title": "updated MCW recommendations, fixed bugs in clustering and user attribution",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-cost-optimization.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/snowflake/marts/gold/vw_snowflake__user_level_cost_attribution.sql:62 consumption_users.consumption_credits_30d is inflated by an unkeyed substring join to int_dbt__relations"
+   ],
+   "findings": [
+    "[bug] models/snowflake/marts/gold/vw_snowflake__user_level_cost_attribution.sql:62 consumption_users.consumption_credits_30d is inflated by an unkeyed substring join to int_dbt__relations",
+    "[bug] models/snowflake/intermediate/int_snowflake__all_recommendations.sql:62 warehouse savings: credits_per_second*3600 is average daily credits, not credits per hour",
+    "[bug] models/snowflake/intermediate/int_snowflake__all_recommendations.sql:418 clustering savings: missing cardinality collapses savings to 0",
+    "[risk] models/snowflake/staging/stg_snowflake__warehouse_events_history.sql:31 Adding SUSPEND events to staging corrupts int_snowflake__warehouse_config latest_consistent dedup",
+    "[risk] models/snowflake/intermediate/int_snowflake__all_recommendations.sql:94 All oversized keys, including 'Monitor - do not scale down', now claim 50% of total credits as savings"
+   ],
+   "repo": "dbt-cost-optimization",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect in the same view (vw_snowflake__user_level_cost_attribution). It names the unkeyed ilike '%name%' substring join between query history and int_dbt__relations. That join fans out one query to many relations, so the summed elapsed time is repeated and the attributed credits and costs are inflated. The finding cites line 62 instead of 73, but the model and mechanism are the same."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2d1e7f6f3c",
+   "title": "feat: correct match %",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/resources/stored-procedures/create__check_data_diff.sql:186 data_diff_check_summary.diff_count/match_percentage use table-wide cnt, identical for every column"
+   ],
+   "findings": [
+    "[bug] macros/resources/stored-procedures/create__check_data_diff.sql:186 data_diff_check_summary.diff_count/match_percentage use table-wide cnt, identical for every column",
+    "[bug] macros/sis/diff_helper.py:106 diff_helper match_percentage column shows the inverted value"
+   ],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 explicitly states that total_count counts the whole source table with no where_condition while the diff used where_condition, which is the labelled denominator mismatch affecting match_percentage. It also raises other issues, but it does identify the labelled defect. Finding 1 is about a different defect in diff_helper.py."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2d1e7f6f3c",
+   "title": "feat: correct match %",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/resources/stored-procedures/create__check_data_diff.sql:186 data_diff_check_summary.diff_count/match_percentage use table-wide cnt, identical for every column and double-counted",
+    "macros/resources/stored-procedures/create__check_data_diff.sql:186 diff_count double counts keys that appear on both sides of the diff"
+   ],
+   "findings": [
+    "[bug] macros/resources/stored-procedures/create__check_data_diff.sql:186 data_diff_check_summary.diff_count/match_percentage use table-wide cnt, identical for every column and double-counted",
+    "[bug] macros/sis/diff_helper.py:106 diff_helper: match_percentage and diff_feeded_rate displays are inverted",
+    "[risk] macros/resources/stored-procedures/create__check_data_diff.sql:187 total_count ignores where_condition and can be zero",
+    "[bug] macros/resources/stored-procedures/create__check_data_diff.sql:186 diff_count double counts keys that appear on both sides of the diff"
+   ],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 identifies the labelled bug. compare_content is a UNION of different_in_source and different_in_target, so a changed key appears twice. cnt = count(*) then double counts it, and diff_count and match_percentage are wrong as a result. Finding 0 also mentions the double counting, but it is mainly about the table-wide cnt being identical for every column, so finding 3 is the cleaner match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "676ded977e",
+   "title": "feat: allow configurable target schema name",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/resources/refresh_configured_tables.sql:27 refresh_configured_tables: trg_db column lost its leading comma, generated INSERT SELECT is invalid"
+   ],
+   "findings": [
+    "[bug] macros/resources/refresh_configured_tables.sql:27 refresh_configured_tables: trg_db column lost its leading comma, generated INSERT SELECT is invalid"
+   ],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the trg_db select item in the fixed naming branch of refresh_configured_tables lost its leading comma. This makes src_table and trg_db run together in the generated SQL, giving a syntax error."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "676ded977e",
+   "title": "feat: allow configurable target schema name",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/resources/refresh_configured_tables.sql:27 refresh_configured_tables: trg_db column lost its leading comma, generated INSERT SELECT is invalid"
+   ],
+   "findings": [
+    "[bug] macros/resources/refresh_configured_tables.sql:27 refresh_configured_tables: trg_db column lost its leading comma, generated INSERT SELECT is invalid"
+   ],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect. In refresh_configured_tables, the trg_db select item lost its leading comma in the new target_fixed_naming block, which includes the generate_database_name branch. The generated SQL therefore joins src_table and trg_db into one expression and fails with a syntax error."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "cf53d0354a",
+   "title": "fix: match_percentage",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/resources/stored-procedures/create__check_data_diff.sql:187 create__check_data_diff total_count subquery has an extra closing parenthesis"
+   ],
+   "findings": [
+    "[bug] macros/resources/stored-procedures/create__check_data_diff.sql:187 create__check_data_diff total_count subquery has an extra closing parenthesis"
+   ],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same file and line, the total_count subquery in create__check_data_diff, and the same defect: an extra closing parenthesis after the where condition that leaves the generated SQL unbalanced."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3842f410b6",
+   "title": "Adding dry run option",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-dataquality.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/schema/create_schema.sql:11 create_schema: dry_run condition inverted"
+   ],
+   "findings": [
+    "[bug] macros/schema/create_schema.sql:11 create_schema: dry_run condition inverted",
+    "[bug] macros/stage/clean_internal_stage.sql:10 clean_internal_stage: inverted dry_run guard",
+    "[bug] macros/table/create_src_table.sql:21 create_src_table: inverted dry_run guard and wrong positional arg from create_resources",
+    "[bug] macros/create_resources.sql:3 create_resources passes dry_run positionally to the wrong parameters"
+   ],
+   "repo": "dbt-dataquality",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at create_schema.sql:11 and names the same defect: the run_query call is wrapped in `if dry_run`, so a normal run never creates the schema and a dry run executes the DDL. It matches the labelled bug in mechanism and location."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3392e86c83",
+   "title": "Adjusting logic of variable file in load_internal_stage macro, removing dummy default value",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-dataquality.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/stage/load_internal_stage.sql:1 load_internal_stage signature puts required `file` after defaulted `clean_stage`"
+   ],
+   "findings": [
+    "[bug] macros/stage/load_internal_stage.sql:1 load_internal_stage signature puts required `file` after defaulted `clean_stage`"
+   ],
+   "repo": "dbt-dataquality",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: load_internal_stage in macros/stage/load_internal_stage.sql:1 has the required `file` argument after the defaulted `clean_stage`, which is an invalid macro signature."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "06d0c04d24",
+   "title": "Update to PR",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-re-data.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/metrics/base/queries.sql:27 Column batching compares size to actively_monitored_by_default instead of max_columns_in_query",
+    "macros/metrics/base/queries.sql:29 metrics_base_insert column call passes metrics and time_filter in swapped order"
+   ],
+   "findings": [
+    "[bug] macros/metrics/base/queries.sql:27 Column batching compares size to actively_monitored_by_default instead of max_columns_in_query",
+    "[bug] macros/metrics/base/expression.sql:26 Custom column metrics extend the shared project var list, leaking across columns and tables",
+    "[bug] macros/metrics/base/expression.sql:41 Table custom metrics extend the shared var list, so they leak and duplicate across tables",
+    "[bug] models/meta/re_data_monitored.sql:54 metrics is NULL for tables monitored only via the DB and not in code config",
+    "[bug] integration_tests/test_dbs.py:62 test_snowflake reads re_data:schemas that was removed from DBT_VARS",
+    "[bug] models/meta/re_data_monitored.sql:54 re_data_monitored: cm.metrics not output by empty_code_monitored() fallback",
+    "[bug] macros/metrics/base/queries.sql:29 metrics_base_insert column call passes metrics and time_filter in swapped order",
+    "[bug] macros/metrics/common/monitoring_spec.sql:30 Source schema/database lookup reads graph.nodes instead of graph.sources; `retrun` typo"
+   ],
+   "repo": "dbt-re-data",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location (queries.sql:27). The batching condition compares columns_size to var('re_data:actively_monitored_by_default') instead of max_columns_in_query. That variable is false, so the condition never matches and no batches are flushed."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "06d0c04d24",
+   "title": "Update to PR",
+   "category": "other",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-re-data.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/metrics/base/queries.sql:27 metrics_base_compute_for_thread chunks columns on the wrong var and passes swapped args"
+   ],
+   "findings": [
+    "[bug] macros/metrics/base/queries.sql:27 metrics_base_compute_for_thread chunks columns on the wrong var and passes swapped args",
+    "[risk] models/meta/re_data_monitored.sql:56 re_data_monitored left join to code_monitored can fan out per table_name",
+    "[bug] macros/metrics/base/expression.sql:26 Column metrics list mutated through var, so custom metrics leak across columns and tables",
+    "[bug] macros/metrics/base/expression.sql:41 Table metrics list mutated through var, so one table's custom metrics leak into other tables",
+    "[risk] macros/metrics/base/queries.sql:29 metrics_base_insert called with time_filter and metrics swapped",
+    "[bug] integration_tests/test_dbs.py:62 test_snowflake reads re_data:schemas that was removed from DBT_VARS",
+    "[bug] models/meta/re_data_monitored.sql:54 re_data_monitored.metrics is NULL for tables monitored only via the DB/re_data_tables",
+    "[bug] macros/metrics/common/monitoring_spec.sql:33 get_schema_spec fallbacks have a typo `retrun` and a wrong graph lookup for sources",
+    "[bug] models/meta/re_data_monitored.sql:37 re_data_monitored: empty_code_monitored() has no metrics column but all_status reads cm.metrics"
+   ],
+   "repo": "dbt-re-data",
+   "error": null,
+   "judge": {
+    "index": 4,
+    "reason": "Finding 4 identifies the labelled bug directly. At queries.sql:29 the column-batch call to metrics_base_insert passes (table_name, metrics, time_filter, ...), but the macro signature is (table_name, time_filter, metrics, ...). It also notes that the table-level call uses the correct order, and it describes the resulting failure at column level. Finding 0 mentions the swap only as a hypothetical that would follow from fixing a separate chunking bug, and its main defect is different, so 4 is the better match."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "493148eb7e",
+   "title": "add merge as a valid incremental strategy (#490)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-redshift.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/include/redshift/macros/materializations/incremental_merge.sql:53 redshift__get_merge_sql inserts only update_columns, so excluded columns are NULL on new rows"
+   ],
+   "findings": [
+    "[bug] dbt/include/redshift/macros/materializations/incremental_merge.sql:53 redshift__get_merge_sql inserts only update_columns, so excluded columns are NULL on new rows",
+    "[risk] dbt/include/redshift/macros/materializations/incremental_merge.sql:45 Merge with no unique_key emits a MERGE with only WHEN NOT MATCHED, which Redshift may reject"
+   ],
+   "repo": "dbt-redshift",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect. The insert column and values lists in redshift__get_merge_sql loop over update_columns, so columns excluded from updates are left out of new rows and come in as NULL. Finding 1 is about a different issue, a merge with no unique_key."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e58f66ba7b",
+   "title": "PR suggestions",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_hubspot__ticket_pipeline_stage.sql:32 ticket_pipeline_stage ids cast to timestamp instead of string"
+   ],
+   "findings": [
+    "[bug] models/stg_hubspot__ticket_pipeline_stage.sql:32 ticket_pipeline_stage ids cast to timestamp instead of string"
+   ],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same model (stg_hubspot__ticket_pipeline_stage), the same lines (32-33), and the same defect: ticket_pipeline_id and ticket_pipeline_stage_id are cast with dbt.type_timestamp() instead of string. It also describes the same consequence: the cast fails or the values become timestamps or nulls."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ffcf4760d7",
+   "title": "try 1",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_hubspot__merged_deal.sql:14 stg_hubspot__merged_deal uses get_deal_columns() instead of get_merged_deal_columns()"
+   ],
+   "findings": [
+    "[bug] models/stg_hubspot__merged_deal.sql:23 models/stg_hubspot__merged_deal.sql no longer parses as postgres after rendering",
+    "[bug] dbt_project.yml:27 merged_deal var points to source 'deal' instead of 'merged_deal'",
+    "[bug] models/stg_hubspot__merged_deal.sql:14 stg_hubspot__merged_deal uses get_deal_columns() instead of get_merged_deal_columns()",
+    "[risk] integration_tests/dbt_project.yml:63 Integration test identifier references a seed that doesn't exist"
+   ],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 names the same model, line, and mechanism: stg_hubspot__merged_deal calls get_deal_columns() instead of get_merged_deal_columns(), so fill_staging_columns gets the deal column list."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "46467b0806",
+   "title": "conditional to check if no additional fields are available to passthrough",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_hubspot__contact.sql:30 stg_hubspot__contact checks the company relation and company columns"
+   ],
+   "findings": [
+    "[bug] models/stg_hubspot__contact.sql:30 stg_hubspot__contact checks the company relation and company columns",
+    "[bug] macros/all_passthrough_column_check.sql:8 all_passthrough_column_check casts a column-list string to int"
+   ],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. stg_hubspot__contact calls the passthrough check with 'stg_hubspot__company_tmp' and get_company_columns() instead of the contact tmp relation and contact columns. Finding 1 describes a different defect, the |int cast in the macro."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "9549dfead7",
+   "title": "created deal_contact models",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_hubspot__deal_contact.sql:14 stg_hubspot__deal_contact uses get_deal_company_columns, so contact_id is never produced"
+   ],
+   "findings": [
+    "[bug] models/stg_hubspot__deal_contact.sql:6 ref to stg_hubspot__deal_contact_tmp does not match the model name stg_hubspot__deal_contact__tmp",
+    "[bug] models/stg_hubspot__deal_contact.sql:14 stg_hubspot__deal_contact uses get_deal_company_columns, so contact_id is never produced"
+   ],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: stg_hubspot__deal_contact at line 14 uses get_deal_company_columns instead of get_deal_contact_columns, so the contact model gets the deal_company column list and contact_id is missing. Finding 0 is a different defect, a tmp ref naming mismatch."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "918e684ae1",
+   "title": "documentation and timestamp fixes",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_stripe_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/stg_stripe__subscription.sql:47 stg_stripe__subscription: start_date renamed to start_date_at while YAML still documents start_date"
+   ],
+   "repo": "dbt_stripe_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about stg_stripe__subscription, where start_date was renamed to start_date_at. The labelled bug is in stg_stripe__invoice, where the misspelled macro dbt.type_timestampe() stops the model from compiling. These are different models and different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5dad11c38e",
+   "title": "fix surrogate",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_stripe_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_stripe_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e218803162",
+   "title": "seed data",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_zendesk_source.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/stg_zendesk__schedule.sql:41 stg_zendesk__schedule: _fivetran_deleted filter commented out"
+   ],
+   "findings": [
+    "[bug] models/stg_zendesk__schedule.sql:41 stg_zendesk__schedule: _fivetran_deleted filter commented out"
+   ],
+   "repo": "dbt_zendesk_source",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the _fivetran_deleted filter in stg_zendesk__schedule.sql at line 41 is commented out, so soft-deleted schedules are no longer excluded."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "bfd152ccc8",
+   "title": "Add one more metric using HLL",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "metrics/all/prs_state.sql:54 prs_state.sql awaiting column uses comma instead of division and breaks the build"
+   ],
+   "findings": [
+    "[bug] metrics/all/prs_state.sql:54 prs_state.sql awaiting column uses comma instead of division and breaks the build",
+    "[risk] metrics/all/prs_state.sql:53 HLL aggregate over only NULLs may return NULL instead of 0"
+   ],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location: the misplaced comma/parenthesis in the awaiting column's round((hll_cardinality(...), {{n}})::numeric, 2) builds a row constructor that cannot be cast to numeric, so the query errors. Finding 1 is about a different issue (NULL handling in HLL aggregates)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2a3dc17c27",
+   "title": "Fix one more bug",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "metrics/all/prs_state.sql:88 prs_state (all): analyze all_prs{{rnd}} misses underscore, nonexistent table"
+   ],
+   "findings": [
+    "[bug] metrics/shared/prs_state.sql:88 prs_state: analyze targets all_prs{{rnd}} (missing underscore), a table that does not exist",
+    "[bug] metrics/all/prs_state.sql:88 prs_state (all): analyze all_prs{{rnd}} misses underscore, nonexistent table"
+   ],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 is at metrics/all/prs_state.sql:88, the labelled file and line, and describes the same defect. The analyze statement names all_prs{{rnd}} (missing underscore) but the temp table is all_prs_{{rnd}}, so the relation does not exist. Finding 0 describes the same mechanism but locates it in metrics/shared/prs_state.sql. It only mentions the all/ file in passing, so Finding 1 is the better match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "049244e7af",
+   "title": "Adding 3 new Sandbox projects wip 11",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "scripts/cadence/repo_groups.sql:34 cadence repo_groups: misspelled org 'cadence-worflow' in repo name filter"
+   ],
+   "findings": [
+    "[bug] scripts/cadence/repo_groups.sql:34 cadence repo_groups: misspelled org 'cadence-worflow' in repo name filter"
+   ],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same misspelling 'cadence-worflow/cadence' at repo_groups.sql:34, so cadence-workflow/cadence never matches and isn't assigned to the Cadence repo group."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6eafe42125",
+   "title": "Adding Keycloak - a new CNCF Incubating project 10",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "scripts/keycloak/repo_groups.sql:32 gha_repos keycloak repos assigned to copied 'prometheus' alias/repo_group"
+   ],
+   "findings": [
+    "[bug] scripts/keycloak/repo_groups.sql:32 gha_repos keycloak repos assigned to copied 'prometheus' alias/repo_group"
+   ],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the Keycloak repo_groups script was copied from Prometheus and sets alias and repo_group to 'prometheus' for keycloak repos, in the final update near lines 32-35. That puts Keycloak repos in the Prometheus group."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "61c8cc9265",
+   "title": "adding ecommerce and transaction models.  updating logging to more general assertions on all models updating config and helper to enable additional dynamic logic",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ga4-pipeline-framework.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "definitions/outputs/transactions.sqlx:3 transactions/ecommerce_items disabled flag reads a compile var, not the HAS_ECOMMERCE config used elsewhere"
+   ],
+   "findings": [
+    "[bug] definitions/outputs/ecommerce_items.sqlx:77 ecommerce_items selects items.item_params_custom that base_events does not build by default",
+    "[bug] definitions/outputs/transactions.sqlx:3 transactions/ecommerce_items disabled flag reads a compile var, not the HAS_ECOMMERCE config used elsewhere",
+    "[risk] definitions/assertions/model_execution_log.sqlx:32 model_execution_log incremental append has no dedupe, so rows duplicate every run",
+    "[risk] definitions/assertions/model_execution_log.sqlx:1 base_events_log removed while README queries still read it",
+    "[bug] includes/helper.js:207 getPageSessionKeyRef non-consolidated 'both' COALESCE always returns page_session_key",
+    "[risk] definitions/outputs/sessions.sqlx:1 ga4_sessions renamed to sessions and base_events_log deleted while documented consumers still use the old names"
+   ],
+   "repo": "ga4-pipeline-framework",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 points at transactions.sqlx:3 and says the disabled flag uses !dataform.projectConfig.vars.HAS_ECOMMERCE. It also says a var passed as the string 'false' is truthy, so !'false' is false and the models stay enabled when ecommerce is meant to be off. That is the labelled bug: the same model, line and string-truthiness mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8b80cbf800",
+   "title": "refactor(pipelines): Explictly create Redshift External Tables in Pipeline DAGs (#78)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "providence.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "pipelines/sql/source_ynab.sql:30 source_ynab external table LOCATION points at source=uob"
+   ],
+   "findings": [
+    "[bug] pipelines/sql/source_ynab.sql:30 source_ynab external table LOCATION points at source=uob",
+    "[bug] pipelines/ingest/uob.py:98 External tables are partitioned by date but no partitions are ever registered",
+    "[bug] pipelines/sql/source_uob.sql:21 source_uob external table has a hardcoded dev bucket instead of params.s3_bucket"
+   ],
+   "repo": "providence",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same defect at the same location: the source_ynab external table's LOCATION points at the source=uob prefix, so it reads UOB files rather than YNAB files. Finding 1 is about unregistered partitions and finding 2 is about a hardcoded bucket in source_uob.sql, so neither is the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "c67a6f026a",
+   "title": "Fix 2 current release bugs",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f7bfc5426e",
+   "title": "Update code for organization information",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dags/dailymed_daily/staging-dailymed_organization_text.sql:9 New row_num column never reaches an existing table, so the 5-column INSERT fails"
+   ],
+   "findings": [
+    "[risk] dags/dailymed_daily/staging-dailymed_organization_text.sql:29 dailymed_organization_text: ROW_NUMBER filter keeps one OrganizationsText row per slp",
+    "[bug] dags/dailymed_daily/staging-dailymed_organization_text.sql:9 New row_num column never reaches an existing table, so the 5-column INSERT fails"
+   ],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Neither finding identifies the typo in the PARTITION BY column. Finding 0 reads `slp` as the intended partition key and critiques the dedup logic, which is a different defect. It never says the column doesn't exist. Finding 1 describes an INSERT column-count mismatch against an existing table, which is also a different failure mechanism."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5e371acde2",
+   "title": "created more intermediate models and a staging J code model",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/sagerx/models/staging/rxnorm/stg_rxnorm__hcpcs_codes.sql:11 stg_rxnorm__hcpcs_codes ends with a semicolon after ORDER BY"
+   ],
+   "findings": [
+    "[risk] dbt/sagerx/models/staging/rxnorm/stg_rxnorm__hcpcs_codes.sql:6 stg_rxnorm__hcpcs_codes joins rxnsat to rxnconso on rxcui, not rxaui, so drug_name fans out across atoms and SABs",
+    "[risk] dbt/sagerx/models/intermediate/rxclass/int_rxclass_clinical_products_to_atc_class.sql:7 int_rxclass_clinical_products_to_* (atc, cvx, schedule, va): no tty filter, brand products labelled clinical",
+    "[bug] dbt/sagerx/models/staging/rxnorm/stg_rxnorm__hcpcs_codes.sql:11 stg_rxnorm__hcpcs_codes ends with a semicolon after ORDER BY"
+   ],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 reports the same defect at the same location: the trailing semicolon after ORDER BY in stg_rxnorm__hcpcs_codes.sql breaks dbt's wrapping of the model SQL. Finding 0 is about a join fan-out in the same model, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fdd375a707",
+   "title": "fda_excluded",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/sagerx/models/marts/fda_excluded/fda_excluded.sql:28 fda_excluded mart no longer produces staging.fda_excluded that int_ndc_all_ndcs_to_sources reads"
+   ],
+   "findings": [
+    "[bug] dbt/sagerx/models/marts/fda_excluded/fda_excluded.sql:28 fda_excluded mart no longer produces staging.fda_excluded that int_ndc_all_ndcs_to_sources reads",
+    "[bug] dbt/sagerx/models/intermediate/ndc/int_ndc_all_ndcs_to_sources.sql:27 Downstream model still reads staging.fda_excluded, which nothing builds anymore",
+    "[bug] dbt/sagerx/dbt_project.yml:35 Staging and intermediate models switched to views over tables that Airflow drops with CASCADE"
+   ],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is filed at fda_excluded.sql:28 and explicitly states the model ends with a trailing semicolon that, because dbt wraps the SQL in create table as (...), causes a Postgres syntax error. That matches the labelled bug. Finding 1 covers only the downstream staging reference, and finding 2 covers views and CASCADE drops, so neither is the same defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "6f541fbec7",
+   "title": "580 override contract token precision (#192)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/intermediate/account_balances/int_account_balances__contracts.sql:51 token_transfers_from balance lost its negative sign"
+   ],
+   "findings": [
+    "[risk] models/intermediate/account_balances/int_account_balances__contracts.sql:33 int_account_balances__contracts refs nonexistent model recognized_assets",
+    "[bug] models/intermediate/account_balances/int_account_balances__contracts.sql:51 token_transfers_from balance lost its negative sign",
+    "[risk] models/intermediate/account_balances/int_account_balances__contracts.sql:31 safe_cast of amount_raw to NUMERIC nulls out large token amounts",
+    "[risk] models/intermediate/account_balances/int_account_balances__contracts.sql:34 Join to recognized_assets can multiply rows and inflate balances"
+   ],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: the negation was dropped from the token_transfers_from sum at line 51, so outgoing transfers are added to the balance instead of reducing it."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5e206eea16",
+   "title": "Lint again",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "4ae7a3bf8d",
+   "title": "test #10",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "adventure-works",
+   "commit": "1f013cc9ce",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/_blueprint_generators.py:668 Old bag__ hook blueprint files remain and duplicate the frame__ ones, so peripheral models get defined twice :: After the rename, the hook generator writes new files named models/blueprints/hook/frame__*.yml. It never deletes the 58 old models/blueprints/hook/bag__*.yml files, and this commit changed their content to `name: frame__...` too. generate_peripheral_blueprints (used by dar__peripheral__blueprint.py"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adventure-works",
+   "commit": "0980784b4d",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/silver/bag__adventure_works__address_types.sql:31 _pit_hook__* references nonexistent column <entity>__valid_from in all 58 bag models :: The new _pit_hook__address_type expression reads address_type__valid_from. The validity CTE defines only address_type__record_valid_from and address_type__record_valid_to, and the staging CTE has no valid_from column either. The hooks CTE selects from validity, so the column cannot be resolved and t"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adventure-works",
+   "commit": "3972d18dfc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "36d0847b65",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "0e1c17dc52",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/reporting/games_with_moves.sql:25 playing_rating_range / opponent_rating_range put NULL ratings in '700+' :: games.playing_rating and opponent_rating are NULL whenever playing_as is NULL (username matches neither white nor black). In a CASE with `< 500`, `< 700` and ELSE '700+', a NULL falls through to ELSE and is labelled '700+'. That inflates the top bucket with unattributed games. The old numeric 100rou"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "4e7c2549d1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "42803d9ca5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "0b8a6855cc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "6c06843503",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "3108c532da",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "0ccf0c2186",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "56b0ffc98c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "277b591958",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "0b624186fe",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "3abe16b204",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] models/02_schema_diff/schema_check.sql:32 schema_check.pipe_name typed as timestamp but stores a string pipe name :: The incremental model defines pipe_name as a timestamp column. check_schema inserts a string literal into it (e.g. '1', 'batch_milan', or '' when no pipe is set). Snowflake will fail to cast these to a timestamp, so the insert errors in async mode, or empty strings are rejected. configured_tables de",
+    "[documented_column_not_selected] models/02_schema_diff/schema_check_summary.yml:33 schema_check_summary documents stale column `batch`; renamed pipe_name is not selected :: The rename was not applied here. The yml still documents `batch`, which the summary SQL does not select and which no longer exists upstream (it is now pipe_name). The summary also drops pipe_name, so the documented contract is broken. Because it groups only by table, rows from different pipes are co",
+    "[row_count_change] macros/resources/stored-procedures/create__check_data_diff.sql:73 schema_validation dedup now partitions by pipe_name, duplicating columns in base.col_list :: The commit adds pipe_name to the PARTITION BY of the latest-run dedup on schema_check. pipe_name is not part of the entity grain (table pair + column), so the QUALIFY now keeps one latest row per column per pipe_name value. Historical schema_check rows (written before the rename, pipe_name NULL or u"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "fdf4ff9bd2",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/stage/create_internal_stage.sql:1 create_internal_stage: double comma in signature breaks parsing :: The macro signature has `schema=target.schema, , stage=...`. Jinja fails to compile this file, so every dbt command fails at parse time, not just create_resources.",
+    "[broken_reference_or_syntax] macros/stage/load_internal_stage.sql:14 load_internal_stage calls renamed macro snowflake_clean_internal_stage :: The cleanup macro was renamed to clean_internal_stage (macros/stage/clean_internal_stage.sql:1). No snowflake_clean_internal_stage exists, so load_resources fails whenever clean_stage=true, which is the default. The call also passes no database, schema or stage arguments, so it would use clean's def",
+    "[business_logic] macros/load_resources.sql:4 Stage and table names don't match between the create, load and clean macros :: create_internal_stage and load_internal_stage now default to stage 'dbt_dataquality', but load_raw_table and clean_internal_stage still default to 'internal_stage'. load_raw_table also defaults to table 'stg_table1', while create_raw_table creates 'src_dbt_dataquality' (the table sources.yml declare"
+   ],
+   "later_fixed": [
+    "d7a0a53 Fixing minor issues on new dry run option",
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "376a40c6b5",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] models/sources.yml:12 sources.yml identifier reads a different table than the macros write (src_dbt_dataquality) :: The macros now write the raw table through _get_config() as var('dbt_dataquality_table', 'dbt_dataquality'). The source identifier still uses the var 'dbt_data_quality' (a different name) with default 'src_dbt_dataquality'. The old macros created src_dbt_dataquality, but the new ones create a table "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "1d7666e319",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/sources/sources_overview.sql:4 sources_overview hardcodes MY_DATABASE.MY_SCHEMA.RAW_SOURCE_FRESHNESS instead of ref() :: The model reads the dbt model raw_source_freshness through a hardcoded placeholder database and schema, not ref('raw_source_freshness'). The build graph gets no dependency, so sources_overview can run before raw_source_freshness is built. In any environment where the model is not materialized at MY_"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "31e751965f",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/metrics/schema/re_data_schema_changes.sql:107 re_data_schema_changes: all_with_time no longer selects operation, final select fails :: The rewritten all_with_time CTE selects table_name, column_name, data_type, is_nullable, prev_* and detected_time but omits all_changes.operation, which the old version carried. The final select still reads `operation` from all_with_time, so the model fails to compile or run. Even where it did run, ",
+    "[row_count_change] models/metrics/schema/re_data_schema_changes.sql:66 re_data_schema_changes: union all changed to union :: The change swaps `union all` for `union`, which deduplicates and adds a distinct sort. NULL-typed columns (null as prev_data_type and so on) across branches can also cause type resolution problems on some warehouses. This is unrelated to the stated purpose of adding the empty mock."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "0276c8c435",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "46aa99edd5",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] models/anomalies/z_score.sql:8 z_score last_stddev column filled from last_avg :: The output column `last_stddev` is selected from `stats.last_avg`, so it holds the average rather than the standard deviation. Anything reading last_stddev, such as alerting, sees wrong values.",
+    "[broken_reference_or_syntax] models/anomalies/z_score.sql:10 dbt_utils macros used but no packages.yml declares dbt_utils :: dbt_utils.current_timestamp_in_utc() is called in z_score, monitored_tables, base_metrics and freshness. The repository has no packages.yml and no dbt_modules, so dbt_utils is never installed. Compilation fails with 'dbt_utils is undefined'.",
+    "[schema_contract] models/final_metrics/schema.yml:9 values_between test filters on a table_name format that never occurs :: base_metrics writes table_name in the quoted form built by default__table_name: '\"schema\".\"table\"'. The test filters on `table_name = 'javascript.pages'`, which is unquoted, and `javascript` is not in redata:schemas. The filter matches no rows, so the test always passes and checks nothing.",
+    "[row_count_change] models/metrics_queries/base_metrics.sql:32 Incremental base_metrics appends duplicates when the same window is rerun :: dbt_project.yml makes metrics_queries incremental, but there is no unique_key and no is_incremental filter. Rerunning the same time window appends a second set of rows. all_last_metrics then returns several rows per metric for that time_window_end, which multiplies the rows in z_score and alerting t"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "dbt-redshift",
+   "commit": "18123c4653",
+   "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb1 in position 1087583: invalid start byte",
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-redshift",
+   "commit": "5b47118a30",
+   "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb1 in position 1076422: invalid start byte",
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "41390a17a5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "120b4d7e05",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] integration_tests/dbt_project.yml:26 hubspot_schema points to a personal dev schema, not the CI seed schema :: The integration tests load seeds into the profile's target schema, hubspot_source_integration_tests_34 (see ci/sample.profiles.yml). Sources read from var hubspot_schema. This commit changes that var to the developer sandbox 'zz_dbt_avinash_seed', so in CI every source relation resolves to a schema "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "76ec6116c3",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/stg_hubspot__engagement_meeting.sql:1 stg_hubspot__engagement_meeting enable flag now differs from its _tmp model :: The staging model is now gated on hubspot_engagement_meeting_enabled. The upstream stg_hubspot__engagement_meeting_tmp is still gated on hubspot_engagement_email_enabled. If email is disabled and meeting is enabled, the tmp model is disabled while the staging model stays enabled, so ref('stg_hubspot"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "3bc3999f68",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "0daa3bb10d",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/stg_stripe__plan.sql:30 stg_stripe__plan.plan_interval: Databricks now falls through to bare `interval` :: Databricks was removed from the quoted-identifier branch, so it now compiles `interval as plan_interval` with no quoting or backticks. In Databricks/Spark SQL, `interval` begins an INTERVAL literal, so the bare token followed by `as` is likely to fail to parse, or to be read as something other than "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "6505aa1fa4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "41ce411a60",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "095b5baeeb",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "65b4711b95",
+   "error": null,
+   "bug_findings": [
+    "[documented_column_not_selected] models/stg_zendesk__ticket_chat_event.sql:48 stg_zendesk__ticket_chat_event.original_message documented but never selected :: stg_zendesk.yml documents original_message as a column of stg_zendesk__ticket_chat_event. The columns macro does not list it and the final select does not output it. The documented column is therefore missing from the model output, and downstream readers of it would fail.",
+    "[schema_contract] integration_tests/seeds/ticket_chat_data.csv:2 Duplicate chat_id values in the new seed break the new unique_combination_of_columns test :: stg_zendesk__ticket_chat now has a dbt_utils.unique_combination_of_columns test on (chat_id, source_relation) (models/stg_zendesk.yml:473-476). The new ticket_chat_data seed added in this commit repeats several chat_ids with different ticket_ids, so when using_ticket_chat is on, the staging model pa",
+    "[nullability_or_cast] integration_tests/seeds/ticket_chat_event_data.csv:1 Seed header renames _fivetran_synced to _Company_synced, so the staged _fivetran_synced is always null :: The 'Clean seeds' scrub replaced 'fivetran' with 'Company' in the ticket_chat_event seed header. Because the source no longer has a _fivetran_synced column, fill_staging_columns in stg_zendesk__ticket_chat_event fills it with cast(null as timestamp), so every row in the integration-test model has a "
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "devstats",
+   "commit": "2f769bd873",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "devstats",
+   "commit": "090ba96217",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "devstats",
+   "commit": "4d472a83fa",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] metrics/all/prs_state.sql:12 all/prs_state.sql: hardcoded 2024-04-01..2024-04-08 replaces {{from}}/{{to}} :: The issue filter on updated_at now uses fixed literal dates instead of the {{from}}/{{to}} template parameters. Every run, for any period, computes the metric for the same week, so other periods return wrong or empty rows (a debugging leftover).",
+    "[business_logic] metrics/shared/prs_state.sql:12 shared/prs_state.sql: hardcoded date window instead of {{from}}/{{to}} :: Same hardcoded window in the shared metric: all_prs_i and all_prs_p filter on fixed 2024-04 dates, so rows outside that week are dropped for every other period.",
+    "[broken_reference_or_syntax] metrics/shared/prs_state.sql:1 Temp tables have no {{rnd}} suffix and are never dropped :: Other temp-table metrics in this repo (for example kubernetes/pr_workload.sql) add a {{rnd}} suffix so names do not collide. These temp tables (all_prs_i, all_prs_p, all_prs_ip, all_prs, approved_prs) have no suffix and are never dropped. If the same connection or session runs the metric again for a"
+   ],
+   "later_fixed": [
+    null,
+    "01ea827e9 Fix the concurrency issue",
+    "01ea827e9 Fix the concurrency issue"
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "providence",
+   "commit": "c640bd30e1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "providence",
+   "commit": "29bac99d8b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "providence",
+   "commit": "0dfb7bd84c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "41ddad9f90",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] dbt/sagerx/models/intermediate/nadac/int_nadac_historical_pricing.sql:174 int_nadac_historical_pricing fans out per ndc via join to int_rxnorm_ndcs_to_products :: The new left join to int_rxnorm_ndcs_to_products is on ndc only. That model is a SELECT DISTINCT over ndc, product_rxcui and clinical_product_rxcui. Its source stg_rxnorm__ndcs returns several rows for one NDC, because of multiple rxcuis and multiple tradename_of relations. Each price row therefore ",
+    "[row_count_change] dbt/sagerx/models/marts/pricing/pricing.sql:65 pricing/pricing_historical left join pack_size on ndc11 may fan out rows :: pack_size is a SELECT DISTINCT including packagedescription, built from a union all of the FDA ndc, excluded and unfinished tables. If an ndc11 appears in more than one source with different package descriptions, or with differing outermost/innermost unit, pack_size has several rows per ndc11. Joini",
+    "[schema_contract] dbt/sagerx/models/intermediate/nadac/int_nadac_historical_pricing.sql:114 int_nadac_historical_pricing outputs nadac_description but YAML documents ndc_description :: The model now outputs nadac_description. The YAML for int_nadac_historical_pricing (and int_nadac_pricing, which is documented as having the same columns) still documents ndc_description, so the documented column is not in the model's output. This breaks the documented contract and may break contrac",
+    "[dropped_or_renamed_column_with_readers] dbt/sagerx/models/marts/pricing/pricing_historical.sql:56 pricing_historical still reads ndc_description, which was renamed :: This commit renames int_nadac_historical_pricing.ndc_description to nadac_description. pricing_historical selects `*` from that model into the nadac_historical CTE and then references nadac_historical.ndc_description. That column no longer exists, so the model fails to build with 'column nadac_histo"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "09ec33714f",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt/sagerx/models/staging/fda/stg_fda__fda_ndc_substance.sql:7 stg_fda__fda_ndc_substance reads datasource.fda_ndc_product directly instead of source()/ref() :: The model hardcodes the raw table `datasource.fda_ndc_product`. The project declares it as source('fda','fda_ndc_product') and stg_fda__fda_ndc already reads it through that. With the hardcoded name, dbt has no lineage edge, so this model is not ordered after the source. It also breaks when the sour",
+    "[dropped_or_renamed_column_with_readers] airflow/dags/flat_files/export-fda.sql:2 Flat-file export still reads the deleted staging.fda_ndc_class / staging.fda_ndc_substance tables :: This commit deletes the Airflow scripts that created staging.fda_ndc_class and staging.fda_ndc_substance. Their replacements are dbt models that build as views named staging.stg_fda__fda_ndc_class and staging.stg_fda__fda_ndc_substance (dbt_project.yml sets the staging schema). The flat-file export "
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "6bd83108ef",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] dbt/sagerx/models/intermediate/nadac/_int_nadac__models.yml:62 YAML documents and tests int_nadac_current_pricing, whose SQL was deleted :: int_nadac_current_pricing.sql was deleted and replaced by int_nadac_latest_pricing.sql (which has no is_within_365_days filter). The yml still declares int_nadac_current_pricing with not_null/unique tests on ndc, so dbt will warn or error about a missing model node and the tests can never run. The d",
+    "[row_count_change] dbt/sagerx/models/marts/pricing/pricing.sql:5 pricing joins full NADAC price history, so each NDC fans out to one row per price period :: The nadac CTE selects from int_nadac_all_pricing, which holds one row per NDC per effective_date (start_date/end_date, is_last_price). all_ndcs is one row per NDC, but the left join to nadac on ndc alone matches every historical price row. Each NDC therefore appears many times, and the mccpd columns"
+   ],
+   "later_fixed": [
+    "c193656 Fix crazy NADAC bug",
+    "c193656 Fix crazy NADAC bug"
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "2e63a8a7a0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "0a963e9f12",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "512cfcd46f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [
+  {
+   "repo": "dbt-redshift",
+   "commit": "18123c4653",
+   "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb1 in position 1087583: invalid start byte"
+  },
+  {
+   "repo": "dbt-redshift",
+   "commit": "5b47118a30",
+   "error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb1 in position 1076422: invalid start byte"
+  }
+ ],
+ "summary": {
+  "in_scope_bugs": 37,
+  "caught_judge_bug": "30/37 (81%)",
+  "caught_judge_bug_or_risk": "31/37 (84%)",
+  "caught_strict": "32/37 (86%)",
+  "caught_loose": "32/37 (86%)",
+  "risk_note_only": "0/37 (0%)",
+  "by_repo": {
+   "adventure-works": "1/1 (100%)",
+   "chess_com_bi": "1/1 (100%)",
+   "dbt-analytics": "4/4 (100%)",
+   "dbt-cost-optimization": "1/1 (100%)",
+   "dbt-data-diff": "5/5 (100%)",
+   "dbt-dataquality": "2/2 (100%)",
+   "dbt-re-data": "1/2 (50%)",
+   "dbt-redshift": "1/1 (100%)",
+   "dbt_hubspot_source": "4/4 (100%)",
+   "dbt_stripe_source": "0/2 (0%)",
+   "dbt_zendesk_source": "1/1 (100%)",
+   "devstats": "4/4 (100%)",
+   "ga4-pipeline-framework": "1/1 (100%)",
+   "providence": "1/1 (100%)",
+   "sagerx": "2/4 (50%)",
+   "stellar-dbt-public": "1/3 (33%)"
+  },
+  "by_category": {
+   "business_logic": "15/15 (100%)",
+   "nullability_or_cast": "1/1 (100%)",
+   "other": "10/15 (67%)",
+   "row_count_change": "4/6 (67%)"
+  },
+  "compiles_true": "20/23 (87%)",
+  "compiles_false": "10/14 (71%)",
+  "needs_data_bucket": "0/0",
+  "false_alarm_maintainer_rule": "14/42 (33%)",
+  "ordinary_commits": 42,
+  "false_alarm_share": "17/42 (40%)",
+  "false_alarm_share_excluding_later_fixed": "16/42 (38%)",
+  "commits_with_bug_or_risk": "23/42",
+  "false_alarm_by_repo": {
+   "adventure-works": "2/3",
+   "chess_com_bi": "1/3",
+   "dbt-analytics": "0/3",
+   "dbt-cost-optimization": "0/3",
+   "dbt-data-diff": "1/3",
+   "dbt-dataquality": "3/3",
+   "dbt-re-data": "2/3",
+   "dbt_hubspot_source": "2/3",
+   "dbt_stripe_source": "1/3",
+   "dbt_zendesk_source": "1/3",
+   "devstats": "1/3",
+   "providence": "0/3",
+   "sagerx": "3/3",
+   "stellar-dbt-public": "0/3"
+  },
+  "errors": 2
+ }
+}
