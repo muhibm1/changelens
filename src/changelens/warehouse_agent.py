@@ -233,7 +233,9 @@ Three more rules:
   another version of the same model, the repository's own DDL, spec or seeds. A claim that rests only on what an
   external package version contains, which no file shows, is at most "risk". Candidates marked [compile] come from
   rendering the changed file under each template branch and parsing it in the dialect the file parsed in before this
-  commit; the parser's error is real, but check it is not an artefact of the rendering before you confirm it.
+  commit; the parser's error is real, but check it is not an artefact of the rendering before you confirm it. Judge
+  it on the rendered SQL shown with it, which is what the warehouse receives: in a template, a clause that looks
+  nested under one branch may sit at the same query level as a SELECT from another branch once rendered.
 
 For every candidate also give `doubt`, what stops it being a confirmed bug: "none" (it is a bug, or plainly not
 one), "fact" (you could not establish a fact such as a grain, a key or whether a column can be NULL), "intent" (the
@@ -284,7 +286,8 @@ numerator, a sibling model's mapping of the same column, a block this one was co
 changed computes it another way that does not fit that definition (a "former contributors" set built from different
 events than the ranked set it is compared with, a negated branch that is not the complement of the positive branch at
 the same grain, a numerator and denominator over different populations, a block copied from elsewhere without
-adapting the one part that had to change).
+adapting the one part that had to change, a name the commit gives a parameter or column that states its meaning, such
+as a range's start that the filter leaves out or a "distinct" count that is not distinct).
 
 For each finding give:
 - `contradiction`: true only if you can point at both lines and the mismatch is plain from them.
@@ -399,13 +402,13 @@ def compile_findings(repo: Path, parent: str, commit: str, unresolved: list[str]
             out.append(AgentFinding(
                 f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} filters on a window-function alias",
                 f"Rendered with template branch '{f.variant}' and read as {f.dialect}: {f.error}. The parent commit's version of the file did not do this.",
-                evidence=f"compile step scope lint: {f.path} at this commit; not present at the parent", source="compile",
+                evidence=f"compile step scope lint: {f.path} at this commit; not present at the parent. Rendered SQL (line numbers are of the rendered file, not the template):\n{f.snippet}", source="compile",
             ))
         else:
             out.append(AgentFinding(
                 f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} no longer parses as {f.dialect} after rendering",
                 f"Rendered with template branch '{f.variant}', the file fails to parse as {f.dialect}, while the parent commit's version of it, rendered the same way, parsed. Parser error: {f.error}",
-                evidence=f"compile step: {f.path} at the parent parses as {f.dialect}; at this commit it does not", source="compile",
+                evidence=f"compile step: {f.path} at the parent parses as {f.dialect}; at this commit it does not. Rendered SQL (line numbers are of the rendered file, not the template):\n{f.snippet}", source="compile",
             ))
     return out
 

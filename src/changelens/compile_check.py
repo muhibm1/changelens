@@ -40,6 +40,17 @@ class CompileFailure:
     variant: str
     error: str
     kind: str = "parse"
+    snippet: str = ""
+
+
+def _snippet(sql: str, line: int | None, around: int = 10) -> str:
+    """The rendered SQL around ``line``, numbered as rendered, so a reader sees what the warehouse would get."""
+    rows = sql.splitlines()
+    if not rows:
+        return ""
+    mid = (line or 1) - 1
+    lo, hi = max(0, mid - around), min(len(rows), mid + around + 1)
+    return "\n".join(f"{i + 1:>5}  {rows[i]}" for i in range(lo, hi) if rows[i].strip())[:1800]
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -240,6 +251,19 @@ def window_alias_filters(sql: str, dialect: str) -> set[str]:
     return out
 
 
+def _scope_snippet(sql: str, alias: str, where_line: int | None) -> str:
+    """The rendered lines that define the window alias and the filter that uses it, with the SELECT they share between."""
+    rows = sql.splitlines()
+    define = next((i + 1 for i, ln in enumerate(rows) if re.search(r"(?i)\bOVER\b.*\bAS\s+" + re.escape(alias) + r"\b", ln)), None)
+    if define is None or where_line is None or define >= where_line:
+        return _snippet(sql, where_line)
+    lo, hi = max(1, define - 6), min(len(rows), where_line + 2)
+    keep = [i for i in range(lo, hi + 1) if rows[i - 1].strip()]
+    if len(keep) > 40:
+        keep = keep[:12] + keep[-20:]
+    return "\n".join(f"{i:>5}  {rows[i - 1]}" for i in keep)[:2400]
+
+
 def _scope_failure(path: str, new_v: list[tuple[str, str]], old_v: list[tuple[str, str]], dialect: str) -> CompileFailure | None:
     """A failure when the new file filters on a window alias in a way the parent version did not."""
     before: set[str] = set()
@@ -257,7 +281,7 @@ def _scope_failure(path: str, new_v: list[tuple[str, str]], old_v: list[tuple[st
                 path, line, dialect, name,
                 f"WHERE or HAVING refers to {', '.join(added)}, an alias the same SELECT defines with a window function; "
                 "the alias does not exist when the filter runs, so the warehouse rejects the query",
-                kind="scope",
+                kind="scope", snippet=_scope_snippet(sql, added[0], line),
             )
     return None
 
@@ -280,7 +304,8 @@ def check_file(path: str, new: str, old: str | None, siblings: list[str] | None 
     for name, sql in new_v:
         e = parse_error(sql, dialect)
         if e is not None:
-            return CompileFailure(path, _error_line(e), dialect, name, str(e).replace("\x1b[4m", "").replace("\x1b[0m", "")[:600])
+            ln = _error_line(e)
+            return CompileFailure(path, ln, dialect, name, str(e).replace("\x1b[4m", "").replace("\x1b[0m", "")[:600], snippet=_snippet(sql, ln))
     return _scope_failure(path, new_v, render_variants(path, old) if old is not None else [], dialect)
 
 
