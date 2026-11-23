@@ -1,0 +1,60 @@
+# dbt_metrics: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt_metrics): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: dbt_metrics
+url: https://github.com/dbt-labs/dbt_metrics
+bugs:
+  - commit: "604176d6cb"
+    parent: "ae2815e0d6"
+    title: "add start_date and end_date to metric() and don't pull through spined… (#10)"
+    fix: "ed7a5cda19"
+    fix_title: "Remove premature filtering by date (#17)"
+    bug: "source_query's WHERE filters on date_day, an alias defined in the same select list, which Postgres, BigQuery and Redshift reject; it also filters before secondary calculations, which the bounded CTE already limits to the range"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["date_day", "start_date"]
+    expect:
+      - {path: "macros/get_metric_sql.sql", line: 70}
+  - commit: "cabdef7a6a"
+    parent: "a9d0feec71"
+    title: "removing cartesian join"
+    fix: "c9a3507e83"
+    fix_title: "fixing the off chance no dims selected"
+    bug: "spine__values becomes select distinct over the dimensions from source_query, cross joined to the spine; with no dimensions it renders select distinct with an empty column list, which is invalid SQL"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["distinct", "dimensions"]
+    expect:
+      - {path: "macros/get_metric_sql.sql", line: 94}
+  - commit: "2e469805e7"
+    parent: "a9d0feec71"
+    title: "adding filters and tests"
+    fix: "0294fc14a1"
+    fix_title: "forgot the jinja for filter"
+    bug: "the loop over the where argument renders and filter, the bare word filter, instead of the Jinja expression {{ filter }}, so any metric called with a where clause produces SQL that references a nonexistent column filter"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["filter", "where"]
+    expect:
+      - {path: "macros/get_metric_sql.sql", line: 73}
+  - commit: "604176d6cb"
+    parent: "ae2815e0d6"
+    title: "add start_date and end_date to metric() and don't pull through spined… (#10)"
+    fix: "ebab03ee5a"
+    fix_title: "start_date and end_date casting fix (#22)"
+    bug: "lower_bound and upper_bound are set to the quoted start_date and end_date strings without a cast, so the bounded CTE carries string columns and the later where period >= lower_bound compares a date to a string, which BigQuery and Postgres reject"
+    category: nullability_or_cast
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["cast", "lower_bound"]
+    expect:
+      - {path: "macros/get_metric_sql.sql", line: 152}
+      - {path: "macros/get_metric_sql.sql", line: 153}

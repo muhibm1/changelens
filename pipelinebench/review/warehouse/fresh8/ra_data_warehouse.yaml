@@ -1,0 +1,34 @@
+# ra_data_warehouse: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/rittmananalytics/ra_data_warehouse): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: ra_data_warehouse
+url: https://github.com/rittmananalytics/ra_data_warehouse
+bugs:
+  - commit: "cd330c3a47"
+    parent: "ed3c41dc8e"
+    title: "more jira"
+    fix: "a2b345268f"
+    fix_title: "fix to tasks"
+    bug: "both timestamp_diff(..., fields.created,,HOUR) calls have a doubled comma, which is a syntax error"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["timestamp_diff", "comma"]
+    expect:
+      - {path: "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql", line: 31}
+      - {path: "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql", line: 34}
+  - commit: "5e69b7458a"
+    parent: "69e3ebfdb6"
+    title: "made transactions incremental load"
+    fix: "b2bb897f47"
+    fix_title: "fix to wh_transactions_fact"
+    bug: "the incremental filter compares transaction_last_modified_date, a column the staging model does not have (it exposes transaction_updated_ts), so incremental runs fail"
+    category: other
+    in_scope: true
+    compiles: false
+    needs_data: false
+    must_mention: ["transaction_last_modified_date", "incremental"]
+    expect:
+      - {path: "models/warehouse/w_finance/wh_transactions_fact.sql", line: 33}

@@ -1,0 +1,15 @@
+/home/user/fresh-repos-8/amazon-redshift-utils https://github.com/awslabs/amazon-redshift-utils
+/home/user/fresh-repos-8/automate-dv https://github.com/Datavault-UK/automate-dv
+/home/user/fresh-repos-8/data-infrastructure https://github.com/cagov/data-infrastructure
+/home/user/fresh-repos-8/datavault4dbt https://github.com/ScalefreeCOM/datavault4dbt
+/home/user/fresh-repos-8/dbt_constraints https://github.com/Snowflake-Labs/dbt_constraints
+/home/user/fresh-repos-8/dbt_fivetran_utils https://github.com/fivetran/dbt_fivetran_utils
+/home/user/fresh-repos-8/dbt_metrics https://github.com/dbt-labs/dbt_metrics
+/home/user/fresh-repos-8/dbt_salesforce_formula_utils https://github.com/fivetran/dbt_salesforce_formula_utils
+/home/user/fresh-repos-8/dfe-analytics-dataform https://github.com/DFE-Digital/dfe-analytics-dataform
+/home/user/fresh-repos-8/filecoin-data-portal https://github.com/davidgasquez/filecoin-data-portal
+/home/user/fresh-repos-8/make-open-data https://github.com/make-open-data/make-open-data
+/home/user/fresh-repos-8/nba-monte-carlo https://github.com/matsonj/nba-monte-carlo
+/home/user/fresh-repos-8/openFEC https://github.com/fecgov/openFEC
+/home/user/fresh-repos-8/ra_data_warehouse https://github.com/rittmananalytics/ra_data_warehouse
+/home/user/fresh-repos-8/transfermarkt-datasets https://github.com/dcaribou/transfermarkt-datasets

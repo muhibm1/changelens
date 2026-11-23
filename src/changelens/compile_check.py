@@ -6,6 +6,10 @@ every branch its template switches on, and parses the result in the dialect the 
 runs no model and touches no database. A failure counts only when the parent version of the same file, rendered the
 same way, parsed: a file that never parsed tells us nothing about this commit.
 
+It also runs one scope lint that a parser cannot: a WHERE or HAVING clause that names an alias the same SELECT
+defines with a window function (no warehouse allows that; the alias does not exist until after filtering). Like a
+parse failure, it counts only when the parent version of the file did not do the same.
+
 Templates handled: dbt Jinja (references and simple macros written out, unknown expressions as NULL, each if/else
 arm), SqlRender (``{@flag} ? {a} : {b}`` under every combination of up to five conditions, ``@param`` as a name),
 and Hive or shell variables (``${var}``, ``${hiveconf:var}``).
@@ -20,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import sqlglot
+from sqlglot import exp
 from sqlglot.errors import ParseError, TokenError
 
 SQL_EXT = (".sql", ".hql", ".q", ".sqlx", ".ddl", ".psql", ".pgsql")
@@ -34,6 +39,18 @@ class CompileFailure:
     dialect: str
     variant: str
     error: str
+    kind: str = "parse"
+    snippet: str = ""
+
+
+def _snippet(sql: str, line: int | None, around: int = 10) -> str:
+    """The rendered SQL around ``line``, numbered as rendered, so a reader sees what the warehouse would get."""
+    rows = sql.splitlines()
+    if not rows:
+        return ""
+    mid = (line or 1) - 1
+    lo, hi = max(0, mid - around), min(len(rows), mid + around + 1)
+    return "\n".join(f"{i + 1:>5}  {rows[i]}" for i in range(lo, hi) if rows[i].strip())[:1800]
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -137,10 +154,19 @@ def render_sqlrender(text: str, truth: dict[str, bool]) -> str:
     return re.sub(r"@(\w+)", r"p_\1", out)
 
 
+_SQLRENDER_DEFAULT = re.compile(r"(?im)^[ \t]*\{DEFAULT\s+@\w+\s*=[^{}\n]*\}[ \t]*;?[ \t]*$")
+
+
+def strip_sqlrender_defaults(text: str) -> str:
+    """``text`` with SqlRender's ``{DEFAULT @x = ...}`` header lines blanked (line numbers kept); they set defaults, not SQL."""
+    return _SQLRENDER_DEFAULT.sub("", text)
+
+
 def render_variants(path: str, raw: str) -> list[tuple[str, str]]:
     """(name, rendered SQL) for each way the file can come out; one variant for a file with no templating."""
     from .warehouse_rules import dejinja
 
+    raw = strip_sqlrender_defaults(raw)
     text = re.sub(r"\$\{(?:hiveconf:|hivevar:|env:)?(\w+)\}", r"v_\1", raw)
     variants: list[tuple[str, str]] = []
     conds = _sqlrender_conditions(text)
@@ -201,6 +227,65 @@ def _dialect_for(variants: list[tuple[str, str]], path: str = "") -> str | None:
     return None
 
 
+def window_alias_filters(sql: str, dialect: str) -> set[str]:
+    """Aliases of window-function columns that a WHERE or HAVING of the same SELECT refers to by name."""
+    out: set[str] = set()
+    try:
+        trees = sqlglot.parse(sql, read=dialect)
+    except Exception:  # noqa: BLE001 - unparseable SQL is the parse check's business, not this lint's
+        return out
+    for tree in trees:
+        if tree is None:
+            continue
+        for sel in tree.find_all(exp.Select):
+            aliases = {e.alias.lower() for e in sel.expressions if isinstance(e, exp.Alias) and e.this.find(exp.Window)}
+            if not aliases:
+                continue
+            for key in ("where", "having"):
+                node = sel.args.get(key)
+                if node is None:
+                    continue
+                for col in node.find_all(exp.Column):
+                    if not col.table and col.name.lower() in aliases and col.find_ancestor(exp.Select) is sel:
+                        out.add(col.name.lower())
+    return out
+
+
+def _scope_snippet(sql: str, alias: str, where_line: int | None) -> str:
+    """The rendered lines that define the window alias and the filter that uses it, with the SELECT they share between."""
+    rows = sql.splitlines()
+    define = next((i + 1 for i, ln in enumerate(rows) if re.search(r"(?i)\bOVER\b.*\bAS\s+" + re.escape(alias) + r"\b", ln)), None)
+    if define is None or where_line is None or define >= where_line:
+        return _snippet(sql, where_line)
+    lo, hi = max(1, define - 6), min(len(rows), where_line + 2)
+    keep = [i for i in range(lo, hi + 1) if rows[i - 1].strip()]
+    if len(keep) > 40:
+        keep = keep[:12] + keep[-20:]
+    return "\n".join(f"{i:>5}  {rows[i - 1]}" for i in keep)[:2400]
+
+
+def _scope_failure(path: str, new_v: list[tuple[str, str]], old_v: list[tuple[str, str]], dialect: str) -> CompileFailure | None:
+    """A failure when the new file filters on a window alias in a way the parent version did not."""
+    before: set[str] = set()
+    for _, sql in old_v:
+        before |= window_alias_filters(sql, dialect)
+    for name, sql in new_v:
+        added = sorted(window_alias_filters(sql, dialect) - before)
+        if added:
+            line = None
+            for i, ln in enumerate(sql.splitlines(), 1):
+                if re.search(r"(?i)\b(where|having|and|or)\b.*\b" + re.escape(added[0]) + r"\b", ln):
+                    line = i
+                    break
+            return CompileFailure(
+                path, line, dialect, name,
+                f"WHERE or HAVING refers to {', '.join(added)}, an alias the same SELECT defines with a window function; "
+                "the alias does not exist when the filter runs, so the warehouse rejects the query",
+                kind="scope", snippet=_scope_snippet(sql, added[0], line),
+            )
+    return None
+
+
 def check_file(path: str, new: str, old: str | None, siblings: list[str] | None = None) -> CompileFailure | None:
     """A failure when ``new`` does not parse in the dialect ``old`` (or, for a new file, its siblings) parsed in."""
     if not path.lower().endswith(SQL_EXT):
@@ -219,12 +304,20 @@ def check_file(path: str, new: str, old: str | None, siblings: list[str] | None 
     for name, sql in new_v:
         e = parse_error(sql, dialect)
         if e is not None:
-            return CompileFailure(path, _error_line(e), dialect, name, str(e).replace("\x1b[4m", "").replace("\x1b[0m", "")[:600])
-    return None
+            ln = _error_line(e)
+            return CompileFailure(path, ln, dialect, name, str(e).replace("\x1b[4m", "").replace("\x1b[0m", "")[:600], snippet=_snippet(sql, ln))
+    return _scope_failure(path, new_v, render_variants(path, old) if old is not None else [], dialect)
 
 
-def check_commit(repo: Path, parent: str, commit: str, max_files: int = 40) -> list[CompileFailure]:
-    """Every changed SQL file that parsed before this commit and does not now, rendered under every template branch."""
+def checkable(path: str, text: str) -> bool:
+    """Whether the step can read ``text`` at all: some dialect parses every rendered variant of it."""
+    return _dialect_for(render_variants(path, text), path) is not None
+
+
+def check_commit(repo: Path, parent: str, commit: str, max_files: int = 40, unchecked: list[str] | None = None) -> list[CompileFailure]:
+    """Every changed SQL file that parsed before this commit and does not now, rendered under every template branch.
+
+    Changed SQL files the step could not read at the parent (so cannot judge) are appended to ``unchecked``."""
     names = _git(repo, "diff", "--name-status", "-M", parent, commit).splitlines()
     out: list[CompileFailure] = []
     for row in names[:max_files]:
@@ -255,4 +348,6 @@ def check_commit(repo: Path, parent: str, commit: str, max_files: int = 40) -> l
         f = check_file(path, new, old, siblings)
         if f:
             out.append(f)
+        elif unchecked is not None and old is not None and not checkable(path, old):
+            unchecked.append(path)
     return out

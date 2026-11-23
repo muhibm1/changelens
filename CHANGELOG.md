@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Warehouse agent v10 and v11 (2026-11-23)
+
+- v10: the render-and-parse step reads SqlRender files with `{DEFAULT ...}` headers and names files it could not
+  check in `unresolved`; a scope check for WHERE on a window alias; the checker sees rendered SQL; a second look on
+  Opus may promote a finding held back on intent when it cites both the defining and the contradicting line.
+- v11: one whole-diff Opus reviewer beside the four specialists; Dataform JavaScript is included in the diff.
+- Held out, each scored once: v10 32 of 40 (Opus alone 32, Sonnet 25); v11 30 of 37 (Opus alone 30, Sonnet 31).
+  Over all three held-out sets: 96 of 116 (83%) against 93 for Opus alone.
+
+
 ### Warehouse review agent v9, scored against Claude Opus alone on a held-out set (2026-11-23)
 
 - A render-and-parse step (`compile_check.py`, no model): each changed SQL file is rendered under every template branch (dbt Jinja, SqlRender conditions evaluated from parameter values, Hive variables) and parsed in the dialect it parsed in before the commit; new failures go to the checker as candidates.

@@ -1,0 +1,1750 @@
+{
+ "reviewer": "reverify",
+ "agent": "wa-9",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "d259381307",
+   "title": "New diagnostics - Cohort as feature",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CohortAsFeature.sql:14 fs_before_max and fe_before_max use the wrong date in DATEDIFF",
+    "inst/sql/sql_server/CohortAsFeature.sql:61 fs_after_count / fe_after_count compare against the wrong target date",
+    "inst/sql/sql_server/CohortAsFeature.sql:69 cohort_as_features fs_during_max measures to the feature end date"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:195 fo_during_* condition is contradictory, so it matches almost no rows",
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:5 *_same_subjects counts distinct cohort id instead of distinct subjects",
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:14 fs_before_max and fe_before_max use the wrong date in DATEDIFF",
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:61 fs_after_count / fe_after_count compare against the wrong target date",
+    "[bug] R/RunDiagnostics.R:1024 cohort_as_features incremental keys: subset$featureCohortId does not exist and task record uses wrong key",
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:87 *_during_stdev (fs, fe, fo) computed over a 0/1 flag with ELSE 0",
+    "[bug] inst/sql/sql_server/CohortAsFeature.sql:69 cohort_as_features fs_during_max measures to the feature end date"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 identifies the labelled bug. fs_before_max uses a.cohort_end_date in DATEDIFF while min, avg and stdev use a.cohort_start_date, and fe_before_max has the same slip at line 111. This is the same columns and the same mechanism as the label."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a2f0ef58c8",
+   "title": "Add subject_count to index event breakdown",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CohortEntryBreakdown.sql:20 CohortEntryBreakdown: COUNT(distinct subject_count) references nonexistent column and is never selected",
+    "inst/sql/sql_server/CohortEntryBreakdown.sql:11 subject_count computed in the subquery but never selected by the outer query"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/CohortEntryBreakdown.sql:20 CohortEntryBreakdown: COUNT(distinct subject_count) references nonexistent column and is never selected",
+    "[bug] inst/sql/sql_server/CohortEntryBreakdown.sql:11 subject_count computed in the subquery but never selected by the outer query"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at the same line and the same defect. COUNT(distinct subject_count) references a column that doesn't exist, and it says subject_id was intended, so the query fails. Finding 1 is only about subject_count not being selected by the outer query, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f2f6961df1",
+   "title": "Casting incidence rates as float",
+   "category": "schema_contract",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/ComputeIncidenceRates.sql:116 #rates_summary.person_years loses its column name after the CAST"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/ComputeIncidenceRates.sql:116 #rates_summary.person_years loses its column name after the CAST"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line, and names the same defect. The CAST of person_years to FLOAT has no alias in a SELECT ... INTO #rates_summary. That leaves the column unnamed, which SQL Server rejects, and later reads of person_years fail."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8e5d65676a",
+   "title": "updated documentation",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortDiagnostics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/ComputeTimeSeries.sql:39 ComputeTimeSeries.sql cohort filter uses R syntax c(@cohort_ids)"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/ComputeTimeSeries.sql:43 ComputeTimeSeries.sql GROUP BY contains a column alias expression (AS age_group)",
+    "[bug] inst/sql/sql_server/ComputeTimeSeries.sql:39 ComputeTimeSeries.sql cohort filter uses R syntax c(@cohort_ids)",
+    "[risk] inst/sql/sql_server/ComputeTimeSeries.sql:38 INNER JOIN person drops cohort rows for subjects with no person record",
+    "[bug] R/RunDiagnostics.R:913 prevalence_rate.csv now has age_group and gender_concept_id columns missing from the results data model",
+    "[bug] R/RunDiagnostics.R:880 @cdm_database_schema is never supplied when rendering ComputeTimeSeries.sql",
+    "[bug] R/RunDiagnostics.R:840 Weekly calendar periods removed from time series"
+   ],
+   "repo": "CohortDiagnostics",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags the same line (ComputeTimeSeries.sql:39) and the same defect: `IN c(@cohort_ids)` is R syntax, not valid SQL, so the query fails to parse. It proposes `IN (@cohort_ids)` as the fix."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a6d56fee84",
+   "title": "add date constraints, comments, link to n3c_cohort",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:111 visit_dimension filter inverted to start_date < 01-JAN-18",
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:109 visit_dimiension typo in FROM clause",
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:51 Unqualified patient_num ambiguous after joining n3c_cohort",
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:115 ExtractScripts/N3C_extract_V1_0_act_oracle.sql no longer parses as oracle after rendering"
+   ],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:111 visit_dimension filter inverted to start_date < 01-JAN-18",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:109 visit_dimiension typo in FROM clause",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:51 Unqualified patient_num ambiguous after joining n3c_cohort",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:115 ExtractScripts/N3C_extract_V1_0_act_oracle.sql no longer parses as oracle after rendering"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the visit_dimension filter flipped from start_date >= '01-JAN-18' to < '01-JAN-18' at line 111, so only pre-2018 visits are extracted. It also notes the DATA_COUNTS count uses the same inverted filter."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a6d56fee84",
+   "title": "add date constraints, comments, link to n3c_cohort",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:111 visit_dimension filter inverted to start_date < 01-JAN-18",
+    "ExtractScripts/N3C_extract_V1_0_act_oracle.sql:109 visit_dimiension typo in FROM clause"
+   ],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:111 visit_dimension filter inverted to start_date < 01-JAN-18",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:109 visit_dimiension typo in FROM clause",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:51 Unqualified patient_num ambiguous after joining n3c_cohort",
+    "[bug] ExtractScripts/N3C_extract_V1_0_act_oracle.sql:115 ExtractScripts/N3C_extract_V1_0_act_oracle.sql no longer parses as oracle after rendering"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect: the FROM clause names the nonexistent table 'visit_dimiension' (misspelt) at line 109 while the ON clause uses visit_dimension, causing the VISIT_DIMENSION extract to fail."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "676c7fb891",
+   "title": "sync omop obs_period date filters",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "ExtractScripts/N3C_extract_omop_redshift.sql:206 PERSON extract: observation-period filter and stray ') as ROW_COUNT' pasted into the PERSON query",
+    "ExtractScripts/N3C_extract_omop_redshift.sql:217 OBSERVATION_PERIOD extract lacks the date filter that the row count now applies"
+   ],
+   "findings": [
+    "[bug] ExtractScripts/N3C_extract_omop_bigquery.sql:192 BigQuery OBSERVATION_PERIOD extract uses Oracle/Postgres TO_DATE/TO_CHAR date filter",
+    "[bug] ExtractScripts/N3C_extract_omop_redshift.sql:206 PERSON extract: observation-period filter and stray ') as ROW_COUNT' pasted into the PERSON query",
+    "[bug] ExtractScripts/N3C_extract_omop_redshift.sql:217 OBSERVATION_PERIOD extract lacks the date filter that the row count now applies"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at the same location: the observation-period filter and stray ') as ROW_COUNT' pasted into the Redshift PERSON query. It notes that PERSON has no OBSERVATION_PERIOD_START_DATE column and that the unmatched parenthesis is a syntax error, so the PERSON query fails. Finding 2 only covers the unfiltered OBSERVATION_PERIOD side, and finding 0 is about BigQuery."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b937dca9da",
+   "title": "Update N3C_phenotype_omop_bigquery.sql",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "Phenotype_Data_Acquisition.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "PhenotypeScripts/N3C_phenotype_omop_bigquery.sql:821 pt_age '25-29' branch has unbalanced parenthesis (missing abs( wrapper)"
+   ],
+   "findings": [
+    "[bug] PhenotypeScripts/N3C_phenotype_omop_bigquery.sql:821 pt_age '25-29' branch has unbalanced parenthesis (missing abs( wrapper)"
+   ],
+   "repo": "Phenotype_Data_Acquisition",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location (line 821, the 25-29 pt_age branch). It reports an unbalanced closing parenthesis from a missing abs( wrapper, which stops the statement from parsing."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ddf569888c",
+   "title": "feat: add query contribution rank (#51)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[bug] queries/analyze-people-activities-contribution-rank/template.sql:24 activities rank: changes is 0 instead of last_month_events for people with no prior-month activity",
+    "[bug] queries/analyze-people-code-contribution-rank/template.sql:42 code contribution rank: changes is 0 for contributors absent in the 2nd month",
+    "[bug] queries/analyze-people-code-changes-contribution-rank/template.sql:46 code changes rank: lines_changes, add_changes and delete_changes are 0 for people with no prior-month merged PRs",
+    "[bug] queries/analyze-people-code-review-comments-contribution-rank/template.sql:33 review comments rank: changes is 0 instead of last_month comments when there is no prior-month row",
+    "[bug] queries/analyze-people-code-changes-contribution-rank/template.sql:21 code-changes rank: excludeBots param cannot match the qualified pwa.actor_login filter",
+    "[bug] queries/analyze-people-code-review-prs-contribution-rank/template.sql:33 changes is 0 instead of last-month count for actors absent in prior month (review prs)",
+    "[bug] queries/analyze-people-code-review-submits-contribution-rank/template.sql:33 changes is 0 for actors with no prior-month reviews (review submits)",
+    "[bug] queries/analyze-people-issue-close-contribution-rank/template.sql:28 changes is 0 for actors with no prior-month closes",
+    "[bug] queries/analyze-people-issue-comment-contribution-rank/template.sql:34 changes is 0 for actors with no prior-month comments",
+    "[bug] queries/analyze-people-issue-contribution-rank/template.sql:38 changes is 0 instead of lm.events for contributors absent in the prior month",
+    "[risk] queries/analyze-people-issue-contribution-rank/template.sql:1 is_new_contributor for issue rank uses code-contribution history (PR opened or push) only"
+   ],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": 10,
+    "reason": "Finding 10 flags that former_contributors in the issue-contribution-rank template was copied from the code rank query. It counts only PR opened and PushEvent, not earlier IssuesEvent opened, so is_new_contributor is wrong for someone who opened issues earlier but never pushed. That is the labelled defect, with the same model and the same mechanism. Finding 9 is about a different defect in the same file, the changes COALESCE."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d254432760",
+   "title": "public-api: add trending repos API",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "configs/public_api/http_endpoints/sql/GET-trending_repos.sql:39 Inner join to repo_with_collections drops trending repos that are in no public collection",
+    "configs/public_api/http_endpoints/sql/GET-trending_repos.sql:35 GET-trending_repos: no ORDER BY, so the row_limit of 50 truncates an arbitrary set"
+   ],
+   "findings": [
+    "[bug] configs/public_api/http_endpoints/sql/GET-trending_repos.sql:39 Inner join to repo_with_collections drops trending repos that are in no public collection",
+    "[bug] configs/public_api/http_endpoints/sql/GET-trending_repos.sql:35 GET-trending_repos: no ORDER BY, so the row_limit of 50 truncates an arbitrary set"
+   ],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The final inner JOIN to repo_with_collections drops trending repos that are in no public collection, and it says the join should be a LEFT JOIN. Finding 1 is about a missing ORDER BY, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "7906e691b4",
+   "title": "queries: refine org trends queries (#1651)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "configs/queries/orgs/commits/trends/template.sql:65 commits trends past_12_months: 24-month window fans out LEFT JOIN on idx"
+   ],
+   "findings": [
+    "[bug] configs/queries/orgs/commits/trends/template.sql:65 commits trends past_12_months: 24-month window fans out LEFT JOIN on idx",
+    "[risk] configs/queries/orgs/participants/new/trends/template.sql:101 participants/new past_12_months first_engagement_at cutoff admits one extra month, so users from month -12 count as new"
+   ],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect. The commits trends template widens the window to 24 months while idx is still computed with % 12 + 1. Months 0-11 and 12-23 therefore share idx values, and the LEFT JOIN from seq on idx returns two rows per month. Last year's pushes and commits end up mixed into this year's trend. Finding 1 is about a different model (participants/new) and a different mechanism, a cutoff boundary error."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3880a16359",
+   "title": "pipeline: add sync org pre-agg pipeline (#1633)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ossinsight.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "configs/queries/orgs/overview/template.sql:14 orgs overview participants overcounts users active in several repos (COUNT(*) over per-repo rows)"
+   ],
+   "findings": [
+    "[bug] configs/queries/orgs/overview/template.sql:14 orgs overview participants overcounts users active in several repos (COUNT(*) over per-repo rows)",
+    "[risk] configs/pipelines/sync_org_repo_participants/process.sql:8 participants filter changed from an event type/action allowlist to only excluding WatchEvent",
+    "[risk] configs/pipelines/sync_org_repo_participants/process.sql:13 ON DUPLICATE KEY UPDATE references a SELECT alias and an ambiguous column",
+    "[bug] configs/pipelines/sync_org_repo_participants/process.sql:1 mv_repo_participants has no DDL; the overview query reads a table nothing creates",
+    "[risk] configs/queries/orgs/overview/template.sql:25 orgs overview now always returns one aggregate row, and a stale stars/public_repos source"
+   ],
+   "repo": "ossinsight",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same location (orgs overview template.sql:14), the same model (mv_repo_participants, one row per (repo_id, user_id)), and the same mechanism: COUNT(*) counts a user once per repo where the old COUNT(DISTINCT actor_login) counted them once."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f21d9cf471",
+   "title": " - correct prevalence calculation for mid-year",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/getPopnPrev.sql:34 midYear: derived table has no alias",
+    "inst/sql/sql_server/getPopnPrev.sql:32 midYear is NULL when the prevalence cohort has no rows in the analysis window"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/getPopnPrev.sql:34 midYear: derived table has no alias",
+    "[bug] R/CreatePhenoModel.R:104 Debug browser() call left in getPopnPrev path of CreatePhenoModel",
+    "[bug] inst/sql/sql_server/getPopnPrev.sql:32 midYear is NULL when the prevalence cohort has no rows in the analysis window"
+   ],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the midYear CTE's derived table in getPopnPrev.sql has no alias, so SQL Server and other dialects that require one fail to parse the query. The line number differs slightly (34 vs 39), but the model and mechanism match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "07e04e4833",
+   "title": "- select only the first observation period for both the model and evaluation cohorts",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CreateCohortsV6.sql:81 test_cohort insert selects p.person_id and observation_period_start_date from subquery 'negs' that does not expose them"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/CreateCohortsV6.sql:81 test_cohort insert selects p.person_id and observation_period_start_date from subquery 'negs' that does not expose them",
+    "[bug] R/TestPhenotype.R:99 Acute phenoPop: cohort_start_date replaced by visit_start_date, fanning out/misaligning rows",
+    "[risk] inst/sql/sql_server/CreateCohortsV6.sql:121 Positive/xSpec branches not restricted to the first observation period",
+    "[risk] R/TestPhenotype.R:111 SqlRender parameter @cdm_Database_Schema does not match cdm_database_schema",
+    "[bug] inst/sql/sql_server/CreateCohortsV6.sql:65 #eligibles window now filters on observation_period_end_date <= endDate, and the cntPd = 1 guard is dropped",
+    "[bug] R/TestPhenotype.R:59 testPhenotypeAlgorithm: new required cdmDatabaseSchema argument is not supplied by any caller",
+    "[bug] R/TestPhenotype.R:146 left_join on observationPeriodStartDate that is NA for rows without an xSens match"
+   ],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The test_cohort insert in CreateCohortsV6.sql selects p.person_id in the outer query, but p is only an alias inside the subquery negs, so the reference does not resolve and the statement fails to compile. The other findings cover different defects."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d8af662f32",
+   "title": " - correct evaluation cohort creation selection  with only one entry per person if evalaution population used",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "PheValuator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CreateCohortsAcuteEvaluation.sql:106 Invalid alias `co.subject_id as v.person_id` breaks the mainPopnCohort branch",
+    "inst/sql/sql_server/CreateCohortsAcuteEvaluation.sql:106 FIRST_VALUE window does not reduce to one row per person in mainPopnCohort branch"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/CreateCohortsAcuteEvaluation.sql:106 Invalid alias `co.subject_id as v.person_id` breaks the mainPopnCohort branch",
+    "[bug] inst/sql/sql_server/CreateCohortsAcuteEvaluation.sql:106 FIRST_VALUE window does not reduce to one row per person in mainPopnCohort branch"
+   ],
+   "repo": "PheValuator",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location: `co.subject_id as v.person_id` is a qualified name used as an alias, which is a syntax error in the mainPopnCohort branch and makes the build fail. Finding 1 is about a different defect, the FIRST_VALUE window not reducing rows."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "44c7864cf2",
+   "title": "Add billing related queries and documentation (#6)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "scripts/billing/sql/monthly_invoice_costs_credits.sql:8 monthly_invoice_costs_credits: LEFT JOIN UNNEST(credits) multiplies cost per credit"
+   ],
+   "findings": [
+    "[bug] scripts/billing/sql/daily_compute_discount.sql:10 daily_compute_discount actual_cost: UNNEST(credits) comma join drops and fans out line items",
+    "[bug] scripts/billing/sql/daily_compute_usage_hours.sql:14 daily_compute_usage_hours component_usage and actual_cost: UNNEST(credits) inner join drops rows and multiplies usage",
+    "[bug] scripts/billing/sql/monthly_costs_by_project.sql:7 monthly_costs_by_project month: EXTRACT(MONTH) without year merges the same month of different years",
+    "[bug] scripts/billing/sql/monthly_invoice_costs_credits.sql:8 monthly_invoice_costs_credits: LEFT JOIN UNNEST(credits) multiplies cost per credit",
+    "[bug] scripts/billing/sql/previous_month_costs_by_label.sql:11 previous_month_costs_by_label: SUM(cost) inflated by credits unnest",
+    "[bug] scripts/billing/sql/previous_month_costs_by_service.sql:9 previous_month_costs_by_service: SUM(cost) multiplied by credit rows",
+    "[bug] scripts/billing/sql/previous_month_costs_by_service_label.sql:12 previous_month_costs_by_service_label: cost fanned out by labels x credits"
+   ],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 targets monthly_invoice_costs_credits.sql:8 and describes the same defect as the labelled bug. LEFT JOIN UNNEST(credits) repeats each billing row once per credit, so SUM(cost) is counted several times and the invoice total is inflated. It also names the correlated-subquery fix."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "8361c16717",
+   "title": "Add Jacard Distance UDF (#264)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "udfs/community/jaccard.sqlx:28 jaccard(): intersection loop bounds truncate when the first string has fewer unique chars"
+   ],
+   "findings": [
+    "[risk] udfs/community/jaccard.sqlx:39 jaccard returns similarity (intersection/union), not Jaccard distance",
+    "[bug] udfs/community/jaccard.sqlx:28 jaccard(): intersection loop bounds truncate when the first string has fewer unique chars",
+    "[risk] udfs/community/jaccard.sqlx:23 jaccard: NULL and empty-string inputs return 0.0 instead of NULL or a defined value"
+   ],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at the same location (jaccard.sqlx:28). The loop bounds la and lb are swapped by size but sa and sb are always indexed with i<la and j<lb. When sa is shorter than sb, sb is only scanned up to sa's length, so matches are missed and the similarity comes out wrong. Findings 0 and 2 are about different defects."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4bdddd7710",
+   "title": "Add the Reservation Analysis script (#392)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "bigquery-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "scripts/optimization/daily_reservation_analysis.sql:119 daily_reservation_analysis: undeclared var_n_days in date filter"
+   ],
+   "findings": [
+    "[bug] scripts/optimization/daily_reservation_analysis.sql:119 daily_reservation_analysis: undeclared var_n_days in date filter",
+    "[risk] scripts/optimization/hourly_slot_consumption_by_labels.sql:125 hourly_slot_consumption_by_labels: join to JOBS_BY_ORGANIZATION on job_id without project_id",
+    "[risk] scripts/optimization/daily_reservation_analysis.sql:103 daily_reservation_analysis: bytes scanned filled from total_bytes_billed",
+    "[risk] scripts/optimization/hourly_slot_consumption_by_labels.sql:27 labels grouping key is not normalised by label key order"
+   ],
+   "repo": "bigquery-utils",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect at the same location: daily_reservation_analysis uses the undeclared var_n_days in the date filter while declaring num_days_to_scan, so the script fails."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "79bf7cffc0",
+   "title": "restructured files and added tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/event_filters/stripe_charges.sql:11 stripe_charges.result: TRIM(... FROM) strips characters, not the 'charge.' prefix"
+   ],
+   "findings": [
+    "[risk] models/base/stripe_events.sql:3 stripe_events livemode filter on data__object__livemode can drop whole event types (e.g. customer.discount.*)",
+    "[bug] models/core_entities/stripe_subscription_events.sql:3 stripe_subscription_events and stripe_subscriptions contents are swapped: stripe_subscription_events has no mrr column",
+    "[bug] models/event_filters/schema.yml:1 not_null on stripe_subscription_events.mrr tests a column the model does not have",
+    "[bug] models/event_filters/stripe_charges.sql:11 stripe_charges.result: TRIM(... FROM) strips characters, not the 'charge.' prefix"
+   ],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 points at models/event_filters/stripe_charges.sql:11 and says TRIM(... FROM) strips a character set rather than the 'charge.' prefix, so the result column is mangled. That is the same defect and mechanism as the labelled bug. Its examples differ from the label's (it uses charge.captured, not charge.refunded), but the mechanism is identical and it also names replace/regexp_replace as the fix."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "79bf7cffc0",
+   "title": "restructured files and added tests",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/event_filters/stripe_charges.sql:11 stripe_charges.result: TRIM(... FROM) strips characters, not the 'charge.' prefix"
+   ],
+   "findings": [
+    "[risk] models/base/stripe_events.sql:3 stripe_events livemode filter on data__object__livemode can drop whole event types (e.g. customer.discount.*)",
+    "[bug] models/core_entities/stripe_subscription_events.sql:3 stripe_subscription_events and stripe_subscriptions contents are swapped: stripe_subscription_events has no mrr column",
+    "[bug] models/event_filters/schema.yml:1 not_null on stripe_subscription_events.mrr tests a column the model does not have",
+    "[bug] models/event_filters/stripe_charges.sql:11 stripe_charges.result: TRIM(... FROM) strips characters, not the 'charge.' prefix"
+   ],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding identifies the labelled bug, which is stripe_charges taking the event id (id from stripe_events) instead of data__object__id as the charge id. Finding 3 is about stripe_charges.sql but covers a different defect: the TRIM prefix-strip on the result column. The other findings concern the livemode filter and the swapped subscription models."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "62830e207e",
+   "title": "added tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "stripe.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/core_entities/stripe_invoice_items.sql:1 stripe_invoice_items partitions by invoice_item_id, which stripe_invoice_item_events no longer outputs"
+   ],
+   "findings": [
+    "[bug] models/core_entities/schema.yml:90 Duplicate stripe_discounts key in schema.yml overrides earlier constraints",
+    "[bug] models/core_entities/stripe_invoice_items.sql:1 stripe_invoice_items partitions by invoice_item_id, which stripe_invoice_item_events no longer outputs"
+   ],
+   "repo": "stripe",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect. stripe_invoice_items.sql still has `partition by invoice_item_id` in its partition_clause after the rename to id, so the window functions reference a column that no longer exists. Finding 0 is about a duplicate YAML key in schema.yml, a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "9d974216c2",
+   "title": "issue 22 fix",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Characterization.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/createTargetOutcomeCombinations.sql:13 #targets_agg 'first occurrence' dedup partitions by cohort_start_date, so nothing is deduplicated",
+    "inst/sql/sql_server/createTargetOutcomeCombinations.sql:35 #outcomes_agg_first keeps every outcome episode, not just the first"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/createTargetOutcomeCombinations.sql:13 #targets_agg 'first occurrence' dedup partitions by cohort_start_date, so nothing is deduplicated",
+    "[bug] inst/sql/sql_server/createTargetOutcomeCombinations.sql:35 #outcomes_agg_first keeps every outcome episode, not just the first",
+    "[risk] inst/sql/sql_server/createTargetOutcomeCombinations.sql:18 #targets_agg inner join to observation_period drops T rows even when minPriorObservation=0",
+    "[risk] R/AggregateCovariates.R:148 cohort_counts has no row for cohorts that are empty",
+    "[bug] inst/sql/sql_server/createTargetOutcomeCombinations.sql:3 allT cohort ids are built from the filtered #targets_agg but populated from #targets_agg_all"
+   ],
+   "repo": "Characterization",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 targets #outcomes_agg_first at line 35 and names the same defect. The row_number() partition includes cohort_start_date, so every outcome gets rn = 1 and the 'first O' cohorts (TnfirstO, firstOnT) contain all outcomes."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "e2d04cd5d8",
+   "title": "test + vignette updates",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "Characterization.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/ResultTables.sql:148 Continuous result tables declare *_average_value as bigint, not float"
+   ],
+   "findings": [
+    "[bug] R/ViewShiny.R:154 cohortIds extraction reads $targetCohortId/$outcomeCohortId from queries now returning targetId/outcomeId",
+    "[risk] R/ViewShiny.R:210 cg_COHORT_COUNT insert removed; cohort counts table no longer populated",
+    "[bug] inst/sql/sql_server/ResultTables.sql:253 attrition.setting_id is varchar(30) while setting_id is widened to varchar(50) everywhere else",
+    "[bug] inst/sql/sql_server/ResultTables.sql:148 Continuous result tables declare *_average_value as bigint, not float",
+    "[bug] inst/sql/sql_server/ResultTables.sql:229 case_settings table lacks the documented `type` column",
+    "[bug] inst/sql/sql_server/ResultTables.sql:212 execution_settings.mode is varchar(15) but spec declares varchar(25)"
+   ],
+   "repo": "Characterization",
+   "error": null,
+   "judge": {
+    "index": 3,
+    "reason": "Finding 3 names the same three columns (non_case_average_value, during_average_value, after_average_value) at the same lines, says they are bigint while the spec and sibling columns are float, and says the averages get truncated."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0a135687ed",
+   "title": "Implementation of negative control outcomes (#55)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortGenerator.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/NegativeControlOutcomes.sql:29 NegativeControlOutcomes.sql: pre-insert DELETE keys on ancestor_concept_id instead of cohort_definition_id"
+   ],
+   "findings": [
+    "[risk] inst/sql/sql_server/NegativeControlOutcomes.sql:56 occurrenceType 'all' emits duplicate cohort rows for same-day condition records, and occurrence_type is compared case-sensitively",
+    "[bug] inst/sql/sql_server/NegativeControlOutcomes.sql:29 NegativeControlOutcomes.sql: pre-insert DELETE keys on ancestor_concept_id instead of cohort_definition_id",
+    "[risk] R/NegativeControlCohorts.R:79 @template negativeControlOutcomeCohortSet does not match the file man-roxygen/NegativeControlOutcomeCohortSet.R",
+    "[bug] inst/sql/sql_server/NegativeControlOutcomes.sql:48 occurrenceType case sensitivity mismatch with R validation",
+    "[bug] tests/testthat/helper.R:58 getNegativeControlOutcomeCohortsForTest reads negativecontrolOutcomes.csv but file is negativeControlOutcomes.csv"
+   ],
+   "repo": "CohortGenerator",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 describes the same defect as the labelled bug. The pre-insert DELETE in NegativeControlOutcomes.sql matches cohort_definition_id against ancestor_concept_id (concept ids), so the regenerated cohort ids are never cleared. Re-running duplicates rows, and any unrelated cohort whose id equals a concept id is deleted."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5437d9877d",
+   "title": "Subset sql query builders and modifications to generate cohorts (#73)",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "CohortGenerator.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": true,
+   "matched": [
+    "inst/sql/sql_server/subsets/LimitSubsetOperator.sql:28 LimitSubsetOperator applies calendar filters after picking ordinal = 1"
+   ],
+   "findings": [
+    "[risk] inst/sql/sql_server/subsets/CohortSubsetOperator.sql:23 CohortSubsetOperator negate branch joins on subject_id only, dropping unmatched episodes",
+    "[bug] R/CohortDefinitionSet.R:314 getCohortDefinitionSet subset JSON folder ignores packageName",
+    "[bug] inst/sql/sql_server/subsets/LimitSubsetOperator.sql:28 LimitSubsetOperator applies calendar filters after picking ordinal = 1",
+    "[bug] R/SubsetDefinitions.R:335 addCohortSubsetDefinition overwriteExisting drops base cohorts (NA subsetDefinitionId)",
+    "[bug] inst/sql/sql_server/subsets/LimitSubsetOperator.sql:11 Limit subset with limitTo \"\" keeps only the latest entry; calendar filters run after ordinal selection",
+    "[bug] R/SubsetDefinitions.R:78 addSubsetOperator/getSubsetOperatorById: negated id, nonexistent private$.subsetId, inverted equality check",
+    "[risk] R/SubsetQueryBuilders.R:68 CohortSubsetQb writes a debug SQL file into the working directory on every query build"
+   ],
+   "repo": "CohortGenerator",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 is at the same file and line. It describes the same defect: the negate branch's RIGHT JOIN uses only subject_id, so one matching entry makes A.subject_id non-null for all of that subject's target rows. The IS NULL filter then drops every episode for that subject. It also says the join needs cohort_start_date, which matches the label."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "78186d6a74",
+   "title": "Added argument restrictToCommonPeriod to getDbCohortMethodData and createStudyPopulation  functions.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortMethod.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CreateCohorts.sql:174 CreateCohorts.sql common-period bounds use derived tables with no alias"
+   ],
+   "findings": [
+    "[bug] inst/sql/sql_server/CreateCohorts.sql:174 CreateCohorts.sql common-period bounds use derived tables with no alias",
+    "[bug] R/RunAnalyses.R:527 runCmAnalyses does not pass restrictToCommonPeriod to createStudyPopulation",
+    "[bug] R/DataLoadingSaving.R:203 getDbCohortMethodData: attrition ignores restrictToCommonPeriod when it is the only filter"
+   ],
+   "repo": "CohortMethod",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect: the derived tables in the restrict_to_common_period block of CreateCohorts.sql (lines 174 and 195) have no alias. It says SQL Server and PostgreSQL reject this, so the query fails whenever restrictToCommonPeriod is set. Findings 1 and 2 are about different defects in R code."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "df8ac40b66",
+   "title": "Added option to keep first cohort for duplicate subjects in getDbCohortMethodData and createStudyPopulation. Also added option to censor time at risk window at start of new time at risk window.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "CohortMethod.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "inst/sql/sql_server/CreateCohorts.sql:88 CreateCohorts.sql 'keep first' ROW_NUMBER partitions by subject_id only, dropping repeat exposures"
+   ],
+   "findings": [
+    "[bug] R/StudyPopulation.R:121 createStudyPopulation 'keep first' dedups by subjectId only and drops later exposures of the same cohort",
+    "[bug] inst/sql/sql_server/CreateCohorts.sql:88 CreateCohorts.sql 'keep first' ROW_NUMBER partitions by subject_id only, dropping repeat exposures",
+    "[bug] R/StudyPopulation.R:171 censorAtNewRiskWindow sorts by relative riskStart instead of absolute window start",
+    "[bug] R/RunAnalyses.R:539 runCmAnalyses does not pass censorAtNewRiskWindow to createStudyPopulation",
+    "[bug] R/StudyPopulation.R:172 censorAtNewRiskWindow: `1:(nrow(population)-1)` breaks with 0 or 1 rows",
+    "[risk] inst/sql/sql_server/CreateCohorts.sql:83 keep first: ROW_NUMBER picks first cohort before observation/study filters and ties are nondeterministic"
+   ],
+   "repo": "CohortMethod",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "No finding identifies the alias-scope failure. Finding 1 targets the same line but assumes the query runs and describes a different defect, dropped repeat exposures caused by partitioning on subject_id only. Finding 5 covers filter ordering and ties, also assuming the query runs. The other findings concern the R code."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "547f47cb32",
+   "title": "WebAssembly SQL updates (#2504)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "almanac.httparchive.org.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/2021/webassembly/compression_methods.sql:3 compression_methods pct computed over all clients combined, not per client"
+   ],
+   "findings": [
+    "[bug] sql/2021/webassembly/compression_methods.sql:3 compression_methods pct computed over all clients combined, not per client"
+   ],
+   "repo": "almanac.httparchive.org",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. SUM(count) OVER () has no PARTITION BY client, so pct is taken over the combined desktop and mobile total. It also gives the same fix, PARTITION BY client."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "fbd36f1f18",
+   "title": "Add maximum-scale to query",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "almanac.httparchive.org.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/2019/09_Accessibility/09_26.sql:19 09_26 locked_max_scale regex matches maximum-scale values other than 1 (1.5, 10, 1.2)",
+    "sql/2019/12_Mobile_Web/12_04.sql:19 12_04 locked_max_scale regex matches maximum-scale values other than 1 (1.5, 10, 1.2)"
+   ],
+   "findings": [
+    "[bug] sql/2019/09_Accessibility/09_26.sql:19 09_26 locked_max_scale regex matches maximum-scale values other than 1 (1.5, 10, 1.2)",
+    "[bug] sql/2019/12_Mobile_Web/12_04.sql:19 12_04 locked_max_scale regex matches maximum-scale values other than 1 (1.5, 10, 1.2)"
+   ],
+   "repo": "almanac.httparchive.org",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "The labelled bug covers both 09_26 and 12_04, and the root cause is the same in each: the unanchored regex for maximum-scale=1 also matches 1.5 and 10. Finding 0 names that defect in 09_26.sql:19, and Finding 1 names it in 12_04.sql:19. Both describe the same mechanism. I picked Finding 0 because it is listed first and covers one of the two labelled locations."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "89fe7a60f6",
+   "title": "Rethink lenses for timeseries",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "bigquery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/timeseries/h2.sql:9 h2 requests-to-pages join on (date, client, is_root_page, rank) without page fans out",
+    "sql/timeseries/h3.sql:31 h3 requests-to-pages join omits page, multiplying request rows"
+   ],
+   "findings": [
+    "[bug] sql/lens/drupal/crux_timeseries.sql:11 crux_timeseries lens: GROUP BY 4 but only 3 columns selected",
+    "[bug] sql/lens/drupal/blink_timeseries.sql:15 blink_timeseries (drupal/magento): references app and url, which crawl.pages does not have",
+    "[bug] sql/lens/drupal/blink_timeseries.sql:22 Inconsistent date lower bounds between numerator and denominator subqueries",
+    "[bug] sql/lens/magento/crux_timeseries.sql:10 Magento crux lens filters on misspelled technology 'Megento'",
+    "[bug] sql/lens/top1k/crux_timeseries.sql:10 crux lens uses rank = N instead of rank <= N (top1k/10k/100k/1m)",
+    "[bug] sql/lens/top1m/timeseries.sql:1 top1m lens timeseries filter uses rank <= 10000 instead of 1000000",
+    "[bug] sql/timeseries/h2.sql:9 h2 requests-to-pages join on (date, client, is_root_page, rank) without page fans out",
+    "[bug] sql/timeseries/h3.sql:31 h3 requests-to-pages join omits page, multiplying request rows",
+    "[bug] sql/timeseries/pctHttps.sql:9 pctHttps join on rank without page fans out requests"
+   ],
+   "repo": "bigquery",
+   "error": null,
+   "judge": {
+    "index": 6,
+    "reason": "Finding 6 flags the h2.sql join of crawl.requests to crawl.pages on (date, client, is_root_page, rank) without page. It says this fans out each request across every page in the same rank bucket, which inflates the HTTP/2 count and percentage. That is the labelled defect, with the same model and mechanism. Finding 7 describes the same fan-out for h3.sql, so it would also match. Finding 6 is the one that cites h2.sql."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "bac243579f",
+   "title": "Forgot to add the actual new queries!",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "bigquery.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "sql/timeseries/cruxLargeCls.sql:6 cruxLargeCls: SUM(larg_cls) typo for large_cls"
+   ],
+   "findings": [
+    "[bug] sql/timeseries/cruxLargeCls.sql:6 cruxLargeCls: SUM(larg_cls) typo for large_cls"
+   ],
+   "repo": "bigquery",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same line (cruxLargeCls.sql:6). It says SUM(larg_cls) is a typo for large_cls, which is the column the denominator uses. It also says larg_cls is not a column of device_summary, so the query fails with an unrecognized-name error. That is the labelled defect, with the same column and the same mechanism."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a0e159c3be",
+   "title": "Let Revshare take in all Inbound Transfers (#1678)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "op-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/op_analytics/datapipeline/etl/blockbatchload/ddl/revshare_transfers/revshare_transfers_v1__INSERT.sql:21 is_revshare_transfer is always true: f.address IS NOT NULL after a ClickHouse LEFT JOIN without join_use_nulls"
+   ],
+   "findings": [
+    "[bug] src/op_analytics/datapipeline/etl/blockbatchload/ddl/revshare_transfers/revshare_transfers_v1__INSERT.sql:21 is_revshare_transfer is always true: f.address IS NOT NULL after a ClickHouse LEFT JOIN without join_use_nulls"
+   ],
+   "repo": "op-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It names the LEFT JOIN to the from-address table in revshare_transfers_v1__INSERT.sql and says `f.address IS NOT NULL` is always true. The cause it gives is that ClickHouse fills unmatched String columns with an empty string unless join_use_nulls is set. The result it describes is that every inbound transfer is flagged as a revshare transfer."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "566683c385",
+   "title": "Migrate teleportr to Clickhouse transforms (#1380)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "op-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql:124 input_amount/output_amount silently equal raw amount when token metadata is unmatched"
+   ],
+   "findings": [
+    "[bug] src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql:124 input_amount/output_amount silently equal raw amount when token metadata is unmatched",
+    "[bug] src/op_analytics/transforms/teleportr/update/01_fact_teleportr_events_v1.sql:141 Fan-out duplicates if chain_metadata or token metadata have multiple rows per key",
+    "[risk] src/op_analytics/transforms/teleportr/create/fact_teleportr_events_v1.sql:12 deposit_id UInt32 receives a UInt64 value"
+   ],
+   "repo": "op-analytics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. The LEFT JOINs to the token metadata (mi, mo) run without join_use_nulls. Unmatched rows therefore get decimals 0 and an empty symbol instead of NULL. That makes input_amount and output_amount equal the raw integer amounts instead of NULL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0ab93b3f4c",
+   "title": "Updating queries to interact with new tables",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "queries-rj-escritorio.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/seconserva_buracos/chamados_estruturados.sql:84 join_1746 drops 1746 calls with no matching logradouro (LEFT JOIN turned inner by WHERE)",
+    "models/seconserva_buracos/chamados_estruturados.sql:61 bairro_logradouros filled from l.nome, which is the street name, not the neighbourhood"
+   ],
+   "findings": [
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:84 join_1746 drops 1746 calls with no matching logradouro (LEFT JOIN turned inner by WHERE)",
+    "[risk] models/seconserva_buracos/chamados_estruturados.sql:63 waze clusters: contagem_buracos >= 2 filter removed",
+    "[risk] models/seconserva_buracos/chamados_estruturados.sql:52 d1746 joins limites_gerencias on id_bairro with unverified grain",
+    "[risk] models/seconserva_buracos/chamados_priorizados.sql:8 chamados_priorizados joins retorno_chamados_fechados on id_chamado with unknown grain",
+    "[bug] models/seconserva_buracos/chamados_estruturados.sql:61 bairro_logradouros filled from l.nome, which is the street name, not the neighbourhood",
+    "[risk] models/seconserva_buracos/chamados_estruturados.sql:47 SELECT * from chamado joined with limites_gerencias produces duplicate column names (id_bairro, bairro)",
+    "[risk] models/seconserva_buracos/chamados_estruturados.sql:105 bairro and logradouro normalisation (BAIRROS_DICT, LOGRADOURO_TRANSLATE) dropped"
+   ],
+   "repo": "queries-rj-escritorio",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: in join_1746, the WHERE filters on l.ordem_nome = 1 and l.ordem_trecho = 1 sit on the right side of the LEFT JOIN, which turns it into an inner join and drops 1746 calls with no matching logradouro. It also notes the old code applied these filters inside the joined subquery."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "66d1759f8c",
+   "title": "adi\u00e7\u00e3o de query para subprefeitura",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "queries-rj-escritorio.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dados_mestres/subprefeitura.sql:6 subprefeitura.geometry_wkt casts column `c`, probably a typo for `geometry`"
+   ],
+   "findings": [
+    "[risk] models/dados_mestres/bairro.sql:37 bairro: spatial LEFT JOIN to subprefeitura can fan out id_bairro",
+    "[bug] models/dados_mestres/subprefeitura.sql:6 subprefeitura.geometry_wkt casts column `c`, probably a typo for `geometry`"
+   ],
+   "repo": "queries-rj-escritorio",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags subprefeitura.sql:6, where geometry_wkt is cast from a column `c`. It says the staging table probably has no such column and the model would fail with 'Unrecognized name: c'. That is the labelled defect: a reference to a nonexistent column. Finding 0 is about a join fan-out in bairro.sql, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "f9fc48cf06",
+   "title": "Plotting functions now use studyPopulation object",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "SelfControlledCaseSeries.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "R/Plots.R:176 plotExposureCentered drops exposures that began before the case start instead of clipping them"
+   ],
+   "findings": [
+    "[bug] R/Plots.R:190 plotExposureCentered: exposedoutcomes fans out and duplicates outcome rows (exposed counts)",
+    "[risk] R/Plots.R:213 plotExposureCentered 'Subjects under observation' counts partial overlap instead of full coverage of each week",
+    "[bug] R/Plots.R:176 plotExposureCentered drops exposures that began before the case start instead of clipping them",
+    "[risk] R/Plots.R:274 plotEventToCalendarTime no longer restricts to the first outcome per person",
+    "[bug] R/DataConversion.R:83 createSccsEraData still calls removed isUncensored() and in.ff()",
+    "[bug] R/DataConversion.R:63 Default args reference removed createAgeSettings/createSeasonalitySettings",
+    "[bug] R/SccsEraData.R:119 summary(SccsEraData) reads outcomeCounts from undefined SccsEraData object instead of object"
+   ],
+   "repo": "SelfControlledCaseSeries",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings mention CreateCases.sql or the missing END on the CASE WHEN nesting.cohort_end_date < end_date expression in the nesting-cohort branch. All findings concern R files (Plots.R, DataConversion.R, SccsEraData.R), which are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3711e8d4cb",
+   "title": "Ignore threshold for PRESET PREVALENCE stats.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "WebAPI.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/main/resources/resources/cohortcharacterizations/sql/queryResults.sql:8 threshold_passed_ids HAVING references undefined alias fa.type",
+    "src/main/resources/resources/cohortcharacterizations/sql/queryResults.sql:8 HAVING logic filters the wrong rows and does not exempt PRESET PREVALENCE"
+   ],
+   "findings": [
+    "[bug] src/main/resources/resources/cohortcharacterizations/sql/queryResults.sql:8 threshold_passed_ids HAVING references undefined alias fa.type",
+    "[bug] src/main/resources/resources/cohortcharacterizations/sql/queryResults.sql:8 HAVING logic filters the wrong rows and does not exempt PRESET PREVALENCE"
+   ],
+   "repo": "WebAPI",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the HAVING clause in threshold_passed_ids references an undefined alias fa.type, since the CTE reads only cc_results aliased r, and the correct column is r.fa_type, so the query fails. Finding 1 mentions the fa.type problem only secondarily and focuses on a different logic issue."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5271240051",
+   "title": "updates",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_twilio.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/twilio_number_overview.sql:7 twilio_number_overview: per-status counts are split across rows and mostly NULL",
+    "models/twilio_number_overview.sql:45 twilio_number_overview: total_delivered_messages also matches undelivered status"
+   ],
+   "findings": [
+    "[risk] models/twilio_message_enhanced.sql:100 twilio_message_enhanced join to incoming_phone_number repeats one condition, and the grain of the right side is unverified",
+    "[bug] models/twilio_message_enhanced.sql:42 twilio_message_enhanced phone_number for outbound is the recipient, so the join to owned numbers uses the wrong side",
+    "[bug] models/twilio_number_overview.sql:7 twilio_number_overview: per-status counts are split across rows and mostly NULL",
+    "[bug] models/twilio_number_overview.sql:45 twilio_number_overview: total_delivered_messages also matches undelivered status"
+   ],
+   "repo": "dbt_twilio",
+   "error": null,
+   "judge": {
+    "index": 2,
+    "reason": "Finding 2 describes the labelled bug: twilio_number_overview groups by phone_number, direction and status, and each metric sits in a CASE. That returns one row per (number, direction, status) with the counts spread across rows and mostly NULL. Finding 3 covers only the LIKE '%delivered%' matching undelivered, which is a secondary defect and not the main grain/fan-out one."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "cf2a2071a1",
+   "title": "initial commit",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "queries-datario.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] models/transporte_rodoviario_municipal/viagem_onibus.sql:32 viagem_onibus upper bound changed from < to <=, adds one extra day of trips",
+    "[risk] models/transporte_rodoviario_municipal/viagem_onibus.sql:47 viagem_onibus explicit date_range_start is treated as exclusive, so the start day is dropped"
+   ],
+   "repo": "queries-datario",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the same defect at the same location (viagem_onibus.sql:47). An explicit date_range_start is filtered with an exclusive data > date_range_start, so the start day's partition is never loaded in a backfill. Finding 0 is about the upper bound changing from < to <=, which is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "38a5c80957",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] inst/shiny/DiagnosticsExplorer/global.R:83 dataFolder/dataFile only assigned when the user setting is NULL :: The conditions are inverted. When the user supplies dataFolder or dataFile via launchDiagnosticsExplorer, the values are never copied into the global variables. When the setting is NULL, the variable is set to NULL. In local mode, line 201 then calls file.path(dataFolder, dataFile) on undefined or N",
+    "[business_logic] inst/shiny/DiagnosticsExplorer/global.R:113 User-provided connection uses undefined `username` instead of `user` :: In the user-settings branch the credentials are extracted into `user` (line 100). The validity check and createConnectionDetails then read `username`, which is never set in this branch. This errors with 'object not found', or in the same session picks up a stale value. The connection check therefore",
+    "[business_logic] inst/shiny/DiagnosticsExplorer/global.R:129 Pool created with dbms = database :: The pool's dbms argument is filled from `database`, which is not defined in the user-settings branch. In the default branch it would be a database name such as 'phoebe', not a dbms. The correct value is `dbms`. The pool creation fails or builds a pool for an invalid dbms. The server string `paste(se",
+    "[business_logic] inst/shiny/DiagnosticsExplorer/global.R:299 phenotypeDescriptionMetaData$phenotype_id filled from cohort table row i :: The phenotype_id for each phenotypeDescription metadata row is taken from `cohort[i,]$phenotypeId`. The loop index i runs over phenotypeDescription rows, not cohort rows. The metadata is therefore attached to the wrong phenotype id. It also gives NA or an error when phenotypeDescription has more row",
+    "[broken_reference_or_syntax] inst/shiny/DiagnosticsExplorer/global.R:308 colnames() of phenotypeDescriptionMetaData outside the metadata guard :: phenotypeDescriptionMetaData is only created inside the `if ('metadata' %in% colnames(phenotypeDescription))` block. Line 308 sits outside that block. If phenotypeDescription has no metadata column, the object does not exist and the app fails at startup with 'object not found'.",
+    "[broken_reference_or_syntax] inst/shiny/DiagnosticsExplorer/global.R:312 Concept synonym query runs unconditionally, breaking file mode :: queryRenderedSqlFromDatabase is called with `connection` and `vocabularyDatabaseSchema` regardless of mode. In local or file mode (isValidConnection FALSE) neither object exists, so the app errors before loading. In the original structure this lookup was database only. The result is also only used f",
+    "[row_count_change] inst/shiny/DiagnosticsExplorer/global.R:321 cohortMetaData fans out per concept synonym when joining referentConceptIdsDataFrame :: The lookup SQL returns one row per (conceptId, synonym name), plus the concept name, so each concept has many rows. Left-joining it on referentConceptId alone multiplies every cohortMetaData row by the number of synonyms. The later distinct() cannot collapse these rows because the referent column di",
+    "[nullability_or_cast] inst/shiny/DiagnosticsExplorer/global.R:48 Comparisons against env-derived variables that may never be assigned :: server, database, username and password are assigned only if the matching env vars are non-empty. If any env var is unset, `server != \"\"` raises object-not-found instead of skipping the connection.",
+    "[row_count_change] inst/shiny/DiagnosticsExplorer/R/Connections.R:14 loadRequiredTables no longer checks whether an optional table exists on the server :: The old loadResultsTable read an optional table only if `tableName %in% resultsTablesOnServer`. The new function reads every table when required is FALSE. Calls for cohort_extra, phenotype_description, temporal_time_ref and concept_sets then error if the table is missing. It also ignores the `connec",
+    "[nullability_or_cast] inst/shiny/DiagnosticsExplorer/global.R:238 Metadata JSON parsing fails on NULL/NA/empty metadata :: RJSONIO::fromJSON(cohort[i,]$metadata) is called for every row. A NA or empty metadata value makes it error. `1:length(x)` loops over 1 and 0 when x is empty, and bind_rows of a mix of NULL and character elements can fail. One cohort with no metadata breaks startup."
+   ],
+   "later_fixed": [
+    "0ff59462 Remove launch warning and update broken renv lock file",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "f7459aff Fixed bug in connections",
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "074e2a294b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortDiagnostics",
+   "commit": "6528b7f6b3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "e8f09690be",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "29eeb57d88",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] PhenotypeScripts/N3C_phenotype_act_oracle.sql:224 N3C_TMP_COVID_DX_CODES DX_CATEGORY upper-cased, downstream filters drop dx patients :: The code table now emits 'dx_strong_POSITIVE' / 'dx_weak_POSITIVE'. The CASE in covid_diagnosis only rewrites the two B97 codes and otherwise passes this value through. dx_strong and dx_weak still filter on lowercase 'dx_strong_positive'/'dx_weak_positive', and Oracle string comparison is case-sensi",
+    "[row_count_change] PhenotypeScripts/N3C_phenotype_act_oracle.sql:501 N3C_TMP_PRE_CONTROLS no longer excludes controls already in N3C_CONTROL_MAP :: The anti-filter 'npc.patid not in (SELECT control_patid FROM N3C_CONTROL_MAP)' was commented out and replaced by a LEFT JOIN to N3C_CONTROL_MAP with no 'cm.control_patid is null' predicate. The LEFT JOIN keeps every row, so already-assigned controls stay in the pool. They are re-matched to new cases"
+   ],
+   "later_fixed": [
+    "80a4499 fix the prefixes on the loincs",
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Phenotype_Data_Acquisition",
+   "commit": "078ed18671",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "31751775f7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "0871d4b5ab",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] api/queries/personal-contribution-in-diff-repos/template.sql:1 event_hour uses %k (unpadded hour), producing malformed timestamps and wrong ORDER BY :: DATE_FORMAT with '%k' yields hours 0-23 without zero padding, so event_hour values like '2024-05-01 9:00:00' are not valid timestamps. The query orders by this string (ORDER BY repo_id, event_hour DESC), so lexicographic comparison puts '9:00:00' after '10:00:00' within a day and the hourly ordering",
+    "[broken_reference_or_syntax] api/queries/personal-contribution-in-diff-repos/template.sql:4 activity_type 'all' replaces the filter with an empty string, leaving `WHERE AND actor_id = ...` :: params.json offers an enum value 'all' whose template is an empty string. The predicate on line 4 is the first condition after WHERE and the next line starts with AND, so substituting '' yields `WHERE\\n AND actor_id = ...`, which is a SQL syntax error. The query fails whenever activity_type=all is r"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ossinsight",
+   "commit": "4bef5ed399",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] unique-company-names.sql:2 unique-company-names.sql: every UPDATE ends with an extra closing parenthesis :: Each UPDATE has the form `in ('x'));`. The IN list closes with its own parenthesis, so the second `)` is unbalanced. The first statement already fails to parse. Running the script as a whole therefore applies no company_name normalisation, and users.company_name stays un-deduplicated.",
+    "[business_logic] unique-company-names.sql:122 GitHub alias 'gitHub' can never match, so GitHub users are not mapped to one company_name :: The WHERE clause lowercases the company value before comparing it. The IN list contains the mixed-case string 'gitHub', so no row can equal it. Users whose company is GitHub are not mapped to 'GitHub'. They stay as separate raw spellings and split the group-by company counts across several rows. The",
+    "[business_logic] unique-company-names.sql:3 unique-company-names.sql: normalisation strips substrings 'com', 'ltd' and 'www' anywhere in the string :: The replace chain removes 'ltd', 'inc.', 'com', 'www' and 'corporation' as raw substrings, not as words, and removes '.' before 'inc.' is tried, so 'inc.' never matches. Names are mangled before they are compared with the aliases. For example, a company containing 'com' inside a word has the 'com' r",
+    "[broken_reference_or_syntax] queries/analyze-pushes-and-commits-per-month/template.sql:5 pushes/commits template hardcodes repo_id 6296790, breaking the repoId param replacement :: params.json declares repoId as replacing the literal 41986369 in the template. The commit changed both repo_id filters to 6296790, so the literal no longer appears. The repoId parameter now does nothing, and every request returns data for repo 6296790 whatever the caller passes. The default repo for"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "e0a94602e4",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] R/CreatePhenoModel.R:111 popPrev NA silently replaced with 0.1 in CreatePhenoModel :: When the prevalence query returns NULL/NA (for example a bad prevalenceCohortId or an empty population), popPrev is now forced to 10%. This makes the following popPrev == 0 check and its error unreachable for the NA case. The model is then recalibrated against a made-up prevalence, which silently gi"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "467e4ec18c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 3
+  },
+  {
+   "repo": "PheValuator",
+   "commit": "09b48e5ba5",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] tests/testthat/setup.R:31 createCohortSet calls CohortGenerator, which DESCRIPTION does not declare :: The new helper calls CohortGenerator::getCohortDefinitionSet, createCohortTables, computeChecksum and generateCohortSet. CohortGenerator is not in Imports or Suggests, so a clean test environment may not install it and the end-to-end test would fail at setup. The helper also uses `%>%` and `.data` u"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "45000841bf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "08c084ec0f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery-utils",
+   "commit": "6c00d753f2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "4417130a83",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "0e2ad03be9",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stripe",
+   "commit": "6bce22bef3",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/transform/stripe_subscription_events.sql:63 stripe_subscription_events.product selected but never defined in the filtered CTE :: The final select reads `product` from the `filtered` CTE. That CTE (lines 8-18) only selects created_at, customer_id, plan_interval, period_amount, period_start, period_end, start, status, prior_status and event_type. It has no product column, and it does not use select *. The model fails to compile",
+    "[business_logic] models/transform/days.sql:7 days spine starts one day after the first event and is sized by event count, not days :: `min(created) + row_number()` starts at min(created)+1, so the first calendar day is missing. A customer whose period_start is that day gets no row for it. The spine also contains one date per event row, with no relation to the number of calendar days, so it can end before today or leave gaps. It is",
+    "[row_count_change] models/transform/stripe_plans.sql:20 stripe_plans emits one row per plan event, not one per plan id :: The final select computes last_value/first_value windows partitioned by id but has no DISTINCT, GROUP BY or QUALIFY. Every plan.created/plan.updated event therefore yields its own row, all carrying identical window values, so an id with N events appears N times. Any join on stripe_plans.id fans out,"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "Characterization",
+   "commit": "5c30f7404b",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] inst/sql/sql_server/migrations/Migration_2-v2_0_2_row_count_bigint.sql:5 cohort_counts.row_count loses NOT NULL after migration :: The migration is `ALTER COLUMN row_count BIGINT` with no NOT NULL. In SQL Server, and in the Postgres translation, ALTER COLUMN without a nullability clause makes the column nullable again. ResultTables.sql still creates row_count as `int NOT NULL`, and the data model spec requires it. Every install"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Characterization",
+   "commit": "135f83a45d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "Characterization",
+   "commit": "78d11cbf85",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "cad2c9d6cd",
+   "error": null,
+   "bug_findings": [
+    "[other] R/Export.R:103 exportCohortStatsTables: inclusionRules columns forced to snake_case, breaks incremental save when snakeCaseToCamelCase = TRUE :: The new line renames the inclusion rules columns to snake_case unconditionally (cohort_definition_id, rule_sequence). exportStats reads data$cohortDefinitionId when snakeCaseToCamelCase is TRUE (the default). That column no longer exists, so cohortDefinitionIds is NULL. With incremental = TRUE, save",
+    "[schema_contract] inst/sql/sql_server/migrations/Migration_1-v0.10.0.sql:4 cg_cohort_censor_stats.database_id added as nullable and outside the primary key, contradicting the spec :: The migration adds database_id as a plain nullable VARCHAR. The table's primary key stays (cohort_definition_id, lost_count). The results spec lists database_id as required and part of the primary key. Uploads for different databases that have the same cohort_id and lost_count therefore collide on t"
+   ],
+   "later_fixed": [
+    "2a50514 Fix incremental export bug (#183)",
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "1f0fda0fe3",
+   "error": null,
+   "bug_findings": [
+    "[other] R/CohortCount.R:90 getCohortCounts errors when databaseId is set and counts has zero rows :: The SQL used to add database_id as a constant column, so an empty cohort table gave a 0-row data frame that still had a database_id column. Now the column is added in R with `counts$databaseId <- databaseId`. When the cohort table exists but is empty, or the cohortIds filter matches nothing, and no "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortGenerator",
+   "commit": "166d81522f",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] inst/sql/sql_server/migrations/Migration_3-v1.0.0.sql:13 Invalid 'UPDATE TABLE' syntax in Migration_3 backfill of is_templated_cohort :: The new statement is `UPDATE TABLE <t> SET ...`. `TABLE` is not valid in UPDATE in SQL Server, Postgres, SQLite, Oracle or Snowflake (and SqlRender translates it unchanged), so the statement fails with a syntax error. The migration then aborts after the ALTER and CREATE have already run, leaving the"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "fbad7176fe",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "2c834b8b30",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] extras/MultiAnalysesVignetteDataFetch.R:274 Calibration loop `for (i in 1:5)` omits new analysisId 6 :: The commit inserts an inverse-probability-weighting analysis as analysisId 5 and renumbers the old 'Matching plus full outcome model' to analysisId 6, and cmAnalysisList now has 6 entries. The calibration loop still runs 1:5, so analysis 6 is never calibrated or plotted. Analysis 5 is now the IPW an",
+    "[broken_reference_or_syntax] extras/MultiAnalysesVignetteDataFetch.R:270 analysisSummary assignment commented out but still used by the loop :: The lines that create and save `analysisSummary` are commented out. The loop below (lines 275-276) still indexes `analysisSummary`. Earlier in the script the summary is assigned to `analysisSum`, a different name. Running the script top to bottom therefore fails with 'object analysisSummary not foun"
+   ],
+   "later_fixed": [
+    "d1864d7 Fixed PS trimming. Using stabilized weights for IPTW.",
+    "d1864d7 Fixed PS trimming. Using stabilized weights for IPTW."
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "CohortMethod",
+   "commit": "0c638a55a8",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "f903add956",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "2eed79eaf1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 6
+  },
+  {
+   "repo": "almanac.httparchive.org",
+   "commit": "08fb7f73ac",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "bigquery",
+   "commit": "38c3a39099",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] sql/timeseries/pwaScores.sql:22 pwaScores: service-worker filter only matches 'true', excluding '1'-encoded scores :: The WHERE clause keeps only reports whose service-worker score is the string 'true'. Sibling timeseries queries treat both 'true' and '1' as a pass, because Lighthouse versions serialize boolean audit scores differently across crawl dates. If the 'true'/'1' variance applies here, reports from some d"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "bigquery",
+   "commit": "0b160ddd84",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "bigquery",
+   "commit": "61c03e182a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "2309b0b162",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] dbt/sources/goldsky_pipelines.yml:9 goldsky_pipelines merge() regex also matches the audited_* views in the same schema (self-reference / duplicated rows) :: The old source listed explicit per-chain tables (base_blocks, op_blocks, ...). The new source unions every table in `default` whose name matches an unanchored regex such as `\\w+_blocks$`. dbt writes the audited_blocks, audited_transactions and audited_logs views into schema `default`, and their name",
+    "[other] packages/op-coreutils/src/op_coreutils/gcpauth.py:8 get_credentials no longer reads GOOGLE_AUTH, which the daily upload workflow still sets :: get_credentials() used to read the GOOGLE_AUTH env var. It now reads only the vault key GOOGLE_SERVICE_ACCOUNT, and the vault is loaded from OP_ANALYTICS_VAULT. The Daily API Uploads workflow still passes only GOOGLE_AUTH and never sets OP_ANALYTICS_VAULT. The vault is therefore empty, get_credentia"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "00bbe6fe89",
+   "error": null,
+   "bug_findings": [
+    "[dropped_or_renamed_column_with_readers] src/op_analytics/cli/subcommands/misc/docsgen/schema_mapping_docs.py:14 EXCLUDED_COLS still filters old name ingestion_metadata after rename to _meta :: The schema column was renamed to `_meta` (shared.py:19, superchain_oplabs.yml:25). EXCLUDED_COLS in the docs generator still lists only `ingestion_metadata`, so the internal `_meta` struct column is no longer excluded. It will now appear in the generated core schema docs and the Google Sheet.",
+    "[row_count_change] packages/op-datasets/src/op_datasets/processing/execute.py:28 execute_task overwrites `dataframes` in the dt loop, so later dates are processed on already-filtered data :: The loop iterates over the distinct dt values of blocks, but line 28 assigns the result of filter_to_date back to `dataframes`. After the first dt, `dataframes['blocks']` only holds that dt's blocks, and the transactions are cut to its block range. On the next dt, filter_to_date finds no blocks, so ",
+    "[broken_reference_or_syntax] packages/op-datasets/src/op_datasets/coretables/fromlocal.py:4 fromlocal.read_core_tables has the wrong signature and undefined names :: read.py calls `fromlocal.read_core_tables(chain, block_range)`, but the function takes only `block_range`, so the call raises a TypeError. The body also uses `get_sql` and `run_queries_concurrently`, which are never imported, so it raises a NameError. Even if those were fixed, it would query Goldsky",
+    "[business_logic] packages/op-datasets/src/op_datasets/processing/logic/audits.py:34 audit_timestamps in BLOCK_AUDITS repeats the hash regex check instead of checking timestamps :: The audit is described as 'ensure block timestamps are increasing', but its expression is a copy of the invalid-hash check. Non-monotonic timestamps are never detected, and a bad hash is counted twice.",
+    "[broken_reference_or_syntax] src/op_analytics/cli/subcommands/pulls/l2beat/tvl.py:29 write() takes no arguments but is called with the extracted frame :: `pull_l2beat_tvl` calls `write(extracted)`, but `write` is defined as `def write():`, so the call raises a TypeError. The `l2beat_tvl` CLI command also never calls `pull_l2beat_tvl`.",
+    "[other] tests/op_analytics/cli/pulls/test_l2beat.py:15 test_extract contains breakpoint() and an assertion that cannot pass :: The test calls breakpoint(), which hangs or errors under CI. It then asserts `actual == None`. `extract` returns a DataFrame, so the assertion is wrong. The fixture file case01/l2beat_scaling_summary.json may also be missing."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "op-analytics",
+   "commit": "a110ad88bb",
+   "error": null,
+   "bug_findings": [
+    "[other] packages/op-coreutils/src/op_coreutils/__init__.py:4 op_coreutils import now fails without a .env file :: The package __init__ calls load_env() at import time. load_env raises ValueError if the repo has no .env. Every import of op_coreutils (including op_coreutils.path, used by the dbt generators, chain_metadata and docs generation) now fails on CI or any clean checkout. No .env exists in the repository",
+    "[broken_reference_or_syntax] packages/op-datasets/src/op_datasets/coretables/fromgoldsky.py:5 Imports op_datasets.schemas.blocks / transactions, which do not exist :: The commit deletes packages/op-indexer/.../schemas/blocks.py, but op_datasets/schemas/ contains only __init__.py. There is no blocks.py or transactions.py, so BLOCKS_SCHEMA and TRANSACTIONS_SCHEMA cannot be imported. fromgoldsky (get_sql / get_core_tables), goldsky_dbt_views.generate, superchain_dbt"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 4
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "2db509f4f6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "0bf050f6f4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  },
+  {
+   "repo": "queries-rj-escritorio",
+   "commit": "570ebef2af",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "383ed4a672",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "0a2b29c3c2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "SelfControlledCaseSeries",
+   "commit": "5d6516c26f",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] inst/sql/sql_server/Sccs.sql:233 condition_era branch filters on misspelled temp table #custom_coviariate_ids :: The new 'dx' branch references #custom_coviariate_ids, but the table that R uploads and cleans up is #custom_covariate_ids. When customCovariateIds is supplied (has_custom_covariate_ids TRUE) the INSERT fails with an invalid object name, so the condition_era custom covariates cannot be restricted to"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "372199445a",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "0b0cb5ffa7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "WebAPI",
+   "commit": "5ab4bfca17",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "db7d6c7cee",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] models/twilio__account_overview.sql:43 account_overview: join to usage_record on account_id/day fans out message counts and spend :: usage_record holds multiple rows per account per day (one per usage category). Joining each message to every usage row of that account-day multiplies message rows by the number of usage categories. All count(message_id) columns (total_messages, outbound, inbound, per-status) and sum(messages.price) ",
+    "[dropped_or_renamed_column_with_readers] models/twilio__account_overview.sql:38 account_overview: total_spent renamed to total_messages_spent but yml still documents total_spent :: The column total_spent was renamed to total_messages_spent. The yml still documents total_spent (line 156) and does not document total_messages_spent. Any reader or test on total_spent for this model now breaks, and the documented contract no longer matches the output."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "298eb98ddf",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_twilio",
+   "commit": "14a30cc995",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "2c949a7e6f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "0a1188a698",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "queries-datario",
+   "commit": "4d1fea1b55",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 39,
+  "caught_judge_bug": "33/39 (85%)",
+  "caught_judge_bug_or_risk": "36/39 (92%)",
+  "caught_strict": "35/39 (90%)",
+  "caught_loose": "37/39 (95%)",
+  "risk_note_only": "3/39 (8%)",
+  "by_repo": {
+   "Characterization": "2/2 (100%)",
+   "CohortDiagnostics": "4/4 (100%)",
+   "CohortGenerator": "1/2 (50%)",
+   "CohortMethod": "1/2 (50%)",
+   "PheValuator": "3/3 (100%)",
+   "Phenotype_Data_Acquisition": "4/4 (100%)",
+   "SelfControlledCaseSeries": "0/1 (0%)",
+   "WebAPI": "1/1 (100%)",
+   "almanac.httparchive.org": "2/2 (100%)",
+   "bigquery": "2/2 (100%)",
+   "bigquery-utils": "3/3 (100%)",
+   "dbt_twilio": "1/1 (100%)",
+   "op-analytics": "2/2 (100%)",
+   "ossinsight": "3/4 (75%)",
+   "queries-datario": "0/1 (0%)",
+   "queries-rj-escritorio": "2/2 (100%)",
+   "stripe": "2/3 (67%)"
+  },
+  "by_category": {
+   "business_logic": "7/9 (78%)",
+   "nullability_or_cast": "3/3 (100%)",
+   "other": "14/16 (88%)",
+   "row_count_change": "8/10 (80%)",
+   "schema_contract": "1/1 (100%)"
+  },
+  "compiles_true": "18/22 (82%)",
+  "compiles_false": "15/17 (88%)",
+  "needs_data_bucket": "0/0",
+  "false_alarm_maintainer_rule": "14/51 (27%)",
+  "ordinary_commits": 51,
+  "false_alarm_share": "18/51 (35%)",
+  "false_alarm_share_excluding_later_fixed": "17/51 (33%)",
+  "commits_with_bug_or_risk": "24/51",
+  "false_alarm_by_repo": {
+   "Characterization": "1/3",
+   "CohortDiagnostics": "1/3",
+   "CohortGenerator": "3/3",
+   "CohortMethod": "1/3",
+   "PheValuator": "2/3",
+   "Phenotype_Data_Acquisition": "1/3",
+   "SelfControlledCaseSeries": "1/3",
+   "WebAPI": "0/3",
+   "almanac.httparchive.org": "0/3",
+   "bigquery": "1/3",
+   "bigquery-utils": "0/3",
+   "dbt_twilio": "1/3",
+   "op-analytics": "3/3",
+   "ossinsight": "2/3",
+   "queries-datario": "0/3",
+   "queries-rj-escritorio": "0/3",
+   "stripe": "1/3"
+  },
+  "errors": 0
+ }
+}

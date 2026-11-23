@@ -1,0 +1,33 @@
+# dbt-re-data: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/re-data/dbt-re-data): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-re-data
+url: https://github.com/re-data/dbt-re-data
+bugs:
+- commit: "06d0c04d24"
+  parent: "6cd64bbcdd"
+  title: Update to PR
+  fix: "3ce46bef22"
+  fix_title: Fixes to code
+  bug: metrics_base_compute_for_thread flushes a batch of columns when columns_size equals var('re_data:actively_monitored_by_default') (a boolean that is false) instead of var('re_data:max_columns_in_query') (10), so the batch size condition never matches and column metrics are never inserted in batches
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [actively_monitored_by_default, max_columns_in_query]
+  expect:
+  - {path: macros/metrics/base/queries.sql, line: 27}
+- commit: "06d0c04d24"
+  parent: "6cd64bbcdd"
+  title: Update to PR
+  fix: "3ce46bef22"
+  fix_title: Fixes to code
+  bug: the column batch call passes metrics_base_insert(table_name, metrics, time_filter, ...) while the macro signature is (table_name, time_filter, metrics, ...) and the table level call right below passes time_filter first, so metrics and time_filter are swapped for column level metrics
+  category: other
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [metrics_base_insert, time_filter]
+  expect:
+  - {path: macros/metrics/base/queries.sql, line: 29}

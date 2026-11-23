@@ -1,0 +1,60 @@
+# devstats: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/cncf/devstats): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: devstats
+url: https://github.com/cncf/devstats
+bugs:
+- commit: "bfd152ccc8"
+  parent: "a81c0cacb6"
+  title: Add one more metric using HLL
+  fix: "13a6ff04e4"
+  fix_title: Fix a typo
+  bug: 'in the ''awaiting'' column of prs_state the closing parenthesis is misplaced: round((hll_cardinality(...), {{n}})::numeric, 2) builds a row of two values and casts it to numeric instead of dividing the cardinality by {{n}}, so the statement errors'
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [hll_cardinality, awaiting]
+  expect:
+  - {path: metrics/all/prs_state.sql, line: 54}
+- commit: "2a3dc17c27"
+  parent: "bcc830d14a"
+  title: Fix one more bug
+  fix: "3facddad65"
+  fix_title: One more fix
+  bug: prs_state analyzes all_prs{{rnd}}, but the temporary table it created is named all_prs_{{rnd}} (the underscore is missing), so the analyze statement refers to a relation that does not exist
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [analyze, all_prs]
+  expect:
+  - {path: metrics/all/prs_state.sql, line: 88}
+- commit: "049244e7af"
+  parent: "d80c9a8585"
+  title: Adding 3 new Sandbox projects wip 11
+  fix: "23bd42c938"
+  fix_title: Fix a typo
+  bug: the cadence repo group is defined by a list of repository names that spells the repository 'cadence-worflow/cadence' instead of 'cadence-workflow/cadence', so the repository never matches and is not assigned to its repo group
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [cadence-worflow, repo_group]
+  expect:
+  - {path: scripts/cadence/repo_groups.sql, line: 34}
+- commit: "6eafe42125"
+  parent: "7787cf590b"
+  title: Adding Keycloak - a new CNCF Incubating project 10
+  fix: "fca82ae0b4"
+  fix_title: Fix repo group
+  bug: the keycloak repo_groups script sets alias and repo_group to 'prometheus' (copied from the prometheus script) instead of 'Keycloak', so keycloak repositories are assigned to the Prometheus group
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [prometheus, keycloak]
+  expect:
+  - {path: scripts/keycloak/repo_groups.sql, line: 34}
+  - {path: scripts/keycloak/repo_groups.sql, line: 35}

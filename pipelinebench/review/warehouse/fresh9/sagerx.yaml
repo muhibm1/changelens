@@ -1,0 +1,59 @@
+# sagerx: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/coderxio/sagerx): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: sagerx
+url: https://github.com/coderxio/sagerx
+bugs:
+- commit: "c67a6f026a"
+  parent: "c1936564ef"
+  title: Fix 2 current release bugs
+  fix: "8582f80269"
+  fix_title: Fix start/end date overlap
+  bug: int_nadac_historical_pricing sets a price period's end_date to the effective_date of the next price (lag over effective_date desc) and the last period's end to max_as_of_date + 7, so consecutive periods share a boundary day and are both valid on it; the end date should be one day earlier
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [end_date, effective_date]
+  expect:
+  - {path: dbt/sagerx/models/intermediate/nadac/int_nadac_historical_pricing.sql, line: 100}
+- commit: "f7bfc5426e"
+  parent: "68d5596b34"
+  title: Update code for organization information
+  fix: "4437dfea56"
+  fix_title: Fix typos and delete old API DAG
+  bug: the ROW_NUMBER() window in staging-dailymed_organization_text partitions by slp, a column that does not exist (the column is spl), so the statement fails
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [slp, spl]
+  expect:
+  - {path: dags/dailymed_daily/staging-dailymed_organization_text.sql, line: 29}
+- commit: "5e371acde2"
+  parent: "4dca648a25"
+  title: created more intermediate models and a staging J code model
+  fix: "195505ea45"
+  fix_title: Fix semicolon error hcpcs
+  bug: stg_rxnorm__hcpcs_codes ends with a trailing semicolon after ORDER BY, which breaks when dbt wraps the model SQL in a create statement or subquery
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [semicolon, order by]
+  expect:
+  - {path: dbt/sagerx/models/staging/rxnorm/stg_rxnorm__hcpcs_codes.sql, line: 11}
+- commit: "fdd375a707"
+  parent: "38dd089483"
+  title: fda_excluded
+  fix: "7f75d1cb98"
+  fix_title: update fda_excluded
+  bug: the fda_excluded mart ends with a trailing semicolon after the join condition, which breaks when dbt wraps the model SQL in a create statement or subquery
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [semicolon, fda_excluded]
+  expect:
+  - {path: dbt/sagerx/models/marts/fda_excluded/fda_excluded.sql, line: 28}

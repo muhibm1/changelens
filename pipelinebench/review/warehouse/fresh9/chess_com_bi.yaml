@@ -1,0 +1,20 @@
+# chess_com_bi: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/gabriellegall/chess_com_bi): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: chess_com_bi
+url: https://github.com/gabriellegall/chess_com_bi
+bugs:
+- commit: "69b0551092"
+  parent: "380ce92bc0"
+  title: refined model
+  fix: "be3324a060"
+  fix_title: fixed time index
+  bug: move_number is computed with ROW_NUMBER ordered by time_remaining_seconds ascending, which orders moves by the clock left rather than by their position in the game, so move numbers are wrong whenever the clock does not fall monotonically
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [move_number, time_remaining_seconds]
+  expect:
+  - {path: models/intermediate/games_times.sql, line: 31}

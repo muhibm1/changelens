@@ -1,0 +1,20 @@
+# dbt-cost-optimization: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/dbt-labs/dbt-cost-optimization): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: dbt-cost-optimization
+url: https://github.com/dbt-labs/dbt-cost-optimization
+bugs:
+- commit: "35aa33125d"
+  parent: "5984f6f97f"
+  title: updated MCW recommendations, fixed bugs in clustering and user attribution
+  fix: "13285680ca"
+  fix_title: fixed user view scope
+  bug: the user level cost attribution view joins query history to table names with a loose ilike '%' || table_name || '%' match, so one query matches many tables and its elapsed time is counted repeatedly, inflating the attributed costs
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [ilike, table_name]
+  expect:
+  - {path: models/snowflake/marts/gold/vw_snowflake__user_level_cost_attribution.sql, line: 73}

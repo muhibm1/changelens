@@ -1,0 +1,20 @@
+# adventure-works: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/mattiasthalen/adventure-works): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: adventure-works
+url: https://github.com/mattiasthalen/adventure-works
+bugs:
+- commit: "9d36e08c19"
+  parent: "73a395854b"
+  title: Add models for Puppini bridge and calendar
+  fix: "506639231a"
+  fix_title: Fix broken reference in calendar
+  bug: the new dar__calendar SQLMesh model reads from dar._bridge__as_of, but the bridge model added in the same commit is named dar._puppini_bridge__as_of, so the calendar selects from a table that does not exist
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [_bridge__as_of, dar__calendar]
+  expect:
+  - {path: models/dar__calendar.sql, line: 14}

@@ -1,0 +1,60 @@
+# amazon-redshift-utils: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/awslabs/amazon-redshift-utils): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: amazon-redshift-utils
+url: https://github.com/awslabs/amazon-redshift-utils
+bugs:
+  - commit: "9c61cf77a4"
+    parent: "cac1dd95d7"
+    title: "added tbl_ddl view"
+    fix: "bc68ef51a9"
+    fix_title: "Use oid rather than relfilenode for catalog joins"
+    bug: "v_generate_tbl_ddl joins pg_constraint to pg_class on c.relfilenode = con.conrelid; conrelid holds the table oid, and relfilenode differs from oid once a table is rewritten (truncate, vacuum full, deep copy), so the constraint rows of such tables silently drop out of the generated DDL"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["relfilenode", "oid"]
+    expect:
+      - {path: "src/AdminViews/v_generate_tbl_ddl.sql", line: 109}
+  - commit: "d2d47b76ac"
+    parent: "1c4644c663"
+    title: "Added Running queues."
+    fix: "39544e5f85"
+    fix_title: "Fixed bug on Alerts column"
+    bug: "the alerts subquery builds a per query bitmask by summing event flags over every STL_ALERT_EVENT_LOG row, so a query with the same alert logged more than once gets a sum that carries into other bits and the event&N decoding reports the wrong alerts"
+    category: business_logic
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["sum", "event"]
+    expect:
+      - {path: "src/AdminScripts/running_queues.sql", line: 41}
+      - {path: "src/AdminScripts/running_queues.sql", line: 29}
+  - commit: "30f29e8a0d"
+    parent: "02970fef3d"
+    title: "2 new scripts"
+    fix: "1ae5eac604"
+    fix_title: "Filter_used fixed count and sum"
+    bug: "count(*) as num counts the joined stl_scan rows, one per slice and segment, not the queries that used the filter, so the reported number of queries is inflated"
+    category: row_count_change
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["count", "query"]
+    expect:
+      - {path: "src/AdminScripts/filter_used.sql", line: 2}
+  - commit: "30f29e8a0d"
+    parent: "02970fef3d"
+    title: "2 new scripts"
+    fix: "1ae5eac604"
+    fix_title: "Filter_used fixed count and sum"
+    bug: "sum(datediff(seconds,starttime,endtime)) over stl_scan rows includes incomplete segments whose endtime is the 2000-01-01 placeholder, giving negative durations that corrupt the total"
+    category: business_logic
+    in_scope: false
+    compiles: true
+    needs_data: true
+    must_mention: ["datediff", "endtime"]
+    expect:
+      - {path: "src/AdminScripts/filter_used.sql", line: 2}

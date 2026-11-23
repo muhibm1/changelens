@@ -3,28 +3,35 @@
 ## In plain words
 
 ChangeLens checks a change to a data warehouse before it merges and says what could break. This page measures its
-review agent on real bugs from public warehouses, against the same model used on its own.
+review agent on real bugs from public warehouses, against the same models used on their own.
 
-The latest held-out test (fresh set 5, 2026-11-23) used 39 real bugs from 17 public warehouses that no part of the
-work had touched. More than half of them are SQL that runs without error and quietly returns wrong data, the kind a
-compiler cannot catch. An isolated labeller found each bug from the maintainers' own later fix, without ever seeing
-ChangeLens, and the labels were committed before anything was scored. The agent's code was frozen first and the test
-was scored once.
+Three held-out tests were run, each on a set of real bugs from public warehouses that no part of the work had touched
+before. An isolated labeller found each bug from the maintainers' own later fix, without ever seeing ChangeLens. The
+rules were committed before mining, the labels before scoring, and the agent's code was frozen first. Each set was
+scored once. When a version missed the 93% goal, its set became practice data, the agent was improved on the
+practice sets only, and a new set was labelled from new repositories.
 
-| Reviewer, same commits and same repository files | Real bugs caught |
-|---|---|
-| **ChangeLens review agent v9** | **34 of 39 (87%)** |
-| Claude Opus on its own, one review call | 31 of 39 (79%) |
-| Claude Sonnet on its own, one review call | 29 of 39 (74%) |
-| Free checks: the parser and fixed rules, no model | 2 of 39 (5%) |
+| Held-out set (2026-11-23) | Bugs | ChangeLens | Opus alone | Sonnet alone | Free checks |
+|---|---|---|---|---|---|
+| Fresh set 5: 17 warehouses, 22 bugs compile | 39 | **34 (87%)**, v9 | 31 (79%) | 29 (74%) | 2 (5%) |
+| Fresh set 6: 15 warehouses, 27 bugs compile | 40 | **32 (80%)**, v10 | 32 (80%) | 25 (62%) | 0 (0%) |
+| Fresh set 7: 16 warehouses, 23 bugs compile | 37 | **30 (81%)**, v11 | 30 (81%) | 31 (84%) | 1 (3%) |
+| All three | 116 | **96 (83%)** | 93 (80%) | 85 (73%) | 3 (3%) |
 
-ChangeLens caught every bug that Opus alone caught, plus three more; Opus caught none that ChangeLens missed. Its
-own target was 93%, and it missed that.
+"Opus alone" and "Sonnet alone" are one review call each, with the same commit, the same repository files and the
+same read-only tools. "Free checks" are a SQL parser and fixed rules, no model.
 
-What it costs. On 51 ordinary commits with no known bug, ChangeLens and Opus alone each flagged 19. An isolated
-reader, not told which reviewer wrote which warning, checked every warning in the repository: 36 of ChangeLens's 46
-warnings were real defects, against 31 of 34 for Opus alone. So ChangeLens surfaces more real problems and also more
-wrong ones. Commits where every warning was wrong: 3 of 51 for ChangeLens, 2 for Opus alone.
+**What this shows.** ChangeLens catches about four in five real warehouse bugs, most of them SQL that runs and
+quietly returns wrong data, and it missed its own 93% goal on every held-out set. It beat Opus alone by three bugs on
+the first set and tied it on the next two. Across 116 bugs, ChangeLens caught 10 that Opus alone missed and Opus
+alone caught 7 that ChangeLens missed: not a significant difference. On these tests the gain over a strong model used
+on its own is small. The render-and-parse step and the checker described below change which bugs are found and cut
+wrong warnings, but they do not lift the total much above what Opus finds alone.
+
+What it costs. On ordinary commits with no known bug, ChangeLens flagged 19 of 51, 24 of 42 and 17 of 42 (two
+commits of the last set could not be read by any reviewer, a byte the tools could not decode); Opus alone flagged
+19, 21 and 14. On fresh set 5 an isolated reader, not told which reviewer wrote which warning, judged 36 of
+ChangeLens's 46 warnings real, against 31 of 34 for Opus alone.
 
 ## What makes the difference
 
@@ -47,10 +54,11 @@ step carried one catch on its own.
 
 ## Limits, stated plainly
 
-- 39 bugs is a small sample. The edge over Opus alone, 3 bugs to 0, is not statistically significant (exact paired
-  test, p about 0.25). A 95% interval for 87% runs from about 73% to 96%.
-- Only fresh set 5 is held out. Every earlier figure below is development data: each set that landed under the goal
-  was used to improve the agent and a new set was labelled from new repositories.
+- About 40 bugs per set is a small sample. Pooled over 116 bugs, ChangeLens 83% against Opus alone 80% is within
+  noise (10 bugs only ChangeLens caught, 7 only Opus caught).
+- Each version was tuned on the sets before it. Only the first score of each version on its own fresh set counts;
+  the practice figures below are development data.
+- Notes on fresh set 5's misses (v9):
 - Of the five misses, Opus alone also missed all five. Two were found and held back as uncertain because the
   repository's own documentation leaves the intended behaviour open. Three no reviewer found: a business rule in a
   Stripe model and two template errors in OHDSI R packages.
@@ -64,7 +72,7 @@ step carried one catch on its own.
 - **A bug** is a real defect from a public repository, found from a later fix commit and traced back with `git blame`
   to the commit that introduced it. The reviewer sees the introducing commit only, in a copy of the repository with
   no git history, so it cannot peek at the fix. Rules for each set are committed before mining
-  (`pipelinebench/review/warehouse/fresh6/PROTOCOL.md`, `fresh7/PROTOCOL.md`).
+  (`pipelinebench/review/warehouse/fresh6/` to `fresh9/`, each `PROTOCOL.md`; fresh sets 5, 6 and 7 are the folders `fresh7`, `fresh8` and `fresh9`).
 - **Caught** means a confirmed finding that a judge model with no tools says describes the labelled defect (same model
   or column, same mechanism). A stricter mechanical score that needs the finding on the labelled lines gives
   ChangeLens 36 of 39 on fresh set 5.
@@ -82,10 +90,23 @@ step carried one catch on its own.
 | Fresh set 3 (mostly SQL that does not compile), then practice | 40 | v7 | 39 (98%) | not run | not run |
 | Fresh set 4 (29 of 40 compile cleanly), then practice | 40 | v8 | 28 (70%) | 30 (75%) | 26 (65%) |
 | **Fresh set 5, held out, scored once** | **39** | **v9, frozen 6bcde0e** | **34 (87%)** | **31 (79%)** | **29 (74%)** |
+| Fresh set 5 as practice | 39 | v10 / v11 | 37 / 37 | | |
+| **Fresh set 6, held out, scored once** | **40** | **v10, frozen 2aa239e** | **32 (80%)** | **32 (80%)** | **25 (62%)** |
+| Fresh set 6 as practice | 40 | v11 | 34 | | |
+| **Fresh set 7, held out, scored once** | **37** | **v11, frozen fd9a1fb** | **30 (81%)** | **30 (81%)** | **31 (84%)** |
 
 Fresh set 4 found the agent behind Opus alone. Five of its misses came from a defect in ChangeLens itself: it showed
 the reviewers only `.sql` and YAML changes, so Hive `.hql` queries never reached them. That and the rest of v9 were
 built on fresh set 4 as practice, then frozen before fresh set 5 was scored.
+
+v10, built on fresh sets 3 to 5 as practice: the render-and-parse step now reads OHDSI SqlRender files (their
+`{DEFAULT ...}` header lines had hidden most of them from the parser), a scope check finds a WHERE that filters on a
+window-function alias of the same SELECT, the checker is shown the rendered SQL rather than the template, and a
+second look on Opus may promote a finding held back only on intent when it cites the line that defines the
+expectation and the changed line that breaks it. v11 added one whole-diff Opus reviewer beside the four specialists,
+because on fresh set 6 ChangeLens and Opus alone each caught five bugs the other missed. Fresh set 7 drew at most
+three repositories per GitHub owner; one repository was dropped before scoring because the previous labeller had
+tried it (`fresh9/PROTOCOL.md`).
 
 ## Earlier history
 

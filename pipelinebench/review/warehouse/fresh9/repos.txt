@@ -1,0 +1,16 @@
+/home/user/fresh-repos-9/adventure-works https://github.com/mattiasthalen/adventure-works
+/home/user/fresh-repos-9/chess_com_bi https://github.com/gabriellegall/chess_com_bi
+/home/user/fresh-repos-9/dbt-analytics https://github.com/wnl-icb-analytics/dbt-analytics
+/home/user/fresh-repos-9/dbt-cost-optimization https://github.com/dbt-labs/dbt-cost-optimization
+/home/user/fresh-repos-9/dbt-data-diff https://github.com/infinitelambda/dbt-data-diff
+/home/user/fresh-repos-9/dbt-dataquality https://github.com/Divergent-Insights/dbt-dataquality
+/home/user/fresh-repos-9/dbt-re-data https://github.com/re-data/dbt-re-data
+/home/user/fresh-repos-9/dbt-redshift https://github.com/dbt-labs/dbt-redshift
+/home/user/fresh-repos-9/dbt_hubspot_source https://github.com/fivetran/dbt_hubspot_source
+/home/user/fresh-repos-9/dbt_stripe_source https://github.com/fivetran/dbt_stripe_source
+/home/user/fresh-repos-9/dbt_zendesk_source https://github.com/fivetran/dbt_zendesk_source
+/home/user/fresh-repos-9/devstats https://github.com/cncf/devstats
+/home/user/fresh-repos-9/ga4-pipeline-framework https://github.com/Bounteous-Inc/ga4-pipeline-framework
+/home/user/fresh-repos-9/providence https://github.com/mrzzy/providence
+/home/user/fresh-repos-9/sagerx https://github.com/coderxio/sagerx
+/home/user/fresh-repos-9/stellar-dbt-public https://github.com/stellar/stellar-dbt-public

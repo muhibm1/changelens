@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-AGENT_VERSION = "wa-9"
+AGENT_VERSION = "wa-11"
 DOC_DIFF_CHARS = 15_000
 DIFF_CHARS = 90_000
 
@@ -88,13 +88,14 @@ VERIFY_SCHEMA = {
                     "verdict": {"type": "string", "enum": ["bug", "risk", "reject"]},
                     "reason": {"type": "string"},
                     "witness": {"type": "string"},
+                    "doubt": {"type": "string", "enum": ["none", "fact", "intent", "external"]},
                     "cause": {
                         "type": "object",
                         "properties": {"path": {"type": "string"}, "line": {"type": "integer"}, "removed": {"type": "boolean"}},
                         "required": ["path", "line", "removed"],
                     },
                 },
-                "required": ["index", "verdict", "reason", "witness", "cause"],
+                "required": ["index", "verdict", "reason", "witness", "doubt", "cause"],
             },
         }
     },
@@ -232,7 +233,14 @@ Three more rules:
   another version of the same model, the repository's own DDL, spec or seeds. A claim that rests only on what an
   external package version contains, which no file shows, is at most "risk". Candidates marked [compile] come from
   rendering the changed file under each template branch and parsing it in the dialect the file parsed in before this
-  commit; the parser's error is real, but check it is not an artefact of the rendering before you confirm it.
+  commit; the parser's error is real, but check it is not an artefact of the rendering before you confirm it. Judge
+  it on the rendered SQL shown with it, which is what the warehouse receives: in a template, a clause that looks
+  nested under one branch may sit at the same query level as a SELECT from another branch once rendered.
+
+For every candidate also give `doubt`, what stops it being a confirmed bug: "none" (it is a bug, or plainly not
+one), "fact" (you could not establish a fact such as a grain, a key or whether a column can be NULL), "intent" (the
+mechanism holds and the witness is real, but you cannot tell whether the author meant it), or "external" (it depends
+on something outside the repository, such as a package version or the live data).
 
 Commit message: {message}
 {docs}
@@ -244,6 +252,65 @@ The diff:
 Candidates (index: finding):
 {findings}
 """
+
+SECOND_LOOK_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "looks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "index": {"type": "integer"},
+                    "contradiction": {"type": "boolean"},
+                    "stated_intent": {"type": "boolean"},
+                    "defines": {"type": "object", "properties": {"path": {"type": "string"}, "line": {"type": "integer"}}, "required": ["path", "line"]},
+                    "contradicts": {"type": "object", "properties": {"path": {"type": "string"}, "line": {"type": "integer"}}, "required": ["path", "line"]},
+                    "reason": {"type": "string"},
+                },
+                "required": ["index", "contradiction", "stated_intent", "defines", "contradicts", "reason"],
+            },
+        }
+    },
+    "required": ["looks"],
+}
+
+SECOND_LOOK_PROMPT = """A reviewer of one commit to a SQL data warehouse confirmed how each finding below would change the
+output, and wrote a concrete input that shows it, but held each back as a "risk" because it could not tell whether the
+author meant the behaviour. The working directory is the repository exactly as it is after the commit. Read the files
+yourself with Read, Grep and Glob.
+
+Intent can often be read from the code itself. For each finding, decide whether the repository contradicts itself:
+one line defines a concept one way (a CTE or column named for what it holds, the positive branch of a filter, a
+numerator, a sibling model's mapping of the same column, a block this one was copied from) and a line this commit
+changed computes it another way that does not fit that definition (a "former contributors" set built from different
+events than the ranked set it is compared with, a negated branch that is not the complement of the positive branch at
+the same grain, a numerator and denominator over different populations, a block copied from elsewhere without
+adapting the one part that had to change, a name the commit gives a parameter or column that states its meaning, such
+as a range's start that the filter leaves out or a "distinct" count that is not distinct).
+
+For each finding give:
+- `contradiction`: true only if you can point at both lines and the mismatch is plain from them.
+- `defines`: the path and line number (in the files as they are now) of the line that sets the expectation.
+- `contradicts`: the path and line number of the line this commit changed that breaks it (it must be a line of the
+  diff below that starts with +, numbered as shown).
+- `stated_intent`: true if the commit message, a comment, or documentation says this behaviour is intended or not
+  yet implemented. A finding whose behaviour is stated as intended is not a contradiction.
+- `reason`: two or three sentences.
+Most findings held back on intent were rightly held back. Say contradiction false unless both lines make it plain.
+
+Commit message: {message}
+{docs}
+The diff:
+```diff
+{diff}
+```
+
+Findings (index: finding, then the reviewer's witness):
+{findings}
+"""
+
+MAX_PROMOTIONS = 1
 
 @dataclass
 class AgentFinding:
@@ -260,6 +327,8 @@ class AgentFinding:
     source: str = ""
     cause: str = ""
     witness: str = ""
+    doubt: str = ""
+    cause_ok: bool | None = None
 
     @property
     def body(self) -> str:
@@ -278,6 +347,8 @@ class AgentResult:
     site_checks: list[dict[str, Any]] = field(default_factory=list)
     rejected: list[AgentFinding] = field(default_factory=list)
     proposed: list[dict[str, Any]] = field(default_factory=list)
+    unresolved: list[str] = field(default_factory=list)
+    second_looks: list[dict[str, Any]] = field(default_factory=list)
 
     def to_json(self) -> dict[str, Any]:
         d = asdict(self)
@@ -301,8 +372,18 @@ def snapshot(repo: Path, commit: str, dest: Path) -> None:
 CODE_GLOBS = ("*.sql", "*.hql", "*.q", "*.sqlx", "*.ddl", "*.psql", "*.pgsql", "*.jinja", "*.j2", "*.yml", "*.yaml", "*.py", "*.R", "*.r")
 
 
+def _is_dataform(repo: Path, commit: str) -> bool:
+    """Whether the repository is a Dataform project, where SQL also lives in JavaScript files."""
+    try:
+        names = set(_git(repo, "ls-tree", "--name-only", commit).split())
+    except subprocess.CalledProcessError:
+        return False
+    return bool(names & {"dataform.json", "workflow_settings.yaml"})
+
+
 def change_diff(repo: Path, parent: str, commit: str) -> str:
-    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *CODE_GLOBS)
+    globs = CODE_GLOBS + (("*.js",) if _is_dataform(repo, commit) else ())
+    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *globs)
 
 
 def touched_files(repo: Path, parent: str, commit: str) -> set[str]:
@@ -310,22 +391,36 @@ def touched_files(repo: Path, parent: str, commit: str) -> set[str]:
     return {ln.split("\t")[-1] for ln in _git(repo, "diff", "--name-status", "-M", parent, commit).splitlines() if ln.strip()}
 
 
-def compile_findings(repo: Path, parent: str, commit: str) -> list[AgentFinding]:
-    """The render-and-parse step's failures as candidates for the verifier (no model; see ``compile_check``)."""
+def compile_findings(repo: Path, parent: str, commit: str, unresolved: list[str] | None = None) -> list[AgentFinding]:
+    """The render-and-parse step's failures as candidates for the verifier (no model; see ``compile_check``).
+
+    Changed SQL files the step could not read are named in ``unresolved`` rather than passed over silently."""
     from .compile_check import check_commit
 
+    unchecked: list[str] = []
     try:
-        fails = check_commit(repo, parent, commit)
-    except Exception:  # noqa: BLE001 - the step only adds candidates; a crash in it must not stop the review
+        fails = check_commit(repo, parent, commit, unchecked=unchecked)
+    except Exception as e:  # noqa: BLE001 - the step only adds candidates; a crash in it must not stop the review
+        if unresolved is not None:
+            unresolved.append(f"compile step failed: {str(e)[:200]}")
         return []
-    return [
-        AgentFinding(
-            f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} no longer parses as {f.dialect} after rendering",
-            f"Rendered with template branch '{f.variant}', the file fails to parse as {f.dialect}, while the parent commit's version of it, rendered the same way, parsed. Parser error: {f.error}",
-            evidence=f"compile step: {f.path} at the parent parses as {f.dialect}; at this commit it does not", source="compile",
-        )
-        for f in fails
-    ]
+    if unresolved is not None:
+        unresolved += [f"compile step could not read {p} at the parent commit, so did not check it" for p in unchecked]
+    out = []
+    for f in fails:
+        if f.kind == "scope":
+            out.append(AgentFinding(
+                f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} filters on a window-function alias",
+                f"Rendered with template branch '{f.variant}' and read as {f.dialect}: {f.error}. The parent commit's version of the file did not do this.",
+                evidence=f"compile step scope lint: {f.path} at this commit; not present at the parent. Rendered SQL (line numbers are of the rendered file, not the template):\n{f.snippet}", source="compile",
+            ))
+        else:
+            out.append(AgentFinding(
+                f.path, f.line, None, "bug", "broken_reference_or_syntax", f"{f.path} no longer parses as {f.dialect} after rendering",
+                f"Rendered with template branch '{f.variant}', the file fails to parse as {f.dialect}, while the parent commit's version of it, rendered the same way, parsed. Parser error: {f.error}",
+                evidence=f"compile step: {f.path} at the parent parses as {f.dialect}; at this commit it does not. Rendered SQL (line numbers are of the rendered file, not the template):\n{f.snippet}", source="compile",
+            ))
+    return out
 
 
 def doc_diff(repo: Path, parent: str, commit: str) -> str:
@@ -621,6 +716,8 @@ def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str,
         f.cause = f"{cause.get('path')}:{'removed' if cause.get('removed') else cause.get('line')}" if isinstance(cause, dict) else ""
         f.verify_reason = v.get("reason", "")
         f.witness = str(v.get("witness", ""))[:600]
+        f.doubt = str(v.get("doubt", "")) if verdict != "bug" else "none"
+        f.cause_ok = cause_in_change(cause, changed)
         if verdict == "bug" and not cause_in_change(cause, changed) and _cause_checkable(cause, changed, touched):
             verdict = "risk"
             f.verify_reason = f"{f.verify_reason} [lowered: the named cause {f.cause or 'none'} is not a line this commit changed]"
@@ -636,10 +733,61 @@ def _verify(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str,
     res.findings = kept
 
 
-def reverify(repo: Path, commit: str, proposed: list[dict[str, Any]], *, model: str = "opus", effort: str | None = None, timeout: int = 1200) -> AgentResult:
+def _line_exists(cwd: Path, ref: dict[str, Any] | None) -> bool:
+    """Whether ``ref`` names a real line of a file in the snapshot."""
+    if not isinstance(ref, dict):
+        return False
+    path = str(ref.get("path", "")).removeprefix("./").lstrip("/")
+    line = ref.get("line")
+    f = cwd / path
+    if not path or not isinstance(line, int) or line < 1 or not f.is_file():
+        return False
+    try:
+        return line <= len(f.read_text(errors="replace").splitlines())
+    except OSError:
+        return False
+
+
+def _second_look(res: AgentResult, cwd: Path, message: str, numbered: str, docs: str, changed: dict[str, tuple[set[int], bool]], model: str, effort: str | None, timeout: int) -> None:
+    """One more look at findings held back only on intent: promote to bug when the repository contradicts itself.
+
+    Eligible: verdict risk, doubt "intent", a witness, and a cause the commit changed. The model must cite the line that
+    defines the expectation and the changed line that breaks it; code checks both lines exist, that the second is a
+    line this commit added, that the two differ, and that no stated intent was found. At most MAX_PROMOTIONS per commit."""
+    pool = [f for f in res.findings if f.severity == "risk" and f.doubt == "intent" and f.witness.strip() and f.cause_ok and not _is_doc(f.path)]
+    if not pool:
+        return
+    listing = "\n".join(f"{i}: [{f.category}] {f.path}:{f.line} {f.title}\n   {f.explanation}\n   witness: {f.witness}\n   why held back: {f.verify_reason}" for i, f in enumerate(pool))
+    doc_block = f"\nDocumentation this commit changes:\n```diff\n{docs}\n```\n" if docs.strip() else ""
+    out, turns = _claude(SECOND_LOOK_PROMPT.format(message=message, docs=doc_block, diff=numbered, findings=listing), cwd, SECOND_LOOK_SCHEMA, model, effort, timeout)
+    res.turns += turns
+    promoted = 0
+    for look in sorted(out.get("looks", []), key=lambda x: x.get("index", 0)):
+        i = look.get("index")
+        if not isinstance(i, int) or not 0 <= i < len(pool):
+            continue
+        f = pool[i]
+        d, c = look.get("defines"), look.get("contradicts")
+        ok = (
+            look.get("contradiction") is True
+            and look.get("stated_intent") is False
+            and _line_exists(cwd, d)
+            and _line_exists(cwd, c)
+            and cause_in_change({**c, "removed": False}, changed, slack=0)
+            and (d.get("path"), d.get("line")) != (c.get("path"), c.get("line"))
+        )
+        res.second_looks.append({"path": f.path, "line": f.line, "title": f.title, **look, "promoted": ok and promoted < MAX_PROMOTIONS})
+        if ok and promoted < MAX_PROMOTIONS:
+            promoted += 1
+            f.severity = "bug"
+            f.verified = True
+            f.verify_reason = f"{f.verify_reason} [promoted on second look: {d.get('path')}:{d.get('line')} defines it, {c.get('path')}:{c.get('line')} contradicts it. {str(look.get('reason', ''))[:400]}]"
+
+
+def reverify(repo: Path, commit: str, proposed: list[dict[str, Any]], *, model: str = "opus", effort: str | None = None, timeout: int = 1200, second_look: bool = True) -> AgentResult:
     """Run only the skeptical pass again over findings an earlier review proposed (for changing the verifier without re-running the reviewers)."""
     t0 = time.monotonic()
-    res = AgentResult(findings=[AgentFinding(**{**f, "severity": "bug", "verified": None, "verify_reason": "", "cause": "", "witness": ""}) for f in proposed if f.get("source") != "compile"])
+    res = AgentResult(findings=[AgentFinding(**{**f, "severity": "bug", "verified": None, "verify_reason": "", "cause": "", "witness": "", "doubt": "", "cause_ok": None}) for f in proposed if f.get("source") != "compile"])
     res.proposed = proposed
     full = _git(repo, "rev-parse", commit).strip()
     try:
@@ -654,10 +802,13 @@ def reverify(repo: Path, commit: str, proposed: list[dict[str, Any]], *, model: 
     tmp = Path(tempfile.mkdtemp(prefix="wa-"))
     try:
         snapshot(repo, full, tmp)
-        res.findings += compile_findings(repo, parent, full)
+        res.findings += compile_findings(repo, parent, full, res.unresolved)
         res.proposed = [asdict(f) for f in res.findings]
         if res.findings:
-            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), model, effort, timeout, touched_files(repo, parent, full))
+            docs, changed = doc_diff(repo, parent, full), changed_lines(diff)
+            _verify(res, tmp, message, numbered, docs, changed, model, effort, timeout, touched_files(repo, parent, full))
+            if second_look:
+                _second_look(res, tmp, message, numbered, docs, changed, model, effort, timeout)
     except Exception as e:  # noqa: BLE001 - recorded, never mistaken for a clean result
         res.error = str(e)[:500]
     finally:
@@ -762,8 +913,11 @@ def free_checks(repo: Path, commit: str) -> AgentResult:
     return res
 
 
-def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract", "edges"), deep_sites: bool = False) -> AgentResult:
-    """Review ``commit`` against its first parent: specialist passes propose findings, a skeptical pass decides them."""
+def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract", "edges"), deep_sites: bool = False, second_look: bool = True, generalist: str | None = "opus") -> AgentResult:
+    """Review ``commit`` against its first parent: specialist passes and one generalist propose findings, a skeptical pass decides them.
+
+    The generalist is one whole-diff review on a stronger model (``generalist``; None turns it off). The specialists
+    and the generalist miss different bugs, so both feed the same skeptical pass."""
     from concurrent.futures import ThreadPoolExecutor
 
     t0 = time.monotonic()
@@ -797,6 +951,9 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
 
         def one(job: tuple[str, str]) -> tuple[str, dict[str, Any], int]:
             name, part = job
+            if name == "general":
+                out, turns = _claude(PLAIN_PROMPT.format(message=message, diff=numbered), tmp, REVIEW_SCHEMA, generalist or model, effort, timeout)
+                return name, out, turns
             if len(chunks) > 1:
                 part = (
                     f"This commit changes {len(all_files)} files: {', '.join(all_files)}.\n"
@@ -806,7 +963,7 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
             out, turns = _claude(prompt, tmp, GRAIN_SCHEMA if name == "grain" else REVIEW_SCHEMA, model, effort, timeout)
             return name, out, turns
 
-        jobs = [(name, part) for part in chunks for name in passes]
+        jobs = [(name, part) for part in chunks for name in passes] + ([("general", "")] if generalist else [])
         with ThreadPoolExecutor(min(len(jobs), 8)) as pool:
             outs = list(pool.map(one, jobs))
         audit: list[dict[str, Any]] = []
@@ -827,12 +984,15 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
                 res.site_checks.append({**s, "verdict": out.get("verdict"), "grain": out.get("grain", ""), "evidence": out.get("evidence", "")})
                 if out.get("verdict") in ("fans_out", "drops_rows", "keeps_duplicates") and out.get("finding"):
                     found += [("site", f) for f in _parse({"findings": [out["finding"]]}, "site")]
-        compiled = compile_findings(repo, parent, full)
+        compiled = compile_findings(repo, parent, full, res.unresolved)
         res.candidates = len(found) + len(compiled)
         res.findings = (compiled + _merge(found))[:24]
         res.proposed = [asdict(f) for f in res.findings]
         if verify and res.findings:
-            _verify(res, tmp, message, numbered, doc_diff(repo, parent, full), changed_lines(diff), verify_model or model, effort, timeout, touched_files(repo, parent, full))
+            docs, changed = doc_diff(repo, parent, full), changed_lines(diff)
+            _verify(res, tmp, message, numbered, docs, changed, verify_model or model, effort, timeout, touched_files(repo, parent, full))
+            if second_look:
+                _second_look(res, tmp, message, numbered, docs, changed, verify_model or model, effort, timeout)
     except Exception as e:  # noqa: BLE001 - a failed review is recorded, never mistaken for a clean one
         res.error = str(e)[:500]
     finally:

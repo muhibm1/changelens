@@ -1,0 +1,1302 @@
+{
+ "reviewer": "free",
+ "agent": "wa-11",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "9d36e08c19",
+   "title": "Add models for Puppini bridge and calendar",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "adventure-works.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/dar__calendar.sql:1 models/dar__calendar.sql does not parse"
+   ],
+   "findings": [
+    "[bug] models/dar__calendar.sql:1 models/dar__calendar.sql does not parse"
+   ],
+   "repo": "adventure-works",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The finding says the calendar model fails to parse. The labelled bug is a different defect: the model reads from a table name that doesn't exist (dar._bridge__as_of instead of dar._puppini_bridge__as_of). A parse failure is not a wrong table reference, and the finding doesn't mention the bridge or the missing table."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "69b0551092",
+   "title": "refined model",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "chess_com_bi.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/intermediate/games_times.sql:15 model SQL no longer parses"
+   ],
+   "repo": "chess_com_bi",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding reports a parse error at line 15 of games_times.sql. The labelled bug is a logic defect at line 31: move_number uses ROW_NUMBER ordered by time_remaining_seconds, so moves are ordered by the clock instead of by game position. The finding doesn't mention move_number, ROW_NUMBER or the ordering, so it is a different defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "4e06be4f56",
+   "title": "Feature/partner attribution (#503)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:4 filter on BOROUGH_RESIDENT, which its schema file says can be null",
+    "models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:11 filter on BOROUGH_RESIDENT, which its schema file says can be null"
+   ],
+   "findings": [
+    "[bug] models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:4 filter on BOROUGH_RESIDENT, which its schema file says can be null",
+    "[bug] models/modelling/olids/utilities/int_person_borough_registered_or_resident.sql:11 filter on BOROUGH_RESIDENT, which its schema file says can be null"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "Both findings are about a `not borough_resident is null` filter dropping NULL rows. The labelled bug is that both UNION halves select BOROUGH_RESIDENT, so registered boroughs are missing. Neither finding says the second half should select BOROUGH_REGISTERED, so neither identifies the labelled defect."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "51e54bba5a",
+   "title": "fix: refactord csds_deduplication macro",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "87f8979172",
+   "title": "feat: add in another cohort for Shingles adult TS (#1269)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql:74 reads REPORTING.OLIDS_PERSON_ANALYTICS.PERSON_MONTH_ANALYSIS_BASE by its warehouse name instead of ref() or source()"
+   ],
+   "findings": [
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_1.sql:48 reads MODELLING.OLIDS_PROGRAMME.INT_COVID_FLU_RISK_GROUP_FLAGS by its warehouse name instead of ref() or source()",
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_1.sql:68 reads REPORTING.OLIDS_PERSON_ANALYTICS.PERSON_MONTH_ANALYSIS_BASE by its warehouse name instead of ref() or source()",
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql:54 reads MODELLING.OLIDS_PROGRAMME.INT_COVID_FLU_RISK_GROUP_FLAGS by its warehouse name instead of ref() or source()",
+    "[bug] models/modelling/olids/programme/adult_imms/int_adult_imms_ts_historical_shingles_dose_2.sql:74 reads REPORTING.OLIDS_PERSON_ANALYTICS.PERSON_MONTH_ANALYSIS_BASE by its warehouse name instead of ref() or source()"
+   ],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "None of the findings identify the labelled bug. The labelled bug is the wrong 'Shingles Dose 1' VACCINE label on the immunocompromised cohort in the dose 2 model. All four findings are about hardcoded warehouse table names that bypass ref() or source(). That is a different defect, even though findings 2 and 3 are in the same dose 2 file."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "6f02531511",
+   "title": "add: Staging table and yml for the PDS address table",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-analytics.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-analytics",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "35aa33125d",
+   "title": "updated MCW recommendations, fixed bugs in clustering and user attribution",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-cost-optimization.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-cost-optimization",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2d1e7f6f3c",
+   "title": "feat: correct match %",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2d1e7f6f3c",
+   "title": "feat: correct match %",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "676ded977e",
+   "title": "feat: allow configurable target schema name",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "676ded977e",
+   "title": "feat: allow configurable target schema name",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cf53d0354a",
+   "title": "fix: match_percentage",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-data-diff.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-data-diff",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3842f410b6",
+   "title": "Adding dry run option",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-dataquality.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-dataquality",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "3392e86c83",
+   "title": "Adjusting logic of variable file in load_internal_stage macro, removing dummy default value",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt-dataquality.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-dataquality",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "06d0c04d24",
+   "title": "Update to PR",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-re-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-re-data",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "06d0c04d24",
+   "title": "Update to PR",
+   "category": "other",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-re-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-re-data",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "493148eb7e",
+   "title": "add merge as a valid incremental strategy (#490)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt-redshift.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt-redshift",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e58f66ba7b",
+   "title": "PR suggestions",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "ffcf4760d7",
+   "title": "try 1",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [
+    "[bug] models/stg_hubspot__merged_deal.sql:1 models/stg_hubspot__merged_deal.sql does not parse"
+   ],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding says the file does not parse. That is a syntax failure, not the labelled defect, which is that the staging columns come from get_deal_columns() instead of get_merged_deal_columns(). The finding doesn't mention the wrong column macro or the wrong column list."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "46467b0806",
+   "title": "conditional to check if no additional fields are available to passthrough",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "9549dfead7",
+   "title": "created deal_contact models",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_hubspot_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_hubspot_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "918e684ae1",
+   "title": "documentation and timestamp fixes",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_stripe_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_stripe_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5dad11c38e",
+   "title": "fix surrogate",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_stripe_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_stripe_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "e218803162",
+   "title": "seed data",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_zendesk_source.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dbt_zendesk_source",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "bfd152ccc8",
+   "title": "Add one more metric using HLL",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "2a3dc17c27",
+   "title": "Fix one more bug",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "049244e7af",
+   "title": "Adding 3 new Sandbox projects wip 11",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "6eafe42125",
+   "title": "Adding Keycloak - a new CNCF Incubating project 10",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "devstats.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "devstats",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "61c8cc9265",
+   "title": "adding ecommerce and transaction models.  updating logging to more general assertions on all models updating config and helper to enable additional dynamic logic",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "ga4-pipeline-framework.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "ga4-pipeline-framework",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8b80cbf800",
+   "title": "refactor(pipelines): Explictly create Redshift External Tables in Pipeline DAGs (#78)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "providence.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "providence",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "c67a6f026a",
+   "title": "Fix 2 current release bugs",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "f7bfc5426e",
+   "title": "Update code for organization information",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5e371acde2",
+   "title": "created more intermediate models and a staging J code model",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "fdd375a707",
+   "title": "fda_excluded",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "sagerx.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "sagerx",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "6f541fbec7",
+   "title": "580 override contract token precision (#192)",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "5e206eea16",
+   "title": "Lint again",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/marts/ledger_current_state/contract_code_current.sql:29 `cd` is not a table alias in scope for `cd.contract_code_hash`",
+    "models/marts/ledger_current_state/contract_code_current.sql:30 `cd` is not a table alias in scope for `cd.closed_at`"
+   ],
+   "findings": [
+    "[bug] models/marts/ledger_current_state/contract_code_current.sql:29 `cd` is not a table alias in scope for `cd.contract_code_hash`",
+    "[bug] models/marts/ledger_current_state/contract_code_current.sql:30 `cd` is not a table alias in scope for `cd.closed_at`"
+   ],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Both findings describe the same defect: the alias `cd` is undefined (only `cc` exists) in the row_number() clause at lines 29 and 30. Finding 0 covers the `cd.contract_code_hash` reference at line 29 (the partition by), and finding 1 covers `cd.closed_at` at line 30 (the order by). Either one identifies the labelled bug; I picked finding 0, which is the first."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4ae7a3bf8d",
+   "title": "test #10",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "stellar-dbt-public.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "stellar-dbt-public",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "adventure-works",
+   "commit": "1f013cc9ce",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adventure-works",
+   "commit": "0980784b4d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "adventure-works",
+   "commit": "3972d18dfc",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/bronze/raw__adventure_works__transaction_histories.sql:1 models/bronze/raw__adventure_works__transaction_histories.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] models/bronze/raw__adventure_works__transaction_history_archives.sql:1 models/bronze/raw__adventure_works__transaction_history_archives.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] models/silver/bag__adventure_works__transactions.sql:1 models/silver/bag__adventure_works__transactions.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "36d0847b65",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "0e1c17dc52",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "chess_com_bi",
+   "commit": "4e7c2549d1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "42803d9ca5",
+   "error": null,
+   "bug_findings": [
+    "[other] models/staging/shared/reference/stg_reference_geo_neighbourhood_ward.sql:1 reads REFERENCE.GEO.NEIGHBOURHOOD_WARD by its warehouse name instead of ref() or source() :: models/staging/shared/reference/stg_reference_geo_neighbourhood_ward.sql:1 reads `REFERENCE.GEO.NEIGHBOURHOOD_WARD` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +stg_reference_geo_neighbourhood_ward` and the run order ignore it, and every environment read"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "0b8a6855cc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-analytics",
+   "commit": "6c06843503",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "3108c532da",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "0ccf0c2186",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-cost-optimization",
+   "commit": "56b0ffc98c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "277b591958",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "0b624186fe",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-data-diff",
+   "commit": "3abe16b204",
+   "error": null,
+   "bug_findings": [
+    "[other] models/02_schema_diff/schema_check_summary.yml:33 batch is documented on schema_check_summary but its SQL does not select it :: `models/02_schema_diff/schema_check_summary.yml` documents `batch` on `schema_check_summary`, but `models/02_schema_diff/schema_check_summary.sql` as of this change produces no such column, so the documentation describes columns the table does not have. Select the column in the model, or document it"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "fdf4ff9bd2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "376a40c6b5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-dataquality",
+   "commit": "1d7666e319",
+   "error": null,
+   "bug_findings": [
+    "[other] models/sources/sources_overview.sql:4 reads MY_DATABASE.MY_SCHEMA.RAW_SOURCE_FRESHNESS by its warehouse name instead of ref() or source() :: models/sources/sources_overview.sql:4 reads `MY_DATABASE.MY_SCHEMA.RAW_SOURCE_FRESHNESS` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +sources_overview` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debuggin",
+    "[other] models/sources/sources_overview.sql:5 reads MY_DATABASE.MY_SCHEMA.RAW_SOURCE_FRESHNESS by its warehouse name instead of ref() or source() :: models/sources/sources_overview.sql:5 reads `MY_DATABASE.MY_SCHEMA.RAW_SOURCE_FRESHNESS` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +sources_overview` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debuggin",
+    "[broken_reference_or_syntax] models/sources/sources_status.sql:None models/sources/sources_status.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "31e751965f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "0276c8c435",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-re-data",
+   "commit": "46aa99edd5",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] models/meta/monitored_tables.sql:1 models/meta/monitored_tables.sql does not parse :: The SQL does not parse in any supported dialect after this change.",
+    "[broken_reference_or_syntax] models/metrics_queries/base_metrics.sql:1 models/metrics_queries/base_metrics.sql does not parse :: The SQL does not parse in any supported dialect after this change."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-redshift",
+   "commit": "18123c4653",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt-redshift",
+   "commit": "5b47118a30",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "41390a17a5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "120b4d7e05",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_hubspot_source",
+   "commit": "76ec6116c3",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "3bc3999f68",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "0daa3bb10d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_stripe_source",
+   "commit": "6505aa1fa4",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "41ce411a60",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "095b5baeeb",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_zendesk_source",
+   "commit": "65b4711b95",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "devstats",
+   "commit": "2f769bd873",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "devstats",
+   "commit": "090ba96217",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "devstats",
+   "commit": "4d472a83fa",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "providence",
+   "commit": "c640bd30e1",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "providence",
+   "commit": "29bac99d8b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "providence",
+   "commit": "0dfb7bd84c",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "41ddad9f90",
+   "error": null,
+   "bug_findings": [
+    "[other] dbt/sagerx/models/marts/pricing/pricing_historical.sql:56 `nadac_historical.ndc_description`: `nadac_historical` has no column ndc_description :: dbt/sagerx/models/marts/pricing/pricing_historical.sql:56 reads `nadac_historical.ndc_description`, but `nadac_historical` produces ['change_type', 'clinical_product_name', 'dollar_change', 'end_date', 'generic_brand_indicator', 'ingredient_name', 'is_first_price', 'is_from_current_release', 'is_las"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "09ec33714f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "sagerx",
+   "commit": "6bd83108ef",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "2e63a8a7a0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "0a963e9f12",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "stellar-dbt-public",
+   "commit": "512cfcd46f",
+   "error": null,
+   "bug_findings": [
+    "[other] models/intermediate/int_asset_metadata.sql:36 UNION DISTINCT removed :: The new file has 0 UNION DISTINCT where the old one had 1. Duplicate rows that were collapsed now remain, so the row count rises unless something else deduplicates them.",
+    "[other] models/intermediate/tokens/transfers/int_token_transfer_enrichment.sql:31 COALESCE removed from asset_code :: models/intermediate/tokens/transfers/int_token_transfer_enrichment.sql:31 computes `asset_code` without the COALESCE/IFNULL the old file had around it, so rows whose input is NULL now produce NULL (and a sum, comparison or join downstream drops or mis-handles them)."
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 0
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 37,
+  "caught_judge_bug": "1/37 (3%)",
+  "caught_judge_bug_or_risk": "1/37 (3%)",
+  "caught_strict": "4/37 (11%)",
+  "caught_loose": "4/37 (11%)",
+  "risk_note_only": "0/37 (0%)",
+  "by_repo": {
+   "adventure-works": "0/1 (0%)",
+   "chess_com_bi": "0/1 (0%)",
+   "dbt-analytics": "0/4 (0%)",
+   "dbt-cost-optimization": "0/1 (0%)",
+   "dbt-data-diff": "0/5 (0%)",
+   "dbt-dataquality": "0/2 (0%)",
+   "dbt-re-data": "0/2 (0%)",
+   "dbt-redshift": "0/1 (0%)",
+   "dbt_hubspot_source": "0/4 (0%)",
+   "dbt_stripe_source": "0/2 (0%)",
+   "dbt_zendesk_source": "0/1 (0%)",
+   "devstats": "0/4 (0%)",
+   "ga4-pipeline-framework": "0/1 (0%)",
+   "providence": "0/1 (0%)",
+   "sagerx": "0/4 (0%)",
+   "stellar-dbt-public": "1/3 (33%)"
+  },
+  "by_category": {
+   "business_logic": "0/15 (0%)",
+   "nullability_or_cast": "0/1 (0%)",
+   "other": "1/15 (7%)",
+   "row_count_change": "0/6 (0%)"
+  },
+  "compiles_true": "0/23 (0%)",
+  "compiles_false": "1/14 (7%)",
+  "needs_data_bucket": "0/0",
+  "false_alarm_maintainer_rule": "7/44 (16%)",
+  "ordinary_commits": 44,
+  "false_alarm_share": "7/44 (16%)",
+  "false_alarm_share_excluding_later_fixed": "7/44 (16%)",
+  "commits_with_bug_or_risk": "7/44",
+  "false_alarm_by_repo": {
+   "adventure-works": "1/3",
+   "chess_com_bi": "0/3",
+   "dbt-analytics": "1/3",
+   "dbt-cost-optimization": "0/3",
+   "dbt-data-diff": "1/3",
+   "dbt-dataquality": "1/3",
+   "dbt-re-data": "1/3",
+   "dbt-redshift": "0/2",
+   "dbt_hubspot_source": "0/3",
+   "dbt_stripe_source": "0/3",
+   "dbt_zendesk_source": "0/3",
+   "devstats": "0/3",
+   "providence": "0/3",
+   "sagerx": "1/3",
+   "stellar-dbt-public": "1/3"
+  },
+  "errors": 0
+ }
+}

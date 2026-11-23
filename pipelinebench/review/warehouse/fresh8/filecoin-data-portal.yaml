@@ -1,0 +1,20 @@
+# filecoin-data-portal: real warehouse bugs located at the commit that introduced them, part of the fresh8 held-out set.
+# Written by hand from the public upstream history (https://github.com/davidgasquez/filecoin-data-portal): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from ChangeLens's output.
+repo: filecoin-data-portal
+url: https://github.com/davidgasquez/filecoin-data-portal
+bugs:
+  - commit: "84ce85c48e"
+    parent: "3253bd41af"
+    title: "feat: :sparkles: integrate oso Filecoin collection events into metrics and update BigQuery resource [skip ci]"
+    fix: "9038feb90c"
+    fix_title: "fix: :bug: fix comma"
+    bug: "the comma after submit_windowed_post_gas_used_fil is missing before the new Oso columns, so the next column name becomes an alias of the gas column and the github commit metric silently replaces it"
+    category: other
+    in_scope: true
+    compiles: true
+    needs_data: false
+    must_mention: ["comma", "submit_windowed_post_gas_used_fil"]
+    expect:
+      - {path: "dbt/macros/filecoin_periodic_metrics.sql", line: 369}

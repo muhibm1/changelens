@@ -1,0 +1,1703 @@
+{
+ "reviewer": "plain-opus",
+ "agent": "wa-10",
+ "model": "sonnet",
+ "verify": true,
+ "bugs": [
+  {
+   "commit": "9c61cf77a4",
+   "title": "added tbl_ddl view",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "src/AdminViews/v_generate_tbl_ddl.sql:109 Constraints joined on relfilenode instead of oid"
+   ],
+   "findings": [
+    "[bug] src/AdminViews/v_generate_tbl_ddl.sql:8 View created outside the admin schema",
+    "[bug] src/AdminViews/v_generate_tbl_ddl.sql:109 Constraints joined on relfilenode instead of oid",
+    "[risk] src/AdminViews/v_generate_tbl_ddl.sql:102 Casting oid to INT can overflow",
+    "[risk] src/AdminViews/v_generate_tbl_ddl.sql:95 Dropped columns not filtered; comma placement depends on attnum = 1"
+   ],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags the same defect at the same line: the pg_constraint join uses relfilenode instead of oid. It also gives the same mechanism, that relfilenode changes after a table rewrite such as TRUNCATE or a deep copy, so constraints drop out of the generated DDL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d2d47b76ac",
+   "title": "Added Running queues.",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] src/AdminScripts/running_queues.sql:33 Unaggregated join to stv_query_metrics on step_type 38 can duplicate query rows"
+   ],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "The only finding is about row duplication from the stv_query_metrics join (step_type 38) and the cursor-text subquery. That is a different defect from the labelled bug, which is the alerts bitmask summing flags over repeated STL_ALERT_EVENT_LOG rows so that carries corrupt the event&N decoding. The finding doesn't mention the alerts subquery or the bitmask."
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "30f29e8a0d",
+   "title": "2 new scripts",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "30f29e8a0d",
+   "title": "2 new scripts",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "amazon-redshift-utils.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "amazon-redshift-utils",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "df5d36bc42",
+   "title": "WIP",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/tables/snowflake/sat.sql:74 WHERE on the LEFT JOIN drops every new hash key during incremental loads"
+   ],
+   "findings": [
+    "[bug] macros/tables/snowflake/sat.sql:74 WHERE on the LEFT JOIN drops every new hash key during incremental loads",
+    "[bug] macros/supporting/ghost_records/create_ghost_record.sql:48 Ghost record source cast appends a length to any dtype, which is invalid for STRING/TEXT types"
+   ],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 describes the same defect at the same location. The WHERE filter on valid_stg after the LEFT JOIN to latest_records drops new keys, where sat.ldts is NULL, so the join behaves like an inner join. This matches the labelled bug. Finding 1 is about a different file and a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "67b39ef75d",
+   "title": "Refactor of types in the harness",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] macros/supporting/data_types/type_binary.sql:26 enable_native_hashes check always takes the BYTES/BINARY branch because `| lower` turns the boolean into a non-empty string"
+   ],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in the same file. `var('enable_native_hashes', false) | lower` turns the boolean into a non-empty string, so `not enable_native_hashes` is never true and the BYTES/BINARY type is always chosen."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "b85b406d0b",
+   "title": "Fix single item hashdiff",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/internal/metadata_processing/concat_ws.sql:9 default__concat_ws calls a .join() method that Jinja lists don't have"
+   ],
+   "findings": [
+    "[bug] macros/internal/metadata_processing/concat_ws.sql:9 default__concat_ws calls a .join() method that Jinja lists don't have",
+    "[risk] macros/supporting/hash.sql:149 Single-column hashdiff on SQL Server now hashes NULL instead of the placeholder, and differs from Snowflake"
+   ],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same defect at the same location: default__concat_ws in concat_ws.sql:9 calls string_list.join(\", \"), and Jinja lists have no join method, so it raises at compile time. Finding 1 is about a different defect, the SQL Server hashdiff NULL handling."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "d4dc2faa64",
+   "title": "Add error message and disable tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "automate-dv.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/materialisations/vault_insert_by_rank_materialization.sql:171 Stray nested `{% materialization vault_insert_by_period %}` tag breaks Jinja parsing of the rank materialization file"
+   ],
+   "findings": [
+    "[bug] macros/materialisations/vault_insert_by_rank_materialization.sql:171 Stray nested `{% materialization vault_insert_by_period %}` tag breaks Jinja parsing of the rank materialization file"
+   ],
+   "repo": "automate-dv",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 names the same file and line, the same defect (a second `materialization vault_insert_by_period, adapter='sqlserver'` opening tag pasted onto the same line as the rank opening tag), and the same mechanism (unclosed or unbalanced materialization block that breaks parsing)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "719ae0e91b",
+   "title": "WIP moving join-with-deduplication into a macro.",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "data-infrastructure.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/macros/spatial_join_with_deduplication.sql:7 Geometry column lost its alias and is no longer named \"geometry\"",
+    "transform/macros/spatial_join_with_deduplication.sql:9 Left-side columns come out NULL for footprints that match no block"
+   ],
+   "findings": [
+    "[bug] transform/macros/spatial_join_with_deduplication.sql:7 Geometry column lost its alias and is no longer named \"geometry\"",
+    "[bug] transform/macros/spatial_join_with_deduplication.sql:9 Left-side columns come out NULL for footprints that match no block"
+   ],
+   "repo": "data-infrastructure",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the labelled bug. With the left join, a footprint that matches no block has a NULL _tmp_sjoin_intersection. max_by(col, _tmp_sjoin_intersection) then returns NULL for left-side columns such as release and capture_dates_range. It points to line 9 of the same macro. Finding 0 is about a different defect, the missing geometry alias."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "64e04d3fa3",
+   "title": "Created version 1 sat for ma sats",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/tables/bigquery/ma_sat_v1.sql:39 Undefined `src_hashdiff` and missing hash key in ord_ldts"
+   ],
+   "findings": [
+    "[bug] macros/tables/bigquery/ma_sat_v1.sql:39 Undefined `src_hashdiff` and missing hash key in ord_ldts",
+    "[bug] macros/tables/bigquery/ma_sat_v1.sql:59 Extra columns are emitted with broken comma placement"
+   ],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The ord_ldts window uses the undefined `src_hashdiff`, which renders empty and makes the SQL invalid, and the macro's parameter is `src_hd`. It also notes that the hash key (src_hk) is missing from ord_ldts, which matches the labelled fix of partitioning on the hashkey. Finding 1 is about a different defect, comma placement for extra columns."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "24ee6baf5b",
+   "title": "First version of macro, and Control_snap_v0 adjusted to use it.",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/internal/metadata_processing/yaml_metadata_parser.sql:10 Unclosed inner {% if required %} block, followed by elif after else: Jinja syntax error"
+   ],
+   "findings": [
+    "[bug] macros/internal/metadata_processing/yaml_metadata_parser.sql:10 Unclosed inner {% if required %} block, followed by elif after else: Jinja syntax error",
+    "[risk] macros/internal/metadata_processing/yaml_metadata_parser.sql:5 return_value is never set when yaml is given but an optional parameter is missing everywhere"
+   ],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the nested if/else for the required flag is not closed, so the following elif is read as part of the inner block. That leaves the Jinja unbalanced and causes a syntax error, so macros that call the parser fail to compile. Finding 1 is about return_value being unset, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2dae769187",
+   "title": "Snowflake flavour of control snapshot v0",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/tables/snowflake/control_snap_v0.sql:33 is_weekly marks Tuesdays instead of Mondays on Snowflake"
+   ],
+   "findings": [
+    "[bug] macros/tables/snowflake/control_snap_v0.sql:33 is_weekly marks Tuesdays instead of Mondays on Snowflake",
+    "[risk] macros/tables/snowflake/control_snap_v0.sql:9 SEQ4() is not guaranteed gap-free, so daily snapshots could be skipped"
+   ],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The Snowflake control_snap_v0 copied the BigQuery check EXTRACT(DAYOFWEEK ...) = 2. Snowflake numbers Monday as 1, so is_weekly flags Tuesdays. Finding 1 is about SEQ4 gaps, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "ddae5fc42a",
+   "title": "Update hash_standardization.sql",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/supporting/hash_standardization.sql:29 Postgres REGEXP_REPLACE without 'g' flag escapes only the first backslash/quote",
+    "macros/supporting/hash_standardization.sql:29 Postgres CONCAT ignores NULLs, so NULL columns never get the null placeholder or the zero key"
+   ],
+   "findings": [
+    "[bug] macros/supporting/hash_standardization.sql:29 Postgres REGEXP_REPLACE without 'g' flag escapes only the first backslash/quote",
+    "[bug] macros/supporting/hash_standardization.sql:29 Postgres CONCAT ignores NULLs, so NULL columns never get the null placeholder or the zero key",
+    "[risk] macros/supporting/hash_standardization.sql:35 Redshift standardisation applies TRIM to the raw expression without a cast to VARCHAR"
+   ],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 identifies the labelled defect. Postgres CONCAT treats NULL as an empty string, so an all-NULL business key is hashed as a constant string and never becomes the zero key. It also notes that the redshift version uses || and propagates NULL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "782f2d1f23",
+   "title": "Update ghost_record_per_datatype.sql, fix postgres ghost record data types, change redshift unknown bool to False",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "datavault4dbt.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/supporting/ghost_record_per_datatype.sql:320 Postgres unknown ghost timestamp uses the date-only variable instead of beginning_of_all_times"
+   ],
+   "findings": [
+    "[bug] macros/supporting/ghost_record_per_datatype.sql:320 Postgres unknown ghost timestamp uses the date-only variable instead of beginning_of_all_times"
+   ],
+   "repo": "datavault4dbt",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The Postgres unknown ghost record's TIMESTAMP branch passes beginning_of_all_times_date instead of beginning_of_all_times, so timestamp ghost records get the date-format value."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "46e4882fd9",
+   "title": "Minor typo for 'true' instead of true",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_constraints.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/snowflake__create_constraints.sql:382 Nullable columns are recorded as already NOT NULL, so NOT NULL constraints get skipped"
+   ],
+   "findings": [
+    "[bug] macros/snowflake__create_constraints.sql:382 Nullable columns are recorded as already NOT NULL, so NOT NULL constraints get skipped"
+   ],
+   "repo": "dbt_constraints",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The `row['null?'] == 'true'` test adds nullable columns to `not_null_col`, so nullable columns are reported as not null. It also explains the consequence: the NOT NULL step skips those columns."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "439f17dfc3",
+   "title": "first value macro addition",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_fivetran_utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/first_value.sql:3 Dispatcher hardcodes order=\"asc\" and ignores the caller's order argument"
+   ],
+   "findings": [
+    "[bug] macros/first_value.sql:3 Dispatcher hardcodes order=\"asc\" and ignores the caller's order argument"
+   ],
+   "repo": "dbt_fivetran_utils",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same file and line. It names the same defect: the dispatcher passes the literal order=\"asc\" instead of order=order, so a descending first_value silently returns the ascending result."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "286b173afa",
+   "title": "max_bool macro add",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_fivetran_utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/max_bool.sql:8 Duplicate macro default__first_value breaks the project parse",
+    "macros/max_bool.sql:3 max_bool dispatch has no implementation to call",
+    "macros/max_bool.sql:15 snowflake__first_value and bigquery__first_value take over first_value dispatch"
+   ],
+   "findings": [
+    "[bug] macros/max_bool.sql:8 Duplicate macro default__first_value breaks the project parse",
+    "[bug] macros/max_bool.sql:3 max_bool dispatch has no implementation to call",
+    "[bug] macros/max_bool.sql:15 snowflake__first_value and bigquery__first_value take over first_value dispatch"
+   ],
+   "repo": "dbt_fivetran_utils",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 names the labelled defect directly. The max_bool implementations in macros/max_bool.sql are named *__first_value, so adapter.dispatch('max_bool') finds no implementation. Findings 0 and 2 cover the same misnaming, but only as the first_value override side effect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "604176d6cb",
+   "title": "add start_date and end_date to metric() and don't pull through spined\u2026 (#10)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/get_metric_sql.sql:70 WHERE clause references the SELECT alias date_day"
+   ],
+   "findings": [
+    "[bug] macros/get_metric_sql.sql:70 WHERE clause references the SELECT alias date_day",
+    "[risk] macros/get_metric_sql.sql:152 Untyped string literal bounds compared against a date period",
+    "[risk] macros/get_metric_sql.sql:183 Mid-period start_date drops the first period entirely"
+   ],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same defect at the same line: the WHERE clause in source_query references the select alias date_day, which Postgres, BigQuery and Redshift reject. The finding does not mention the secondary-calculation ordering, but the alias-in-WHERE mechanism is the core of the labelled bug. Findings 1 and 2 concern different defects (untyped bounds and mid-period start dropping)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "cabdef7a6a",
+   "title": "removing cartesian join",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/get_metric_sql.sql:94 spine__values compiles to `select distinct from source_query` when no model dimensions are requested",
+    "macros/get_metric_sql.sql:98 Comma placement uses loop.last over all dimensions, not just model dimensions"
+   ],
+   "findings": [
+    "[bug] macros/get_metric_sql.sql:94 spine__values compiles to `select distinct from source_query` when no model dimensions are requested",
+    "[bug] macros/get_metric_sql.sql:98 Comma placement uses loop.last over all dimensions, not just model dimensions",
+    "[risk] macros/get_metric_sql.sql:109 Spine now holds only observed dimension combinations instead of the full cross product"
+   ],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: spine__values is always emitted and, with no model dimensions, compiles to `select distinct from source_query` with an empty column list, which is invalid SQL. Finding 1 is about comma placement, and finding 2 is about a change in row counts, so neither matches."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "2e469805e7",
+   "title": "adding filters and tests",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/get_metric_sql.sql:73 Where filter emits the literal word `filter` instead of the expression"
+   ],
+   "findings": [
+    "[bug] macros/get_metric_sql.sql:73 Where filter emits the literal word `filter` instead of the expression",
+    "[bug] integration_tests/models/count_orders/input_count_orders_by_day_filtered.sql:7 `where` is passed as a string with an unclosed quote",
+    "[bug] integration_tests/models/metric_transformation.sql:19 end_date is inclusive, so May 2021 rows are now included"
+   ],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at macros/get_metric_sql.sql:73 and describes the same defect. The loop renders the bare word `filter` instead of the Jinja expression, so the SQL references a nonexistent column and the user's filter is never applied."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "604176d6cb",
+   "title": "add start_date and end_date to metric() and don't pull through spined\u2026 (#10)",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dbt_metrics.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/get_metric_sql.sql:70 WHERE clause references the SELECT alias date_day"
+   ],
+   "findings": [
+    "[bug] macros/get_metric_sql.sql:70 WHERE clause references the SELECT alias date_day",
+    "[risk] macros/get_metric_sql.sql:152 Untyped string literal bounds compared against a date period",
+    "[risk] macros/get_metric_sql.sql:183 Mid-period start_date drops the first period entirely"
+   ],
+   "repo": "dbt_metrics",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 points at macros/get_metric_sql.sql:152 and describes the same defect as the labelled bug. The lower_bound and upper_bound values are untyped string literals, so the later comparison of the date period against them fails in Postgres and BigQuery. It also gives the same fix, an explicit cast to date. Finding 0 is about a select alias used in a WHERE clause, and finding 2 is about mid-period start dates dropping the first period. Both are different defects."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "33d296b015",
+   "title": "refactor update",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dbt_salesforce_formula_utils.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "macros/sfdc_formula_refactor.sql:16 Multiple referenced fields produce >2-element entries that break `for k, v` unpacking",
+    "macros/sfdc_formula_refactor.sql:17 Substring match/replace corrupts SQL and inserts unparenthesized or 'null_value' expressions"
+   ],
+   "findings": [
+    "[bug] macros/sfdc_formula_refactor.sql:16 Multiple referenced fields produce >2-element entries that break `for k, v` unpacking",
+    "[bug] macros/sfdc_formula_refactor.sql:17 Substring match/replace corrupts SQL and inserts unparenthesized or 'null_value' expressions",
+    "[risk] macros/sfdc_formula_refactor.sql:18 Only one level of formula nesting is resolved"
+   ],
+   "repo": "dbt_salesforce_formula_utils",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 explicitly states the inserted SQL is not wrapped in parentheses so operator precedence changes, with the example `a__c * 2` becoming `x + y * 2`. That is the labelled bug, in the same macro, one line off (17 vs 18). Finding 0 is about unpacking errors with multiple references. Finding 2 is about nesting depth."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "92c03dd0b9",
+   "title": "Initial version of pipeline_snapshot operation to enable cross-divisional monitoring",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "includes/pipeline_snapshot.js:31 Missing and extra row counts are swapped"
+   ],
+   "findings": [
+    "[bug] includes/pipeline_snapshot.js:31 Missing and extra row counts are swapped",
+    "[bug] index.js:123 pipeline_snapshot refs tables that are not created when transformEntityEvents is false"
+   ],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 reports the same defect at the same location (pipeline_snapshot.js:31): the missing and extra row counts are swapped. It also gives the same mechanism, with the comparison directions inverted between database and BigQuery row counts. Finding 1 is about a different defect, an unresolved ref in index.js."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "012b12dd4c",
+   "title": "Add entity-level data freshness assertions and check that data freshness parameters are positive integers",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "includes/entity_data_not_fresh.js:20 Entity freshness assertion condition is backwards: it fails when data is fresh"
+   ],
+   "findings": [
+    "[bug] includes/entity_data_not_fresh.js:20 Entity freshness assertion condition is backwards: it fails when data is fresh",
+    "[risk] includes/entity_data_not_fresh.js:4 Truthy filter skips the positive-integer check for a zero value"
+   ],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at entity_data_not_fresh.js:20. The query returns a row when MAX(last_streamed_event_occurred_at) is newer than now minus the freshness window. The assertion therefore fails when data is fresh and passes when it is stale, which is the labelled bug."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "114f7bb170",
+   "title": "Remove an unnecessary layer of subquery",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "8c770654eb",
+   "title": "Add entity_ids_do_not_match assertion",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "includes/entity_ids_do_not_match.js:29 BigQuery row count counts distinct updated_at timestamps instead of entities"
+   ],
+   "findings": [
+    "[bug] includes/entity_ids_do_not_match.js:29 BigQuery row count counts distinct updated_at timestamps instead of entities"
+   ],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points to the same line and the same defect. COUNT(DISTINCT updated_at) counts distinct timestamps instead of entities, so rows that share an updated_at collapse and the row count check reports a false mismatch."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "14a4bdb754",
+   "title": "Update reconciliation flow",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "dfe-analytics-dataform.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "dfe-analytics-dataform",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "84ce85c48e",
+   "title": "feat: :sparkles: integrate oso Filecoin collection events into metrics and update BigQuery resource [skip ci]",
+   "category": "other",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "filecoin-data-portal.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/macros/filecoin_periodic_metrics.sql:369 Missing comma after submit_windowed_post_gas_used_fil turns the next column into an alias"
+   ],
+   "findings": [
+    "[bug] dbt/macros/filecoin_periodic_metrics.sql:369 Missing comma after submit_windowed_post_gas_used_fil turns the next column into an alias",
+    "[bug] dbt/macros/filecoin_periodic_metrics.sql:246 Daily OSO events are not bucketed to the period, so weekly and monthly totals are wrong",
+    "[risk] dbt/macros/filecoin_periodic_metrics.sql:246 New raw table is hard-coded instead of declared as a dbt source",
+    "[risk] dbt/macros/filecoin_periodic_metrics.sql:379 Only 8 of the 13 documented pivot columns are selected"
+   ],
+   "repo": "filecoin-data-portal",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the missing comma after submit_windowed_post_gas_used_fil at line 369 makes the next column (github_commit_code_events) an alias of the gas column, dropping the gas column and replacing it with the wrong data."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "4dbec3edb1",
+   "title": "create table for communes",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "make-open-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] models/mod/geo/mod_geo_communes.sql:23 TYPECOM = 'COM' filter put in LEFT JOIN ON clause, so it doesn't filter any rows"
+   ],
+   "repo": "make-open-data",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same location. The TYPECOM = 'COM' predicate is in the ON clause of a LEFT JOIN in mod_geo_communes.sql:23, so it filters nothing and non-commune rows remain in the output. It also says the filter belongs in a WHERE clause."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "bc9050b801",
+   "title": "functional model for z region, to optimise",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "make-open-data.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": true,
+   "matched": [],
+   "findings": [
+    "[risk] macros/population/renommer_colonnes_logement.sql:17 Value decoding removed: LIB columns now carry raw INSEE codes instead of labels",
+    "[risk] models/traitement/population/libelle_colonnes_logement.sql:17 Hard-coded region filter limits the housing pipeline to region 76"
+   ],
+   "repo": "make-open-data",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 flags the same hard-coded region_residence = '76' filter in libelle_colonnes_logement.sql. It also notes that the literal only matches because value decoding was removed. That is the labelled defect: the column holds names like occitanie, not codes, so the filter does not match what the column holds."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "df9785f04e",
+   "title": "update to neutral site",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/models/nfl/simulator/nfl_reg_season_simulator.sql:8 Neutral-site check runs in Jinja against a string literal, so it is always false"
+   ],
+   "findings": [
+    "[bug] transform/models/nfl/simulator/nfl_reg_season_simulator.sql:8 Neutral-site check runs in Jinja against a string literal, so it is always false"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect. It points to the same file and line, and says the quoted string \"s.neutral_site\" is compared to 1 in Jinja. That comparison is always false, so the home-field offset is applied to neutral-site games too."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "befb24d4d9",
+   "title": "updaing models to handle parquet",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/models/playin/playin_sim_r1.sql:18 Play-in win probability uses schedule Elo columns, which are NULL for play-in games",
+    "transform/models/playin/playin_sim_r2.sql:19 Play-in round 2 probability is always NULL, so the visiting team always wins"
+   ],
+   "findings": [
+    "[bug] transform/models/playin/playin_sim_r1.sql:18 Play-in win probability uses schedule Elo columns, which are NULL for play-in games",
+    "[bug] transform/models/playin/playin_sim_r2.sql:19 Play-in round 2 probability is always NULL, so the visiting team always wins",
+    "[bug] transform/models/inputs/random_num_gen.sql:10 rand_result now runs from 0 to 10000, but the playoff sims still compare it to a probability between 0 and 1"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect in playin_sim_r1.sql:18. The elo_calc call uses S.home_team_elo_rating and S.visiting_team_elo_rating, which schedules leaves NULL for play-in games. The win probability is therefore NULL and the visiting team always wins. The finding also notes that the ratings should come from EH and EV. Finding 1 covers the same defect in round 2, but finding 0 matches the labelled bug as well, so I return the first match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "005a751e65",
+   "title": "skew home team + 70 elo",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/macros/calcs.sql:2 Home-court adjustment has the wrong sign: home team is penalised by 70 Elo",
+    "transform/macros/calcs.sql:6 elo_diff home advantage also inverted, corrupting Elo rollforward updates"
+   ],
+   "findings": [
+    "[bug] transform/macros/calcs.sql:2 Home-court adjustment has the wrong sign: home team is penalised by 70 Elo",
+    "[bug] transform/macros/calcs.sql:6 elo_diff home advantage also inverted, corrupting Elo rollforward updates"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 points at calcs.sql:2 in elo_calc and describes the same defect. The +70 sits inside -(V - H + 70), which makes the exponent (H - V - 70)/400. That lowers the home team's win probability, the opposite of the commit's intent. Finding 1 is about elo_diff at line 6, which is a different macro."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "40898f38a2",
+   "title": "update tiebreakers",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "transform/models/nba/analysis/tournament_end.sql:95 Wildcard ranked by point differential only, ignoring wins",
+    "transform/models/nba/analysis/tournament_end.sql:61 Point differential only counts games the home team won",
+    "transform/models/nba/analysis/tournament_end.sql:79 Tiebreaker point differential is the same in every scenario"
+   ],
+   "findings": [
+    "[bug] transform/models/nba/analysis/tournament_end.sql:95 Wildcard ranked by point differential only, ignoring wins",
+    "[bug] transform/models/nba/analysis/tournament_end.sql:61 Point differential only counts games the home team won",
+    "[bug] transform/models/nba/analysis/tournament_end.sql:79 Tiebreaker point differential is the same in every scenario"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 is the only one that describes the NULL mechanism. It says a team with no home wins or no road losses gets a NULL CTE sum, that NULL + x makes pt_diff NULL, and that this sorts last. That is the labelled defect: home_pt_diff + visitor_pt_diff is NULL when one side's left-joined sum is NULL. It frames the cause as the winning_team filter rather than \"no home or away games\", and that is a looser match. Findings 0 and 2 are about different defects (wildcard ordering and per-scenario scoping)."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "a56abdef17",
+   "title": "adding capability for including actuals",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "nba-monte-carlo.yaml",
+   "hit_strict": false,
+   "hit_loose": true,
+   "hit_risk_only": true,
+   "matched": [
+    "transform/models/conformed/reg_season/reg_season_simulator.sql:14 With include_actuals on, every unplayed game gets a NULL winner instead of a simulated one"
+   ],
+   "findings": [
+    "[bug] transform/models/conformed/reg_season/reg_season_simulator.sql:14 With include_actuals on, every unplayed game gets a NULL winner instead of a simulated one",
+    "[risk] transform/models/conformed/reg_season/reg_season_actuals.sql:24 Teams with no wins or no losses get NULL counts instead of 0"
+   ],
+   "repo": "nba-monte-carlo",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 points to reg_season_actuals.sql:24 and describes the same defect. Wins and losses come from LEFT JOINs to aggregates with no COALESCE, so teams with no wins or no losses get NULL instead of 0. Finding 0 is about a different model, reg_season_simulator."
+   },
+   "hit_judge": false,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "daf42fd667",
+   "title": "Candidate Detail still behaving oddly",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "data/sql_updates/create_candidate_detail_vw.sql:48 Properties subquery joined on itself, which turns it into a cross join",
+    "data/sql_updates/create_candidate_detail_vw.sql:47 DISTINCT ON picks an arbitrary row instead of the most recent properties"
+   ],
+   "findings": [
+    "[bug] data/sql_updates/create_candidate_detail_vw.sql:48 Properties subquery joined on itself, which turns it into a cross join",
+    "[bug] data/sql_updates/create_candidate_detail_vw.sql:47 DISTINCT ON picks an arbitrary row instead of the most recent properties",
+    "[risk] data/sql_updates/create_candidate_detail_vw.sql:44 Inner joins to dimoffice/dimparty undo the left join to dimcandoffice",
+    "[risk] data/sql_updates/create_candidate_detail_vw.sql:22 Independent max() calls can combine office/party fields from different rows"
+   ],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at the same line: the self-referencing join condition cp_most_recent.cand_sk = cp_most_recent.cand_sk is always true, so every candidate joins to every properties row and the max() aggregates run across all candidates."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "699ac8f990",
+   "title": "Added join to enable reference of committee_name",
+   "category": "row_count_change",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "data/sql_updates/communication_cost.sql:11 Join to per-cycle committee history fans out rows and breaks unique sub_id index"
+   ],
+   "findings": [
+    "[bug] data/sql_updates/communication_cost.sql:11 Join to per-cycle committee history fans out rows and breaks unique sub_id index"
+   ],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the join to ofec_committee_history_mv_tmp on committee_id only, with no cycle condition. That view has one row per committee per cycle, so each communication cost row is duplicated once per cycle. It cites the same file and line."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "3cb1ebf5f1",
+   "title": "Add /committee endpoint",
+   "category": "nullability_or_cast",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "data/ddl/fulltext.sql:39 Any NULL component makes the whole committee tsvector NULL"
+   ],
+   "findings": [
+    "[bug] webservices/rest.py:121 Committee candidate filter references non-existent column thd_cand_nm",
+    "[bug] data/ddl/fulltext.sql:39 Any NULL component makes the whole committee tsvector NULL",
+    "[risk] webservices/rest.py:103 Candidate office filter switched from office description to office code",
+    "[risk] webservices/rest.py:104 State filter changed from exact match to substring match"
+   ],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": 1,
+    "reason": "Finding 1 points at data/ddl/fulltext.sql:39 and describes the labelled bug: the committee tsvector is built by joining to_tsvector terms over nullable columns with ||, so one NULL makes the whole tsvector NULL and those rows never match a search. It also names the same fix, coalesce on each term."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5996693cf6",
+   "title": "Update candidate_inactive and test subset.",
+   "category": "business_logic",
+   "in_scope": true,
+   "compiles": true,
+   "needs_data": false,
+   "source": "openFEC.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "data/sql_updates/create_candidate_history_view.sql:41 candidate_inactive logic inverted",
+    "data/sql_updates/create_candidate_history_view.sql:41 candidate_inactive changes from nullable 'Y' flag to a never-null boolean, breaking readers"
+   ],
+   "findings": [
+    "[bug] data/sql_updates/create_candidate_history_view.sql:41 candidate_inactive logic inverted",
+    "[bug] data/sql_updates/create_candidate_history_view.sql:41 candidate_inactive changes from nullable 'Y' flag to a never-null boolean, breaking readers",
+    "[risk] data/sql_updates/create_candidate_history_view.sql:56 Inactive status no longer scoped by election year"
+   ],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "The labelled bug has two parts: the inverted `is null` flag, and the join on cand_id only, which flags a candidate in every election year. Finding 0 identifies the inverted flag at line 41. Finding 2 identifies the missing election-year scoping in the join, but it is filed at line 56. Finding 0 is the one at the labelled location and states the primary defect, that `inactive.cand_id is null` is true for active candidates. It is the best match."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "09038d3c79",
+   "title": "Checking for earmarks that are coded or have earmark in their name.",
+   "category": "business_logic",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "openFEC.yaml",
+   "hit_strict": false,
+   "hit_loose": false,
+   "hit_risk_only": false,
+   "matched": [],
+   "findings": [],
+   "repo": "openFEC",
+   "error": null,
+   "judge": {
+    "index": -1,
+    "reason": "no findings"
+   },
+   "hit_judge": false,
+   "hit_judge_any": false
+  },
+  {
+   "commit": "cd330c3a47",
+   "title": "more jira",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "ra_data_warehouse.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 Double comma in timestamp_diff calls breaks the build"
+   ],
+   "findings": [
+    "[bug] models/sources/stg_jira_projects/stg_jira_projects_tasks.sql:31 Double comma in timestamp_diff calls breaks the build",
+    "[bug] models/sources/stg_asana_projects/stg_asana_projects_tasks.sql:31 total_task_hours_incomplete is a TIMESTAMP in Asana but INT64 in Jira, so the UNION ALL fails"
+   ],
+   "repo": "ra_data_warehouse",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the doubled comma (`fields.created,,HOUR`) in both timestamp_diff calls in stg_jira_projects_tasks.sql at line 31, which causes a syntax error. Finding 1 is a different defect, a type mismatch in the UNION ALL."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "5e69b7458a",
+   "title": "made transactions incremental load",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "ra_data_warehouse.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "models/warehouse/w_finance/wh_transactions_fact.sql:33 Incremental filter uses a column that does not exist (transaction_last_modified_date)"
+   ],
+   "findings": [
+    "[bug] models/warehouse/w_finance/wh_transactions_fact.sql:33 Incremental filter uses a column that does not exist (transaction_last_modified_date)",
+    "[risk] models/warehouse/w_finance/wh_transactions_fact.sql:25 Surrogate key transaction_pk is regenerated on every merge of an updated row"
+   ],
+   "repo": "ra_data_warehouse",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 flags the same defect at the same line: the incremental filter uses transaction_last_modified_date, which no upstream model exposes (they expose transaction_updated_ts), so incremental runs fail. Finding 1 is about transaction_pk regeneration, which is a different defect."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "739db32e7f",
+   "title": "Add assist player (#217)",
+   "category": "other",
+   "in_scope": true,
+   "compiles": false,
+   "needs_data": false,
+   "source": "transfermarkt-datasets.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/models/curated/game_events.sql:8 Unquoted player_assist_id in surrogate key list is a Jinja variable, not a column name"
+   ],
+   "findings": [
+    "[bug] dbt/models/curated/game_events.sql:8 Unquoted player_assist_id in surrogate key list is a Jinja variable, not a column name",
+    "[risk] dbt/models/curated/game_events.sql:8 Adding a field to the surrogate key changes game_event_id for every existing row"
+   ],
+   "repo": "transfermarkt-datasets",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect: the unquoted player_assist_id in the generate_surrogate_key list at game_events.sql:8 is read by Jinja as an undefined variable, so the key fails to compile or is built wrong. Finding 1 covers a different concern, which is that adding a field changes existing hashes."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  },
+  {
+   "commit": "0f247e4b13",
+   "title": "Prepare to enable automatic updates (#329)",
+   "category": "nullability_or_cast",
+   "in_scope": false,
+   "compiles": true,
+   "needs_data": true,
+   "source": "transfermarkt-datasets.yaml",
+   "hit_strict": true,
+   "hit_loose": true,
+   "hit_risk_only": false,
+   "matched": [
+    "dbt/models/base/transfermarkt_scraper/base_games.sql:47 Ambiguous game dates: new dd/mm/yy strings get read as mm/dd/yy first"
+   ],
+   "findings": [
+    "[bug] dbt/models/base/transfermarkt_scraper/base_games.sql:47 Ambiguous game dates: new dd/mm/yy strings get read as mm/dd/yy first"
+   ],
+   "repo": "transfermarkt-datasets",
+   "error": null,
+   "judge": {
+    "index": 0,
+    "reason": "Finding 0 identifies the same defect at base_games.sql. The coalesce tries '%a, %m/%d/%y' before the dd/mm fallback, so any date with day 12 or less parses with day and month swapped and the fallback never runs."
+   },
+   "hit_judge": true,
+   "hit_judge_any": true
+  }
+ ],
+ "ordinary": [
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "3399cc27eb",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] src/BlogContent/AQUA-Evaluation/aqua_eligible_testqueries.sql:42 SIMILAR TO regex pattern changed to LIKE, so alternation is now matched literally :: In SIMILAR TO, '%(good|bad)%' means the text contains either 'good' or 'bad'. LIKE has no grouping or alternation, so '(', '|' and ')' are plain characters. With LIKE, the pattern only matches reviews that contain the exact text '(good|bad)'. That is almost certainly zero rows, so the query no longe"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "0b64c28ca2",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "amazon-redshift-utils",
+   "commit": "537a8332c5",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "eb3b0535d4",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] macros/internal/helpers/create_ghost_record.sql:199 Postgres ghost record aliases load datetime column as src_eff :: In postgres__create_ghost_record, the src_ldts branch formats the alias with src_eff instead of src_ldts. Most satellites don't set src_eff, so the generated SQL becomes `CAST('1900-01-01 00:00:00' AS ...) AS None`. The ghost CTE then has no load_datetime column, and `g.<LOAD_DATETIME>` in postgres ",
+    "[dropped_or_renamed_column_with_readers] macros/internal/helpers/create_ghost_record.sql:50 Ghost record leaves out src_extra_columns, but the sats still select them from the ghost CTE :: The new macro only creates columns for pk, hashdiff, eff, ldts, source and payload. src_extra_columns is passed in but never used. The sat macros build source_cols with src_extra_columns included (snowflake sat.sql:33, postgres sat.sql:3) and select `alias_all(source_cols, 'g')` FROM ghost. Any sate"
+   ],
+   "later_fixed": [
+    null,
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "25b7ca5b01",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "automate-dv",
+   "commit": "064641c323",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "246cc7ea7d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "0674e4f0f2",
+   "error": null,
+   "bug_findings": [
+    "[documented_column_not_selected] transform/models/marts/geo_reference/geo_reference__building_footprints_with_places.sql:45 Dedupe CTE drops release and capture_dates_range columns :: The new final CTE `footprints_and_places_joined_dedupe` only selects geometry and the six place attributes, grouped by _tmp_id. The footprint columns \"release\" and \"capture_dates_range\" are selected upstream but never carried through, for example with any_value(...), so the mart no longer outputs th"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "data-infrastructure",
+   "commit": "6a8c538850",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "15d52aa659",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/staging/stage.sql:3 adapter.dispatch uses a package namespace that does not exist :: stage, hash, hash_columns, pit, sat_v0 and sat_v1 now dispatch with macro_namespace 'dbtvault-scalefree'. The root project is named 'dbt_public_release', and a name with a hyphen cannot be a valid dbt package name. No dispatch search_order config maps this namespace to anything. dbt therefore raises",
+    "[broken_reference_or_syntax] macros/staging/stage.sql:77 Prejoin select uses the undefined variable `bk` and puts literal text in the alias :: `{{ bk }}` refers to a Jinja variable that is never defined (it should be vals['bk']), so it renders as an empty string. `AS vals['bk']` is plain SQL text, not a Jinja expression. The rendered line is `,pj_1. AS vals['bk']`, which is invalid SQL. Also, auto_test.sql has no `bk` key in its prejoin co",
+    "[business_logic] macros/supporting/hash.sql:60 Every hash key changes and the all-null check stops working :: REGEXP_REPLACE(..., '^^', '--') treats '^^' as a regex. That pattern matches the empty string at the start of every value, so '--' is added to the front of every column value instead of replacing the null placeholder. Every hash key value changes. NULL columns become '--^^', so the concatenated stri",
+    "[business_logic] macros/supporting/hash.sql:35 Hashdiff columns are no longer sorted alphabetically before hashing :: The commit removed the step that sorted hashdiff columns alphabetically. Hashdiffs now depend on the order the columns are listed in the YAML, so existing satellites' hashdiffs change. Any later change to column order creates false changes and duplicate satellite rows."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "cd4556a09d",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/staging/stage.sql:52 Comma before the prejoined_columns CTE ends up inside a SQL line comment :: The `{%- endif -%}` at line 49 strips the newline after the source_data `)`. The `{%- if prejoined_columns is not none -%}` at line 52 then strips the newline after the comment `-- Prejoining Business Keys ...`. So the literal `,` that should separate the CTEs lands at the end of that comment line, ",
+    "[broken_reference_or_syntax] macros/staging/stage.sql:137 Prejoined ghost columns are commented out or separated wrongly, so the ghost record's width does not match the data :: Same whitespace-control problem as above. `{%- if prejoined_columns is not none -%},` puts the comma, and the first prejoined ghost expression (for example `'(unknown)' as contractnumber`), on the `--Additionally generating ghost records...` comment line. No newline is emitted before the first match"
+   ],
+   "later_fixed": [
+    null,
+    "b3329e75 Fixed merge changes to Merge branch 'main' into snowflake"
+   ],
+   "risk_findings": 4
+  },
+  {
+   "repo": "datavault4dbt",
+   "commit": "ca1451d1b1",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/supporting/hash.sql:41 default__hash now calls fromjson on a tuple when running on Snowflake :: default__hash now wraps concattenated_standardise in fromjson() and reads std_dict['standardise_prefix']. The default and exasol versions were changed to return JSON, but snowflake__concattenated_standardise still returns the tuple (prefix, suffix). There is no snowflake__hash, so Snowflake uses def",
+    "[broken_reference_or_syntax] macros/supporting/hash_standardization.sql:114 Case-sensitive multi-active hashdiff suffix puts ORDER BY outside STRING_AGG :: The prefix opens IFNULL(TO_HEX(LOWER(MD5(STRING_AGG(NULLIF(CAST(...UPPER(CONCAT(. In the suffix, `'{}'))` closes both NULLIF and STRING_AGG, so ` ORDER BY x` lands inside MD5(...). That is invalid BigQuery SQL. hashdiff_input_case_sensitive defaults to TRUE, so this is the branch every multi-active ",
+    "[broken_reference_or_syntax] macros/staging/bigquery/stage.sql:339 Double comma in ghost records when derived and hashed columns are both set :: The derived-columns block in unknown_values and error_values still ends with a trailing comma (`{% endfor %},`). The hashed-columns block now also starts with `,`. A stage that has both derived_columns and hashed_columns, which is a common setup, renders `..., ,'000..' as hk_x` and fails to compile.",
+    "[broken_reference_or_syntax] macros/staging/bigquery/stage.sql:308 Double comma before prejoined ghost-record columns :: The prejoined block now emits a leading `,` after the if tag. Each matching bk column inside the loop already emits its own leading `,` (`{% if column.name|lower == vals['bk']|lower -%},`). Any stage with prejoined_columns therefore renders `, ,` in unknown_values and error_values, and the SQL is in"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "3e76976923",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] integration_tests/macros/issue_105/generate_database_name.sql:7 custom_db maps to a database that doesn't exist on SQL Server, so the full build fails :: This macro applies to the whole project. Only postgres, oracle and snowflake are short-circuited to target.database. On SQL Server, the four issue_105 models with database='custom_db' resolve to env_var('DBT_TEST_DB_PREFIX', target.user ~ '_') ~ target.database. With the new runner (user 'sa', datab",
+    "[broken_reference_or_syntax] integration_tests/automated_tests/tests/test_constraints.py:20 Tests request a 'dbt_seed' fixture that doesn't exist :: Almost every test in test_constraints.py takes a `dbt_seed` parameter. conftest.py does not define that fixture and nothing else does, so pytest errors with \"fixture 'dbt_seed' not found\" for all of them.",
+    "[broken_reference_or_syntax] integration_tests/automated_tests/docker/compose/postgres-runner.yml:5 Runner compose files point to a Dockerfile and profiles dir that aren't in the commit :: All runner compose files build from integration_tests/automated_tests/docker/build/Dockerfile and mount integration_tests/.dockerenv as DBT_PROFILES_DIR. Neither exists in the repository. docker-compose.test-runner.yml likewise references Dockerfile.test-runner, which is also missing. The `docker co",
+    "[broken_reference_or_syntax] integration_tests/automated_tests/tests/test_dbt_versions.py:37 run_dbt_tests.sh is missing and the 'query' run-operation is broken :: test_dbt_workflow runs `run_dbt_tests.sh`, but no such script is in the repo. test_constraints_created calls `dbt run-operation query`, but no `query` macro exists in this project. In that SQL the schema name is in double quotes, which Postgres reads as an identifier (a column) rather than a string "
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "188762ddd5",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/create_constraints.sql:229 create_not_null called with multi-column PK list produces invalid DDL on every adapter :: The new call passes the full primary-key column list to create_not_null. Every adapter implementation joins those columns into one comma-separated string and puts it into DDL that only accepts one column: Snowflake `ALTER TABLE t MODIFY COLUMN a, b SET NOT NULL`, Postgres `ALTER TABLE t ALTER COLUMN"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_constraints",
+   "commit": "57957d1b46",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "3a285b5cdc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "0978ba2321",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_fivetran_utils",
+   "commit": "6086030561",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] macros/median.sql:19 Snowflake/Redshift median macros take 2 arguments but dispatch passes 3 :: The dispatcher on line 3 always calls the adapter macro with three positional arguments (median_field, partition_field, percent). snowflake__median and redshift__median only declare two parameters. Jinja raises TypeError 'macro takes not more than 2 argument(s)' when a macro gets extra positional ar"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "f70b2a94e0",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "39ebdaebc7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_metrics",
+   "commit": "17f59af0d4",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] integration_tests/models/custom_calendar.sql:4 Integration model still calls dbt_utils.date_spine after dbt_utils was removed :: This commit deletes the root packages.yml, and that file was the only thing that installed dbt-labs/dbt_utils. integration_tests/packages.yml installs only the local package and dbt_expectations, and the commit moves dbt_expectations to 0.6.x, which no longer pulls in dbt_utils. So the `dbt_utils` n",
+    "[broken_reference_or_syntax] tests/functional/fixtures.py:49 Functional test fixtures and schema tests still depend on dbt_utils :: The functional tests install only the local repo as a package (`{\"local\": os.getcwd()}`). Before this commit, dbt_utils came in as a transitive dependency of that package. Now it does not. The custom calendar fixture still calls dbt_utils.date_spine, and about 70 test schemas use the `dbt_utils.equa"
+   ],
+   "later_fixed": [
+    "c8a5178 fixing ephemeral models",
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "3df48c5ef6",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "0f89e51afc",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "dbt_salesforce_formula_utils",
+   "commit": "6c67b70da0",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] sfdc_formula_model_automation.sh:13 Package rename leaves the model generator calling the old macro namespace :: The commit renames the package from 'sfdc_fivetran_formula' to 'salesforce_formula_utils' in dbt_project.yml. The shipped automation script still writes models that call `sfdc_fivetran_formula.sfdc_formula_pivot(...)`, and the README tells users to run it from dbt_modules/sfdc_fivetran_formula/. Eve"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "3fbd8e6b03",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] dbt/macros/filecoin_periodic_metrics.sql:172 DDO power in TiB is labelled as PiB with no /1024 conversion :: The source column `total_ddo_power_tib` is in TiB, but its sum is aliased `ddo_sector_onboarding_raw_power_pibs` without dividing by 1024. Every other *_pibs metric in this macro converts TiB to PiB with `/ 1024`, including `sector_onboarding_raw_power_pibs`, which sits right next to it in the outpu"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "0e18932c4f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "filecoin-data-portal",
+   "commit": "7bc01fa5c4",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] pulse/sources/fdp/filecoin_allocators_datacap_allowances.sql:15 Pulse source selects message_created_at but the parquet column is messaged_created_at :: The commit renamed the selected column from `messaged_created_at` to `message_created_at`. But the upstream dbt model `filecoin_allocators_datacap_allowances`, which is exported to this parquet, still outputs the column as `messaged_created_at`. The model was not renamed in this commit. So the Pulse"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "f61b1c213d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "46b7ba3d5f",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "make-open-data",
+   "commit": "0908bca527",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "46bc6fb932",
+   "error": null,
+   "bug_findings": [
+    "[dropped_or_renamed_column_with_readers] transform/models/_sources.yml:7 Source tables renamed but models still reference old source names :: The commit renames the nba source tables from schedule/team_ratings to raw_schedule/raw_team_ratings (and the Meltano entity names to match), but teams.sql still calls source('nba','schedule') and ratings.sql still calls source('nba','team_ratings'). dbt will fail to compile because those source nam"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "0db47dcc7d",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "nba-monte-carlo",
+   "commit": "6312d65e2e",
+   "error": null,
+   "bug_findings": [
+    "[schema_contract] meltano.yml:68 nfl_results and ncaaf_results key_properties swapped :: The new nfl_results stream uses key_properties [Rk], but data/nfl/nfl_results.csv has no Rk column (its header is Week,Day,Date,Time,Winner/tie,...). At the same time, ncaaf_results was changed from [Rk] to [\"Week\",\"Winner/tie\"], which are NFL columns that don't exist in data/ncaaf/ncaaf_results.csv"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "openFEC",
+   "commit": "3088632b4b",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] data/sql_updates/create_candidate_history_view.sql:28 DISTINCT ON has no ORDER BY, so the dimcandstatusici row it keeps is arbitrary :: The join to dimcandstatusici uses `dsi.election_yr <= fec_yr.fec_election_yr`, so it returns one row for every earlier status year. The old query picked the latest one with `order by ... dsi.election_yr desc`. That ORDER BY was removed, so `distinct on (cand_id, fec_election_yr)` now keeps an arbitr",
+    "[dropped_or_renamed_column_with_readers] data/sql_updates/create_candidate_history_view.sql:30 candidate_key column removed but still used by link model and resources :: The views no longer output candidate_key, and the model drops it. Other code still depends on it: links.py has a ForeignKey to `ofec_candidate_detail_mv.candidate_key`, which also drives the principal_committees secondary join. candidates.py:173, candidate_aggregates.py:30 and elections.py:203/303 j",
+    "[dropped_or_renamed_column_with_readers] webservices/resources/candidates.py:111 Default sort uses expire_date, which was removed :: CandidateView still defaults to sorting by `-expire_date`, but expire_date was removed from both CandidateDetail and the materialized view. The sort validator or the query will fail on the candidate detail endpoint.",
+    "[documented_column_not_selected] webservices/common/models/candidates.py:73 form_type is still mapped but the view no longer selects it :: CandidateHistory and CandidateDetail still declare `form_type`, and test_candidates.py:63 asserts it equals 'F2'. The new view no longer selects `form_type` (the old query had `dcp.form_tp as form_type`), so queries against the real view fail because the column does not exist.",
+    "[dropped_or_renamed_column_with_readers] tests/test_candidates.py:83 Test still reads candidate_status_full, which was removed :: The commit removed candidate_status_full from the model, the view and the factory fields dict. The test at line 83 still asserts `candidate.candidate_status_full`, so it will fail."
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    "cb27e4a4 Fix linting errors",
+    null
+   ],
+   "risk_findings": 1
+  },
+  {
+   "repo": "openFEC",
+   "commit": "0811740a45",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] data/sql_updates/create_electioneering_cost_view.sql:7 WHERE references sched_b, which is no longer in the FROM clause :: The view now selects only from electioneering_com_vw, but the filter still says `sched_b.rpt_yr`. Postgres will fail with 'missing FROM-clause entry for table sched_b', so `update_schemas` fails and ofec_electioneering_mv is never built.",
+    "[broken_reference_or_syntax] data/sql_updates/create_electioneering_view.sql:7 New view file has the same broken sched_b reference :: The new file copies the same filter on `sched_b.rpt_yr` with no sched_b in FROM, so it also fails to build.",
+    "[other] data/sql_updates/create_electioneering_view.sql:1 Two SQL files build the same materialized view with different form_tp values :: create_electioneering_cost_view.sql and create_electioneering_view.sql both drop and create ofec_electioneering_mv_tmp. manage.py runs every file in sql_updates in sorted order, and with processes>1 it runs them in parallel through a Pool. Whichever file runs last wins: 'F94' vs 'F9' for form_tp. Th",
+    "[schema_contract] webservices/common/models/costs.py:48 ORM model columns no longer exist in the rebuilt ofec_electioneering_mv :: The model now points at ofec_electioneering_mv, which is built from electioneering_com_vw. According to the SQL comments and indexes, that source has cmte_id (not filer_cmte_id) and reported_disb_amt / calculated_cand_share (not disb_amt). It also has no amndt_ind and no filing_type. The model still"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "openFEC",
+   "commit": "4dc5d9de79",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 0
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "e2fdd8b95e",
+   "error": null,
+   "bug_findings": [
+    "[nullability_or_cast] ra_dw/models/integration/int_invoices.sql:61 timestamp_diff on invoice_due_at_ts, which is a STRING when Xero is enabled :: The Xero adapter fills invoice_due_at_ts from `duedatestring`, a string column. Harvest's due_date is unioned with it, so the merged column must be STRING when both sources are on. TIMESTAMP_DIFF(invoice_paid_at_ts, invoice_due_at_ts, DAY) needs two TIMESTAMP arguments, and BigQuery does not implici"
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "228993dbc7",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 1
+  },
+  {
+   "repo": "ra_data_warehouse",
+   "commit": "05e777e5bf",
+   "error": null,
+   "bug_findings": [
+    "[business_logic] ra_biapps/models/sde_adapters/sde_merges/sde_invoices_fs.sql:36 Invoice amounts now use MAX over line-item rows instead of SUM :: sde_harvest_projects_invoices joins to a line-item subquery grouped by invoice_id, project_id, invoice_line_item_id and taxed, so it returns one row per line item, each carrying that line's billed, services, licence, expenses, support and tax amounts. The old sde_invoices_fs added these up per invoi",
+    "[broken_reference_or_syntax] ra_biapps/models/sde_adapters/sde_merges/sde_delivery_projects_ds.sql:14 Asana branch still uses a bare Jinja variable, so Asana projects are never included :: The commit changes every other enable flag to var(...) and switches enable_asana_projects to true. This model still tests `{% if enable_asana_projects %}`, which is an undefined Jinja name and therefore always false, so Asana projects are silently left out of sde_delivery_projects_ds. The model's ne",
+    "[business_logic] ra_biapps/models/sde_adapters/sde_merges/sde_contacts_ds.sql:33 Xero contacts in the positional UNION ALL put contact_name and job_title in each other's slots :: The union runs `SELECT * except(contact_id, contact_company_id)` on each source and matches columns by position. The hubspot, harvest and mailchimp models list contact_name 3rd and contact_job_title 4th, but sde_xero_accounting_contacts lists contact_job_title (NULL) 3rd and contact_name 4th. As a r"
+   ],
+   "later_fixed": [
+    null,
+    null,
+    null
+   ],
+   "risk_findings": 3
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "ddfe1ecc7e",
+   "error": null,
+   "bug_findings": [
+    "[row_count_change] .github/workflows/acquire-national-teams.yml:57 National-team players job overwrites the full season players.json.gz with only national-team players :: The acquire-national-team-players job checks out the repo without running `dvc pull`, so there is no existing players.json.gz on disk. merge_output sees no existing data (existing_has_data is false) and writes only the freshly scraped national-team squad players, roughly a few thousand rows. In dvc-"
+   ],
+   "later_fixed": [
+    "87334f2 Fix national teams workflow overwriting club players data"
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "3452a20d54",
+   "error": null,
+   "bug_findings": [
+    "[broken_reference_or_syntax] scripts/acquiring/transfermarkt-scraper.py:103 Appearances merge key uses struct dot access on a column already cast to JSON :: For 'appearances', read_expr wraps the column in `REPLACE (to_json(parent) AS parent)`, so in the outer SELECT `parent` has type JSON (a VARCHAR alias), not STRUCT. The key expression `parent.href` uses struct field access, which DuckDB cannot bind on a JSON/VARCHAR value. The merge query therefore "
+   ],
+   "later_fixed": [
+    null
+   ],
+   "risk_findings": 2
+  },
+  {
+   "repo": "transfermarkt-datasets",
+   "commit": "0804a91d2b",
+   "error": null,
+   "bug_findings": [],
+   "later_fixed": [],
+   "risk_findings": 2
+  }
+ ],
+ "errors": [],
+ "summary": {
+  "in_scope_bugs": 40,
+  "caught_judge_bug": "32/40 (80%)",
+  "caught_judge_bug_or_risk": "36/40 (90%)",
+  "caught_strict": "33/40 (82%)",
+  "caught_loose": "34/40 (85%)",
+  "risk_note_only": "4/40 (10%)",
+  "by_repo": {
+   "amazon-redshift-utils": "1/3 (33%)",
+   "automate-dv": "3/4 (75%)",
+   "data-infrastructure": "1/1 (100%)",
+   "datavault4dbt": "5/5 (100%)",
+   "dbt_constraints": "1/1 (100%)",
+   "dbt_fivetran_utils": "2/2 (100%)",
+   "dbt_metrics": "3/4 (75%)",
+   "dbt_salesforce_formula_utils": "1/1 (100%)",
+   "dfe-analytics-dataform": "3/5 (60%)",
+   "filecoin-data-portal": "1/1 (100%)",
+   "make-open-data": "0/1 (0%)",
+   "nba-monte-carlo": "4/5 (80%)",
+   "openFEC": "4/4 (100%)",
+   "ra_data_warehouse": "2/2 (100%)",
+   "transfermarkt-datasets": "1/1 (100%)"
+  },
+  "by_category": {
+   "business_logic": "11/12 (92%)",
+   "nullability_or_cast": "4/7 (57%)",
+   "other": "12/13 (92%)",
+   "row_count_change": "5/8 (62%)"
+  },
+  "compiles_true": "21/27 (78%)",
+  "compiles_false": "11/13 (85%)",
+  "needs_data_bucket": "1/4 (25%)",
+  "false_alarm_maintainer_rule": "17/42 (40%)",
+  "ordinary_commits": 42,
+  "false_alarm_share": "21/42 (50%)",
+  "false_alarm_share_excluding_later_fixed": "20/42 (48%)",
+  "commits_with_bug_or_risk": "29/42",
+  "false_alarm_by_repo": {
+   "amazon-redshift-utils": "1/3",
+   "automate-dv": "1/3",
+   "data-infrastructure": "1/3",
+   "datavault4dbt": "3/3",
+   "dbt_constraints": "2/3",
+   "dbt_fivetran_utils": "1/3",
+   "dbt_metrics": "1/3",
+   "dbt_salesforce_formula_utils": "1/3",
+   "filecoin-data-portal": "2/3",
+   "make-open-data": "0/3",
+   "nba-monte-carlo": "2/3",
+   "openFEC": "2/3",
+   "ra_data_warehouse": "2/3",
+   "transfermarkt-datasets": "2/3"
+  },
+  "errors": 0
+ }
+}

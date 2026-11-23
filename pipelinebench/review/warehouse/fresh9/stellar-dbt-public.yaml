@@ -1,0 +1,48 @@
+# stellar-dbt-public: real warehouse bugs located at the commit that introduced them, part of the fresh9 held-out set.
+# Written by hand from the public upstream history (https://github.com/stellar/stellar-dbt-public): each bug was found from a later fix commit,
+# the fixed lines were traced with git blame on the fix's parent, and the introducing commit was read to confirm it
+# added the faulty lines. Never derived from any reviewer's output.
+repo: stellar-dbt-public
+url: https://github.com/stellar/stellar-dbt-public
+bugs:
+- commit: "6f541fbec7"
+  parent: "f10a438ebf"
+  title: 580 override contract token precision (#192)
+  fix: "d676b589f3"
+  fix_title: add correct negative sign for contract account balance (#196)
+  bug: in token_transfers_from the outgoing transfer amounts were changed from -sum(tt.amount) to a positive sum(...) while the comment above still says amounts must be subtracted when sent, so a contract account's outgoing transfers are added to its balance instead of reducing it
+  category: business_logic
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [sum, balance]
+  expect:
+  - {path: models/intermediate/account_balances/int_account_balances__contracts.sql, line: 51}
+- commit: "5e206eea16"
+  parent: "241da4e487"
+  title: Lint again
+  fix: "d9758d857d"
+  fix_title: Fix alias in contract_code_current
+  bug: contract_code_current ranks rows with row_number() partitioned and ordered by the alias cd, but the only source alias in the CTE is cc (stg_contract_code as cc), so the query references an undefined alias
+  category: other
+  in_scope: true
+  compiles: false
+  needs_data: false
+  must_mention: [cd, alias]
+  expect:
+  - {path: models/marts/ledger_current_state/contract_code_current.sql, line: 29}
+  - {path: models/marts/ledger_current_state/contract_code_current.sql, line: 30}
+- commit: "4ae7a3bf8d"
+  parent: "bf9988351b"
+  title: 'test #10'
+  fix: "6232570724"
+  fix_title: '- Corrected the trade_count test (#88)'
+  bug: the anomaly test for trade counts filters 'close_date = yesterday and trade_count >= upper_bound or trade_count <= lower_bound'; AND binds tighter than OR, so the date restriction applies only to the upper bound check and every historical day below the lower bound is returned as an anomaly
+  category: row_count_change
+  in_scope: true
+  compiles: true
+  needs_data: false
+  must_mention: [or, lower_bound]
+  expect:
+  - {path: tests/anomaly_detection_trade_count.sql, line: 28}
+  - {path: tests/anomaly_detection_trade_count.sql, line: 29}
