@@ -2,60 +2,94 @@
 
 ## In plain words
 
-ChangeLens checks a change to a data warehouse before it merges and says what could break. Its earlier checker was a
-set of fixed pattern rules. On real bugs from warehouses it had not been tuned on, those rules caught about 1 in 10.
+ChangeLens checks a change to a data warehouse before it merges and says what could break. This page measures its
+review agent on real bugs from public warehouses, against the same model used on its own.
 
-The review agent replaces that. Four models each read the commit with one job (row counts; values and casts; columns
-and references; NULLs, date boundaries and conventions the neighbouring models share), open the files around it in
-the repository, and write findings. A fifth, skeptical model re-checks each finding against the repository and keeps
-only what holds up. Nothing is run against the warehouse and nothing is written anywhere: the agent only reads a copy
-of the repository as it stood at that commit, with no git history, so it cannot peek at the later fix.
+The latest held-out test (fresh set 5, 2026-11-23) used 39 real bugs from 17 public warehouses that no part of the
+work had touched. More than half of them are SQL that runs without error and quietly returns wrong data, the kind a
+compiler cannot catch. An isolated labeller found each bug from the maintainers' own later fix, without ever seeing
+ChangeLens, and the labels were committed before anything was scored. The agent's code was frozen first and the test
+was scored once.
 
-On 40 real bugs from 15 public warehouses that no part of the work had touched before, scored once on frozen code
-(2026-11-20), it caught **39 of 40 (98%)**. A stricter mechanical score that needs the finding on the labelled lines
-agrees on 37 of 40 (92%). On ordinary commits from the same warehouses it flagged 19 of 45; an independent check
-found real defects behind 12 of those, and **6 of 45 ordinary commits (13%)** got only warnings with nothing real
-behind them.
+| Reviewer, same commits and same repository files | Real bugs caught |
+|---|---|
+| **ChangeLens review agent v9** | **34 of 39 (87%)** |
+| Claude Opus on its own, one review call | 31 of 39 (79%) |
+| Claude Sonnet on its own, one review call | 29 of 39 (74%) |
+| Free checks: the parser and fixed rules, no model | 2 of 39 (5%) |
 
-## What was measured
+ChangeLens caught every bug that Opus alone caught, plus three more; Opus caught none that ChangeLens missed. Its
+own target was 93%, and it missed that.
+
+What it costs. On 51 ordinary commits with no known bug, ChangeLens and Opus alone each flagged 19. An isolated
+reader, not told which reviewer wrote which warning, checked every warning in the repository: 36 of ChangeLens's 46
+warnings were real defects, against 31 of 34 for Opus alone. So ChangeLens surfaces more real problems and also more
+wrong ones. Commits where every warning was wrong: 3 of 51 for ChangeLens, 2 for Opus alone.
+
+## What makes the difference
+
+The agent is not one prompt. Four reviewers on Sonnet each read the change with one job (row counts; values and
+casts; columns and references; NULLs, date edges and conventions shared by sibling models), opening any file in the
+repository. Code then adds what a model reading a diff tends to miss, and a skeptical checker on Opus decides.
+
+- **Render and parse, in code.** Each changed file is rendered the way the warehouse would render it, under every
+  switch its template has (dbt Jinja branches, SqlRender conditions evaluated from parameter values, Hive
+  variables), and parsed in the dialect it parsed in before the commit. Only new failures count. This needs no model.
+- **A checker that must show its work.** For every bug it confirms, the checker names the changed line that causes
+  it (code checks the line is in the commit) and writes one concrete input that breaks: a row, a NULL, a second
+  source, an edge date. No witness, no bug.
+- **Documentation is never a bug on its own**, and a change the commit or its documentation says is deliberate is
+  not reported as a defect.
+
+Measured on fresh set 5 by switching parts off, with no extra model calls: without the checker the agent catches 37
+of 39 but flags 33 of 51 ordinary commits, so the checker cuts that noise by 40% for 3 catches. The render-and-parse
+step carried one catch on its own.
+
+## Limits, stated plainly
+
+- 39 bugs is a small sample. The edge over Opus alone, 3 bugs to 0, is not statistically significant (exact paired
+  test, p about 0.25). A 95% interval for 87% runs from about 73% to 96%.
+- Only fresh set 5 is held out. Every earlier figure below is development data: each set that landed under the goal
+  was used to improve the agent and a new set was labelled from new repositories.
+- Of the five misses, Opus alone also missed all five. Two were found and held back as uncertain because the
+  repository's own documentation leaves the intended behaviour open. Three no reviewer found: a business rule in a
+  Stripe model and two template errors in OHDSI R packages.
+- Several wrong warnings came from the render-and-parse step reading Flyway placeholders and SqlRender syntax as
+  parse errors; the checker let some through.
+- Public repositories ship no data. In a customer deployment the agent would add read-only queries (a duplicate-key
+  count per changed join, a row count before and after); that is not measured here.
+
+## How each test was run
 
 - **A bug** is a real defect from a public repository, found from a later fix commit and traced back with `git blame`
-  to the commit that introduced it. The reviewer sees the introducing commit only. Labels were written by a separate
-  labeller that never read or ran ChangeLens (`pipelinebench/review/warehouse/*/README.md`), and each set was committed
-  before it was scored.
-- **Caught** means a confirmed finding (severity `bug`, kept by the skeptical pass) describes the labelled defect. A
-  model judge with no tools decides that, and must see the same model or column and the same mechanism; a finding
-  about a different problem in the same commit does not count. The mechanical score is the second check.
-- **Flagged ordinary commit** means a randomly sampled commit with no known bug got at least one confirmed finding.
-  Those commits are unlabelled, so every flag was checked by an independent reviewer in the repository (read the
-  files at that commit, grep for the readers, look at later history): REAL, FALSE or UNCLEAR.
+  to the commit that introduced it. The reviewer sees the introducing commit only, in a copy of the repository with
+  no git history, so it cannot peek at the fix. Rules for each set are committed before mining
+  (`pipelinebench/review/warehouse/fresh6/PROTOCOL.md`, `fresh7/PROTOCOL.md`).
+- **Caught** means a confirmed finding that a judge model with no tools says describes the labelled defect (same model
+  or column, same mechanism). A stricter mechanical score that needs the finding on the labelled lines gives
+  ChangeLens 36 of 39 on fresh set 5.
+- **False alarms** are read two ways: the maintainers' rule (a flagged commit counts as a false alarm unless a later
+  commit with a fix-like message rewrote a flagged line; 15 of 51 for both ChangeLens and Opus alone) and the blind
+  reader above.
 
-## Results
+## Every set
 
-| Set | Bugs | Version | Caught | Ordinary commits flagged | With nothing real behind it |
+| Set | Bugs | Version | ChangeLens | Opus alone | Sonnet alone |
 |---|---|---|---|---|---|
-| Practice: cal-itp, tuva, ol-data-platform, spellbook, opensource-observer | 62 | v3 | 38 (61%) | 10 of 50 | 0 of 50 |
-| Fresh set 1: 13 repos (mozilla bigquery-etl, openedx aspects, 11 Fivetran packages), scored once | 31 | v3, frozen f8ddc71 | 23 (74%) | 10 of 36 | 1 of 36 |
-| Fresh set 2: 12 new repos, scored once | 29 | v6, frozen f57f70c | 25 (86%) | 10 of 36 | 1 of 36 |
-| Fresh sets 1 and 2, then used as practice | 60 | v7 | 54 (90%) | 23 of 75 | not checked |
-| **Fresh set 3: 15 new repos, scored once** | **40** | **v7, frozen 6edb302** | **39 (98%)** | **19 of 45** | **6 of 45 (13%)** |
+| Practice: cal-itp, tuva, ol-data-platform, spellbook, opensource-observer | 62 | v3 | 38 (61%) | not run | not run |
+| Fresh set 1, then practice | 31 | v3 | 23 (74%) | not run | not run |
+| Fresh set 2, then practice | 29 | v6 | 25 (86%) | not run | not run |
+| Fresh set 3 (mostly SQL that does not compile), then practice | 40 | v7 | 39 (98%) | not run | not run |
+| Fresh set 4 (29 of 40 compile cleanly), then practice | 40 | v8 | 28 (70%) | 30 (75%) | 26 (65%) |
+| **Fresh set 5, held out, scored once** | **39** | **v9, frozen 6bcde0e** | **34 (87%)** | **31 (79%)** | **29 (74%)** |
 
-Each fresh set that landed under the goal became practice data, and the next one was labelled from repositories
-never used before. Fresh set 3 comes from Velir's dbt-ga4, SELECT's dbt-snowflake-monitoring, the Cook County
-Assessor's data architecture, NYC Planning's data engineering, MIT's MIMIC and eICU clinical concepts, OHDSI Achilles
-and ETL-Synthea, Sage Bionetworks' Snowflake warehouse, the blockchain-etl Ethereum and Polygon pipelines, and five
-Fivetran packages. Six of them are plain SQL rather than dbt.
+Fresh set 4 found the agent behind Opus alone. Five of its misses came from a defect in ChangeLens itself: it showed
+the reviewers only `.sql` and YAML changes, so Hive `.hql` queries never reached them. That and the rest of v9 were
+built on fresh set 4 as practice, then frozen before fresh set 5 was scored.
 
-The rule-only checker on the earlier blind sets: 3 of 24 and 2 of 23 (about 10%).
+## Earlier history
 
-Fresh set 3 by kind of bug: broken references, aliases and SQL that does not compile 27 of 27; contract and schema 9
-of 9; nulls and casts 3 of 3; duplicated or lost rows 0 of 1. The labeller took bugs in the order it found them, and
-this set came out heavy on compile and reference errors, which the agent catches almost every time. The kind that is
-hardest (duplicated or lost rows) is barely represented here; on fresh sets 1 and 2, now practice, v7 catches 19 of 23
-of those (83%), and that is where most of its remaining misses are. With 40 bugs, a 95% interval for 98% runs from
-about 87% to 99.6%.
-
-## What changed between versions, and why
+### What changed between versions, and why
 
 - **v1 to v2:** one reviewer with a written audit of every join, dedup and union in the change (what each joined
   table is unique on, and whether the join key covers it). Practice 54% to 60%.
@@ -73,7 +107,7 @@ about 87% to 99.6%.
   that skips something every sibling model applies. The verifier may confirm these when the repository shows the
   column can be NULL, or that every sibling does it. Practice (fresh sets 1 and 2): 51 to 54 of 60.
 
-## The cost of v7
+### The cost of v7
 
 The fourth reviewer finds more, and the false warnings went up with it: 1 of 36 ordinary commits before, 6 of 45 now.
 Of the 28 confirmed findings on ordinary commits in fresh set 3, 18 were real defects (most were fixed later by the
@@ -82,7 +116,7 @@ maintainers), 9 were wrong and 1 was unclear. Four of the six wrong commits shar
 problem was already there before the commit. Teaching the verifier to read the commit's stated intent, and to check
 that the faulty line is one the commit changed, is the next fix; it has to be measured on another fresh set.
 
-## What it still misses
+### What it still misses
 
 The one miss on fresh set 3: dbt_ga4_export `796ed73881` adds two filters marked "temp" to the staging events model
 that keep only LinkedIn referral traffic, so every report built on it loses all other traffic. The agent found four
@@ -94,7 +128,7 @@ show. In a customer deployment the agent would close part of this gap with read-
 (a duplicate-key count per changed join, a row count before and after); the public repositories ship no data, so that
 is not measured here.
 
-## Cost and running it
+### Cost and running it
 
 Every model call runs on the Claude Code subscription login (`claude -p`, read-only tools), not an API key: $0 of API
 credit. One commit takes four to fourteen model calls and about one to three minutes. Reviewers run on Sonnet, the
@@ -108,7 +142,7 @@ python -m pipelinebench.warehouse_agent_replay --repo <clone> --labels <yaml> --
 
 A review that fails (a model error, a timeout, a usage limit) exits 2 and is never reported as a clean result.
 
-## Files
+### Files
 
 - `src/changelens/warehouse_agent.py`: the agent. `src/pipelinebench/warehouse_agent_replay.py`: the replay and scorer.
 - `pipelinebench/review/warehouse/`: the labels (practice, fresh set 1 as `fresh3/`, fresh set 2 as `fresh4/`, fresh

@@ -1,0 +1,828 @@
+[
+ {
+  "repo": "PheValuator",
+  "commit": "467e4ec18c",
+  "path": "extras/CreateCohortsV6.sql",
+  "line": 1,
+  "claim": "CreateCohortsV6.sql moved out of inst/ but still loaded via system.file(). The commit renames inst/sql/sql_server/CreateCohortsV6.sql (and CreateCohorts.sql) to extras/. extras/CreateConceptSet.R and extras/TestConcepts.R still read CreateCohortsV6.sql with system.file('sql/sql_server', ..., package='PheValuator'). Files under extras/ are not installed with the package, so system.file returns '' and readSql fails. Both scripts break.",
+  "flagged_by": [
+   "plain-sonnet"
+  ],
+  "id": 0
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "packages/op-datasets/src/op_datasets/processing/logic/audits.py",
+  "line": 34,
+  "claim": "audit_timestamps in BLOCK_AUDITS repeats the hash regex check instead of checking timestamps. The audit is described as 'ensure block timestamps are increasing', but its expression is a copy of the invalid-hash check. Non-monotonic timestamps are never detected, and a bad hash is counted twice.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 1
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 83,
+  "claim": "dataFolder/dataFile only assigned when the user setting is NULL. The conditions are inverted. When the user supplies dataFolder or dataFile via launchDiagnosticsExplorer, the values are never copied into the global variables. When the setting is NULL, the variable is set to NULL. In local mode, line 201 then calls file.path(dataFolder, dataFile) on undefined or NULL objects. This fails, or looks in the wrong place, so the newly added dataFile argument has no effect.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 2
+ },
+ {
+  "repo": "SelfControlledCaseSeries",
+  "commit": "5d6516c26f",
+  "path": "inst/sql/sql_server/Sccs.sql",
+  "line": 233,
+  "claim": "condition_era branch filters on misspelled temp table #custom_coviariate_ids. The new 'dx' branch references #custom_coviariate_ids, but the table that R uploads and cleans up is #custom_covariate_ids. When customCovariateIds is supplied (has_custom_covariate_ids TRUE) the INSERT fails with an invalid object name, so the condition_era custom covariates cannot be restricted to the requested ids. The typo is copied into the new branch.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 3
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "queries/analyze-pushes-and-commits-per-month/template.sql",
+  "line": 5,
+  "claim": "pushes/commits template hardcodes repo_id 6296790, breaking the repoId param replacement. params.json declares repoId as replacing the literal 41986369 in the template. The commit changed both repo_id filters to 6296790, so the literal no longer appears. The repoId parameter now does nothing, and every request returns data for repo 6296790 whatever the caller passes. The default repo for this query also changes from 41986369 to 6296790 (the other queries in this commit still use 41986369).",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 4
+ },
+ {
+  "repo": "PheValuator",
+  "commit": "09b48e5ba5",
+  "path": "tests/testthat/cohorts/1001.sql",
+  "line": 1,
+  "claim": "tests/testthat/cohorts/1001.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 5
+ },
+ {
+  "repo": "PheValuator",
+  "commit": "09b48e5ba5",
+  "path": "tests/testthat/setup.R",
+  "line": 61,
+  "claim": "createCohortSet ends with bare `return` and returns the function itself. `return` without parentheses evaluates to the base function object, not a value. The helper therefore hands back neither the cohort definition set nor the generation results. The test assigns `cohorts <- createCohortSet()`, so `cohorts` is a function, and anything that later uses it breaks. The old helper returned the cohort definition set. It should be `return(cohortDefinitionSet)`.",
+  "flagged_by": [
+   "plain-sonnet"
+  ],
+  "id": 6
+ },
+ {
+  "repo": "queries-rj-escritorio",
+  "commit": "0bf050f6f4",
+  "path": "models/dados_mestres/numero_porta.sql",
+  "line": 23,
+  "claim": "reads rj-escritorio-dev.dados_mestres_staging.numero_porta by its warehouse name instead of ref() or source(). models/dados_mestres/numero_porta.sql:23 reads `rj-escritorio-dev.dados_mestres_staging.numero_porta` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +numero_porta` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debugging leftover, restore the ref.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 7
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "cad2c9d6cd",
+  "path": "inst/sql/sql_server/CreateResultsDataModel.sql",
+  "line": 60,
+  "claim": "cg_cohort_censor_stats primary key omits database_id, so multi-database uploads collide. The spec marks database_id as a primary key column of cg_cohort_censor_stats. The create script defines PRIMARY KEY(cohort_definition_id, lost_count). The migration later adds database_id as a plain nullable column that is not in the key. The resulting key is therefore not the documented grain. Two databases uploading the same cohort with the same lost_count (for example 0) violate the key and the upload fails or rows are dropped. Rows from different sites can also not be told apart reliably, because database_id can be NULL.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 8
+ },
+ {
+  "repo": "WebAPI",
+  "commit": "372199445a",
+  "path": "src/main/resources/db/migration/postgresql/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql",
+  "line": 1,
+  "claim": "src/main/resources/db/migration/postgresql/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 9
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "2309b0b162",
+  "path": "packages/op-coreutils/src/op_coreutils/gcpauth.py",
+  "line": 8,
+  "claim": "get_credentials no longer reads GOOGLE_AUTH, which the daily upload workflow still sets. get_credentials() used to read the GOOGLE_AUTH env var. It now reads only the vault key GOOGLE_SERVICE_ACCOUNT, and the vault is loaded from OP_ANALYTICS_VAULT. The Daily API Uploads workflow still passes only GOOGLE_AUTH and never sets OP_ANALYTICS_VAULT. The vault is therefore empty, get_credentials() returns None, and bigquery.Client falls back to default credentials. The scheduled `opdata pulls l2beat` BigQuery write will fail to authenticate.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 10
+ },
+ {
+  "repo": "Phenotype_Data_Acquisition",
+  "commit": "29eeb57d88",
+  "path": "PhenotypeScripts/N3C_phenotype_act_oracle.sql",
+  "line": 501,
+  "claim": "N3C_TMP_PRE_CONTROLS no longer excludes controls already in N3C_CONTROL_MAP. The anti-filter 'npc.patid not in (SELECT control_patid FROM N3C_CONTROL_MAP)' was commented out and replaced by a LEFT JOIN to N3C_CONTROL_MAP with no 'cm.control_patid is null' predicate. The LEFT JOIN keeps every row, so already-assigned controls stay in the pool. They are re-matched to new cases or buddy slots, so a control can serve several cases, and the incremental map the script promises to preserve is no longer respected. The join also multiplies visit rows per control (harmless to max/min but wasteful).",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 11
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "cad2c9d6cd",
+  "path": "inst/testdata/name/sql/sql_server/celecoxibCensored.sql",
+  "line": 1,
+  "claim": "inst/testdata/name/sql/sql_server/celecoxibCensored.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 12
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "unique-company-names.sql",
+  "line": 1,
+  "claim": "unique-company-names.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 13
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "1f0fda0fe3",
+  "path": "R/CohortCount.R",
+  "line": 91,
+  "claim": "Assigning scalar databaseId to a zero-row counts data frame errors. In R, `df$col <- scalar` fails on a 0-row data.frame with \"replacement has 1 row, data has 0\". This happens when the cohort table exists but has no rows, or none match `cohortIds`, and no `cohortDefinitionSet` is given (that branch does a right join that can fill in rows). In that case the query returns 0 rows and getCohortCounts now stops with an error. Before this change the SQL added database_id, so the function returned an empty data frame that still had the databaseId column.",
+  "flagged_by": [
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 14
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 129,
+  "claim": "Pool created with dbms = database. The pool's dbms argument is filled from `database`, which is not defined in the user-settings branch. In the default branch it would be a database name such as 'phoebe', not a dbms. The correct value is `dbms`. The pool creation fails or builds a pool for an invalid dbms. The server string `paste(server, database, sep = \"/\")` also uses the undefined `database`.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 15
+ },
+ {
+  "repo": "WebAPI",
+  "commit": "372199445a",
+  "path": "src/main/resources/db/migration/oracle/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql",
+  "line": 1,
+  "claim": "src/main/resources/db/migration/oracle/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 16
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "cad2c9d6cd",
+  "path": "R/Export.R",
+  "line": 103,
+  "claim": "exportCohortStatsTables: inclusionRules columns forced to snake_case, breaks incremental save when snakeCaseToCamelCase = TRUE. The new line renames the inclusion rules columns to snake_case unconditionally (cohort_definition_id, rule_sequence). exportStats reads data$cohortDefinitionId when snakeCaseToCamelCase is TRUE (the default). That column no longer exists, so cohortDefinitionIds is NULL. With incremental = TRUE, saveIncremental is then called with an empty id vector, so the incremental update does not replace or dedupe the rows correctly. The cohort_inclusion.csv header is also snake_case while the other stats files follow the snakeCaseToCamelCase setting, so the exported columns are inconsistent. The rename sh",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 17
+ },
+ {
+  "repo": "Phenotype_Data_Acquisition",
+  "commit": "29eeb57d88",
+  "path": "PhenotypeScripts/N3C_phenotype_act_oracle.sql",
+  "line": 224,
+  "claim": "N3C_TMP_COVID_DX_CODES.DX_CATEGORY uppercased to 'dx_strong_POSITIVE'/'dx_weak_POSITIVE' but downstream filters use lowercase. The code table now stores 'dx_strong_POSITIVE' and 'dx_weak_POSITIVE'. Oracle string comparison is case-sensitive. N3C_TMP_COVID_DIAGNOSIS passes orig_DX_CATEGORY through the CASE ELSE branch, so every code except B97.21 and B97.29 keeps the uppercase value. N3C_TMP_DX_STRONG filters DX_CATEGORY='dx_strong_positive' (line 302), and N3C_TMP_DX_WEAK filters 'dx_weak_positive' (lines 315 and 333). As a result U07.1 never counts as strong, and none of the weak codes (R50%, J12%, and so on) match. Cases are lost, inc_dx_strong and inc_dx_weak are wrong, and these patients become controls or drop ou",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 18
+ },
+ {
+  "repo": "queries-rj-escritorio",
+  "commit": "570ebef2af",
+  "path": "models/dados_mestres/logradouro.sql",
+  "line": 19,
+  "claim": "reads rj-escritorio-dev.dados_mestres_staging.logradouro by its warehouse name instead of ref() or source(). models/dados_mestres/logradouro.sql:19 reads `rj-escritorio-dev.dados_mestres_staging.logradouro` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +logradouro` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debugging leftover, restore the ref.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 19
+ },
+ {
+  "repo": "stripe",
+  "commit": "6bce22bef3",
+  "path": "models/transform/days.sql",
+  "line": 7,
+  "claim": "days spine starts one day after the first event and is sized by event count, not days. `min(created) + row_number()` starts at min(created)+1, so the first calendar day is missing. A customer whose period_start is that day gets no row for it. The spine also contains one date per event row, with no relation to the number of calendar days, so it can end before today or leave gaps. It is then cut off at current_date. The unordered row_number is also non-deterministic.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 20
+ },
+ {
+  "repo": "Characterization",
+  "commit": "5c30f7404b",
+  "path": "inst/sql/sql_server/migrations/Migration_2-v2_0_2_row_count_bigint.sql",
+  "line": 5,
+  "claim": "cohort_counts.row_count loses NOT NULL after migration. The migration is `ALTER COLUMN row_count BIGINT` with no NOT NULL. In SQL Server, and in the Postgres translation, ALTER COLUMN without a nullability clause makes the column nullable again. ResultTables.sql still creates row_count as `int NOT NULL`, and the data model spec requires it. Every install runs ResultTables.sql and then this migration, so row_count ends up as nullable bigint. That breaks the documented NOT NULL contract and lets NULL counts be inserted.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 21
+ },
+ {
+  "repo": "CohortMethod",
+  "commit": "2c834b8b30",
+  "path": "extras/MultiAnalysesVignetteDataFetch.R",
+  "line": 270,
+  "claim": "analysisSummary assignment commented out but still used by the loop. The lines that create and save `analysisSummary` are commented out. The loop below (lines 275-276) still indexes `analysisSummary`. Earlier in the script the summary is assigned to `analysisSum`, a different name. Running the script top to bottom therefore fails with 'object analysisSummary not found' unless it is loaded elsewhere. This is an extras script, not warehouse data.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 22
+ },
+ {
+  "repo": "almanac.httparchive.org",
+  "commit": "2eed79eaf1",
+  "path": "sql/2022/jamstack/jamstack_sites.sql",
+  "line": 53,
+  "claim": "jamstack_sites CrUX join can fan out via 'OR c.device IS NULL'. The join to device_summary is on origin and date, with a device condition that also accepts c.device IS NULL. If device_summary has any rows with a NULL device (an all-device rollup), each such origin/date matches both its device row and the NULL row for every client. The same site then appears twice in jamstack_sites, which inflates num_sites and total_sites in every downstream query. The NULL branch is not needed to match the client to the device, so it is the only path to duplicates. I could not confirm from the repo whether device_summary contains NULL devices.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 23
+ },
+ {
+  "repo": "dbt_twilio",
+  "commit": "298eb98ddf",
+  "path": "models/twilio__account_overview.sql",
+  "line": 38,
+  "claim": "round(float, 2) does not exist on Postgres, a supported warehouse. The new code casts the sums to dbt.type_float() and then calls round(x, 2). On Postgres, dbt.type_float() renders as `float`, which is double precision. Postgres only has round(numeric, integer); there is no round(double precision, integer). So both total_messages_spent and total_account_spent fail with 'function round(double precision, integer) does not exist', and the model will not build on Postgres. The README lists PostgreSQL as a supported destination, and CI runs a Postgres job. The safe way to do this on every adapter is to cast to a numeric type, e.g. dbt.type_numeric() or numeric(28,",
+  "flagged_by": [
+   "plain-opus"
+  ],
+  "id": 24
+ },
+ {
+  "repo": "stripe",
+  "commit": "6bce22bef3",
+  "path": "models/transform/stripe_plans.sql",
+  "line": 20,
+  "claim": "stripe_plans emits one row per plan event, not one per plan id. The final select computes last_value/first_value windows partitioned by id but has no DISTINCT, GROUP BY or QUALIFY. Every plan.created/plan.updated event therefore yields its own row, all carrying identical window values, so an id with N events appears N times. Any join on stripe_plans.id fans out, and the model is plainly meant to hold one row per plan, as its sibling models stripe_coupons and stripe_customers do (both have a unique id test). The where on event_type != 'plan.deleted' is applied after the windows, so it removes only deleted rows.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 25
+ },
+ {
+  "repo": "almanac.httparchive.org",
+  "commit": "2eed79eaf1",
+  "path": "sql/2022/jamstack/jamstack_sites.sql",
+  "line": 28,
+  "claim": "jamstack_sites cache filter: NOT LIKE without wildcards is an equality test. `resp_cache_control NOT LIKE 'no-store'` and `NOT LIKE 'no-cache'` have no % wildcards, so they only exclude headers that are exactly those strings. Values such as 'no-cache, no-store, must-revalidate' or 'private, no-cache' pass the filter. Their expAge is usually 0, which masks some of the effect, but headers like 'no-cache, max-age=600' and 'no-store, max-age=...' are kept. Non-cacheable pages can therefore enter the Jamstack population, and every downstream count and percentage is built on it.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 26
+ },
+ {
+  "repo": "almanac.httparchive.org",
+  "commit": "2eed79eaf1",
+  "path": "sql/2022/jamstack/jamstack_random_1000_urls.sql",
+  "line": 8,
+  "claim": "jamstack_random_1000_urls: LIMIT 1000 is not a random sample. The query is named as a random 1000-URL sample, but it uses a bare LIMIT 1000 with no ORDER BY RAND(). It returns an arbitrary, unrepresentative set of rows. It also has no client filter or DISTINCT, so URLs can appear twice (once for desktop and once for mobile) and the result may contain fewer than 1000 distinct URLs.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 27
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "2309b0b162",
+  "path": "dbt/sources/goldsky_pipelines.yml",
+  "line": 9,
+  "claim": "goldsky_pipelines merge() regex also matches the audited_* views in the same schema (self-reference / duplicated rows). The old source listed explicit per-chain tables (base_blocks, op_blocks, ...). The new source unions every table in `default` whose name matches an unanchored regex such as `\\w+_blocks$`. dbt writes the audited_blocks, audited_transactions and audited_logs views into schema `default`, and their names match `\\w+_blocks$`, `\\w+_transactions$` and `\\w+_logs$`. The merge() therefore includes the audited view itself, and the view selects FROM that merge(). That is a circular reference, and the query errors in ClickHouse. If it resolves instead, every row is read twice, once from the raw tables and ",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 28
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "src/op_analytics/cli/subcommands/pulls/l2beat/tvl.py",
+  "line": 29,
+  "claim": "write() takes no arguments but is called with the extracted frame. `pull_l2beat_tvl` calls `write(extracted)`, but `write` is defined as `def write():`, so the call raises a TypeError. The `l2beat_tvl` CLI command also never calls `pull_l2beat_tvl`.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 29
+ },
+ {
+  "repo": "PheValuator",
+  "commit": "e0a94602e4",
+  "path": "R/CreatePhenoModel.R",
+  "line": 111,
+  "claim": "popPrev NA silently replaced with 0.1 in CreatePhenoModel. When the prevalence query returns NULL/NA (for example a bad prevalenceCohortId or an empty population), popPrev is now forced to 10%. This makes the following popPrev == 0 check and its error unreachable for the NA case. The model is then recalibrated against a made-up prevalence, which silently gives wrong predicted probabilities and downstream metrics instead of failing.",
+  "flagged_by": [
+   "agent",
+   "plain-sonnet"
+  ],
+  "id": 30
+ },
+ {
+  "repo": "queries-rj-escritorio",
+  "commit": "570ebef2af",
+  "path": "models/dados_mestres/bairro.sql",
+  "line": 12,
+  "claim": "reads rj-escritorio-dev.dados_mestres_staging.bairro by its warehouse name instead of ref() or source(). models/dados_mestres/bairro.sql:12 reads `rj-escritorio-dev.dados_mestres_staging.bairro` as a fixed table name. dbt's graph does not record the dependency, so `dbt build --select +bairro` and the run order ignore it, and every environment reads that one hardcoded table. If it is a debugging leftover, restore the ref.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 31
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "a110ad88bb",
+  "path": "src/op_analytics/cli/subcommands/chains/dbtgen/goldsky_dbt_views.py",
+  "line": 21,
+  "claim": "Generator ignores loop variable and always renders blocks SQL. The loop iterates over datasets but calls get_sql(\"op\", \"blocks\") with a hard-coded name. Each audited_<dataset>.sql file would contain the blocks query. This is hidden only because the list is currently narrowed to [\"blocks\"]. Adding transactions would produce audited_transactions.sql with blocks SQL.",
+  "flagged_by": [
+   "plain-sonnet"
+  ],
+  "id": 32
+ },
+ {
+  "repo": "PheValuator",
+  "commit": "09b48e5ba5",
+  "path": "tests/testthat/setup.R",
+  "line": 31,
+  "claim": "createCohortSet calls CohortGenerator, which DESCRIPTION does not declare. The new helper calls CohortGenerator::getCohortDefinitionSet, createCohortTables, computeChecksum and generateCohortSet. CohortGenerator is not in Imports or Suggests, so a clean test environment may not install it and the end-to-end test would fail at setup. The helper also uses `%>%` and `.data` unqualified, which only work if dplyr/magrittr are attached.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 33
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/R/Connections.R",
+  "line": 14,
+  "claim": "loadRequiredTables no longer checks whether an optional table exists on the server. The old loadResultsTable read an optional table only if `tableName %in% resultsTablesOnServer`. The new function reads every table when required is FALSE. Calls for cohort_extra, phenotype_description, temporal_time_ref and concept_sets then error if the table is missing. It also ignores the `connection` argument and uses the global connectionPool.",
+  "flagged_by": [
+   "agent",
+   "plain-sonnet"
+  ],
+  "id": 34
+ },
+ {
+  "repo": "Phenotype_Data_Acquisition",
+  "commit": "29eeb57d88",
+  "path": "PhenotypeScripts/N3C_phenotype_act_oracle.sql",
+  "line": 3,
+  "claim": "PhenotypeScripts/N3C_phenotype_act_oracle.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 35
+ },
+ {
+  "repo": "dbt_twilio",
+  "commit": "db7d6c7cee",
+  "path": "models/twilio__account_overview.sql",
+  "line": 38,
+  "claim": "account_overview: total_spent renamed to total_messages_spent but yml still documents total_spent. The column total_spent was renamed to total_messages_spent. The yml still documents total_spent (line 156) and does not document total_messages_spent. Any reader or test on total_spent for this model now breaks, and the documented contract no longer matches the output.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 36
+ },
+ {
+  "repo": "WebAPI",
+  "commit": "372199445a",
+  "path": "src/main/resources/db/migration/sqlserver/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql",
+  "line": 1,
+  "claim": "src/main/resources/db/migration/sqlserver/V2.8.0.20200127101702__restore_rest_endpoint_perms.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 37
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "1f0fda0fe3",
+  "path": "R/CohortCount.R",
+  "line": 90,
+  "claim": "getCohortCounts errors when databaseId is set and counts has zero rows. The SQL used to add database_id as a constant column, so an empty cohort table gave a 0-row data frame that still had a database_id column. Now the column is added in R with `counts$databaseId <- databaseId`. When the cohort table exists but is empty, or the cohortIds filter matches nothing, and no cohortDefinitionSet is given, `counts` has 0 rows. Assigning a length-1 value to a 0-row data frame throws 'replacement has 1 row, data has 0'. A call that used to return an empty result now fails. The cohortDefinitionSet path is safe because the merge with all.y=TRUE yields rows.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 38
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "a110ad88bb",
+  "path": "packages/op-datasets/src/op_datasets/coretables/fromgoldsky.py",
+  "line": 5,
+  "claim": "Imports op_datasets.schemas.blocks / transactions, which do not exist. The commit deletes packages/op-indexer/.../schemas/blocks.py, but op_datasets/schemas/ contains only __init__.py. There is no blocks.py or transactions.py, so BLOCKS_SCHEMA and TRANSACTIONS_SCHEMA cannot be imported. fromgoldsky (get_sql / get_core_tables), goldsky_dbt_views.generate, superchain_dbt_sources, schema_mapping_docs and the chains CLI app (via the get_core_tables and schema_mapping_docs imports) all fail with ModuleNotFoundError. The dbt view generation and the docs generation can therefore not run at all.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 39
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "unique-company-names.sql",
+  "line": 124,
+  "claim": "GitHub alias is mixed-case but is compared against lower(company). The left-hand expression lowercases company, but the alias is 'gitHub' with a capital H. It can never match, so no user is ever mapped to GitHub.",
+  "flagged_by": [
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 40
+ },
+ {
+  "repo": "stripe",
+  "commit": "6bce22bef3",
+  "path": "models/transform/stripe_subscription_events.sql",
+  "line": 19,
+  "claim": "Reads the bare relation `stripe_events` instead of the `events` CTE / ref. The `events` CTE wraps `{{ref('stripe_events')}}`, but `filtered` reads from an unqualified `stripe_events`. That name is neither a CTE nor a ref. It resolves through the search path, or fails if no such relation exists, and it skips dbt's dependency graph. Build order is then wrong, and the model can read the wrong schema or fail.",
+  "flagged_by": [
+   "plain-opus"
+  ],
+  "id": 41
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "cad2c9d6cd",
+  "path": "inst/testdata/id/sql/sql_server/4.sql",
+  "line": 1,
+  "claim": "inst/testdata/id/sql/sql_server/4.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 42
+ },
+ {
+  "repo": "dbt_twilio",
+  "commit": "db7d6c7cee",
+  "path": "models/twilio__account_overview.sql",
+  "line": 43,
+  "claim": "account_overview: join to usage_record on account_id/day fans out message counts and spend. usage_record holds multiple rows per account per day (one per usage category). Joining each message to every usage row of that account-day multiplies message rows by the number of usage categories. All count(message_id) columns (total_messages, outbound, inbound, per-status) and sum(messages.price) are inflated by that factor. Also, total_account_spent is summed once per message, so it is multiplied by the message count for the day. The usage side should be pre-aggregated to account_id and start_date before joining.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 43
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "tests/op_analytics/cli/pulls/test_l2beat.py",
+  "line": 15,
+  "claim": "test_extract contains breakpoint() and an assertion that cannot pass. The test calls breakpoint(), which hangs or errors under CI. It then asserts `actual == None`. `extract` returns a DataFrame, so the assertion is wrong. The fixture file case01/l2beat_scaling_summary.json may also be missing.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 44
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "unique-company-names.sql",
+  "line": 2,
+  "claim": "unique-company-names.sql: every UPDATE ends with an extra closing parenthesis. Each UPDATE has the form `in ('x'));`. The IN list closes with its own parenthesis, so the second `)` is unbalanced. The first statement already fails to parse. Running the script as a whole therefore applies no company_name normalisation, and users.company_name stays un-deduplicated.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 45
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 48,
+  "claim": "Comparisons against env-derived variables that may never be assigned. server, database, username and password are assigned only if the matching env vars are non-empty. If any env var is unset, `server != \"\"` raises object-not-found instead of skipping the connection.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 46
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "packages/op-datasets/src/op_datasets/processing/execute.py",
+  "line": 28,
+  "claim": "execute_task overwrites `dataframes` in the dt loop, so later dates are processed on already-filtered data. The loop iterates over the distinct dt values of blocks, but line 28 assigns the result of filter_to_date back to `dataframes`. After the first dt, `dataframes['blocks']` only holds that dt's blocks, and the transactions are cut to its block range. On the next dt, filter_to_date finds no blocks, so min and max are None. The other table is then filtered with comparisons against None, which returns zero rows. The `actual_range` min/max become None, so the audit and `UnitOfWork` path building (`block_floor` does `None % BLOCK_MOD`) fail. Any task that spans more than one date either crashes or si",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 47
+ },
+ {
+  "repo": "PheValuator",
+  "commit": "09b48e5ba5",
+  "path": "tests/testthat/cohorts/5.sql",
+  "line": 1,
+  "claim": "tests/testthat/cohorts/5.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 48
+ },
+ {
+  "repo": "queries-datario",
+  "commit": "0a1188a698",
+  "path": "models/meio_ambiente_clima/schema.yml",
+  "line": 7,
+  "claim": "Update frequency of taxa_precipitacao_alertario changed to \"Nunca\". The description used to say data is updated every 15 minutes, and the same description still says estimates are made every 15 minutes. The model is incremental and reads a live source, so \"Nunca\" is wrong and contradicts the rest of the text.",
+  "flagged_by": [
+   "plain-sonnet"
+  ],
+  "id": 49
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "src/op_analytics/cli/subcommands/misc/docsgen/schema_mapping_docs.py",
+  "line": 14,
+  "claim": "EXCLUDED_COLS still filters old name ingestion_metadata after rename to _meta. The schema column was renamed to `_meta` (shared.py:19, superchain_oplabs.yml:25). EXCLUDED_COLS in the docs generator still lists only `ingestion_metadata`, so the internal `_meta` struct column is no longer excluded. It will now appear in the generated core schema docs and the Google Sheet.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 50
+ },
+ {
+  "repo": "queries-datario",
+  "commit": "0a1188a698",
+  "path": "models/meio_ambiente_clima/schema.yml",
+  "line": 141,
+  "claim": "Update frequency of meteorologia_inmet changed from Hor\u00e1rio to \"Nunca\". The data is hourly and has coverage \"Desde 2010 at\u00e9 data corrente\", and the model is incremental. Describing it as never updated is wrong.",
+  "flagged_by": [
+   "plain-sonnet"
+  ],
+  "id": 51
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "unique-company-names.sql",
+  "line": 122,
+  "claim": "GitHub alias 'gitHub' can never match, so GitHub users are not mapped to one company_name. The WHERE clause lowercases the company value before comparing it. The IN list contains the mixed-case string 'gitHub', so no row can equal it. Users whose company is GitHub are not mapped to 'GitHub'. They stay as separate raw spellings and split the group-by company counts across several rows. The same wrong alias is in company-names.yaml.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 52
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 312,
+  "claim": "Concept synonym query runs unconditionally, breaking file mode. queryRenderedSqlFromDatabase is called with `connection` and `vocabularyDatabaseSchema` regardless of mode. In local or file mode (isValidConnection FALSE) neither object exists, so the app errors before loading. In the original structure this lookup was database only. The result is also only used for metadata joins.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 53
+ },
+ {
+  "repo": "CohortGenerator",
+  "commit": "166d81522f",
+  "path": "inst/sql/sql_server/migrations/Migration_3-v1.0.0.sql",
+  "line": 13,
+  "claim": "Invalid 'UPDATE TABLE' syntax in Migration_3 backfill of is_templated_cohort. The new statement is `UPDATE TABLE <t> SET ...`. `TABLE` is not valid in UPDATE in SQL Server, Postgres, SQLite, Oracle or Snowflake (and SqlRender translates it unchanged), so the statement fails with a syntax error. The migration then aborts after the ALTER and CREATE have already run, leaving the schema half-migrated. Existing rows keep is_templated_cohort NULL, which is the very thing the fix was meant to prevent. The correct form is `UPDATE <t> SET is_templated_cohort = 0;`, or with `WHERE is_templated_cohort IS NULL`.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 54
+ },
+ {
+  "repo": "CohortMethod",
+  "commit": "2c834b8b30",
+  "path": "extras/MultiAnalysesVignetteDataFetch.R",
+  "line": 274,
+  "claim": "Calibration loop `for (i in 1:5)` omits new analysisId 6. The commit inserts an inverse-probability-weighting analysis as analysisId 5 and renumbers the old 'Matching plus full outcome model' to analysisId 6, and cmAnalysisList now has 6 entries. The calibration loop still runs 1:5, so analysis 6 is never calibrated or plotted. Analysis 5 is now the IPW analysis rather than the old full-model one. This is an extras script, not warehouse data.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 55
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 113,
+  "claim": "global.R user-settings branch passes undefined `username` to isConnectionValid. In the user-provided-settings branch the credentials are assigned to `user`, but isConnectionValid is called with `username = username`. `username` is never defined in this branch (it only exists in the default-settings branch), so launchDiagnosticsExplorer with connectionDetails fails with 'object username not found'. The same branch then calls createConnectionDetails with `username` and `password` the same way.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 56
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 299,
+  "claim": "phenotypeDescriptionMetaData$phenotype_id filled from cohort table row i. The phenotype_id for each phenotypeDescription metadata row is taken from `cohort[i,]$phenotypeId`. The loop index i runs over phenotypeDescription rows, not cohort rows. The metadata is therefore attached to the wrong phenotype id. It also gives NA or an error when phenotypeDescription has more rows than cohort. The later join to phenotypeDescription by phenotypeId then returns wrong names and descriptions.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 57
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "0871d4b5ab",
+  "path": "api/queries/personal-contribution-in-diff-repos/template.sql",
+  "line": 4,
+  "claim": "activity_type 'all' replaces the filter with an empty string, leaving `WHERE AND actor_id = ...`. params.json offers an enum value 'all' whose template is an empty string. The predicate on line 4 is the first condition after WHERE and the next line starts with AND, so substituting '' yields `WHERE\\n AND actor_id = ...`, which is a SQL syntax error. The query fails whenever activity_type=all is requested. The other templates substitute valid predicates, so only 'all' breaks.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 58
+ },
+ {
+  "repo": "bigquery",
+  "commit": "38c3a39099",
+  "path": "sql/timeseries/pwaScores.sql",
+  "line": 22,
+  "claim": "pwaScores: service-worker filter only matches 'true', excluding '1'-encoded scores. The WHERE clause keeps only reports whose service-worker score is the string 'true'. Sibling timeseries queries treat both 'true' and '1' as a pass, because Lighthouse versions serialize boolean audit scores differently across crawl dates. If the 'true'/'1' variance applies here, reports from some dates drop out of the percentile population. Percentiles for those dates would then be computed on few or no rows, or would be missing entirely. The filter also restricts the population to pages with a service worker, so the percentiles do not describe all pages. That may be intended, but it is not s",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 59
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "queries/pull-request-merged-creators-total/template.sql",
+  "line": 1,
+  "claim": "queries/pull-request-merged-creators-total/template.sql does not parse. The SQL does not parse in any supported dialect after this change.",
+  "flagged_by": [
+   "free"
+  ],
+  "id": 60
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 308,
+  "claim": "colnames() of phenotypeDescriptionMetaData outside the metadata guard. phenotypeDescriptionMetaData is only created inside the `if ('metadata' %in% colnames(phenotypeDescription))` block. Line 308 sits outside that block. If phenotypeDescription has no metadata column, the object does not exist and the app fails at startup with 'object not found'.",
+  "flagged_by": [
+   "agent",
+   "plain-opus"
+  ],
+  "id": 61
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "00bbe6fe89",
+  "path": "packages/op-datasets/src/op_datasets/coretables/fromlocal.py",
+  "line": 4,
+  "claim": "fromlocal.read_core_tables has the wrong signature and undefined names. read.py calls `fromlocal.read_core_tables(chain, block_range)`, but the function takes only `block_range`, so the call raises a TypeError. The body also uses `get_sql` and `run_queries_concurrently`, which are never imported, so it raises a NameError. Even if those were fixed, it would query Goldsky instead of reading local files. Any `local:` source spec therefore fails.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 62
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "4bef5ed399",
+  "path": "unique-company-names.sql",
+  "line": 4,
+  "claim": "Extra closing parenthesis in every generated UPDATE statement. trim(replace\u00d710(lower(company)...)) is already balanced after `'corporation', ''))`. The generator then emits `in (...));`, which adds one more ')'. All 44 company UPDATE statements are therefore SQL syntax errors, and the normalisation script fails.",
+  "flagged_by": [
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 63
+ },
+ {
+  "repo": "ossinsight",
+  "commit": "0871d4b5ab",
+  "path": "api/queries/personal-contribution-in-diff-repos/template.sql",
+  "line": 1,
+  "claim": "event_hour uses %k (unpadded hour), producing malformed timestamps and wrong ORDER BY. DATE_FORMAT with '%k' yields hours 0-23 without zero padding, so event_hour values like '2024-05-01 9:00:00' are not valid timestamps. The query orders by this string (ORDER BY repo_id, event_hour DESC), so lexicographic comparison puts '9:00:00' after '10:00:00' within a day and the hourly ordering is wrong. The hours also won't parse as datetimes downstream. '%H' should be used for zero-padded hours.",
+  "flagged_by": [
+   "agent",
+   "plain-sonnet"
+  ],
+  "id": 64
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 238,
+  "claim": "Metadata JSON parsing fails on NULL/NA/empty metadata. RJSONIO::fromJSON(cohort[i,]$metadata) is called for every row. A NA or empty metadata value makes it error. `1:length(x)` loops over 1 and 0 when x is empty, and bind_rows of a mix of NULL and character elements can fail. One cohort with no metadata breaks startup.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 65
+ },
+ {
+  "repo": "CohortDiagnostics",
+  "commit": "38a5c80957",
+  "path": "inst/shiny/DiagnosticsExplorer/global.R",
+  "line": 321,
+  "claim": "cohortMetaData fans out per concept synonym when joining referentConceptIdsDataFrame. The lookup SQL returns one row per (conceptId, synonym name), plus the concept name, so each concept has many rows. Left-joining it on referentConceptId alone multiplies every cohortMetaData row by the number of synonyms. The later distinct() cannot collapse these rows because the referent column differs on each. The pivot_longer output then carries many duplicated referent rows per cohort. The same pattern is at lines 354-361 for phenotypeDescriptionMetaData.",
+  "flagged_by": [
+   "agent"
+  ],
+  "id": 66
+ },
+ {
+  "repo": "almanac.httparchive.org",
+  "commit": "08fb7f73ac",
+  "path": "sql/util/summary_response_bodies.sql",
+  "line": 9,
+  "claim": "Removing the INT64 casts changes the column types of rows appended to almanac.summary_response_bodies. The README says this query's results are appended to the existing `almanac.summary_response_bodies` table, which already holds the 2019 crawl. The old query used SAFE_CAST(requestId AS INT64) and SAFE_CAST(expAge AS INT64) so its output would match that table's INT64 columns. The source `almanac.requests` table, built by sql/util/requests.sql, stores requestId as STRING and expAge as NUMERIC. With the casts removed, the query outputs requestid as STRING and expAge as NUMERIC. BigQuery rejects an append when an existing INT64 column receives STRING or NUMERIC data. If the table is rebuilt to ma",
+  "flagged_by": [
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 67
+ },
+ {
+  "repo": "stripe",
+  "commit": "6bce22bef3",
+  "path": "models/transform/stripe_subscription_events.sql",
+  "line": 63,
+  "claim": "stripe_subscription_events.product selected but never defined in the filtered CTE. The final select reads `product` from the `filtered` CTE. That CTE (lines 8-18) only selects created_at, customer_id, plan_interval, period_amount, period_start, period_end, start, status, prior_status and event_type. It has no product column, and it does not use select *. The model fails to compile or run with an unknown-column error. Downstream, stripe_mrr_amortized, the discounted/typed models and schema.yml (not_null product) all read this column. A source column such as data__object__plan__name was probably meant to be aliased as product.",
+  "flagged_by": [
+   "agent",
+   "plain-opus",
+   "plain-sonnet"
+  ],
+  "id": 68
+ },
+ {
+  "repo": "op-analytics",
+  "commit": "a110ad88bb",
+  "path": "packages/op-coreutils/src/op_coreutils/__init__.py",
+  "line": 4,
+  "claim": "op_coreutils import now fails without a .env file. The package __init__ calls load_env() at import time. load_env raises ValueError if the repo has no .env. Every import of op_coreutils (including op_coreutils.path, used by the dbt generators, chain_metadata and docs generation) now fails on CI or any clean checkout. No .env exists in the repository, so the import breaks.",
+  "flagged_by": [
+   "agent",
+   "plain-sonnet"
+  ],
+  "id": 69
+ }
+]

@@ -1,0 +1,117 @@
+[
+ {
+  "id": 1,
+  "verdict": "REAL",
+  "reason": "audits.py:34 audit_timestamps expression is a verbatim copy of the invalid-hash check, so timestamp monotonicity is never audited; the file was added in this commit and the line was never fixed (audit later removed)."
+ },
+ {
+  "id": 4,
+  "verdict": "REAL",
+  "reason": "params.json declares repoId replaces '41986369' but template.sql lines 5 and 12 now contain 6296790, so the replacement matches nothing and the repoId param is ignored."
+ },
+ {
+  "id": 7,
+  "verdict": "FALSE",
+  "reason": "Reading the dev staging table by fully qualified name is this repo's convention for raw staging tables (bairro/logradouro do the same, no source() defined); not a defect of this commit."
+ },
+ {
+  "id": 10,
+  "verdict": "REAL",
+  "reason": "gcpauth.py now reads only the vault key GOOGLE_SERVICE_ACCOUNT while uploads_api_daily.yml still passed GOOGLE_AUTH; the very next commit 5057f4d7d2 changed the workflow to set OP_ANALYTICS_VAULT."
+ },
+ {
+  "id": 13,
+  "verdict": "REAL",
+  "reason": "Each generated statement ends with an extra ')' (e.g. line 4 \"in ('pingcap'));\" has 1 open and 2 close parens); the generator template in generate-company-name-sql.ts emits it, so the file does not parse."
+ },
+ {
+  "id": 16,
+  "verdict": "FALSE",
+  "reason": "Oracle migration uses Flyway ${ohdsiSchema} placeholders and seq.nextval in INSERT..SELECT exactly like sibling Oracle migrations; valid for Flyway, the parse failure is a tooling artifact."
+ },
+ {
+  "id": 19,
+  "verdict": "FALSE",
+  "reason": "Commit only renames diretorio to dados_mestres; the hardcoded staging table name predates it and is the repo's convention."
+ },
+ {
+  "id": 22,
+  "verdict": "REAL",
+  "reason": "The commit comments out the analysisSummary assignment (lines 270-271) but the calibration loop at 275-276 still reads analysisSummary, while the summary is stored as analysisSum, so a top-to-bottom run errors; never fixed (minor extras script)."
+ },
+ {
+  "id": 25,
+  "verdict": "REAL",
+  "reason": "stripe_plans.sql final select uses only window functions with no distinct/group by, so an id with N plan events yields N rows, unlike stripe_customers (select distinct); never fixed, model later deleted."
+ },
+ {
+  "id": 28,
+  "verdict": "UNCLEAR",
+  "reason": "The unanchored regex does match audited_blocks etc. in schema default, but whether ClickHouse errors or silently reads them cannot be settled from the repo; the config stayed for months."
+ },
+ {
+  "id": 31,
+  "verdict": "FALSE",
+  "reason": "Commit only renames diretorio to dados_mestres; the hardcoded staging table name predates it and is the repo's convention."
+ },
+ {
+  "id": 34,
+  "verdict": "REAL",
+  "reason": "Old loadResultsTable read optional tables only if in resultsTablesOnServer; new loadRequiredTables (Connections.R:14-27) always calls dbReadTable, so a missing optional table errors, and it uses global connectionPool instead of connection."
+ },
+ {
+  "id": 37,
+  "verdict": "FALSE",
+  "reason": "SQL Server migration uses Flyway ${ohdsiSchema} placeholders and NEXT VALUE FOR in INSERT..SELECT like sibling migrations; valid for Flyway, the parse failure is a tooling artifact."
+ },
+ {
+  "id": 40,
+  "verdict": "REAL",
+  "reason": "unique-company-names.sql:124 compares lower(...) to 'gitHub', which can never match; the commit introduced it (company-names.yaml alias 'gitHub')."
+ },
+ {
+  "id": 43,
+  "verdict": "REAL",
+  "reason": "The join of messages to usage_record on account_id/start_date fans out because usage_record has a category column (multiple rows per account-day), inflating count(message_id) and sums; the join was never pre-aggregated in later versions."
+ },
+ {
+  "id": 46,
+  "verdict": "REAL",
+  "reason": "global.R:48 compares server/database/username/password that are assigned only when env vars are non-empty; the old code defaulted to file mode with empty defaults, the rewrite errors with object not found when env vars are unset."
+ },
+ {
+  "id": 49,
+  "verdict": "REAL",
+  "reason": "Metadata update set update frequency to 'Nunca' for a 15-minute live table (doc value wrong); corrected to 'Diario' the next day in 4d1fea1. Documentation value only."
+ },
+ {
+  "id": 52,
+  "verdict": "REAL",
+  "reason": "'gitHub' is mixed case but compared against lower(company) in unique-company-names.sql and company-names.yaml:81, so GitHub users are never mapped; introduced by this commit."
+ },
+ {
+  "id": 55,
+  "verdict": "UNCLEAR",
+  "reason": "Loop 1:5 skips renumbered analysis 6, but the CaliPlot outputs have no consumer and the script stayed unchanged for years; real omission of unknown consequence."
+ },
+ {
+  "id": 58,
+  "verdict": "REAL",
+  "reason": "With activity_type=all the template substitutes '' for the type predicate leaving 'WHERE AND actor_id = ...', a syntax error; params.json was changed to a non-empty 'all' template two days later (84781408a8, a129c39f91)."
+ },
+ {
+  "id": 61,
+  "verdict": "REAL",
+  "reason": "global.R:308 colnames(phenotypeDescriptionMetaData) sits after the closing brace of the if ('metadata' %in% ...) block that creates the object, so it errors when the column is absent."
+ },
+ {
+  "id": 64,
+  "verdict": "REAL",
+  "reason": "DATE_FORMAT '%k' gives unpadded hours so event_hour strings like '9:00:00' sort after '10:00:00' in ORDER BY; minor, but it stayed in later versions of the query."
+ },
+ {
+  "id": 67,
+  "verdict": "FALSE",
+  "reason": "The same commit also adds the payload column, so the output could not append to the old table either; the table was evidently rebuilt from almanac.requests types, making the cast removal deliberate."
+ }
+]
