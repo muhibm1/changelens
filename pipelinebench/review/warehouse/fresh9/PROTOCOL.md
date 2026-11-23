@@ -9,3 +9,8 @@ fresh8 labeller cloned and dropped, is excluded too.
 ChangeLens v11 is frozen, and its commit recorded in `pipelinebench/results/warehouse-agent/`, before fresh9 is
 scored. The labeller's work is not read by anyone working on ChangeLens until v11 is frozen. To save usage, the
 blind false-alarm reading uses one isolated reader instead of three.
+
+## Applied before scoring
+
+The labeller used balboa, which the fresh8 labeller had cloned and dropped, so it is excluded by the rule above. Its
+bugs were removed from the set before anything was scored; nothing about them was read beyond the count.

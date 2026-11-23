@@ -1,5 +1,4 @@
 /home/user/fresh-repos-9/adventure-works https://github.com/mattiasthalen/adventure-works
-/home/user/fresh-repos-9/balboa https://github.com/datacoves/balboa
 /home/user/fresh-repos-9/chess_com_bi https://github.com/gabriellegall/chess_com_bi
 /home/user/fresh-repos-9/dbt-analytics https://github.com/wnl-icb-analytics/dbt-analytics
 /home/user/fresh-repos-9/dbt-cost-optimization https://github.com/dbt-labs/dbt-cost-optimization
