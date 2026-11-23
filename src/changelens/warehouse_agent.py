@@ -30,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-AGENT_VERSION = "wa-10"
+AGENT_VERSION = "wa-11"
 DOC_DIFF_CHARS = 15_000
 DIFF_CHARS = 90_000
 
@@ -372,8 +372,18 @@ def snapshot(repo: Path, commit: str, dest: Path) -> None:
 CODE_GLOBS = ("*.sql", "*.hql", "*.q", "*.sqlx", "*.ddl", "*.psql", "*.pgsql", "*.jinja", "*.j2", "*.yml", "*.yaml", "*.py", "*.R", "*.r")
 
 
+def _is_dataform(repo: Path, commit: str) -> bool:
+    """Whether the repository is a Dataform project, where SQL also lives in JavaScript files."""
+    try:
+        names = set(_git(repo, "ls-tree", "--name-only", commit).split())
+    except subprocess.CalledProcessError:
+        return False
+    return bool(names & {"dataform.json", "workflow_settings.yaml"})
+
+
 def change_diff(repo: Path, parent: str, commit: str) -> str:
-    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *CODE_GLOBS)
+    globs = CODE_GLOBS + (("*.js",) if _is_dataform(repo, commit) else ())
+    return _git(repo, "diff", "-M", "--unified=6", "--no-color", parent, commit, "--", *globs)
 
 
 def touched_files(repo: Path, parent: str, commit: str) -> set[str]:
@@ -903,8 +913,11 @@ def free_checks(repo: Path, commit: str) -> AgentResult:
     return res
 
 
-def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract", "edges"), deep_sites: bool = False, second_look: bool = True) -> AgentResult:
-    """Review ``commit`` against its first parent: specialist passes propose findings, a skeptical pass decides them."""
+def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str | None = "opus", effort: str | None = None, verify: bool = True, use_rules: bool = True, timeout: int = 1200, passes: tuple[str, ...] = ("grain", "values", "contract", "edges"), deep_sites: bool = False, second_look: bool = True, generalist: str | None = "opus") -> AgentResult:
+    """Review ``commit`` against its first parent: specialist passes and one generalist propose findings, a skeptical pass decides them.
+
+    The generalist is one whole-diff review on a stronger model (``generalist``; None turns it off). The specialists
+    and the generalist miss different bugs, so both feed the same skeptical pass."""
     from concurrent.futures import ThreadPoolExecutor
 
     t0 = time.monotonic()
@@ -938,6 +951,9 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
 
         def one(job: tuple[str, str]) -> tuple[str, dict[str, Any], int]:
             name, part = job
+            if name == "general":
+                out, turns = _claude(PLAIN_PROMPT.format(message=message, diff=numbered), tmp, REVIEW_SCHEMA, generalist or model, effort, timeout)
+                return name, out, turns
             if len(chunks) > 1:
                 part = (
                     f"This commit changes {len(all_files)} files: {', '.join(all_files)}.\n"
@@ -947,7 +963,7 @@ def review(repo: Path, commit: str, *, model: str = "sonnet", verify_model: str 
             out, turns = _claude(prompt, tmp, GRAIN_SCHEMA if name == "grain" else REVIEW_SCHEMA, model, effort, timeout)
             return name, out, turns
 
-        jobs = [(name, part) for part in chunks for name in passes]
+        jobs = [(name, part) for part in chunks for name in passes] + ([("general", "")] if generalist else [])
         with ThreadPoolExecutor(min(len(jobs), 8)) as pool:
             outs = list(pool.map(one, jobs))
         audit: list[dict[str, Any]] = []

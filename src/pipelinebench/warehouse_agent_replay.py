@@ -95,6 +95,7 @@ def later_fixed(repo: Path, commit: str, f: AgentFinding, look: int = 8) -> str 
 
 REVIEWER = "agent"
 REVERIFY: dict[str, Any] = {}
+GENERAL: dict[str, Any] = {}
 
 
 def _key(repo: Path, commit: str, model: str, verify: bool) -> str:
@@ -113,7 +114,13 @@ def _review(repo: Path, commit: str, model: str, verify: bool, effort: str | Non
         prev = next((v for k, v in REVERIFY.items() if k.startswith(f"{repo.name}:{commit[:10]}:wa-") and k.endswith(f":{model}:v")), None)
         if prev is None or prev.get("error"):
             raise RuntimeError("no cached reviewer output to verify again")
-        return reverify(repo, commit, prev.get("proposed", []), effort=effort).to_json()
+        proposed = list(prev.get("proposed", []))
+        if GENERAL:
+            gen = next((v for k, v in GENERAL.items() if k.startswith(f"{repo.name}:{commit[:10]}:plain-")), None)
+            if gen is None or gen.get("error"):
+                raise RuntimeError("no cached generalist output to add")
+            proposed += [{**f, "source": "general"} for f in gen.get("findings", [])]
+        return reverify(repo, commit, proposed, effort=effort).to_json()
     return review(repo, commit, model=model, verify=verify, effort=effort).to_json()
 
 
@@ -309,11 +316,14 @@ def main() -> None:
     ap.add_argument("--no-judge", action="store_true")
     ap.add_argument("--reviewer", default="agent", help="agent, plain-sonnet, plain-opus, free, or reverify (the skeptical pass again over --reverify-cache)")
     ap.add_argument("--reverify-cache", type=Path, help="an agent run's cache whose proposed findings --reviewer reverify reads")
+    ap.add_argument("--general-cache", type=Path, help="a plain-opus run's cache whose findings --reviewer reverify adds as the generalist pass's candidates")
     a = ap.parse_args()
     global REVIEWER
     REVIEWER = a.reviewer
     if a.reverify_cache:
         REVERIFY.update(load_cache(a.reverify_cache))
+    if a.general_cache:
+        GENERAL.update(load_cache(a.general_cache))
     labels = a.labels + [[]] * (len(a.repo) - len(a.labels))
     res = run(list(zip(a.repo, labels, strict=True)), a.sample, a.seed, a.model, not a.no_verify, a.jobs, a.cache, a.out, a.effort, a.only_bugs, not a.no_judge)
     print(json.dumps(res["summary"], indent=1))
